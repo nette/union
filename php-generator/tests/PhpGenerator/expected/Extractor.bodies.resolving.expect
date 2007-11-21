@@ -1,0 +1,104 @@
+namespace Nette;
+
+use Abc\a\FOO;
+use Abc\a\func;
+
+abstract class Class7
+{
+	abstract function abstractFun();
+
+
+	function emptyFun()
+	{
+	}
+
+
+	function emptyFun2()
+	{
+	}
+
+
+	function simple()
+	{
+		return 1;
+	}
+
+
+	function simple2()
+	{
+		return 1;
+	}
+
+
+	function long()
+	{
+		// comment
+		if ($member instanceof \Abc\Method) {
+			$s = [1, 2, 3];
+		}
+		/*
+		$this->methods[$member->getName()] = $member;
+		*/
+		throw new InvalidArgumentException('Argument must be Method|Property|Constant.');
+	}
+
+
+	function resolving($a = \Abc\a\FOO, self $b = null, $c = self::FOO)
+	{
+		// constants
+		echo FOO;
+		echo \FOO;
+		echo \Abc\a\FOO;
+		echo FOO;
+
+		// functions
+		func();
+		\func();
+		\Abc\a\func();
+		func();
+
+		// classes
+		$x = new \Abc\MyClass;
+		$y = new \stdClass;
+		$z = Utils\ArrayHash::class;
+	}
+
+
+	function complex()
+	{
+		echo 1;
+		// single line comment
+
+		// spaces - indent
+		// spaces - indent
+
+		/* multi
+		line
+		comment */
+		if (
+			$a
+			&&		$b    + $c)
+		{}
+
+		/** multi
+		line
+		comment */
+		// Alias Method will not be resolved in comment
+		if ($member instanceof \Abc\Method) {
+			$s1 = "\na\n\tb\n\t\tc\n";
+			$s2 = "\na\n\t{$b}\n\t\t$c\n";
+
+			$s3 = "a\n\t{$b}\n\t\t$c"
+		;
+			$s3 = "a\n\tb\n\t\tc"
+		;
+		// inline HTML is not supported
+			?>
+		a
+		b
+		c
+			<?php
+		}
+		throw new InvalidArgumentException();
+	}
+}

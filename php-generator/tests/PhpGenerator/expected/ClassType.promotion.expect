@@ -1,0 +1,11 @@
+class Example
+{
+	public function __construct(
+		$a,
+		public $b,
+		/** promo */
+		#[Example] private string $c,
+		public readonly Draft $d = new Draft(10),
+	) {
+	}
+}

@@ -1,0 +1,37 @@
+services:
+	ipsum: Ipsum
+	bar: Bar
+	baz: Baz
+
+	lorem: \ILoremFactory(Lorem)
+
+	article:
+		create: Article($title)
+		implement: IArticleFactory
+		setup:
+			- method(@self::Abc)
+			- $prop = @self::Abc
+
+	article2:
+		implement: IArticleFactory
+		arguments: [$title]
+
+	fooFactory1:
+		create: Foo(_, $baz)
+		implement: IFooFactory
+
+	fooFactory3:
+		type: Foo
+		implement: IFooFactory
+
+	fooFactory4: IFooFactory
+
+	factory5:
+		implement: ITestClassFactory
+		arguments: ['foo']
+
+	dolorFactory: DolorFactory
+
+	overridenFactory:
+		setup:
+			- $var = 123

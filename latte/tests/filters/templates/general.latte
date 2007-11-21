@@ -1,0 +1,35 @@
+<ul>
+	<li>{$hello |h1|h2}</li>
+	<li>{$hello |h1|h2|noescape}</li>
+	<li>{$hello |h2|h1}</li>
+</ul>
+
+<ul>
+	<li>{(int)$hello*0 |types:0,0.0,"0"}</li>
+	<li>{(int)$hello*1 |types:1,"1"}</li>
+	<li>{$hello |types:true,null,false}</li>
+	<li>{$hello |types:TRUE,NULL,FALSE}</li>
+	<li>{$hello |types:'',"","$hello"}</li>
+</ul>
+
+
+
+{block  |strip}  <a   href="#"
+> test</a
+
+>
+A   A
+
+<script>
+// comment
+alert();
+</script>
+{/block}
+
+
+
+<p>
+Nested blocks: {block|striphtml|truncate:20} Outer   {block|striphtml|upper} Inner Block {/block}  Block {/block}
+</p>
+
+Breaklines: {="hello\nbar"|breakLines}

@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Abc;
+
+readonly class Class13
+{
+	public function func(C|(X&D)|null $foo): (A&B)|null
+	{
+	}
+}
+
+
+trait Trait13
+{
+    public const FOO = 123;
+}

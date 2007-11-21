@@ -1,0 +1,56 @@
+%a% | %a% | 1 thread
+
+F.sF.sFsF.s
+
+-- FAILED: 01-basic.fail.phptx
+   Multi
+   line
+   stdout.Failed:
+
+   in %a%01-basic.fail.phptx(%d%) Tester\Assert::fail('');
+
+   STDERR:
+   Multi
+   line
+   stderr.
+
+-- FAILED: Title for output handlers | 02-title.fail.phptx
+   Multi
+   line
+   stdout.Failed:
+
+   in %a%02-title.fail.phptx(%d%) Tester\Assert::fail('');
+
+   STDERR:
+   Multi
+   line
+   stderr.
+
+-- FAILED: 03-message.fail.phptx
+   Multi
+   line
+   stdout.Failed: Multi
+   line
+   message.
+
+   in %a%03-message.fail.phptx(%d%) Tester\Assert::fail("Multi\nline\nmessage.");
+
+   STDERR:
+   Multi
+   line
+   stderr.
+
+-- FAILED: 04-args.fail.phptx dataprovider=thisIsAVeryVeryVeryLongArgumentNameToTestHowOutputHandlersDealWithItsLengthInTheirOutputFormatting|%a%provider.ini
+   Multi
+   line
+   stdout.Failed:
+
+   in %a%04-args.fail.phptx(%d%) Tester\Assert::fail('');
+
+   STDERR:
+   Multi
+   line
+   stderr.
+
+
+FAILURES! (11 tests, 4 failures, 4 skipped, %a% seconds)

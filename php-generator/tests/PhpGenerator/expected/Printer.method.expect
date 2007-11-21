@@ -1,0 +1,15 @@
+/**
+ * @return resource
+ */
+final public function first(stdClass $var): stdClass
+{
+	func();
+	return [
+		'aaaaaaaaaaaa' => 1,
+		'bbbbbbbbbbb' => 2,
+		'cccccccccccccc' => 3,
+		'dddddddddddd' => 4,
+		'eeeeeeeeeeee' => 5,
+		'ffffffff' => 6,
+	];
+}

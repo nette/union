@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * @exitCode 1
+ */
+
+require __DIR__ . '/../../bootstrap.php';
+Tester\Environment::$checkAssertions = false;
+
+die(231);

@@ -1,0 +1,17 @@
+parameters:
+	zone: "Europe/Prague"
+	foo: %bar% world
+	foo3: overwritten
+	bar: hello
+	database:
+		dsn: "sqlite2::memory:"
+		user: dbuser
+		password: secret
+
+constants:
+	BAR: %foo%
+
+php:
+	date.timezone: %zone%
+
+extensions:

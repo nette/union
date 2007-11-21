@@ -1,0 +1,7 @@
+<?php
+
+register_shutdown_function(function () {
+	die(231);
+});
+
+die(0);

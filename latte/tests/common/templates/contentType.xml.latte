@@ -1,0 +1,66 @@
+{contentType application/xml; charset=utf-8}
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/css" href="{$id}"?>
+
+<script><meta n:if=1 /></script>
+
+
+<ul>
+	<li>Escaped: {$hello}</li>
+	<li>Non-escaped: {$hello|noescape}</li>
+	<li>Escaped expression: {='<' . 'b' . '>hello' . '</b>'}</li>
+	<li>Non-escaped expression: {='<' . 'b' . '>hello' . '</b>'|noescape}</li>
+	<li>Array access: {$people[1]}</li>
+	<li>Html: {$el}</li>
+</ul>
+
+<style type="text/css">
+<!--
+#{$id} {
+	background: blue;
+}
+-->
+</style>
+
+
+<script>
+<!--
+var html = {$el};
+-->
+</script>
+
+
+<p onclick =
+'alert({$id});alert("hello");'
+ title='{$id}"'
+ style =
+ "color:{$id};'"
+ alt='{$el}'
+ onfocus="alert({$el})"
+>click on me</p>
+
+
+<!-- {$comment} -->
+
+
+</ul>
+
+
+<ul>
+	<li n:foreach="$people as $person">{$person}</li>
+</ul>
+
+<p n:if="true">
+	<div><p>true</div>
+</p>
+
+<input/> <input />
+
+<p val = {if true}"a"{else}"b"{/if}> </p>
+
+<p val = {$xss} val2={$mxss}> </p>
+
+<p onclick = {$xss}> </p>
+
+<p title="{="foo a='a' b=\"b\">"|noescape}"></p>
+<p {="foo a='a' b=\"b\">"|noescape}></p>

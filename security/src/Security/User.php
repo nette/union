@@ -1,367 +1,325 @@
 <?php
 
 /**
- * Nette Framework
- *
- * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
- *
- * This source file is subject to the "Nette license" that is bundled
- * with this package in the file license.txt.
- *
- * For more information please see http://nettephp.com
- *
- * @copyright  Copyright (c) 2004, 2008 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette::Web
- * @version    $Id$
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-/*namespace Nette::Web;*/
+declare(strict_types=1);
 
-/*use Nette::Environment;*/
+namespace Nette\Security;
 
-
-
-require_once dirname(__FILE__) . '/../Object.php';
-
-require_once dirname(__FILE__) . '/../Web/IUser.php';
-
+use Nette;
+use Nette\Utils\Arrays;
 
 
 /**
- * Authentication and authorization.
+ * User authentication and authorization.
  *
- * @author     David Grudl
- * @copyright  Copyright (c) 2004, 2008 David Grudl
- * @package    Nette::Web
+ * @property-deprecated bool $loggedIn
+ * @property-deprecated IIdentity $identity
+ * @property-deprecated string|int $id
+ * @property-deprecated array $roles
+ * @property-deprecated int $logoutReason
+ * @property-deprecated Authenticator $authenticator
+ * @property-deprecated Authorizator $authorizator
  */
-class User extends /*Nette::*/Object implements IUser
+class User
 {
-	/** @var string  default role for unauthenticated user */
-	public $guestRole = 'guest';
+	use Nette\SmartObject;
 
-	/** @var string  default role for authenticated user without own identity */
-	public $authenticatedRole = 'authenticated';
+	/** Log-out reason */
+	public const
+		LogoutManual = UserStorage::LogoutManual,
+		LogoutInactivity = UserStorage::LogoutInactivity;
 
-	/** @var string */
-	public $cookieName = 'nette-authkey';
+	/** @deprecated use User::LogoutManual */
+	public const LOGOUT_MANUAL = self::LogoutManual;
 
-	/** @var string */
-	public $cookieDomain;
+	/** @deprecated use User::LogoutManual */
+	public const MANUAL = self::LogoutManual;
 
-	/** @var string */
-	public $cookiePath;
+	/** @deprecated use User::LogoutInactivity */
+	public const LOGOUT_INACTIVITY = self::LogoutInactivity;
 
-	/** @var int */
-	public $authExpiration = FALSE;
+	/** @deprecated use User::LogoutInactivity */
+	public const INACTIVITY = self::LogoutInactivity;
 
-	/** @var int */
-	public $identityExpiration = FALSE;
+	/** default role for unauthenticated user */
+	public string $guestRole = 'guest';
 
-	/** @var Nette::Security::IAuthenticator */
-	private $authenticationHandler;
+	/** default role for authenticated user without own identity */
+	public string $authenticatedRole = 'authenticated';
 
-	/** @var Nette::Security::IAuthorizator */
-	private $authorizationHandler;
+	/** @var callable[]  function (User $sender): void; Occurs when the user is successfully logged in */
+	public iterable $onLoggedIn = [];
 
-	/** @var SessionNamespace */
-	private $session;
+	/** @var callable[]  function (User $sender): void; Occurs when the user is logged out */
+	public iterable $onLoggedOut = [];
+
+	private ?IIdentity $identity = null;
+	private ?bool $authenticated = null;
+	private ?int $logoutReason = null;
 
 
-
-	/**
-	 */
-	public function __construct($name = NULL)
-	{
-		$this->cookiePath = Environment::getHttpRequest()->getUri()->basePath;
-		$this->initSession();
+	public function __construct(
+		private UserStorage $storage,
+		private ?Authenticator $authenticator = null,
+		private ?Authorizator $authorizator = null,
+	) {
 	}
 
 
-
-	/**
-	 * @param  Nette::Security::IAuthenticator
-	 * @return void
-	 */
-	public function setAuthenticationHandler(/*Nette::Security::*/IAuthenticator $handler)
+	final public function getStorage(): UserStorage
 	{
-		$this->authenticationHandler = $handler;
+		return $this->storage;
 	}
-
-
-
-	/**
-	 * @return Nette::Security::IAuthenticator
-	 */
-	final public function getAuthenticationHandler()
-	{
-		if ($this->authenticationHandler === NULL) {
-			$this->authenticationHandler = Environment::getService('Nette::Security::IAuthenticator');
-		}
-		return $this->authenticationHandler;
-	}
-
-
-
-	/**
-	 * @param  Nette::Security::IAuthorizator
-	 * @return void
-	 */
-	public function setAuthorizationHandler(/*Nette::Security::*/IAuthorizator $handler)
-	{
-		$this->authorizationHandler = $handler;
-	}
-
-
-
-	/**
-	 * @return Nette::Security::IAuthorizator
-	 */
-	final public function getAuthorizationHandler()
-	{
-		if ($this->authorizationHandler === NULL) {
-			$this->authorizationHandler = Environment::getService('Nette::Security::IAuthorizator');
-		}
-		return $this->authorizationHandler;
-	}
-
-
-
-	/**
-	 * Initializes $this->session.
-	 * @return vois
-	 */
-	protected function initSession()
-	{
-		$this->session = $session = Environment::getSession('Nette.Web.User');
-
-		if (!($session->identity instanceof /*Nette::Security::*/IIdentity)) {
-			$session->identity = NULL;
-		}
-
-		if (!is_bool($session->authenticated)) {
-			$session->authenticated = FALSE;
-		}
-
-		if ($session->authkey !== Environment::getHttpRequest()->getCookie($this->cookieName)) {
-			$this->setAuthenticated(FALSE);
-		}
-	}
-
 
 
 	/********************* Authentication ****************d*g**/
 
 
-
 	/**
-	 * Check the authenticated status.
-	 * @param  string
-	 * @param  string
-	 * @param  mixed
-	 * @return void
-	 * @throws Nette::Security::AuthenticationException
+	 * Conducts the authentication process. Parameters are optional.
+	 * @param  string|IIdentity  $user  name or Identity
+	 * @throws AuthenticationException if authentication was not successful
 	 */
-	public function authenticate($username = NULL, $password = NULL, $extra = NULL)
+	public function login(string|IIdentity $user, ?string $password = null): void
 	{
-		$handler = $this->getAuthenticationHandler();
-		if ($handler === NULL) {
-			throw new /*::*/InvalidStateException('Authentization handler has not been set.');
-		}
-
-		$this->setAuthenticated(FALSE);
-
-		$credentials = array(
-			'username' => $username,
-			'password' => $password,
-			'extra' => $extra,
-		);
-
-		$this->setIdentity($handler->authenticate($credentials));
-		$this->setAuthenticated(TRUE);
-	}
-
-
-
-	/**
-	 * Removes the authentication flag from persistent storage.
-	 * @param  bool  Clear the identity from persistent storage?
-	 * @return void
-	 */
-	final public function signOut($clearIdentity = TRUE)
-	{
-		$this->setAuthenticated(FALSE);
-		if ($clearIdentity) {
-			$this->session->identity = NULL;
-		}
-	}
-
-
-
-	/**
-	 * Indicates whether this user is authenticated.
-	 *
-	 * @return bool true, if this user is authenticated, otherwise false.
-	 */
-	final public function isAuthenticated()
-	{
-		return $this->session->authenticated;
-	}
-
-
-
-	/**
-	 * @return Nette::Security::IIdentity
-	 */
-	final public function getIdentity()
-	{
-		return $this->session->identity;
-	}
-
-
-
-	/**
-	 * Set the authenticated status of this user.
-	 *
-	 * @param  bool A flag indicating the authenticated status of this user.
-	 * @return void
-	 */
-	protected function setAuthenticated($value)
-	{
-		$value = ($value === TRUE);
-		$session = $this->session;
-		if ($session->authenticated === $value) return;
-
-		$session->authenticated = $value;
-		if ($value) {
-			if (!$session->authkey) {
-				$session->authkey = /*Nette::*/Tools::uniqueId();
-			}
-			if ($this->authExpiration) {
-				$session->setExpiration($this->authExpiration, 'authkey');
-			}
+		$this->logout(true);
+		if ($user instanceof IIdentity) {
+			$this->identity = $user;
 		} else {
-			$session->authkey = NULL;
+			$authenticator = $this->getAuthenticator();
+			$this->identity = $authenticator->authenticate(...func_get_args());
 		}
 
-		Environment::getHttpResponse()->setCookie(
-			$this->cookieName,
-			$session->authkey,
-			HttpResponse::WINDOW,
-			$this->cookiePath,
-			$this->cookieDomain
-		);
+		$id = $this->authenticator instanceof IdentityHandler
+			? $this->authenticator->sleepIdentity($this->identity)
+			: $this->identity;
+
+		$this->storage->saveAuthentication($id);
+		$this->authenticated = true;
+		$this->logoutReason = null;
+		Arrays::invoke($this->onLoggedIn, $this);
 	}
-
-
-
-	protected function setIdentity(/*Nette::Security::*/IIdentity $identity)
-	{
-		$this->session->identity = $identity;
-		if ($this->identityExpiration) {
-			$session->setExpiration($this->identityExpiration, 'identity');
-		}
-	}
-
-
-
-	/********************* application support ****************d*g**/
-
 
 
 	/**
-	 * @param  Nette::Application::PresenterRequest
-	 * @return string
+	 * Logs out the user from the current session.
 	 */
-	public function storeRequest(/*Nette::Application::*/PresenterRequest $request)
+	final public function logout(bool $clearIdentity = false): void
 	{
-		$session = $this->session;
-		do {
-			$key = /*Nette::*/Tools::uniqueId();
-		} while (isset($session->rq[$key]));
+		$logged = $this->isLoggedIn();
+		$this->storage->clearAuthentication($clearIdentity);
+		$this->authenticated = false;
+		$this->logoutReason = self::MANUAL;
+		if ($logged) {
+			Arrays::invoke($this->onLoggedOut, $this);
+		}
 
-		$session->rq[$key] = $request;
-		$session->setExpiration(10 * 60, 'rq');
-		return $key;
+		$this->identity = $clearIdentity ? null : $this->identity;
 	}
-
 
 
 	/**
-	 * @param  string
-	 * @return void
+	 * Is this user authenticated?
 	 */
-	public function restoreRequest($key)
+	final public function isLoggedIn(): bool
 	{
-		$session = $this->session;
-		if (isset($session->rq[$key])) {
-			$request = $session->rq[$key];
-			unset($session->rq[$key]);
-			throw new /*Nette::Application::*/ForwardingException($request);
+		if ($this->authenticated === null) {
+			$this->getStoredData();
 		}
+
+		return $this->authenticated;
 	}
 
+
+	/**
+	 * Returns current user identity, if any.
+	 */
+	final public function getIdentity(): ?IIdentity
+	{
+		if ($this->authenticated === null) {
+			$this->getStoredData();
+		}
+
+		return $this->identity;
+	}
+
+
+	private function getStoredData(): void
+	{
+		(function (bool $state, ?IIdentity $id, ?int $reason) use (&$identity) {
+			$identity = $id;
+			$this->authenticated = $state;
+			$this->logoutReason = $reason;
+		})(...$this->storage->getState());
+
+		$this->identity = $identity && $this->authenticator instanceof IdentityHandler
+			? $this->authenticator->wakeupIdentity($identity)
+			: $identity;
+		$this->authenticated = $this->authenticated && $this->identity;
+	}
+
+
+	/**
+	 * Returns current user ID, if any.
+	 */
+	public function getId(): string|int|null
+	{
+		$identity = $this->getIdentity();
+		return $identity ? $identity->getId() : null;
+	}
+
+
+	final public function refreshStorage(): void
+	{
+		$this->identity = $this->authenticated = $this->logoutReason = null;
+	}
+
+
+	/**
+	 * Sets authentication handler.
+	 */
+	public function setAuthenticator(Authenticator $handler): static
+	{
+		$this->authenticator = $handler;
+		return $this;
+	}
+
+
+	/**
+	 * Returns authentication handler.
+	 */
+	final public function getAuthenticator(): Authenticator
+	{
+		if (!$this->authenticator) {
+			throw new Nette\InvalidStateException('Authenticator has not been set.');
+		}
+
+		return $this->authenticator;
+	}
+
+
+	/**
+	 * Returns authentication handler.
+	 */
+	final public function getAuthenticatorIfExists(): ?Authenticator
+	{
+		return $this->authenticator;
+	}
+
+
+	/** @deprecated */
+	final public function hasAuthenticator(): bool
+	{
+		return (bool) $this->authenticator;
+	}
+
+
+	/**
+	 * Enables log out after inactivity (like '20 minutes').
+	 */
+	public function setExpiration(?string $expire, bool $clearIdentity = false)
+	{
+		$this->storage->setExpiration($expire, $clearIdentity);
+		return $this;
+	}
+
+
+	/**
+	 * Why was user logged out? Returns LOGOUT_MANUAL or LOGOUT_INACTIVITY.
+	 */
+	final public function getLogoutReason(): ?int
+	{
+		return $this->logoutReason;
+	}
 
 
 	/********************* Authorization ****************d*g**/
 
 
-
 	/**
-	 * Returns a role this user has been granted.
-	 * @return array
+	 * Returns a list of effective roles that a user has been granted.
 	 */
-	public function getRoles()
+	public function getRoles(): array
 	{
-		if (!$this->session->authenticated) {
-			return array($this->guestRole);
+		if (!$this->isLoggedIn()) {
+			return [$this->guestRole];
 		}
 
-		if (!$this->session->identity) {
-			return array($this->authenticatedRole);
-		}
-
-		return $this->session->identity->getRoles();
+		$identity = $this->getIdentity();
+		return $identity && $identity->getRoles() ? $identity->getRoles() : [$this->authenticatedRole];
 	}
 
 
-
 	/**
-	 * Returns a role this user has been granted.
-	 * @param  string
-	 * @return bool
+	 * Is a user in the specified effective role?
 	 */
-	final public function isInRole($role)
+	final public function isInRole(string $role): bool
 	{
-		return in_array($role, $this->getRoles(), TRUE);
+		foreach ($this->getRoles() as $r) {
+			if ($role === ($r instanceof Role ? $r->getRoleId() : $r)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 
-
 	/**
-	 * Returns TRUE if and only if the user has access to the Resource.
-	 *
-	 * If either $resource is NULL, then the query applies to all Resources,
-	 * respectively.
-	 *
-	 * @param  string  resource
-	 * @param  string  privilege
-	 * @return boolean
+	 * Has a user effective access to the Resource?
+	 * If $resource is null, then the query applies to all resources.
 	 */
-	public function isAllowed($resource = NULL, $privilege = NULL)
+	public function isAllowed($resource = Authorizator::All, $privilege = Authorizator::All): bool
 	{
-		$handler = $this->getAuthorizationHandler();
-		if (!$handler) {
-			throw new /*::*/InvalidStateException("Authorization handler has not been set.");
-		}
-
 		foreach ($this->getRoles() as $role) {
-			if ($handler->isAllowed($role, $resource, $privilege)) return TRUE;
+			if ($this->getAuthorizator()->isAllowed($role, $resource, $privilege)) {
+				return true;
+			}
 		}
 
-		return FALSE;
+		return false;
 	}
 
+
+	/**
+	 * Sets authorization handler.
+	 */
+	public function setAuthorizator(Authorizator $handler): static
+	{
+		$this->authorizator = $handler;
+		return $this;
+	}
+
+
+	/**
+	 * Returns current authorization handler.
+	 */
+	final public function getAuthorizator(): Authorizator
+	{
+		if (!$this->authorizator) {
+			throw new Nette\InvalidStateException('Authorizator has not been set.');
+		}
+
+		return $this->authorizator;
+	}
+
+
+	/**
+	 * Returns current authorization handler.
+	 */
+	final public function getAuthorizatorIfExists(): ?Authorizator
+	{
+		return $this->authorizator;
+	}
+
+
+	/** @deprecated */
+	final public function hasAuthorizator(): bool
+	{
+		return (bool) $this->authorizator;
+	}
 }

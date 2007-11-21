@@ -1,0 +1,44 @@
+parameters:
+	property: test
+
+services:
+	lorem:
+		factory: Lorem
+		setup:
+			# local methods
+			- test(2)
+			- @lorem::test(3)
+			- [@self, test](4)
+
+			# static class method
+			- Ipsum::staticTest(5)
+
+			# other service method
+			- @ipsum::test(6)
+
+			# global function
+			- ::globtest(7)
+
+			# local properties
+			- @lorem::$test=null
+			- [@self, $test](true)
+			- $test = false
+			- $%property%(8)
+			- '$arr[]' = 1
+			- '$arr[]'=2
+
+			# static class property
+			- Ipsum::$staticTest(9)
+
+			# other service property
+			- @ipsum::$%property%(Lorem())
+
+			# rich
+			- Ipsum(a)::test
+			- Ipsum(b)::test(10)
+
+			# object
+			- \Ipsum(@self)
+
+	ipsum:
+		factory: Ipsum

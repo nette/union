@@ -1,0 +1,73 @@
+services:
+	one1:
+		factory: Ipsum
+		alteration: yes
+	one2:
+		factory: Ipsum
+		arguments: [2]
+	one3:
+		factory: Ipsum(2)
+	one4:
+		arguments: [2]
+	one5:
+		factory: IpsumFactory::create
+	one6:
+		factory: IpsumFactory::create
+		arguments: [2]
+	one7:
+		factory: IpsumFactory::create(2)
+	one8!:
+		factory: Ipsum
+	one9:
+		type: Ipsum
+	one10:
+		class: Ipsum
+
+	two1:
+		factory: Ipsum
+	two2:
+		factory: Ipsum
+		arguments: [2]
+	two3:
+		factory: Ipsum(2)
+	two4:
+		arguments: [2]
+	two5:
+		factory: IpsumFactory::create
+	two6:
+		factory: IpsumFactory::create
+		arguments: [2]
+	two7:
+		factory: IpsumFactory::create(2)
+	two8:
+		arguments: [1: new]
+	two9:
+		arguments!: [new]
+	two10:
+		factory: Factory::createLorem(2)
+		arguments: [1: new]
+	two11:
+		type: Ipsum
+	two12:
+		class: Ipsum
+
+	three1:
+		factory: Ipsum
+	three2:
+		factory: Ipsum
+		arguments: [2]
+	three3:
+		factory: Ipsum(2)
+	three4:
+		arguments: [2]
+	three5:
+		factory: IpsumFactory::create
+	three6:
+		factory: IpsumFactory::create
+		arguments: [2]
+	three7:
+		factory: IpsumFactory::create(2)
+	three8:
+		type: Ipsum
+	three9:
+		class: Ipsum

@@ -1,0 +1,23 @@
+{default $class = NULL, $namespace = NULL, $top = TRUE}
+<!DOCTYPE html>
+<head>
+	<title>{block title|stripHtml|upper}My website{/block}</title>
+</head>
+
+<body>
+	<div id="sidebar">
+		{block sidebar}
+		<ul>
+			<li><a href="/">Homepage</a></li>
+		</ul>
+		{/block}
+	</div>
+
+	<div id="content">
+		{include content}
+
+		{include content|stripHtml|upper}
+	</div>
+</body>
+</html>
+Parent: {basename($this->getReferringTemplate()->getName())}/{$this->getReferenceType()}

@@ -1,83 +1,60 @@
 <?php
 
 /**
- * Nette Framework
- *
- * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
- *
- * This source file is subject to the "Nette license" that is bundled
- * with this package in the file license.txt.
- *
- * For more information please see http://nettephp.com
- *
- * @copyright  Copyright (c) 2004, 2008 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette::Security
- * @version    $Id$
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
-/*namespace Nette::Security;*/
+declare(strict_types=1);
 
+namespace Nette\Security;
 
-
-require_once dirname(__FILE__) . '/../Security/IAuthenticator.php';
-
-require_once dirname(__FILE__) . '/../Object.php';
-
-require_once dirname(__FILE__) . '/../Security/Identity.php';
-
-require_once dirname(__FILE__) . '/../Security/AuthenticationException.php';
-
+use Nette;
 
 
 /**
- * Trivial implementation of IAuthenticator.
- *
- * @author     David Grudl
- * @copyright  Copyright (c) 2004, 2008 David Grudl
- * @package    Nette::Security
+ * Trivial implementation of Authenticator.
  */
-class SimpleAuthenticator extends /*Nette::*/Object implements IAuthenticator
+class SimpleAuthenticator implements Authenticator
 {
-	/** @var array */
-	private $userlist;
-
+	use Nette\SmartObject;
 
 	/**
-	 * @param  array  list of usernames and passwords
+	 * @param  array  $passwords list of pairs username => password
+	 * @param  array  $roles list of pairs username => role[]
+	 * @param  array  $data list of pairs username => mixed[]
 	 */
-	public function __construct(array $userlist)
-	{
-		$this->userlist = $userlist;
+	public function __construct(
+		private array $passwords,
+		private array $roles = [],
+		private array $data = [],
+	) {
 	}
-
 
 
 	/**
 	 * Performs an authentication against e.g. database.
 	 * and returns IIdentity on success or throws AuthenticationException
-	 *
-	 * @param  array
-	 * @return IIdentity
 	 * @throws AuthenticationException
 	 */
-	public function authenticate(array $credentials)
+	public function authenticate(string $username, string $password): IIdentity
 	{
-		$username = $credentials['username'];
-		foreach ($this->userlist as $name => $pass) {
-			if (strcasecmp($name, $credentials['username']) === 0) {
-				if (strcasecmp($pass, $credentials['password']) === 0) {
-					// matched!
-					return new Identity($name);
+		foreach ($this->passwords as $name => $pass) {
+			if (strcasecmp($name, $username) === 0) {
+				if ($this->verifyPassword($password, $pass)) {
+					return new SimpleIdentity($name, $this->roles[$name] ?? null, $this->data[$name] ?? []);
+				} else {
+					throw new AuthenticationException('Invalid password.', self::InvalidCredential);
 				}
-
-				throw new AuthenticationException("Invalid password.", AuthenticationException::INVALID_CREDENTIAL);
 			}
 		}
 
-		throw new AuthenticationException("User '$username' not found.", AuthenticationException::IDENTITY_NOT_FOUND);
+		throw new AuthenticationException("User '$username' not found.", self::IdentityNotFound);
 	}
 
+
+	protected function verifyPassword(string $password, string $passOrHash): bool
+	{
+		return $password === $passOrHash;
+	}
 }

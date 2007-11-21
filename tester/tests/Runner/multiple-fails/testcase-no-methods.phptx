@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @testcase
+ */
+
+use Tester\TestCase;
+
+require __DIR__ . '/../../bootstrap.php';
+
+
+class MyTest extends TestCase
+{
+}
+
+(new MyTest)->run();

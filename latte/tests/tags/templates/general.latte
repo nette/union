@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<input/> <input /> <input>
+
+<input checked> <input checked="checked">
+
+<button />
+
+{ test} {"test} {'test}
+
+{= (string) (bool) (float) (int) (array) 10}
+
+
+{foreach array(true) as $foo}
+	{foreach $people as $person}
+	{if $iterator->isFirst()}<ul>{/if}
+	<li id="item-{$iterator->getCounter()}" class="{$iterator->isOdd() ? 'odd' : 'even'}">{$person}</li>
+	{if $iterator->isLast()}</ul>{/if}
+	{/foreach}
+{/foreach}
+
+
+{var $counter = 0}
+{block menu}
+<ul>
+	{foreach $menu as $item}
+	<li>{$counter++} {if is_array($item)} {include this, 'menu' => $item} {else}{$item}{/if}</li>
+	{/foreach}
+</ul>
+{/block}

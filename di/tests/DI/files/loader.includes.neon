@@ -1,0 +1,12 @@
+includes:
+	- loader.includes.child.neon
+	- loader.includes.child.php
+
+parameters:
+	scalar: 1
+	list: [1, 2]
+	force!: [1, 2]
+
+services:
+	a:
+		autowired: no

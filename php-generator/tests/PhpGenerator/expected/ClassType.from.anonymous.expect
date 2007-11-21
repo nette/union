@@ -1,0 +1,19 @@
+{
+	public $a;
+	private $b;
+
+
+	public function a()
+	{
+	}
+
+
+	private function b()
+	{
+	}
+}
+extends Class1 {
+	public function a()
+	{
+	}
+}
