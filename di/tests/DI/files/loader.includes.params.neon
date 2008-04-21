@@ -1,5 +1,0 @@
-parameters:
-	name: ignored
-
-includes:
-	- %name%.neon
