@@ -1,376 +1,347 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com/
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com/
+ * @category   Nette
+ * @package    Nette::Caching
  */
 
-declare(strict_types=1);
+/*namespace Nette::Caching;*/
 
-namespace Nette\Caching\Storages;
 
-use Nette;
-use Nette\Caching\Cache;
+
+require_once dirname(__FILE__) . '/../Object.php';
+
+require_once dirname(__FILE__) . '/../Caching/ICacheStorage.php';
+
 
 
 /**
  * Cache file storage.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Caching
+ * @version    $Revision$ $Date$
  */
-class FileStorage implements Nette\Caching\Storage
+class FileStorage extends /*Nette::*/Object implements ICacheStorage
 {
-	use Nette\SmartObject;
+	/** @var float  probability that the clean() routine is started */
+	public static $gcProbability = 0.001;
 
-	/**
-	 * Atomic thread safe logic:
-	 *
-	 * 1) reading: open(r+b), lock(SH), read
-	 *     - delete?: delete*, close
-	 * 2) deleting: delete*
-	 * 3) writing: open(r+b || wb), lock(EX), truncate*, write data, write meta, close
-	 *
-	 * delete* = try unlink, if fails (on NTFS) { lock(EX), truncate, close, unlink } else close (on ext3)
-	 */
-
-	/** @internal cache file structure: meta-struct size + serialized meta-struct + data */
-	private const
-		MetaHeaderLen = 6,
-	// meta structure: array of
-		MetaTime = 'time', // timestamp
-		MetaSerialized = 'serialized', // is content serialized?
-		MetaExpire = 'expire', // expiration timestamp
-		MetaDelta = 'delta', // relative (sliding) expiration
-		MetaItems = 'di', // array of dependent items (file => timestamp)
-		MetaCallbacks = 'callbacks'; // array of callbacks (function, args)
-
-	/** additional cache structure */
-	private const
-		File = 'file',
-		Handle = 'handle';
-
-	/** probability that the clean() routine is started */
-	public static float $gcProbability = 0.001;
-
-	private string $dir;
-	private ?Journal $journal;
-	private array $locks;
+	/** @var string */
+	protected $base;
 
 
-	public function __construct(string $dir, ?Journal $journal = null)
+
+	public function __construct($base)
 	{
-		if (!is_dir($dir)) {
-			throw new Nette\DirectoryNotFoundException("Directory '$dir' not found.");
+		$this->base = $base;
+		$dir = dirname($base . '-');
+
+		if (!is_dir($dir) || !is_writable($dir)) {
+			throw new /*::*/InvalidStateException("Temporary directory '$dir' is not writable.");
 		}
 
-		$this->dir = $dir;
-		$this->journal = $journal;
-
-		if (mt_rand() / mt_getrandmax() < static::$gcProbability) {
-			$this->clean([]);
+		if (mt_rand() / mt_getrandmax() < self::$gcProbability) {
+			$this->clean(array());
 		}
 	}
 
 
-	public function read(string $key): mixed
-	{
-		$meta = $this->readMetaAndLock($this->getCacheFile($key), LOCK_SH);
-		return $meta && $this->verify($meta)
-			? $this->readData($meta) // calls fclose()
-			: null;
-	}
-
 
 	/**
-	 * Verifies dependencies.
+	 * Read from cache.
+	 * @param  string key
+	 * @return mixed|NULL
 	 */
-	private function verify(array $meta): bool
+	public function read($key)
 	{
+		// read meta
+		$metaFile = $this->getMetaFile($key);
+		$meta = @$this->readMeta($metaFile); // intentionally @
+		if (!$meta) return NULL;
+
+		// meta structure:
+		// array(
+		//     file => cache content file path (the one and only mandatory item)
+		//     serialized => is content serialized?
+		//     priority => priority
+		//     expire => expiration timestamp
+		//     delta => relative (sliding) expiration
+		//     df => array of dependent files (file => timestamp)
+		//     tags => array of tags (tag => [foo])
+		//     handle > file pointer resource; added by readMeta()
+		// )
+
+		// verify dependencies
 		do {
-			if (!empty($meta[self::MetaDelta])) {
-				// meta[file] was added by readMetaAndLock()
-				if (filemtime($meta[self::File]) + $meta[self::MetaDelta] < time()) {
-					break;
-				}
+			if (!empty($meta['delta']) || !empty($meta['df'])) {
+				clearstatcache();
+			}
 
-				touch($meta[self::File]);
+			if (!empty($meta['delta'])) {
+				if (filemtime($metaFile) + $meta['delta'] < time()) break;
+				touch($metaFile);
 
-			} elseif (!empty($meta[self::MetaExpire]) && $meta[self::MetaExpire] < time()) {
+			} elseif (!empty($meta['expire']) && $meta['expire'] < time()) {
 				break;
 			}
 
-			if (!empty($meta[self::MetaCallbacks]) && !Cache::checkCallbacks($meta[self::MetaCallbacks])) {
-				break;
-			}
-
-			if (!empty($meta[self::MetaItems])) {
-				foreach ($meta[self::MetaItems] as $depFile => $time) {
-					$m = $this->readMetaAndLock($depFile, LOCK_SH);
-					if (($m[self::MetaTime] ?? null) !== $time || ($m && !$this->verify($m))) {
-						break 2;
-					}
+			if (!empty($meta['df'])) {
+				foreach ($meta['df'] as $depFile => $time) {
+					if (@filemtime($depFile) <> $time) break 2;  // intentionally @
 				}
 			}
 
-			return true;
-		} while (false);
+			return @$this->readData($meta);
+		} while (FALSE);
 
-		$this->delete($meta[self::File], $meta[self::Handle]); // meta[handle] & meta[file] was added by readMetaAndLock()
-		return false;
+		ftruncate($meta['handle'], 0);
+		@unlink($meta['file']); // intentionally @
+		@unlink($metaFile); // intentionally @
+		fclose($meta['handle']);
+		return NULL;
 	}
 
 
-	public function lock(string $key): void
+
+	/**
+	 * Writes item into the cache.
+	 * @param  string key
+	 * @param  mixed  data
+	 * @param  array  dependencies
+	 * @return void
+	 */
+	public function write($key, $data, array $dp)
 	{
-		$cacheFile = $this->getCacheFile($key);
-		if (!is_dir($dir = dirname($cacheFile))) {
-			@mkdir($dir); // @ - directory may already exist
-		}
-
-		$handle = fopen($cacheFile, 'c+b');
-		if (!$handle) {
-			return;
-		}
-
-		$this->locks[$key] = $handle;
-		flock($handle, LOCK_EX);
-	}
-
-
-	public function write(string $key, $data, array $dp): void
-	{
-		$meta = [
-			self::MetaTime => microtime(),
-		];
-
-		if (isset($dp[Cache::Expire])) {
-			if (empty($dp[Cache::Sliding])) {
-				$meta[self::MetaExpire] = $dp[Cache::Expire] + time(); // absolute time
-			} else {
-				$meta[self::MetaDelta] = (int) $dp[Cache::Expire]; // sliding time
-			}
-		}
-
-		if (isset($dp[Cache::Items])) {
-			foreach ($dp[Cache::Items] as $item) {
-				$depFile = $this->getCacheFile($item);
-				$m = $this->readMetaAndLock($depFile, LOCK_SH);
-				$meta[self::MetaItems][$depFile] = $m[self::MetaTime] ?? null;
-				unset($m);
-			}
-		}
-
-		if (isset($dp[Cache::Callbacks])) {
-			$meta[self::MetaCallbacks] = $dp[Cache::Callbacks];
-		}
-
-		if (!isset($this->locks[$key])) {
-			$this->lock($key);
-			if (!isset($this->locks[$key])) {
-				return;
-			}
-		}
-
-		$handle = $this->locks[$key];
-		unset($this->locks[$key]);
-
-		$cacheFile = $this->getCacheFile($key);
-
-		if (isset($dp[Cache::Tags]) || isset($dp[Cache::Priority])) {
-			if (!$this->journal) {
-				throw new Nette\InvalidStateException('CacheJournal has not been provided.');
-			}
-
-			$this->journal->write($cacheFile, $dp);
-		}
-
-		ftruncate($handle, 0);
+		$meta = array(
+			'file' => $this->getDataFile($key),
+		);
 
 		if (!is_string($data)) {
 			$data = serialize($data);
-			$meta[self::MetaSerialized] = true;
+			$meta['serialized'] = TRUE;
 		}
 
-		$head = serialize($meta);
-		$head = str_pad((string) strlen($head), 6, '0', STR_PAD_LEFT) . $head;
-		$headLen = strlen($head);
+		if (isset($dp['priority'])) {
+			$meta['priority'] = (int) $dp['priority'];
+		}
 
-		do {
-			if (fwrite($handle, str_repeat("\x00", $headLen)) !== $headLen) {
-				break;
+		if (!empty($dp['expire'])) {
+			if (empty($dp['refresh'])) {
+				$meta['expire'] = (int) $dp['expire']; // absolute time
+			} else {
+				$meta['delta'] = $dp['expire'] - time(); // sliding time
 			}
+		}
 
-			if (fwrite($handle, $data) !== strlen($data)) {
-				break;
+		if (!empty($dp['tags']) && is_array($dp['tags'])) {
+			$meta['tags'] = array_flip(array_values($dp['tags']));
+		}
+
+		if (!empty($dp['files']) || !empty($dp['items'])) {
+			clearstatcache();
+		}
+
+		if (!empty($dp['items'])) {
+			foreach ((array) $dp['items'] as $item) {
+				$depFile = $this->getDataFile($item);
+				$meta['df'][$depFile] = @filemtime($depFile); // intentionally @
 			}
+		}
 
-			fseek($handle, 0);
-			if (fwrite($handle, $head) !== $headLen) {
-				break;
+		if (!empty($dp['files'])) {
+			foreach ((array) $dp['files'] as $depFile) {
+				$meta['df'][$depFile] = @filemtime($depFile); // intentionally @
 			}
+		}
 
-			flock($handle, LOCK_UN);
-			fclose($handle);
-			return;
-		} while (false);
 
-		$this->delete($cacheFile, $handle);
+		$metaFile = $this->getMetaFile($key);
+		$handle = @fopen($metaFile, 'wb'); // intentionally @
+		if (!$handle) return;
+
+		flock($handle, LOCK_EX);
+
+		@unlink($meta['file']); // intentionally @
+		$s = serialize($meta);
+		$len = strlen($s);
+		if ($len !== fwrite($handle, $s, $len)) {
+			ftruncate($handle, 0);
+			@unlink($metaFile); // intentionally @
+
+		} elseif (!$this->writeData($meta, $data)) {
+			ftruncate($handle, 0);
+			@unlink($meta['file']); // intentionally @
+			@unlink($metaFile); // intentionally @
+		}
+
+		fclose($handle);
 	}
 
 
-	public function remove(string $key): void
+
+	/**
+	 * Removes item from the cache.
+	 * @param  string key
+	 * @return void
+	 */
+	public function remove($key)
 	{
-		unset($this->locks[$key]);
-		$this->delete($this->getCacheFile($key));
+		$metaFile = $this->getMetaFile($key);
+		$meta = $this->readMeta($metaFile);
+		if (!$meta) return;
+
+		ftruncate($meta['handle'], 0);
+		@unlink($file); // intentionally @
+		@unlink($meta['file']); // intentionally @
+		fclose($meta['handle']);
 	}
 
 
-	public function clean(array $conditions): void
+
+	/**
+	 * Removes items from the cache by conditions & garbage collector.
+	 * @param  array  conditions
+	 * @return void
+	 */
+	public function clean(array $conds)
 	{
-		$all = !empty($conditions[Cache::All]);
-		$collector = empty($conditions);
-		$namespaces = $conditions[Cache::Namespaces] ?? null;
+		$tags = isset($conds['tags']) ? array_flip((array) $conds['tags']) : array();
 
-		// cleaning using file iterator
-		if ($all || $collector) {
-			$now = time();
-			foreach (Nette\Utils\Finder::find('_*')->from($this->dir)->childFirst() as $entry) {
-				$path = (string) $entry;
-				if ($entry->isDir()) { // collector: remove empty dirs
-					@rmdir($path); // @ - removing dirs is not necessary
-					continue;
+		$priority = isset($conds['priority']) ? $conds['priority'] : -1;
+
+		$all = !empty($conds['all']);
+
+		$now = time();
+
+		foreach (glob($this->base . '*.meta') as $metaFile)
+		{
+			if (!is_file($metaFile)) continue;
+
+			do {
+				$meta = $this->readMeta($metaFile);
+				if (!$meta || $all) break;
+
+				if (!empty($meta['expire']) && $meta['expire'] < $now) {
+					break;
 				}
 
-				if ($all) {
-					$this->delete($path);
-
-				} else { // collector
-					$meta = $this->readMetaAndLock($path, LOCK_SH);
-					if (!$meta) {
-						continue;
-					}
-
-					if ((!empty($meta[self::MetaDelta]) && filemtime($meta[self::File]) + $meta[self::MetaDelta] < $now)
-						|| (!empty($meta[self::MetaExpire]) && $meta[self::MetaExpire] < $now)
-					) {
-						$this->delete($path, $meta[self::Handle]);
-						continue;
-					}
-
-					flock($meta[self::Handle], LOCK_UN);
-					fclose($meta[self::Handle]);
-				}
-			}
-
-			if ($this->journal) {
-				$this->journal->clean($conditions);
-			}
-
-			return;
-
-		} elseif ($namespaces) {
-			foreach ($namespaces as $namespace) {
-				$dir = $this->dir . '/_' . urlencode($namespace);
-				if (!is_dir($dir)) {
-					continue;
+				if (!empty($meta['priority']) && $meta['priority'] <= $priority) {
+					break;
 				}
 
-				foreach (Nette\Utils\Finder::findFiles('_*')->in($dir) as $entry) {
-					$this->delete((string) $entry);
+				if (!empty($meta['tags']) && array_intersect_key($tags, $meta['tags'])) {
+					break;
 				}
 
-				@rmdir($dir); // may already contain new files
-			}
-		}
+				fclose($meta['handle']);
+				continue 2;
+			} while (FALSE);
 
-		// cleaning using journal
-		if ($this->journal) {
-			foreach ($this->journal->clean($conditions) as $file) {
-				$this->delete($file);
-			}
+			ftruncate($meta['handle'], 0);
+			@unlink($meta['file']); // intentionally @
+			@unlink($metaFile); // intentionally @
+			fclose($meta['handle']);
 		}
 	}
+
 
 
 	/**
 	 * Reads cache data from disk.
+	 * @param  string  file path
+	 * @return array|NULL
 	 */
-	protected function readMetaAndLock(string $file, int $lock): ?array
+	protected function readMeta($file)
 	{
-		$handle = @fopen($file, 'r+b'); // @ - file may not exist
-		if (!$handle) {
-			return null;
+		$handle = fopen($file, 'r+b');
+		if (!$handle) return NULL;
+
+		/* non-blocking mode
+		if (!flock($handle, LOCK_EX | LOCK_NB)) {
+			fclose($handle);
+			return NULL;
+		}*/
+		flock($handle, LOCK_EX);
+
+		$meta = stream_get_contents($handle);
+		$meta = unserialize($meta);
+		if (!is_array($meta)) {
+			fclose($handle);
+			return NULL;
 		}
 
-		flock($handle, $lock);
-
-		$size = (int) stream_get_contents($handle, self::MetaHeaderLen);
-		if ($size) {
-			$meta = stream_get_contents($handle, $size, self::MetaHeaderLen);
-			$meta = unserialize($meta);
-			$meta[self::File] = $file;
-			$meta[self::Handle] = $handle;
-			return $meta;
-		}
-
-		flock($handle, LOCK_UN);
-		fclose($handle);
-		return null;
+		$meta['handle'] = $handle;
+		return $meta;
 	}
+
 
 
 	/**
-	 * Reads cache data from disk and closes cache file handle.
+	 * Reads cache data from disk and closes meta file handle.
+	 * @param  array
+	 * @return mixed
 	 */
-	protected function readData(array $meta): mixed
+	protected function readData($meta)
 	{
-		$data = stream_get_contents($meta[self::Handle]);
-		flock($meta[self::Handle], LOCK_UN);
-		fclose($meta[self::Handle]);
+		$data = file_get_contents($meta['file']);
+		fclose($meta['handle']);
 
-		return empty($meta[self::MetaSerialized]) ? $data : unserialize($data);
+		if (empty($meta['serialized'])) {
+			return $data;
+		} else {
+			return unserialize($data);
+		}
 	}
+
+
+
+	/**
+	 * Writes cache data to disk.
+	 * @param  array
+	 * @param  string
+	 * @return bool
+	 */
+	protected function writeData($meta, $data)
+	{
+		return file_put_contents($meta['file'], $data) === strlen($data);
+	}
+
 
 
 	/**
 	 * Returns file name.
+	 * @param  string
+	 * @return string
 	 */
-	protected function getCacheFile(string $key): string
+	protected function getMetaFile($key)
 	{
-		$file = urlencode($key);
-		if ($a = strrpos($file, '%00')) { // %00 = urlencode(Nette\Caching\Cache::NamespaceSeparator)
-			$file = substr_replace($file, '/_', $a, 3);
-		}
-
-		return $this->dir . '/_' . $file;
+		return $this->base . urlencode($key) . '.meta';
 	}
+
 
 
 	/**
-	 * Deletes and closes file.
-	 * @param  resource  $handle
+	 * Returns file name.
+	 * @param  string
+	 * @return string
 	 */
-	private static function delete(string $file, $handle = null): void
+	protected function getDataFile($key)
 	{
-		if (@unlink($file)) { // @ - file may not already exist
-			if ($handle) {
-				flock($handle, LOCK_UN);
-				fclose($handle);
-			}
-
-			return;
-		}
-
-		if (!$handle) {
-			$handle = @fopen($file, 'r+'); // @ - file may not exist
-		}
-
-		if (!$handle) {
-			return;
-		}
-
-		flock($handle, LOCK_EX);
-		ftruncate($handle, 0);
-		flock($handle, LOCK_UN);
-		fclose($handle);
-		@unlink($file); // @ - file may not already exist
+		return $this->base . urlencode($key) . '.data';
 	}
+
 }

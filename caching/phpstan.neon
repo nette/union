@@ -1,8 +1,0 @@
-parameters:
-	level: 5
-
-	paths:
-		- src
-
-	excludePaths:
-		- src/Bridges/CacheLatte/CacheMacro.php
