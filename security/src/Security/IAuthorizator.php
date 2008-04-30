@@ -23,22 +23,23 @@
 
 
 /**
- * Authentication exception.
+ * Authorizator checks if a given role has authorization.
+ * to access a given resource.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Security
  */
-class AuthenticationException extends /*::*/Exception
+interface IAuthorizator
 {
 
 	/**
-	 * Exception error codes.
+	 * Performs an role-based authorization.
+	 * @param  string  role
+	 * @param  string  resource
+	 * @param  string  privilege
+	 * @return bool
 	 */
-	const IDENTITY_NOT_FOUND = 1;
-
-	const INVALID_CREDENTIAL = 2;
-
-	const FAILURE = 3;
+	function isAllowed();
 
 }
