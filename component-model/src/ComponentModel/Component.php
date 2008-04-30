@@ -1,273 +1,311 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette;*/
 
-namespace Nette\ComponentModel;
 
-use Nette;
+
+require_once dirname(__FILE__) . '/IComponent.php';
+
+require_once dirname(__FILE__) . '/Object.php';
+
 
 
 /**
  * Component is the base class for all components.
  *
- * Components are objects implementing IComponent. They has parent component and own name.
+ * Components are objects implementing IComponent. They has parent component,
+ * own name and service locator.
  *
- * @property-read string $name
- * @property-read IContainer|null $parent
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette
  */
-abstract class Component implements IComponent
+abstract class Component extends Object implements IComponent
 {
-	use Nette\SmartObject;
+	const NAME_SEPARATOR = '-';
 
-	private ?IContainer $parent = null;
+	const HIERARCHY_ATTACH = 1;
 
-	private ?string $name = null;
+	const HIERARCHY_DETACH = 2;
 
-	/** @var array<string, array{?IComponent, ?int, ?string, array<int, array{?callable, ?callable}>}> means [type => [obj, depth, path, [attached, detached]]] */
-	private array $monitors = [];
+	/** @var IServiceLocator */
+	private $serviceLocator;
+
+	/** @var IComponentContainer */
+	private $parent;
+
+	/** @var string */
+	private $name;
+
+	/** @var array */
+	private $lookupCache = array();
+
 
 
 	/**
-	 * Finds the closest ancestor specified by class or interface name.
-	 * @param  bool  $throw   throw exception if component doesn't exist?
 	 */
-	final public function lookup(?string $type, bool $throw = true): ?IComponent
+	public function __construct(IComponentContainer $parent = NULL, $name = NULL)
 	{
-		if (!isset($this->monitors[$type])) { // not monitored or not processed yet
-			$obj = $this->parent;
-			$path = self::NameSeparator . $this->name;
-			$depth = 1;
-			while ($obj !== null) {
-				$parent = $obj->getParent();
-				if ($type ? $obj instanceof $type : $parent === null) {
-					break;
-				}
+		if ($parent !== NULL) {
+			$parent->addComponent($this, $name);
 
-				$path = self::NameSeparator . $obj->getName() . $path;
-				$depth++;
-				$obj = $parent; // IComponent::getParent()
-				if ($obj === $this) {
-					$obj = null; // prevent cycling
-				}
-			}
-
-			if ($obj) {
-				$this->monitors[$type] = [$obj, $depth, substr($path, 1), []];
-
-			} else {
-				$this->monitors[$type] = [null, null, null, []]; // not found
-			}
+		} elseif (is_string($name)) {
+			$this->name = $name;
 		}
-
-		if ($throw && $this->monitors[$type][0] === null) {
-			$message = $this->name !== null
-				? "Component '$this->name' is not attached to '$type'."
-				: "Component of type '" . static::class . "' is not attached to '$type'.";
-			throw new Nette\InvalidStateException($message);
-		}
-
-		return $this->monitors[$type][0];
 	}
 
 
+
 	/**
-	 * Finds the closest ancestor specified by class or interface name and returns backtrace path.
+	 * Lookup hierarchy for component specified by class or interface name.
+	 * @param  string class/interface type
+	 * @param  bool   throw exception if component doesn't exist?
+	 * @return IComponent
+	 */
+	public function lookup($type, $need = FALSE)
+	{
+		/**/// fix for namespaced classes/interfaces in PHP < 5.3
+		if ($a = strrpos($type, ':')) $type = substr($type, $a + 1);/**/
+
+		if (!isset($this->lookupCache[$type])) {
+			$obj = $this;
+			$path = array();
+			do {
+				if ($obj instanceof $type) break;
+				array_unshift($path, $obj->getName());
+				$obj = $obj->getParent(); // IConponent::getParent()
+				if ($obj === $this) $obj = NULL; // prevent cycling
+			} while ($obj !== NULL);
+
+			$this->lookupCache[$type] = array(
+				$obj,
+				$obj === NULL ? NULL : implode(self::NAME_SEPARATOR, $path),
+			);
+		}
+
+		if ($need && $this->lookupCache[$type][0] === NULL) {
+			throw new /*::*/InvalidStateException("Component is not attached to '$type'.");
+		}
+		return $this->lookupCache[$type][0];
+	}
+
+
+
+	/**
+	 * Lookup for component specified by class or interface name. Returns backtrace path.
 	 * A path is the concatenation of component names separated by self::NAME_SEPARATOR.
+	 * @param  string class/interface type
+	 * @param  bool   throw exception if component doesn't exist?
+	 * @return string
 	 */
-	final public function lookupPath(?string $type = null, bool $throw = true): ?string
+	public function lookupPath($type, $need = FALSE)
 	{
-		$this->lookup($type, $throw);
-		return $this->monitors[$type][2];
-	}
+		/**/// fix for namespaced classes/interfaces in PHP < 5.3
+		if ($a = strrpos($type, ':')) $type = substr($type, $a + 1);/**/
 
-
-	/**
-	 * Starts monitoring of ancestors.
-	 */
-	final public function monitor(string $type, ?callable $attached = null, ?callable $detached = null): void
-	{
-		if (
-			($obj = $this->lookup($type, false))
-			&& $attached
-			&& !in_array([$attached, $detached], $this->monitors[$type][3], true)
-		) {
-			$attached($obj);
+		if (!isset($this->lookupCache[$type])) {
+			$this->lookup($type);
 		}
 
-		$this->monitors[$type][3][] = [$attached, $detached]; // mark as monitored
+		if ($need && $this->lookupCache[$type][1] === NULL) {
+			throw new /*::*/InvalidStateException("Component is not attached to '$type'.");
+		}
+
+		return $this->lookupCache[$type][1];
 	}
 
-
-	/**
-	 * Stops monitoring of ancestors.
-	 */
-	final public function unmonitor(string $type): void
-	{
-		unset($this->monitors[$type]);
-	}
-
-
-	/**
-	 * This method will be called when the component (or component's parent)
-	 * becomes attached to a monitored object. Do not call this method yourself.
-	 * @deprecated  use monitor($type, $attached)
-	 */
-	final protected function attached(IComponent $obj): void
-	{
-	}
-
-
-	/**
-	 * This method will be called before the component (or component's parent)
-	 * becomes detached from a monitored object. Do not call this method yourself.
-	 * @deprecated  use monitor($type, null, $detached)
-	 */
-	final protected function detached(IComponent $obj): void
-	{
-	}
 
 
 	/********************* interface IComponent ****************d*g**/
 
 
-	final public function getName(): ?string
+
+	/**
+	 * @return string
+	 */
+	final public function getName()
 	{
 		return $this->name;
 	}
 
 
+
 	/**
-	 * Returns the parent container if any.
+	 * Returns the container if any.
+	 * @return IComponentContainer|NULL
 	 */
-	final public function getParent(): ?IContainer
+	final public function getParent()
 	{
 		return $this->parent;
 	}
 
 
-	/**
-	 * Sets or removes the parent of this component. This method is managed by containers and should
-	 * not be called by applications
-	 * @throws Nette\InvalidStateException
-	 * @internal
-	 */
-	public function setParent(?IContainer $parent, ?string $name = null): static
-	{
-		if ($parent === null && $this->parent === null && $name !== null) {
-			$this->name = $name; // just rename
-			return $this;
 
-		} elseif ($parent === $this->parent && $name === null) {
-			return $this; // nothing to do
+	/**
+	 * Sets the parent of this component. This method is managed by containers and should.
+	 * not be called by applications
+	 *
+	 * @param  IComponentContainer  New parent or null if this component is being removed from a parent
+	 * @param  string
+	 * @return void
+	 * @throws ::InvalidStateException
+	 */
+	public function setParent(IComponentContainer $parent = NULL, $name = NULL)
+	{
+		// if parent is the same parent it already has, no action occurs (only renaming)
+		if ($this->parent === $parent) {
+			if ($parent === NULL && $name !== NULL) {
+				$this->name = $name;
+			}
+			return;
 		}
 
 		// A component cannot be given a parent if it already has a parent.
-		if ($this->parent !== null && $parent !== null) {
-			throw new Nette\InvalidStateException("Component '$this->name' already has a parent.");
+		if ($this->parent !== NULL && $parent !== NULL) {
+			throw new /*::*/InvalidStateException('Component already has a parent.');
 		}
 
 		// remove from parent?
-		if ($parent === null) {
-			$this->refreshMonitors(0);
-			$this->parent = null;
+		if ($parent === NULL) {
+			// parent cannot be removed if is still this component contains
+			if ($this->parent->getComponent($this->name) === $this) {
+				throw new /*::*/InvalidStateException('The current parent still recognizes this component as its child.');
+			}
+
+			$this->notification($this, self::HIERARCHY_DETACH);
+			$this->parent = NULL;
+			$this->refreshCache();
 
 		} else { // add to parent
-			$this->validateParent($parent);
-			$this->parent = $parent;
-			if ($name !== null) {
-				$this->name = $name;
+			// Given parent container does not already recognize this component as its child.
+			if ($parent->getComponent($name) !== $this) {
+				throw new /*::*/InvalidStateException('The given parent does not recognize this component as its child.');
 			}
 
-			$tmp = [];
-			$this->refreshMonitors(0, $tmp);
+			$this->validateParent($parent);
+
+			$this->parent = $parent;
+			if ($name !== NULL) $this->name = $name;
+			$this->refreshCache();
+			$this->notification($this, self::HIERARCHY_ATTACH);
 		}
-
-		return $this;
 	}
 
 
+
 	/**
-	 * Is called by a component when it is about to be set new parent. Descendant can
-	 * override this method to disallow a parent change by throwing an Nette\InvalidStateException
-	 * @throws Nette\InvalidStateException
+	 * Is called by a component when it is about to be set new parent. Descendant can.
+	 * override this method to disallow a parent change by throwing an ::InvalidStateException
+	 * @param  IComponentContainer
+	 * @return void
+	 * @throws ::InvalidStateException
 	 */
-	protected function validateParent(IContainer $parent): void
+	protected function validateParent(IComponentContainer $parent)
 	{
 	}
 
 
+
 	/**
-	 * Refreshes monitors.
-	 * @param  array<string,true>|null  $missing  (array = attaching, null = detaching)
-	 * @param  array<int,array{callable,IComponent}>  $listeners
+	 * Forwards notification messages to all components in hierarchy. Do not call directly.
+	 * @param  IComponent
+	 * @param  mixed
+	 * @return void
 	 */
-	private function refreshMonitors(int $depth, ?array &$missing = null, array &$listeners = []): void
+	protected function notification(IComponent $sender, $message)
 	{
-		if ($this instanceof IContainer) {
+		if ($this instanceof IComponentContainer) {
+			foreach ($this->getComponents() as $component) {
+				if ($component instanceof Component) { // or move to interface?
+					$component->notification($sender, $message);
+				}
+			}
+		}
+	}
+
+
+
+	/**
+	 * Refresh lookup cache (don't call directly).
+	 * @param  IComponent
+	 * @return void
+	 */
+	private function refreshCache()
+	{
+		$this->lookupCache = array();
+
+		if ($this instanceof IComponentContainer) {
 			foreach ($this->getComponents() as $component) {
 				if ($component instanceof self) {
-					$component->refreshMonitors($depth + 1, $missing, $listeners);
-				}
-			}
-		}
-
-		if ($missing === null) { // detaching
-			foreach ($this->monitors as $type => $rec) {
-				if (isset($rec[1]) && $rec[1] > $depth) {
-					if ($rec[3]) { // monitored
-						$this->monitors[$type] = [null, null, null, $rec[3]];
-						foreach ($rec[3] as $pair) {
-							$listeners[] = [$pair[1], $rec[0]];
-						}
-					} else { // not monitored, just randomly cached
-						unset($this->monitors[$type]);
-					}
-				}
-			}
-		} else { // attaching
-			foreach ($this->monitors as $type => $rec) {
-				if (isset($rec[0])) { // is in cache yet
-					continue;
-
-				} elseif (!$rec[3]) { // not monitored, just randomly cached
-					unset($this->monitors[$type]);
-
-				} elseif (isset($missing[$type])) { // known from previous lookup
-					$this->monitors[$type] = [null, null, null, $rec[3]];
-
-				} else {
-					unset($this->monitors[$type]); // forces re-lookup
-					if ($obj = $this->lookup($type, false)) {
-						foreach ($rec[3] as $pair) {
-							$listeners[] = [$pair[0], $obj];
-						}
-					} else {
-						$missing[$type] = true;
-					}
-
-					$this->monitors[$type][3] = $rec[3]; // mark as monitored
-				}
-			}
-		}
-
-		if ($depth === 0) { // call listeners
-			$prev = [];
-			foreach ($listeners as $item) {
-				if ($item[0] && !in_array($item, $prev, true)) {
-					$item[0]($item[1]);
-					$prev[] = $item;
+					$component->refreshCache();
 				}
 			}
 		}
 	}
+
+
+
+	/**
+	 * Sets the service location (experimental).
+	 * @param  IServiceLocator
+	 * @return void
+	 */
+	public function setServiceLocator(IServiceLocator $locator)
+	{
+		$this->serviceLocator = $locator;
+	}
+
+
+
+	/**
+	 * Gets the service locator (experimental).
+	 * @return IServiceLocator
+	 */
+	final public function getServiceLocator()
+	{
+		if ($this->serviceLocator === NULL) {
+			$this->serviceLocator = $this->parent === NULL
+				? Environment::getServiceLocator()
+				: $this->parent->getServiceLocator();
+		}
+
+		return $this->serviceLocator;
+	}
+
+
+
+	/**
+	 * Gets the service (experimental).
+	 * @param  string
+	 * @return object
+	 */
+	final public function getService($type)
+	{
+		return $this->getServiceLocator()->getService($type);
+	}
+
 
 
 	/********************* cloneable, serializable ****************d*g**/
+
 
 
 	/**
@@ -275,19 +313,13 @@ abstract class Component implements IComponent
 	 */
 	public function __clone()
 	{
-		if ($this->parent === null) {
-			return;
-
-		} elseif ($this->parent instanceof Container) {
-			$this->parent = $this->parent->_isCloning();
-			if ($this->parent === null) { // not cloning
-				$this->refreshMonitors(0);
-			}
-		} else {
-			$this->parent = null;
-			$this->refreshMonitors(0);
+		if ($this->parent !== NULL &&
+			!($this->parent instanceof ComponentContainer && $this->parent->isCloning()))
+		{
+			$this->setParent(NULL);
 		}
 	}
+
 
 
 	/**
@@ -295,15 +327,7 @@ abstract class Component implements IComponent
 	 */
 	final public function __sleep()
 	{
-		throw new Nette\NotImplementedException('Object serialization is not supported by class ' . static::class);
+		throw new /*::*/NotImplementedException;
 	}
 
-
-	/**
-	 * Prevents unserialization.
-	 */
-	final public function __wakeup()
-	{
-		throw new Nette\NotImplementedException('Object unserialization is not supported by class ' . static::class);
-	}
 }
