@@ -1,645 +1,467 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com/
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com/
+ * @category   Nette
+ * @package    Nette::Application
  */
 
-declare(strict_types=1);
+/*namespace Nette::Application;*/
 
-namespace Nette\Routing;
 
-use Nette;
-use Nette\Utils\Strings;
-use function array_key_exists, is_array, count, strlen;
+
+require_once dirname(__FILE__) . '/../Object.php';
+
+require_once dirname(__FILE__) . '/../Application/IRouter.php';
+
 
 
 /**
- * The bidirectional route is responsible for mapping
- * HTTP request to an array for dispatch and vice-versa.
+ * The bidirectional route is responsible for mapping.
+ * HTTP request to a PresenterRoute object for dispatch and vice-versa.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Application
+ * @version    $Revision$ $Date$
  */
-class Route implements Router
+class Route extends /*Nette::*/Object implements IRouter
 {
-	use Nette\SmartObject;
+	const PRESENTER_KEY = 'presenter';
+	const MODULE_KEY = 'module';
 
-	/** key used in metadata */
-	public const
-		Value = 'value',
-		Pattern = 'pattern',
-		FilterIn = 'filterIn',
-		FilterOut = 'filterOut',
-		FilterTable = 'filterTable',
-		FilterStrict = 'filterStrict';
+	// flags
+	const CASE_SENSITIVE = 2;
 
-	/** @deprecated use Route::Value */
-	public const VALUE = self::Value;
+	// uri type
+	const HOST = 1;
+	const PATH = 2;
+	const RELATIVE = 3;
 
-	/** @deprecated use Route::Pattern */
-	public const PATTERN = self::Pattern;
+	/** @var bool */
+	public static $defaultCaseSensitivity = TRUE;
 
-	/** @deprecated use Route::FilterIn */
-	public const FILTER_IN = self::FilterIn;
+	/** @var array */
+	public static $defaults = array(
+		'' => array(
+			're' => '[^/]+',
+		),
+		'#ident' => array(
+			're' => '[a-z][a-z0-9_]*',
+		),
+		'#d' => array(
+			're' => '[a-z][a-z0-9.-]*',
+			'filterIn' => /*Nette::Application::*/'Route::dash2camel',
+			'filterOut' => /*Nette::Application::*/'Route::camel2dash',
+		),
+	);
 
-	/** @deprecated use Route::FilterOut */
-	public const FILTER_OUT = self::FilterOut;
+	/** @var array */
+	private $sequence;
 
-	/** @deprecated use Route::FilterTable */
-	public const FILTER_TABLE = self::FilterTable;
+	/** @var string  regular expression pattern */
+	private $re;
 
-	/** @deprecated use Route::FilterStrict */
-	public const FILTER_STRICT = self::FilterStrict;
+	/** @var array of [default & fixed, filterIn, filterOut] */
+	protected $metadata = array();
 
-	/** key used in metadata */
-	private const
-		Default = 'defOut',
-		Fixity = 'fixity',
-		FilterTableOut = 'filterTO';
+	/** @var array  */
+	protected $xlat;
 
-	/** url type */
-	private const
-		Host = 1,
-		Path = 2,
-		Relative = 3;
+	/** @var int HOST, PATH, RELATIVE */
+	protected $type;
 
-	/** fixity types - has default value and is: */
-	private const
-		InQuery = 0,
-		InPath = 1, // in brackets is default value = null
-		Constant = 2;
+	/** @var int */
+	protected $flags;
 
-	protected array $defaultMeta = [
-		'#' => [ // default style for path parameters
-			self::Pattern => '[^/]+',
-			self::FilterOut => [self::class, 'param2path'],
-		],
-	];
-
-	private string $mask;
-	private array $sequence;
-
-	/** regular expression pattern */
-	private string $re;
-
-	/** @var string[]  parameter aliases in regular expression */
-	private array $aliases = [];
-
-	/** @var array of [value & fixity, filterIn, filterOut] */
-	private array $metadata = [];
-	private array $xlat = [];
-
-	/** HOST, PATH, RELATIVE */
-	private int $type;
-
-	/** http | https */
-	private string $scheme = '';
 
 
 	/**
-	 * @param  string  $mask  e.g. '<presenter>/<action>/<id \d{1,3}>'
+	 * @param  string  URL mask, e.g. '<presenter>/<view>/<id \d{1,3}>'
+	 * @param  array   default values
 	 */
-	public function __construct(string $mask, array $metadata = [])
+	public function __construct($mask, array $defaults = array(), $flags = 0)
 	{
-		$this->mask = $mask;
-		$this->metadata = $this->normalizeMetadata($metadata);
-		$this->parseMask($this->detectMaskType());
-	}
-
-
-	/**
-	 * Returns mask.
-	 */
-	public function getMask(): string
-	{
-		return $this->mask;
-	}
-
-
-	/** @internal */
-	protected function getMetadata(): array
-	{
-		return $this->metadata;
-	}
-
-
-	/**
-	 * Returns default values.
-	 */
-	public function getDefaults(): array
-	{
-		$defaults = [];
-		foreach ($this->metadata as $name => $meta) {
-			if (isset($meta[self::Fixity])) {
-				$defaults[$name] = $meta[self::Value];
-			}
+		if (self::$defaultCaseSensitivity) {
+			$flags = $flags | self::CASE_SENSITIVE;
 		}
-
-		return $defaults;
+		$this->flags = $flags;
+		$this->setMask($mask, $defaults);
 	}
 
-
-	/** @internal */
-	public function getConstantParameters(): array
-	{
-		$res = [];
-		foreach ($this->metadata as $name => $meta) {
-			if (isset($meta[self::Fixity]) && $meta[self::Fixity] === self::Constant) {
-				$res[$name] = $meta[self::Value];
-			}
-		}
-
-		return $res;
-	}
 
 
 	/**
-	 * Maps HTTP request to an array.
+	 * Maps HTTP request to a PresenterRequest object.
+	 * @param  Nette::Web::IHttpRequest
+	 * @return PresenterRequest|NULL
 	 */
-	public function match(Nette\Http\IRequest $httpRequest): ?array
+	public function match(/*Nette::Web::*/IHttpRequest $context)
 	{
-		// combine with precedence: mask (params in URL-path), fixity, query, (post,) defaults
+		// combine with precedence: mask (params in URL-path), fixed, query, (post,) defaults
 
-		// 1) URL MASK
-		$url = $httpRequest->getUrl();
-		$re = $this->re;
+		// 1) mask
+		$uri = $context->getUri();
 
-		if ($this->type === self::Host) {
-			$host = $url->getHost();
-			$path = '//' . $host . $url->getPath();
-			$parts = ip2long($host)
-				? [$host]
-				: array_reverse(explode('.', $host));
-			$re = strtr($re, [
-				'/%basePath%/' => preg_quote($url->getBasePath(), '#'),
-				'%tld%' => preg_quote($parts[0], '#'),
-				'%domain%' => preg_quote(isset($parts[1]) ? "$parts[1].$parts[0]" : $parts[0], '#'),
-				'%sld%' => preg_quote($parts[1] ?? '', '#'),
-				'%host%' => preg_quote($host, '#'),
-			]);
+		if ($this->type === self::HOST) {
+			$path = '//' . $uri->host . $uri->path;
 
-		} elseif ($this->type === self::Relative) {
-			$basePath = $url->getBasePath();
-			if (strncmp($url->getPath(), $basePath, strlen($basePath)) !== 0) {
-				return null;
+		} elseif ($this->type === self::RELATIVE) {
+			$basePath = $uri->basePath;
+			if (strncmp($uri->path, $basePath, strlen($basePath)) !== 0) {
+				return NULL;
 			}
-
-			$path = substr($url->getPath(), strlen($basePath));
+			$path = (string) substr($uri->path, strlen($basePath));
 
 		} else {
-			$path = $url->getPath();
+			$path = $uri->path;
 		}
 
-		$path = rawurldecode($path);
-		if ($path !== '' && $path[-1] !== '/') {
-			$path .= '/';
+		if (!preg_match($this->re, rtrim($path, '/') . '/', $params)) {
+			return NULL;
 		}
+		$params = array_diff_key($params, range(0, count($params))); // deletes numeric keys
 
-		if (!$matches = Strings::match($path, $re)) {
-			return null; // stop, not matched
-		}
 
-		// assigns matched values to parameters
-		$params = [];
-		foreach ($matches as $k => $v) {
-			if (is_string($k) && $v !== '') {
-				$params[$this->aliases[$k]] = $v;
-			}
-		}
-
-		// 2) CONSTANT FIXITY
-		foreach ($this->metadata as $name => $meta) {
-			if (!isset($params[$name]) && isset($meta[self::Fixity]) && $meta[self::Fixity] !== self::InQuery) {
-				$params[$name] = null; // cannot be overwriten in 3) and detected by isset() in 4)
-			}
-		}
-
-		// 3) QUERY
-		$params += self::renameKeys($httpRequest->getQuery(), array_flip($this->xlat));
-
-		// 4) APPLY FILTERS & FIXITY
+		// 2) fixed
+		$defaults = array();
 		foreach ($this->metadata as $name => $meta) {
 			if (isset($params[$name])) {
-				if (!is_scalar($params[$name])) {
-					// do nothing
-				} elseif (isset($meta[self::FilterTable][$params[$name]])) { // applies filterTable only to scalar parameters
-					$params[$name] = $meta[self::FilterTable][$params[$name]];
-
-				} elseif (isset($meta[self::FilterTable]) && !empty($meta[self::FilterStrict])) {
-					return null; // rejected by filterTable
-
-				} elseif (isset($meta[self::FilterIn])) { // applies filterIn only to scalar parameters
-					$params[$name] = $meta[self::FilterIn]((string) $params[$name]);
-					if ($params[$name] === null && !isset($meta[self::Fixity])) {
-						return null; // rejected by filter
-					}
+				if (isset($meta['filterIn'])) {
+					$params[$name] = call_user_func($meta['filterIn'], $params[$name]);
 				}
-			} elseif (isset($meta[self::Fixity])) {
-				$params[$name] = $meta[self::Value];
+			} elseif (isset($meta['fixed'])) {
+				if ($meta['fixed'] !== 0) { // force now
+					$params[$name] = $meta['default'];
+				} else { // append later
+					$defaults[$name] = $meta['default'];
+				}
 			}
 		}
 
-		if (isset($this->metadata[null][self::FilterIn])) {
-			$params = $this->metadata[null][self::FilterIn]($params);
-			if ($params === null) {
-				return null;
-			}
+
+		// 3) query
+		if ($this->xlat) {
+			$params += self::renameKeys((array) $context->getQuery(), array_flip($this->xlat));
+		} else {
+			$params += (array) $context->getQuery();
+		}
+		//$params += (array) $context->getPost();
+
+
+		// 4) defaults
+		$params += $defaults;
+
+
+		// build PresenterRequest
+		if (isset($this->metadata[self::MODULE_KEY])) {
+			$presenter = $params[self::MODULE_KEY] . ':' . $params[self::PRESENTER_KEY];
+			unset($params[self::MODULE_KEY], $params[self::PRESENTER_KEY]);
+		} else {
+			$presenter = $params[self::PRESENTER_KEY];
+			unset($params[self::PRESENTER_KEY]);
 		}
 
-		return $params;
+		return new PresenterRequest(
+			$presenter,
+			$context->getMethod() === 'POST' ? PresenterRequest::HTTP_POST : PresenterRequest::HTTP_GET,
+			$params,
+			$context->getPost(),
+			$context->getFiles()
+		);
 	}
+
 
 
 	/**
-	 * Constructs absolute URL from array.
+	 * Constructs URL path from PresenterRequest object.
+	 * @param  Nette::Web::IHttpRequest
+	 * @param  PresenterRequest
+	 * @return string|NULL
 	 */
-	public function constructUrl(array $params, Nette\Http\UrlScript $refUrl): ?string
+	public function constructUrl(PresenterRequest $request, /*Nette::Web::*/IHttpRequest $context)
 	{
-		if (!$this->preprocessParams($params)) {
-			return null;
+		if ($this->flags & self::ONE_WAY) {
+			return NULL;
 		}
 
-		$url = $this->compileUrl($params);
-		if ($url === null) {
-			return null;
-		}
+		$params = (array) $request->getParams();
+		$metadata = $this->metadata;
 
-		// absolutize
-		if ($this->type === self::Relative) {
-			$url = (($tmp = $refUrl->getAuthority()) ? "//$tmp" : '') . $refUrl->getBasePath() . $url;
-
-		} elseif ($this->type === self::Path) {
-			$url = (($tmp = $refUrl->getAuthority()) ? "//$tmp" : '') . $url;
-
+		$presenter = $request->getPresenterName();
+		if (isset($metadata[self::MODULE_KEY])) {
+			$a = strrpos($presenter, ':');
+			$params[self::MODULE_KEY] = substr($presenter, 0, $a);
+			$params[self::PRESENTER_KEY] = substr($presenter, $a + 1);
 		} else {
-			$host = $refUrl->getHost();
-			$parts = ip2long($host)
-				? [$host]
-				: array_reverse(explode('.', $host));
-			$port = $refUrl->getDefaultPort() === ($tmp = $refUrl->getPort()) ? '' : ':' . $tmp;
-			$url = strtr($url, [
-				'/%basePath%/' => $refUrl->getBasePath(),
-				'%tld%' => $parts[0] . $port,
-				'%domain%' => (isset($parts[1]) ? "$parts[1].$parts[0]" : $parts[0]) . $port,
-				'%sld%' => $parts[1] ?? '',
-				'%host%' => $host . $port,
-			]);
+			$params[self::PRESENTER_KEY] = $presenter;
 		}
 
-		$url = ($this->scheme ?: $refUrl->getScheme()) . ':' . $url;
-
-		// build query string
-		$params = self::renameKeys($params, $this->xlat);
-		$sep = ini_get('arg_separator.input');
-		$query = http_build_query($params, '', $sep ? $sep[0] : '&');
-		if ($query !== '') {
-			$url .= '?' . $query;
-		}
-
-		return $url;
-	}
-
-
-	private function preprocessParams(array &$params): bool
-	{
-		$filter = $this->metadata[null][self::FilterOut] ?? null;
-		if ($filter) {
-			$params = $filter($params);
-			if ($params === null) {
-				return false; // rejected by global filter
-			}
-		}
-
-		foreach ($this->metadata as $name => $meta) {
-			$fixity = $meta[self::Fixity] ?? null;
-
-			if (!isset($params[$name])) {
-				if ($fixity === self::Constant) {
-					if ($meta[self::Value] === null) {
-						continue;
-					}
-
-					return false; // wrong parameter value
-				}
-
-				continue; // retains null values
-			}
-
-			if (is_scalar($params[$name])) {
-				$params[$name] = $params[$name] === false
-					? '0'
-					: (string) $params[$name];
-			}
-
-			if ($fixity !== null) {
-				if ($params[$name] == $meta[self::Value]) { // default value may be object, intentionally ==
-					// remove default values; null values are retain
+		foreach ($metadata as $name => $meta) {
+			if (isset($params[$name]) && isset($meta['fixed'])) {
+				if ($params[$name] == $meta['default']) {  // intentionally ==
+					// remove default values; NULL values are retain
 					unset($params[$name]);
-					continue;
 
-				} elseif ($fixity === self::Constant) {
-					return false; // wrong parameter value
+				} elseif ($meta['fixed'] === 2) {
+					return NULL; // missing or wrong parameter '$name'
 				}
-			}
-
-			if (is_scalar($params[$name]) && isset($meta[self::FilterTableOut][$params[$name]])) {
-				$params[$name] = $meta[self::FilterTableOut][$params[$name]];
-
-			} elseif (isset($meta[self::FilterTableOut]) && !empty($meta[self::FilterStrict])) {
-				return false;
-
-			} elseif (isset($meta[self::FilterOut])) {
-				$params[$name] = $meta[self::FilterOut]($params[$name]);
-			}
-
-			if (
-				isset($meta[self::Pattern])
-				&& !preg_match("#(?:{$meta[self::Pattern]})$#DA", rawurldecode((string) $params[$name]))
-			) {
-				return false; // pattern not match
 			}
 		}
 
-		return true;
-	}
-
-
-	private function compileUrl(array &$params): ?string
-	{
-		$brackets = [];
-		$required = null; // null for auto-optional
-		$path = '';
-		$i = count($this->sequence) - 1;
-
+		// compositing path
+		$sequence = $this->sequence;
+		$optional = TRUE;
+		$uri = '';
+		$i = count($sequence) - 1;
 		do {
-			$path = $this->sequence[$i] . $path;
-			if ($i === 0) {
-				return $path;
-			}
-
+			$uri = $sequence[$i] . $uri;
+			if ($i === 0) break;
 			$i--;
 
-			$name = $this->sequence[$i--]; // parameter name
+			$cond = $sequence[$i]; $i--; // validation condition (as regexp); unused
+			$name = $sequence[$i]; $i--; // parameter name
+			$meta = isset($metadata[$name]) ? $metadata[$name] : NULL;
 
-			if ($name === ']') { // opening optional part
-				$brackets[] = $path;
-
-			} elseif ($name[0] === '[') { // closing optional part
-				$tmp = array_pop($brackets);
-				if ($required < count($brackets) + 1) { // is this level optional?
-					if ($name !== '[!') { // and not "required"-optional
-						$path = $tmp;
-					}
+			if (isset($params[$name])) {
+				$optional = FALSE;
+				if (isset($meta['filterOut'])) {
+					$uri = call_user_func($meta['filterOut'], $params[$name]) . $uri;
 				} else {
-					$required = count($brackets);
+					$uri = $params[$name] . $uri;
 				}
-			} elseif ($name[0] === '?') { // "foo" parameter
-				continue;
-
-			} elseif (isset($params[$name]) && $params[$name] !== '') {
-				$required = count($brackets); // make this level required
-				$path = $params[$name] . $path;
 				unset($params[$name]);
 
-			} elseif (isset($this->metadata[$name][self::Fixity])) { // has default value?
-				$path = $required === null && !$brackets // auto-optional
-					? ''
-					: $this->metadata[$name][self::Default] . $path;
+			} elseif (isset($meta['fixed'])) { // has default value?
+				if ($optional) {
+					$uri = '';
+				} else {
+					$uri = $meta['default'] . $uri;
+				}
 
 			} else {
-				return null; // missing parameter '$name'
+				return NULL; // missing parameter '$name'
 			}
-		} while (true);
+		} while (TRUE);
+
+
+		// build query string
+		if ($this->xlat) {
+			$params = self::renameKeys($params, $this->xlat);
+		}
+
+		$query = http_build_query($params, '', '&');
+		if ($query !== '') $uri .= '?' . $query;
+
+		// absolutize path
+		if ($this->type === self::RELATIVE) {
+			$uri = $context->getUri()->basePath . $uri;
+		}
+
+		return $uri;
 	}
 
 
-	private function detectMaskType(): string
-	{
-		// '//host/path' vs. '/abs. path' vs. 'relative path'
-		if (preg_match('#(?:(https?):)?(//.*)#A', $this->mask, $m)) {
-			$this->type = self::Host;
-			[, $this->scheme, $path] = $m;
-			return $path;
 
-		} elseif (str_starts_with($this->mask, '/')) {
-			$this->type = self::Path;
+	/**
+	 * Parse mask and array of default values; initializes object.
+	 * @param  string
+	 * @param  array
+	 * @return void
+	 */
+	private function setMask($mask, array $defaults)
+	{
+		// detect '//host/path' vs. '/abs. path' vs. 'relative path'
+		if (substr($mask, 0, 2) === '//') {
+			$this->type = self::HOST;
+
+		} elseif (substr($mask, 0, 1) === '/') {
+			$this->type = self::PATH;
 
 		} else {
-			$this->type = self::Relative;
+			$this->type = self::RELATIVE;
 		}
 
-		return $this->mask;
-	}
+		$metadata = array();
+		foreach ($defaults as $name => $def) {
+			$metadata[$name] = array(
+				'default' => $def,
+				'fixed' => 2, // 2=fully fixed, 1=must be in path, 0=not fixed
+			);
+		}
 
+		// parse query part of mask
+		$this->xlat = array();
+		$pos = strpos($mask, ' ? ');
+		if ($pos !== FALSE) {
+			preg_match_all(
+				'#(?:([a-zA-Z0-9_.-]+)=)?<([^> ]+) *([^>]*)>#',
+				substr($mask, $pos + 1),
+				$matches,
+				PREG_SET_ORDER
+			);
+			$mask = rtrim(substr($mask, 0, $pos));
 
-	private function normalizeMetadata(array $metadata): array
-	{
-		foreach ($metadata as $name => $meta) {
-			if (!is_array($meta)) {
-				$metadata[$name] = $meta = [self::Value => $meta];
-			}
-
-			if (array_key_exists(self::Value, $meta)) {
-				if (is_scalar($meta[self::Value])) {
-					$metadata[$name][self::Value] = $meta[self::Value] === false
-						? '0'
-						: (string) $meta[self::Value];
+			foreach ($matches as $match) {
+				list(, $param, $name, $cond) = $match;  // $cond is unsed
+				$metadata[$name]['fixed'] = 0;
+				if ($param !== '') {
+					$this->xlat[$name] = $param;
 				}
-
-				$metadata[$name]['fixity'] = self::Constant;
 			}
 		}
 
-		return $metadata;
-	}
 
+		// parse request uri part of mask
+		$this->sequence = $sequence = preg_split(
+			'#<([^> ]+) *([^>]*)>#',  // <parameter-name [validation-expr]>
+			$mask,
+			-1,
+			PREG_SPLIT_DELIM_CAPTURE
+		);
 
-	private function parseMask(string $path): void
-	{
-		// <parameter-name[=default] [pattern]> or [ or ] or ?...
-		$parts = Strings::split($path, '/<([^<>= ]+)(=[^<> ]*)? *([^<>]*)>|(\[!?|\]|\s*\?.*)/');
-
-		$i = count($parts) - 1;
-		if ($i === 0) {
-			$this->re = '#' . preg_quote($parts[0], '#') . '/?$#DA';
-			$this->sequence = [$parts[0]];
-			return;
-		}
-
-		if ($this->parseQuery($parts)) {
-			$i -= 5;
-		}
-
-		$brackets = 0; // optional level
+		$optional = TRUE;
+		$i = count($sequence) - 1;
 		$re = '';
-		$sequence = [];
-		$autoOptional = true;
-
 		do {
-			$part = $parts[$i]; // part of path
-			if (strpbrk($part, '<>') !== false) {
-				throw new Nette\InvalidArgumentException("Unexpected '$part' in mask '$this->mask'.");
-			}
-
-			array_unshift($sequence, $part);
-			$re = preg_quote($part, '#') . $re;
-			if ($i === 0) {
-				break;
-			}
-
+			$re = preg_quote($sequence[$i], '#') . $re;
+			if ($i === 0) break;
 			$i--;
 
-			$part = $parts[$i]; // [ or ]
-			if ($part === '[' || $part === ']' || $part === '[!') {
-				$brackets += $part[0] === '[' ? -1 : 1;
-				if ($brackets < 0) {
-					throw new Nette\InvalidArgumentException("Unexpected '$part' in mask '$this->mask'.");
+			$cond = $sequence[$i]; $i--; // validation condition (as regexp)
+			$name = $sequence[$i]; $i--; // parameter name
+
+			// check name (limitation by regexp)
+			if (preg_match('#[^a-z0-9_]#i', $name)) {
+				throw new /*::*/InvalidArgumentException("Invalid parameter name '$name'.");
+			}
+
+			// check cond
+			$defMeta = NULL;
+			if ($cond === '') {
+				$defMeta = self::$defaults[isset(self::$defaults[$name]) ? $name : ''];
+
+			} elseif ($cond[0] === '#') {
+				if (!isset(self::$defaults[$cond])) {
+					throw new /*::*/InvalidStateException("Missing default metadata key '$cond'.");
 				}
-
-				array_unshift($sequence, $part);
-				$re = ($part[0] === '[' ? '(?:' : ')?') . $re;
-				$i -= 4;
-				continue;
+				$defMeta = self::$defaults[$cond];
 			}
 
-			$pattern = trim($parts[$i--]); // validation condition (as regexp)
-			$default = $parts[$i--]; // default value
-			$name = $parts[$i--]; // parameter name
-			array_unshift($sequence, $name);
-
-			if ($name[0] === '?') { // "foo" parameter
-				$name = substr($name, 1);
-				$re = $pattern
-					? '(?:' . preg_quote($name, '#') . "|$pattern)$re"
-					: preg_quote($name, '#') . $re;
-				$sequence[1] = $name . $sequence[1];
-				continue;
-			}
-
-			// pattern, condition & metadata
-			$meta = ($this->metadata[$name] ?? []) + ($this->defaultMeta[$name] ?? $this->defaultMeta['#']);
-
-			if ($pattern === '' && isset($meta[self::Pattern])) {
-				$pattern = $meta[self::Pattern];
-			}
-
-			if ($default !== '') {
-				$meta[self::Value] = substr($default, 1);
-				$meta[self::Fixity] = self::InPath;
-			}
-
-			$meta[self::FilterTableOut] = empty($meta[self::FilterTable])
-				? null
-				: array_flip($meta[self::FilterTable]);
-			if (array_key_exists(self::Value, $meta)) {
-				if (isset($meta[self::FilterTableOut][$meta[self::Value]])) {
-					$meta[self::Default] = $meta[self::FilterTableOut][$meta[self::Value]];
-
-				} elseif (isset($meta[self::Value], $meta[self::FilterOut])) {
-					$meta[self::Default] = $meta[self::FilterOut]($meta[self::Value]);
-
+			if ($defMeta !== NULL) {
+				if (isset($metadata[$name])) {
+					$metadata[$name] = $defMeta + $metadata[$name];
 				} else {
-					$meta[self::Default] = $meta[self::Value];
+					$metadata[$name] = $defMeta;
+				}
+				if (isset($metadata[$name]['re'])) {
+					$cond = $metadata[$name]['re'];
 				}
 			}
-
-			$meta[self::Pattern] = $pattern;
 
 			// include in expression
-			$this->aliases['p' . $i] = $name;
-			$re = '(?P<p' . $i . '>(?U)' . $pattern . ')' . $re;
-			if ($brackets) { // is in brackets?
-				if (!isset($meta[self::Value])) {
-					$meta[self::Value] = $meta[self::Default] = null;
+			if (isset($metadata[$name]['fixed'])) { // has default value?
+				if (!$optional) {
+					throw new /*::*/InvalidArgumentException("Parameter '$name' must not be optional because parameters to the right are optional.");
 				}
-
-				$meta[self::Fixity] = self::InPath;
-
-			} elseif (isset($meta[self::Fixity])) {
-				if ($autoOptional) {
-					$re = '(?:' . $re . ')?';
-				}
-
-				$meta[self::Fixity] = self::InPath;
+				$re = '(?:(?P<' . $name . '>' . $cond . ')' . $re . ')?';
+				$metadata[$name]['fixed'] = 1;
 
 			} else {
-				$autoOptional = false;
+				$optional = FALSE;
+				$re = '(?P<' . $name . '>' . $cond . ')' . $re;
 			}
+		} while (TRUE);
 
-			$this->metadata[$name] = $meta;
-		} while (true);
-
-		if ($brackets) {
-			throw new Nette\InvalidArgumentException("Missing '[' in mask '$this->mask'.");
-		}
-
-		$this->re = '#' . $re . '/?$#DA';
-		$this->sequence = $sequence;
+		$this->re = '#' . $re . '/?$#A' . ($this->flags & self::CASE_SENSITIVE ? '' : 'i');
+		$this->metadata = $metadata;
 	}
 
 
-	private function parseQuery(array $parts): bool
+
+	/**
+	 * Proprietary cache aim.
+	 * @return string|FALSE
+	 */
+	public function getTargetPresenter()
 	{
-		$query = $parts[count($parts) - 2] ?? '';
-		if (!str_starts_with(ltrim($query), '?')) {
-			return false;
+		if ($this->flags & self::ONE_WAY) {
+			return FALSE;
 		}
 
-		// name=<parameter-name [pattern]>
-		$matches = Strings::matchAll($query, '/(?:([a-zA-Z0-9_.-]+)=)?<([^> ]+) *([^>]*)>/');
+		$m = $this->metadata;
+		$presenter = '';
 
-		foreach ($matches as [, $param, $name, $pattern]) { // $pattern is not used
-			$meta = ($this->metadata[$name] ?? []) + ($this->defaultMeta['?' . $name] ?? []);
-
-			if (array_key_exists(self::Value, $meta)) {
-				$meta[self::Fixity] = self::InQuery;
+		if (isset($m[self::MODULE_KEY]['fixed'])) {
+			if ($m[self::MODULE_KEY]['fixed'] !== 2) {
+				return NULL;
 			}
-
-			unset($meta[self::Pattern]);
-			$meta[self::FilterTableOut] = empty($meta[self::FilterTable])
-				? null
-				: array_flip($meta[self::FilterTable]);
-
-			$this->metadata[$name] = $meta;
-			if ($param !== '') {
-				$this->xlat[$name] = $param;
-			}
+			$presenter = $m[self::MODULE_KEY]['default'] . ':';
 		}
 
-		return true;
+		if (isset($m[self::PRESENTER_KEY]['fixed'])) {
+			if ($m[self::PRESENTER_KEY]['fixed'] === 2) {
+				return $presenter . $m[self::PRESENTER_KEY]['default'];
+			}
+		}
 	}
 
-
-	/********************* Utilities ****************d*g**/
 
 
 	/**
 	 * Rename keys in array.
+	 * @param  array
+	 * @param  array
+	 * @return array
 	 */
-	private static function renameKeys(array $arr, array $xlat): array
+	private static function renameKeys($arr, $xlat)
 	{
-		if (!$xlat) {
-			return $arr;
-		}
+		if (empty($xlat)) return $arr;
 
-		$res = [];
-		$occupied = array_flip($xlat);
+		$res = array();
 		foreach ($arr as $k => $v) {
 			if (isset($xlat[$k])) {
 				$res[$xlat[$k]] = $v;
-
-			} elseif (!isset($occupied[$k])) {
+			} else {
 				$res[$k] = $v;
 			}
 		}
-
 		return $res;
 	}
 
 
+
 	/**
-	 * Url encode.
+	 * camelCase -> dash-separated.
+	 * @param  string
+	 * @return string
 	 */
-	public static function param2path(string $s): string
+	private static function camel2dash($s)
 	{
-		return str_replace('%2F', '/', rawurlencode($s));
+		return strtr(strtolower(preg_replace('#(.)(?=[A-Z])#', '$1-', $s)), ':', '.');
 	}
+
+
+
+	/**
+	 * dash-separated -> camelCase.
+	 * @param  string
+	 * @return string
+	 */
+	private static function dash2camel($s)
+	{
+		return strtr(preg_replace('#-([a-z])#e', 'strtoupper("$1")', $s), '.', ':');
+	}
+
 }
