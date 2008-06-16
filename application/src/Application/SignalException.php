@@ -21,17 +21,18 @@
 
 
 
+require_once dirname(__FILE__) . '/../Application/ApplicationException.php';
+
+
+
 /**
- *
+ * Signal exception.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenter
+class SignalException extends ApplicationException
 {
-
-	function run(PresenterRequest $request);
-
 }

@@ -29,9 +29,9 @@
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenter
+interface ITemplate
 {
 
-	function run(PresenterRequest $request);
+	public function render();
 
 }

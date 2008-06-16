@@ -1,124 +1,107 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com/
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com/
+ * @category   Nette
+ * @package    Nette::Application
  */
 
-declare(strict_types=1);
+/*namespace Nette::Application;*/
 
-namespace Nette\Application;
 
-use Nette;
+
+require_once dirname(__FILE__) . '/../Application/IPresenterFactory.php';
+
 
 
 /**
- * Default presenter loader.
+ * Default presenter factory.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Application
+ * @version    $Revision$ $Date$
  */
 class PresenterFactory implements IPresenterFactory
 {
-	use Nette\SmartObject;
-
-	/** @var array[] of module => splited mask */
-	private array $mapping = [
-		'*' => ['', '*Module\\', '*Presenter'],
-		'Nette' => ['NetteModule\\', '*\\', '*Presenter'],
-	];
-
-	private array $cache = [];
-
-	/** @var callable */
-	private $factory;
-
 
 	/**
-	 * @param  callable(string): IPresenter  $factory
+	 * @param  string  presenter name
+	 * @return string  class name
+     * @throws ApplicationException
 	 */
-	public function __construct(?callable $factory = null)
+	public function getPresenterClass($name)
 	{
-		$this->factory = $factory ?: fn(string $class): IPresenter => new $class;
-	}
-
-
-	/**
-	 * Creates new presenter instance.
-	 */
-	public function createPresenter(string $name): IPresenter
-	{
-		return ($this->factory)($this->getPresenterClass($name));
-	}
-
-
-	/**
-	 * Generates and checks presenter class name.
-	 * @throws InvalidPresenterException
-	 */
-	public function getPresenterClass(string &$name): string
-	{
-		if (isset($this->cache[$name])) {
-			return $this->cache[$name];
-		}
-
-		if (!Nette\Utils\Strings::match($name, '#^[a-zA-Z\x7f-\xff][a-zA-Z0-9\x7f-\xff:]*$#D')) {
-			throw new InvalidPresenterException("Presenter name must be alphanumeric string, '$name' is invalid.");
-		}
-
 		$class = $this->formatPresenterClass($name);
+
 		if (!class_exists($class)) {
-			throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' was not found.");
-		}
+			// internal autoloading
+			if (!preg_match('#^(:[a-z][a-z0-9]*)*$#i', ':' . $name)) {
+				throw new /*::*/InvalidArgumentException("Invalid presenter name '$name'.");
+			}
 
-		$reflection = new \ReflectionClass($class);
-		$class = $reflection->getName();
+			$file = $this->formatPresenterFile($name);
+			if (is_file($file) && is_readable($file)) {
+				include_once $file;
 
-		if (!$reflection->implementsInterface(IPresenter::class)) {
-			throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' is not Nette\\Application\\IPresenter implementor.");
-		} elseif ($reflection->isAbstract()) {
-			throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' is abstract.");
-		}
-
-		return $this->cache[$name] = $class;
-	}
-
-
-	/**
-	 * Sets mapping as pairs [module => mask]
-	 */
-	public function setMapping(array $mapping): static
-	{
-		foreach ($mapping as $module => $mask) {
-			if (is_string($mask)) {
-				if (!preg_match('#^\\\\?([\w\\\\]*\\\\)?(\w*\*\w*?\\\\)?([\w\\\\]*\*\w*)$#D', $mask, $m)) {
-					throw new Nette\InvalidStateException("Invalid mapping mask '$mask'.");
+				if (!class_exists($class)) {
+					throw new ApplicationException("Cannot load presenter '$name', missing class '$class' in '$file'.");
 				}
-
-				$this->mapping[$module] = [$m[1], $m[2] ?: '*Module\\', $m[3]];
-			} elseif (is_array($mask) && count($mask) === 3) {
-				$this->mapping[$module] = [$mask[0] ? $mask[0] . '\\' : '', $mask[1] . '\\', $mask[2]];
-			} else {
-				throw new Nette\InvalidStateException("Invalid mapping mask for module $module.");
 			}
 		}
 
-		return $this;
+		$reflection = new ReflectionClass($class);
+
+		if (!$reflection->implementsInterface(/*Nette::Application::*/'IPresenter')) {
+			throw new ApplicationException("Invalid presenter '$name'.");
+		}
+
+		if ($reflection->isAbstract()) {
+			throw new ApplicationException("Invalid (abstract) presenter '$name'.");
+		}
+
+		return $class;
 	}
+
 
 
 	/**
-	 * Formats presenter class name from its name.
-	 * @internal
+	 * Formats presenter class name -> case sensitivity doesn't matter.
+	 * @param  string
+	 * @return string
 	 */
-	public function formatPresenterClass(string $presenter): string
+	public static function formatPresenterClass($name)
 	{
-		$parts = explode(':', $presenter);
-		$mapping = isset($parts[1], $this->mapping[$parts[0]])
-			? $this->mapping[array_shift($parts)]
-			: $this->mapping['*'];
-
-		while ($part = array_shift($parts)) {
-			$mapping[0] .= str_replace('*', $part, $mapping[$parts ? 1 : 2]);
-		}
-
-		return $mapping[0];
+		// PHP 5.3
+		// return str_replace(':', '::', $name) . 'Presenter';
+		return strtr($name, ':', '_') . 'Presenter';
 	}
+
+
+
+	/**
+	 * Formats presenter class name -> case sensitivity DOES matter.
+	 * @param  string
+	 * @return string
+	 */
+	public static function formatPresenterFile($name)
+	{
+		$name = strtr($name, ':', ' ');
+		$name = ucwords(strtolower($name));
+		$name = strtr($name, ' ', '/');
+		$name = /*Nette::*/Environment::getVariable('presentersDir') . '/' . $name . 'Presenter.php';
+		return $name;
+	}
+
 }

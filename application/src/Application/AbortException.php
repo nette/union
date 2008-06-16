@@ -22,16 +22,13 @@
 
 
 /**
- *
+ * User attempt to terminate the current script.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenter
+class AbortException extends /*::*/RuntimeException
 {
-
-	function run(PresenterRequest $request);
-
 }

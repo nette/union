@@ -1,222 +1,271 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com/
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com/
+ * @category   Nette
+ * @package    Nette::Application
  */
 
-declare(strict_types=1);
+/*namespace Nette::Application;*/
 
-namespace Nette\Application;
+/*use Nette::Environment;*/
 
-use Nette;
-use Nette\Routing\Router;
-use Nette\Utils\Arrays;
+
+require_once dirname(__FILE__) . '/../Object.php';
+
+
+
+/**
+ * Check configuration.
+ */
+if (version_compare(PHP_VERSION , '5.2.2', '<')) {
+	throw new /*::*/RuntimeException('Nette::Application needs PHP 5.2.2 or newer.');
+}
+
 
 
 /**
  * Front Controller.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Application
+ * @version    $Revision$ $Date$
  */
-class Application
+class Application extends /*Nette::*/Object
 {
-	use Nette\SmartObject;
+	const MAX_LOOP = 20;
 
-	public int $maxLoop = 20;
+	/** @var array of function(Application $sender) */
+	public $onStartup;
 
-	/** enable fault barrier? */
-	public bool $catchExceptions = false;
-	public ?string $errorPresenter = null;
+	/** @var array of function(Application $sender) */
+	public $onShutdown;
 
-	/** @var array<callable(self): void>  Occurs before the application loads presenter */
-	public array $onStartup = [];
+	/** @var array of function(Application $sender) */
+	public $onRouted;
 
-	/** @var array<callable(self, ?\Throwable): void>  Occurs before the application shuts down */
-	public array $onShutdown = [];
+	/** @var string */
+	public $errorPresenter;// = 'Error';
 
-	/** @var array<callable(self, Request): void>  Occurs when a new request is received */
-	public array $onRequest = [];
+	/** @var array of PresenterRequest */
+	private $requests = array();
 
-	/** @var array<callable(self, IPresenter): void>  Occurs when a presenter is created */
-	public array $onPresenter = [];
+	/** @var Presenter */
+	private $presenter;
 
-	/** @var array<callable(self, Response): void>  Occurs when a new response is ready for dispatch */
-	public array $onResponse = [];
+	/** @var IRouter */
+	private $router;
 
-	/** @var array<callable(self, \Throwable): void>  Occurs when an unhandled exception occurs in the application */
-	public array $onError = [];
+	/** @var IPresenterFactory */
+	private $presenterFactory;
 
-	/** @var Request[] */
-	private array $requests = [];
-	private ?IPresenter $presenter = null;
-	private Nette\Http\IRequest $httpRequest;
-	private Nette\Http\IResponse $httpResponse;
-	private IPresenterFactory $presenterFactory;
-	private Router $router;
+	/** @var ServiceLocator */
+	private $locator;
 
+	/** @var bool */
+	private $hasError = FALSE;
 
-	public function __construct(
-		IPresenterFactory $presenterFactory,
-		Router $router,
-		Nette\Http\IRequest $httpRequest,
-		Nette\Http\IResponse $httpResponse,
-	) {
-		$this->httpRequest = $httpRequest;
-		$this->httpResponse = $httpResponse;
-		$this->presenterFactory = $presenterFactory;
-		$this->router = $router;
-	}
 
 
 	/**
-	 * Dispatch a HTTP request to a front controller.
+	 * Dispatch an HTTP request to a front controller.
 	 */
-	public function run(): void
+	public function run()
 	{
-		try {
-			Arrays::invoke($this->onStartup, $this);
-			$this->processRequest($this->createInitialRequest());
-			Arrays::invoke($this->onShutdown, $this);
+		$httpRequest = Environment::getHttpRequest();
+		$httpResponse = Environment::getHttpResponse();
 
-		} catch (\Throwable $e) {
-			Arrays::invoke($this->onError, $this, $e);
-			if ($this->catchExceptions && $this->errorPresenter) {
-				try {
-					$this->processException($e);
-					Arrays::invoke($this->onShutdown, $this, $e);
-					return;
+		$httpResponse->setHeader('X-Powered-By: Nette Framework', TRUE);
 
-				} catch (\Throwable $e) {
-					Arrays::invoke($this->onError, $this, $e);
-				}
+		if (Environment::getVariable('baseUri') === NULL) {
+			Environment::setVariable('baseUri', $httpRequest->getUri()->baseUri);
+		}
+
+		if (Environment::getVariable('basePath') === NULL) {
+			Environment::setVariable('basePath', $httpRequest->getUri()->basePath);
+		}
+
+		// check HTTP method
+		$method = $httpRequest->getMethod();
+		$allowed = array('GET' => 1, 'POST' => 1, 'HEAD' => 1);
+		if (!isset($allowed[$method])) {
+			$httpResponse->setCode(501); // 501 Not Implemented
+			$httpResponse->setHeader('Allow: ' . implode(', ', array_keys($allowed)), TRUE);
+			die("Method $method not allowed.");
+		}
+
+		$this->onStartup($this);
+
+		// dispatching
+		$request = NULL;
+		do {
+			if (count($this->requests) > self::MAX_LOOP) {
+				throw new ApplicationException('Infinite loop.');
 			}
 
-			Arrays::invoke($this->onShutdown, $this, $e);
-			throw $e;
-		}
-	}
-
-
-	public function createInitialRequest(): Request
-	{
-		$params = $this->router->match($this->httpRequest);
-		$presenter = $params[UI\Presenter::PresenterKey] ?? null;
-
-		if ($params === null) {
-			throw new BadRequestException('No route for HTTP request.');
-		} elseif (!is_string($presenter)) {
-			throw new Nette\InvalidStateException('Missing presenter in route definition.');
-		} elseif (str_starts_with($presenter, 'Nette:') && $presenter !== 'Nette:Micro') {
-			throw new BadRequestException('Invalid request. Presenter is not achievable.');
-		}
-
-		unset($params[UI\Presenter::PresenterKey]);
-		return new Request(
-			$presenter,
-			$this->httpRequest->getMethod(),
-			$params,
-			$this->httpRequest->getPost(),
-			$this->httpRequest->getFiles(),
-		);
-	}
-
-
-	public function processRequest(Request $request): void
-	{
-		process:
-		if (count($this->requests) > $this->maxLoop) {
-			throw new ApplicationException('Too many loops detected in application life cycle.');
-		}
-
-		$this->requests[] = $request;
-		Arrays::invoke($this->onRequest, $this, $request);
-
-		if (
-			!$request->isMethod($request::FORWARD)
-			&& !strcasecmp($request->getPresenterName(), (string) $this->errorPresenter)
-		) {
-			throw new BadRequestException('Invalid request. Presenter is not achievable.');
-		}
-
-		try {
-			$this->presenter = $this->presenterFactory->createPresenter($request->getPresenterName());
-		} catch (InvalidPresenterException $e) {
-			throw count($this->requests) > 1
-				? $e
-				: new BadRequestException($e->getMessage(), 0, $e);
-		}
-
-		Arrays::invoke($this->onPresenter, $this, $this->presenter);
-		$response = $this->presenter->run(clone $request);
-
-		if ($response instanceof Responses\ForwardResponse) {
-			$request = $response->getRequest();
-			goto process;
-		}
-
-		Arrays::invoke($this->onResponse, $this, $response);
-		$response->send($this->httpRequest, $this->httpResponse);
-	}
-
-
-	public function processException(\Throwable $e): void
-	{
-		if (!$e instanceof BadRequestException && $this->httpResponse instanceof Nette\Http\Response) {
-			$this->httpResponse->warnOnBuffer = false;
-		}
-
-		if (!$this->httpResponse->isSent()) {
-			$this->httpResponse->setCode($e instanceof BadRequestException ? ($e->getHttpCode() ?: 404) : 500);
-		}
-
-		$args = ['exception' => $e, 'request' => Arrays::last($this->requests) ?: null];
-		if ($this->presenter instanceof UI\Presenter) {
 			try {
-				$this->presenter->forward(":$this->errorPresenter:", $args);
-			} catch (AbortException $foo) {
-				$this->processRequest($this->presenter->getLastCreatedRequest());
+				// Routing
+				if (!$request) {
+					$request = $this->getRouter()->match($httpRequest);
+					if (!($request instanceof PresenterRequest)) {
+						$request = NULL;
+						throw new ApplicationException('No route.');
+					}
+
+					$this->onRouted($this);
+				}
+				$this->requests[] = $request;
+
+				// Instantiate presenter
+				$class = $this->getPresenterFactory()->getPresenterClass($request->getPresenterName());
+				$this->presenter = new $class;
+
+				// Instantiate topmost service locator
+				$this->presenter->setServiceLocator(new /*Nette::*/ServiceLocator($this->locator));
+
+				// Execute presenter
+				$this->presenter->run($request);
+				break;
+
+			} catch (ForwardingException $e) {
+				// not error, presenter forwards to new request
+				$request = $e->getRequest();
+
+			} catch (AbortException $e) {
+				// not error, application is correctly aborted
+				break;
+
+			} catch (Exception $e) {
+				// fault barrier
+				if ($this->hasError || !$this->errorPresenter) {
+					throw $e;
+				}
+
+				$this->hasError = TRUE;
+
+				$request = new PresenterRequest(
+					$this->errorPresenter,
+					PresenterRequest::FORWARD,
+					array(
+						'exception' => $e,
+					)
+				);
 			}
-		} else {
-			$this->processRequest(new Request($this->errorPresenter, Request::FORWARD, $args));
-		}
+		} while (1);
+
+		$this->onShutdown($this);
 	}
 
 
+
 	/**
-	 * Returns all processed requests.
-	 * @return Request[]
+	 * Gets the service locator (experimental).
+	 * @return Nette::IServiceLocator
 	 */
-	final public function getRequests(): array
+	final public function getServiceLocator()
+	{
+		if ($this->serviceLocator === NULL) {
+			$this->serviceLocator = Environment::getServiceLocator();
+		}
+		return $this->serviceLocator;
+	}
+
+
+
+	/**
+	 * @return array
+	 */
+	final public function getRequests()
 	{
 		return $this->requests;
 	}
 
 
+
 	/**
-	 * Returns current presenter.
+	 * @return Presenter
 	 */
-	final public function getPresenter(): ?IPresenter
+	final public function getPresenter()
 	{
 		return $this->presenter;
 	}
 
 
-	/********************* services ****************d*g**/
-
 
 	/**
-	 * Returns router.
+	 * @return IRouter
 	 */
-	public function getRouter(): Router
+	public function getRouter($init = NULL)
 	{
+		if ($this->router === NULL) {
+			$this->router = new MultiRouter($init);
+			// Environment::getService('Nette::Application::IRouter');
+		}
 		return $this->router;
 	}
 
 
+
 	/**
-	 * Returns presenter factory.
+	 * @param  IRouter
+	 * @return void
 	 */
-	public function getPresenterFactory(): IPresenterFactory
+	public function setRouter(IRouter $router)
 	{
+		$this->router = $router;
+	}
+
+
+
+	/**
+	 * Maps PresenterRequest object to absolute URI or path.
+	 * @param  PresenterRequest
+	 * @return string
+	 * @throws ApplicationException
+	 */
+	public function constructUrl(PresenterRequest $request)
+	{
+		$uri = $this->getRouter()->constructUrl($request, Environment::getHttpRequest());
+		if ($uri === NULL) {
+			throw new ApplicationException('No route.');
+		}
+		return $uri;
+	}
+
+
+
+	/**
+	 * @return IPresenterFactory
+	 */
+	public function getPresenterFactory()
+	{
+		if ($this->presenterFactory === NULL) {
+			$this->presenterFactory = new PresenterFactory;
+		}
 		return $this->presenterFactory;
 	}
+
+
+
+	/**
+	 * @param  IPresenterFactory
+	 * @return void
+	 */
+	public function setPresenterFactory(IPresenterFactory $factory)
+	{
+		$this->presenterFactory = $factory;
+	}
+
 }

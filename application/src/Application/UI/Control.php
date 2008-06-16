@@ -1,169 +1,193 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com/
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com/
+ * @category   Nette
+ * @package    Nette::Application
  */
 
-declare(strict_types=1);
+/*namespace Nette::Application;*/
 
-namespace Nette\Application\UI;
 
-use Nette;
+
+require_once dirname(__FILE__) . '/../Application/PresenterComponent.php';
+
 
 
 /**
- * Control is renderable Presenter component.
+ * Control is renderable component.
  *
- * @property-read Template|Nette\Bridges\ApplicationLatte\DefaultTemplate|\stdClass $template
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Application
+ * @version    $Revision$ $Date$
  */
-abstract class Control extends Component implements Renderable
+abstract class Control extends PresenterComponent
 {
-	public bool $snippetMode = false;
+	/** @var string  default partial name */
+	const CONTROL = '_control';
 
-	private TemplateFactory $templateFactory;
+	/** @var bool  helper for beginPartial() & endPartial() */
+	private static $invalidBranch = FALSE;
 
-	private Template $template;
+	/** @var array see invalidate() & validate() */
+	private $invalidPartials = array();
 
-	private array $invalidSnippets = [];
+	/** @var array used by beginPartial() & endPartial() */
+	private $beginedPartials = array();
+
+	/** @var bool cache for self::hasInvalidChild() */
+	private $hasInvalidChild = NULL;
 
 
-	/********************* template factory ****************d*g**/
 
 
-	final public function setTemplateFactory(TemplateFactory $templateFactory)
+	/********************* partial rendering ****************d*g**/
+
+
+
+	/**
+	 * This component's part must be repainted.
+	 * @param  string
+	 * @return void
+	 */
+	public function invalidate($partialName = self::CONTROL)
 	{
-		$this->templateFactory = $templateFactory;
-		return $this;
+		$this->invalidPartials[$partialName] = TRUE;
 	}
 
 
-	final public function getTemplate(): Template
-	{
-		if (!isset($this->template)) {
-			$this->template = $this->createTemplate();
-		}
 
-		return $this->template;
+	/**
+	 * This component's part should not be repainted.
+	 * @param  string
+	 * @return void
+	 */
+	public function validate($partialName = self::CONTROL)
+	{
+		unset($this->invalidPartials[$partialName]);
 	}
 
 
-	protected function createTemplate(?string $class = null): Template
+
+	/**
+	 * Must be the component's part repainted?
+	 * @param  string
+	 * @return bool
+	 */
+	public function isInvalid($partialName = self::CONTROL)
 	{
-		$class ??= $this->formatTemplateClass();
-		$templateFactory = $this->templateFactory ?? $this->getPresenter()->getTemplateFactory();
-		return $templateFactory->createTemplate($this, $class);
-	}
-
-
-	public function formatTemplateClass(): ?string
-	{
-		return $this->checkTemplateClass(preg_replace('#Control$#', '', static::class) . 'Template');
-	}
-
-
-	/** @internal */
-	protected function checkTemplateClass(string $class): ?string
-	{
-		if (!class_exists($class)) {
-			return null;
-		} elseif (!is_a($class, Template::class, true)) {
-			trigger_error(sprintf(
-				'%s: class %s was found but does not implement the %s, so it will not be used for the template.',
-				static::class,
-				$class,
-				Template::class,
-			), E_USER_NOTICE);
-			return null;
+		if ($partialName === self::CONTROL) {
+			return count($this->invalidPartials) > 0;
 		} else {
-			return $class;
+			return isset($this->invalidPartials[$partialName]);
 		}
 	}
 
 
-	/**
-	 * Descendant can override this method to customize template compile-time filters.
-	 * @deprecated
-	 */
-	public function templatePrepareFilters(Template $template): void
-	{
-	}
-
 
 	/**
-	 * Saves the message to template, that can be displayed after redirect.
+	 * Starts conditional partial rendering. Returns TRUE if partial was started.
+	 * @param  string  partial name
+	 * @param  string  start element
+	 * @return bool
 	 */
-	public function flashMessage(string|\stdClass|Nette\HtmlStringable $message, string $type = 'info'): \stdClass
+	public function beginPartial($name = self::CONTROL, $mask = '<div %id>')
 	{
-		$id = $this->getParameterId('flash');
-		$flash = $message instanceof \stdClass ? $message : (object) [
-			'message' => $message,
-			'type' => $type,
-		];
-		$messages = $this->getPresenter()->getFlashSession()->$id;
-		$messages[] = $flash;
-		$this->getTemplate()->flashes = $messages;
-		$this->getPresenter()->getFlashSession()->$id = $messages;
-		return $flash;
-	}
+		if (isset($this->beginedPartials[$name])) {
+			throw new /*::*/InvalidStateException("Partial '$name' has been started.");
+		}
 
+		// HTML 4 ID & NAME: [A-Za-z][A-Za-z0-9:_.-]*
+		$id = $this->getUniqueId() . ':' . $name; // TODO: append counter
 
-	/********************* rendering ****************d*g**/
+		if ($this->getPresenter()->isPartialMode()) {
+			if (self::$invalidBranch) {
+				$this->beginedPartials[$name] = array($id, NULL);
 
+			} elseif (isset($this->invalidPartials[self::CONTROL]) || isset($this->invalidPartials[$name])) {
+				self::$invalidBranch = TRUE;
+				ob_start();
+				$this->beginedPartials[$name] = array($id, ob_get_level());
 
-	/**
-	 * Forces control or its snippet to repaint.
-	 */
-	public function redrawControl(?string $snippet = null, bool $redraw = true): void
-	{
-		if ($redraw) {
-			$this->invalidSnippets[$snippet ?? "\0"] = true;
+			} elseif ($this->hasInvalidChild()) {
+				$this->beginedPartials[$name] = array($id, NULL);
 
-		} elseif ($snippet === null) {
-			$this->invalidSnippets = [];
+			} else {
+				return FALSE;
+			}
 
 		} else {
-			$this->invalidSnippets[$snippet] = false;
+			$this->beginedPartials[$name] = $id;
+			echo str_replace('%id', 'id="' . $id . '"', $mask);
 		}
+
+		return TRUE;
 	}
 
 
-	/**
-	 * Is required to repaint the control or its snippet?
-	 */
-	public function isControlInvalid(?string $snippet = null): bool
-	{
-		if ($snippet !== null) {
-			return $this->invalidSnippets[$snippet] ?? isset($this->invalidSnippets["\0"]);
 
-		} elseif (count($this->invalidSnippets) > 0) {
-			return true;
+	/**
+	 * Finist conditional partial rendering.
+	 * @param  string  partial name
+	 * @param  string  end element
+	 * @return void
+	 */
+	public function endPartial($name = self::CONTROL, $mask = '</div>')
+	{
+		if (!isset($this->beginedPartials[$name])) {
+			throw new /*::*/InvalidStateException("Partial '$name' is not started.");
 		}
 
-		$queue = [$this];
-		do {
-			foreach (array_shift($queue)->getComponents() as $component) {
-				if ($component instanceof Renderable) {
-					if ($component->isControlInvalid()) {
-						// $this->invalidSnippets['__child'] = true; // as cache
-						return true;
+		if ($this->getPresenter()->isPartialMode()) {
+			list($id, $level) = $this->beginedPartials[$name];
+			if ($level !== NULL) {
+				if ($level !== ob_get_level()) {
+					throw new /*::*/InvalidStateException("Partial '$name' cannot be stopped here.");
+				}
+				$this->getPresenter()->addPartial($id, ob_get_flush());
+				self::$invalidBranch = FALSE;
+			}
+
+		} else {
+			echo str_replace('%id', 'id="' . $this->beginedPartials[$name] . '"', $mask);
+		}
+
+		unset($this->beginedPartials[$name]);
+	}
+
+
+
+	/**
+	 * Lookup for invalid children.
+	 * @return bool
+	 */
+	private function hasInvalidChild()
+	{
+		if ($this->hasInvalidChild === NULL) {
+			if (count($this->invalidPartials) > 0) {
+				return $this->hasInvalidChild = TRUE;
+			}
+			foreach ($this->getComponents() as $component) {
+				if ($component instanceof Control) {
+					if ($component->hasInvalidChild()) {
+						return $this->hasInvalidChild = TRUE;
 					}
-				} elseif ($component instanceof Nette\ComponentModel\IContainer) {
-					$queue[] = $component;
 				}
 			}
-		} while ($queue);
-
-		return false;
+		}
+		return $this->hasInvalidChild = FALSE;
 	}
 
-
-	/**
-	 * Returns snippet HTML ID.
-	 */
-	public function getSnippetId(string $name): string
-	{
-		// HTML 4 ID & NAME: [A-Za-z][A-Za-z0-9:_.-]*
-		return 'snippet-' . $this->getUniqueId() . '-' . $name;
-	}
 }

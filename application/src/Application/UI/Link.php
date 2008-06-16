@@ -1,103 +1,109 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com/
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com/
+ * @category   Nette
+ * @package    Nette::Application
  */
 
-declare(strict_types=1);
+/*namespace Nette::Application;*/
 
-namespace Nette\Application\UI;
 
-use Nette;
+
+require_once dirname(__FILE__) . '/../Object.php';
+
 
 
 /**
- * Lazy encapsulation of Component::link().
- * Do not instantiate directly, use Component::lazyLink()
+ * Lazy encapsulation of PresenterComponent::link().
+ * Do not instantiate directly, use PresenterComponent::lazyLink()
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Application
+ * @version    $Revision$ $Date$
  */
-final class Link
+class Link extends /*Nette::*/Object
 {
-	use Nette\SmartObject;
+	/** @var PresenterComponent */
+	private $component;
 
-	private Component $component;
+	/** @var string */
+	private $destination;
 
-	private string $destination;
-
-	private array $params;
+	/** @var array */
+	private $args;
 
 
 	/**
 	 * Link specification.
+	 * @param  PresenterComponent
+	 * @param  string
+	 * @param  array
 	 */
-	public function __construct(Component $component, string $destination, array $params = [])
+	public function __construct(PresenterComponent $component, $destination, array $args = NULL)
 	{
 		$this->component = $component;
 		$this->destination = $destination;
-		$this->params = $params;
+		$this->args = $args;
 	}
 
-
-	/**
-	 * Returns link component.
-	 */
-	public function getComponent(): Component
-	{
-		return $this->component;
-	}
 
 
 	/**
 	 * Returns link destination.
+	 * @return string
 	 */
-	public function getDestination(): string
+	public function getDestination()
 	{
 		return $this->destination;
 	}
 
 
+
 	/**
 	 * Changes link parameter.
+	 * @param  string
+	 * @param  mixed
+	 * @return void
 	 */
-	public function setParameter(string $key, $value): static
+	public function setParam($key, $value)
 	{
-		$this->params[$key] = $value;
-		return $this;
+		$this->args[$key] = $value;
 	}
+
 
 
 	/**
 	 * Returns link parameter.
+	 * @param  string
+	 * @return mixed
 	 */
-	public function getParameter(string $key): mixed
+	public function getParam($key)
 	{
-		return $this->params[$key] ?? null;
+		return isset($this->args[$key]) ? $this->args[$key] : NULL;
 	}
 
-
-	/**
-	 * Returns link parameters.
-	 */
-	public function getParameters(): array
-	{
-		return $this->params;
-	}
-
-
-	/**
-	 * Determines whether this links to the current page.
-	 */
-	public function isLinkCurrent(): bool
-	{
-		return $this->component->isLinkCurrent($this->destination, $this->params);
-	}
 
 
 	/**
 	 * Converts link to URL.
+	 * @return string
 	 */
-	public function __toString(): string
+	public function __toString()
 	{
-		return $this->component->link($this->destination, $this->params);
+		return $this->component->link($this->destination, $this->args);
 	}
+
 }

@@ -22,16 +22,31 @@
 
 
 /**
- *
+ * Application life cycle exception.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenter
+class ApplicationException extends /*::*/Exception
 {
+	/** @var int */
+	private $httpCode;
 
-	function run(PresenterRequest $request);
+
+
+	public function __construct($message = NULL, $code = 0, $httpCode = NULL)
+	{
+		$this->httpCode = $httpCode;
+		parent::__construct($message, $code);
+	}
+
+
+
+	public function getHttpCode()
+	{
+		return $this->httpCode;
+	}
 
 }

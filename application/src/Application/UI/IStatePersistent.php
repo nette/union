@@ -29,9 +29,21 @@
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenter
+interface IStatePersistent
 {
 
-	function run(PresenterRequest $request);
+	/**
+	 * Loads state informations.
+	 * @param  array
+	 * @return void
+	 */
+	function loadState(array $params);
+
+	/**
+	 * Saves state informations for next request.
+	 * @param  array
+	 * @return void
+	 */
+	function saveState(array & $params);
 
 }

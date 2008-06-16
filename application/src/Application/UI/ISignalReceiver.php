@@ -29,9 +29,13 @@
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenter
+interface ISignalReceiver
 {
 
-	function run(PresenterRequest $request);
+	/**
+	 * @param  string
+	 * @return void
+	 */
+	function signalReceived($signal); // handleSignal
 
 }

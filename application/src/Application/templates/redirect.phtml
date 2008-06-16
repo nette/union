@@ -19,7 +19,7 @@
 
 
 /**
- * Error page template.
+ * Redirect page template.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
@@ -27,11 +27,7 @@
  * @version    $Revision: 12 $ $Date: 2008-02-15 05:52:58 +0100 (pá, 15 II 2008) $
  */
 
-// passed parameters: $title, $exception
-
-if (!headers_sent()) {
-	header('HTTP/1.1 500 Internal Server Error');
-}
+// passed parameters: $title, $message, $uri
 
 ?><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
@@ -40,6 +36,7 @@ if (!headers_sent()) {
 	<meta http-equiv="Content-Language" content="en">
 	<meta name="robots" content="noindex,noarchive">
 	<meta name="generator" content="Nette Framework">
+	<meta http-equiv="refresh" content="5;url=<?php echo htmlSpecialChars($uri) ?>">
 
 	<title><?php echo htmlSpecialChars($title) ?></title>
 </head>
@@ -47,6 +44,6 @@ if (!headers_sent()) {
 <body>
 	<h1><?php echo htmlSpecialChars($title) ?></h1>
 
-	<pre><?php echo $exception ?></pre>
+	<p><a href="<?php echo htmlSpecialChars($uri) ?>">Please click here to continue</a>.</p>
 </body>
 </html>

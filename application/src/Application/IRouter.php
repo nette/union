@@ -29,9 +29,24 @@
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenter
+interface IRouter
 {
+	// flags
+	const ONE_WAY = 1;
 
-	function run(PresenterRequest $request);
+	/**
+	 * Maps HTTP request to a PresenterRequest object.
+	 * @param  Nette::Web::IHttpRequest
+	 * @return PresenterRequest|NULL
+	 */
+	function match(/*Nette::Web::*/IHttpRequest $context);
+
+	/**
+	 * Constructs URL path from PresenterRequest object.
+	 * @param  Nette::Web::IHttpRequest
+	 * @param  PresenterRequest
+	 * @return string|NULL
+	 */
+	function constructUrl(PresenterRequest $request, /*Nette::Web::*/IHttpRequest $context);
 
 }
