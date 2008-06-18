@@ -1,360 +1,207 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com/
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com/
+ * @category   Nette
+ * @package    Nette
  */
 
-declare(strict_types=1);
-
-namespace Nette\Bootstrap;
-
-use Composer\Autoload\ClassLoader;
-use Latte;
-use Nette;
-use Nette\DI;
-use Tracy;
+/*namespace Nette;*/
 
 
 /**
- * Initial system DI container generator.
+ * Nette::Environment helper.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette
+ * @version    $Revision$ $Date$
  */
 class Configurator
 {
-	use Nette\SmartObject;
+	/** @var bool */
+	public $useCache;
 
-	public const CookieSecret = 'nette-debug';
+	/** @var string */
+	public $defaultConfigFile = '%appDir%/config.ini';
 
-	/** @deprecated  use Configurator::CookieSecret */
-	public const COOKIE_SECRET = self::CookieSecret;
-
-
-	/** @var callable[]  function (Configurator $sender, DI\Compiler $compiler); Occurs after the compiler is created */
-	public array $onCompile = [];
-
-	public array $defaultExtensions = [
-		'application' => [Nette\Bridges\ApplicationDI\ApplicationExtension::class, ['%debugMode%', ['%appDir%'], '%tempDir%/cache/nette.application']],
-		'cache' => [Nette\Bridges\CacheDI\CacheExtension::class, ['%tempDir%']],
-		'constants' => Extensions\ConstantsExtension::class,
-		'database' => [Nette\Bridges\DatabaseDI\DatabaseExtension::class, ['%debugMode%']],
-		'decorator' => Nette\DI\Extensions\DecoratorExtension::class,
-		'di' => [Nette\DI\Extensions\DIExtension::class, ['%debugMode%']],
-		'extensions' => Nette\DI\Extensions\ExtensionsExtension::class,
-		'forms' => Nette\Bridges\FormsDI\FormsExtension::class,
-		'http' => [Nette\Bridges\HttpDI\HttpExtension::class, ['%consoleMode%']],
-		'inject' => Nette\DI\Extensions\InjectExtension::class,
-		'latte' => [Nette\Bridges\ApplicationDI\LatteExtension::class, ['%tempDir%/cache/latte', '%debugMode%']],
-		'mail' => Nette\Bridges\MailDI\MailExtension::class,
-		'php' => Extensions\PhpExtension::class,
-		'routing' => [Nette\Bridges\ApplicationDI\RoutingExtension::class, ['%debugMode%']],
-		'search' => [Nette\DI\Extensions\SearchExtension::class, ['%tempDir%/cache/nette.search']],
-		'security' => [Nette\Bridges\SecurityDI\SecurityExtension::class, ['%debugMode%']],
-		'session' => [Nette\Bridges\HttpDI\SessionExtension::class, ['%debugMode%', '%consoleMode%']],
-		'tracy' => [Tracy\Bridges\Nette\TracyExtension::class, ['%debugMode%', '%consoleMode%']],
-	];
-
-	/** @var string[] of classes which shouldn't be autowired */
-	public array $autowireExcludedClasses = [
-		\ArrayAccess::class,
-		\Countable::class,
-		\IteratorAggregate::class,
-		\stdClass::class,
-		\Traversable::class,
-	];
-
-	protected array $staticParameters;
-	protected array $dynamicParameters = [];
-	protected array $services = [];
-
-	/** @var array<string|array> */
-	protected array $configs = [];
-
-
-	public function __construct()
-	{
-		$this->staticParameters = $this->getDefaultParameters();
-	}
 
 
 	/**
-	 * Set parameter %debugMode%.
+	 * Detect environment mode.
+	 * @param  string mode name
+	 * @return bool
 	 */
-	public function setDebugMode(bool|string|array $value): static
+	public function detectMode($name)
 	{
-		if (is_string($value) || is_array($value)) {
-			$value = static::detectDebugMode($value);
-		}
+		switch ($name) {
+		case 'environment':
+			// environment name autodetection
+			if (defined('ENVIRONMENT')) {
+				return ENVIRONMENT;
 
-		$this->staticParameters['debugMode'] = $value;
-		$this->staticParameters['productionMode'] = !$this->staticParameters['debugMode']; // compatibility
-		return $this;
-	}
+			} elseif ($this->detectMode('console')) {
+				return Environment::CONSOLE;
 
-
-	public function isDebugMode(): bool
-	{
-		return $this->staticParameters['debugMode'];
-	}
-
-
-	/**
-	 * Sets path to temporary directory.
-	 */
-	public function setTempDirectory(string $path): static
-	{
-		$this->staticParameters['tempDir'] = $path;
-		return $this;
-	}
-
-
-	/**
-	 * Sets the default timezone.
-	 */
-	public function setTimeZone(string $timezone): static
-	{
-		date_default_timezone_set($timezone);
-		@ini_set('date.timezone', $timezone); // @ - function may be disabled
-		return $this;
-	}
-
-
-	/** @deprecated use addStaticParameters() */
-	public function addParameters(array $params): static
-	{
-		return $this->addStaticParameters($params);
-	}
-
-
-	/**
-	 * Adds new static parameters.
-	 */
-	public function addStaticParameters(array $params): static
-	{
-		$this->staticParameters = DI\Config\Helpers::merge($params, $this->staticParameters);
-		return $this;
-	}
-
-
-	/**
-	 * Adds new dynamic parameters.
-	 */
-	public function addDynamicParameters(array $params): static
-	{
-		$this->dynamicParameters = $params + $this->dynamicParameters;
-		return $this;
-	}
-
-
-	/**
-	 * Add instances of services.
-	 */
-	public function addServices(array $services): static
-	{
-		$this->services = $services + $this->services;
-		return $this;
-	}
-
-
-	protected function getDefaultParameters(): array
-	{
-		$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-		$last = end($trace);
-		$debugMode = static::detectDebugMode();
-		$loaderRc = class_exists(ClassLoader::class)
-			? new \ReflectionClass(ClassLoader::class)
-			: null;
-		return [
-			'appDir' => isset($trace[1]['file']) ? dirname($trace[1]['file']) : null,
-			'wwwDir' => isset($last['file']) ? dirname($last['file']) : null,
-			'vendorDir' => $loaderRc ? dirname($loaderRc->getFileName(), 2) : null,
-			'debugMode' => $debugMode,
-			'productionMode' => !$debugMode,
-			'consoleMode' => PHP_SAPI === 'cli',
-		];
-	}
-
-
-	public function enableTracy(?string $logDirectory = null, ?string $email = null): void
-	{
-		if (!class_exists(Tracy\Debugger::class)) {
-			throw new Nette\NotSupportedException('Tracy not found, do you have `tracy/tracy` package installed?');
-		}
-
-		Tracy\Debugger::$strictMode = true;
-		Tracy\Debugger::enable(!$this->staticParameters['debugMode'], $logDirectory, $email);
-		Tracy\Bridges\Nette\Bridge::initialize();
-		if (class_exists(Latte\Bridges\Tracy\BlueScreenPanel::class)) {
-			Latte\Bridges\Tracy\BlueScreenPanel::initialize();
-		}
-	}
-
-
-	/** @deprecated use enableTracy() */
-	public function enableDebugger(?string $logDirectory = null, ?string $email = null): void
-	{
-		$this->enableTracy($logDirectory, $email);
-	}
-
-
-	/**
-	 * @throws Nette\NotSupportedException if RobotLoader is not available
-	 */
-	public function createRobotLoader(): Nette\Loaders\RobotLoader
-	{
-		if (!class_exists(Nette\Loaders\RobotLoader::class)) {
-			throw new Nette\NotSupportedException('RobotLoader not found, do you have `nette/robot-loader` package installed?');
-		}
-
-		$loader = new Nette\Loaders\RobotLoader;
-		$loader->setTempDirectory($this->getCacheDirectory() . '/nette.robotLoader');
-		$loader->setAutoRefresh($this->staticParameters['debugMode']);
-
-		if (isset($this->defaultExtensions['application'])) {
-			$this->defaultExtensions['application'][1][1] = null;
-			$this->defaultExtensions['application'][1][3] = $loader;
-		}
-
-		return $loader;
-	}
-
-
-	/**
-	 * Adds configuration file.
-	 */
-	public function addConfig(string|array $config): static
-	{
-		$this->configs[] = $config;
-		return $this;
-	}
-
-
-	/**
-	 * Returns system DI container.
-	 */
-	public function createContainer(bool $initialize = true): DI\Container
-	{
-		$class = $this->loadContainer();
-		$container = new $class($this->dynamicParameters);
-		foreach ($this->services as $name => $service) {
-			$container->addService($name, $service);
-		}
-
-		if ($initialize) {
-			$container->initialize();
-		}
-
-		return $container;
-	}
-
-
-	/**
-	 * Loads system DI container class and returns its name.
-	 */
-	public function loadContainer(): string
-	{
-		$loader = new DI\ContainerLoader(
-			$this->getCacheDirectory() . '/nette.configurator',
-			$this->staticParameters['debugMode'],
-		);
-		return $loader->load(
-			[$this, 'generateContainer'],
-			$this->generateContainerKey(),
-		);
-	}
-
-
-	/**
-	 * @internal
-	 */
-	public function generateContainer(DI\Compiler $compiler): void
-	{
-		$loader = $this->createLoader();
-		$loader->setParameters($this->staticParameters);
-
-		foreach ($this->configs as $config) {
-			if (is_string($config)) {
-				$compiler->loadConfig($config, $loader);
 			} else {
-				$compiler->addConfig($config);
+				return Environment::getMode('localhost') ? Environment::DEVELOPMENT : Environment::PRODUCTION;
 			}
-		}
 
-		$compiler->addConfig(['parameters' => DI\Helpers::escape($this->staticParameters)]);
-		$compiler->setDynamicParameterNames(array_keys($this->dynamicParameters));
+		case 'localhost':
+			// detect by IP address
+			if (isset($_SERVER['SERVER_ADDR'])) {
+				$oct = explode('.', $_SERVER['SERVER_ADDR']);
+				return (count($oct) === 4) && ($oct[0] === '10' || $oct[0] === '127' || ($oct[0] === '171' && $oct[1] > 15 && $oct[1] < 32)
+					|| ($oct[0] === '169' && $oct[1] === '254') || ($oct[0] === '192' && $oct[1] === '168'));
 
-		$builder = $compiler->getContainerBuilder();
-		$builder->addExcludedClasses($this->autowireExcludedClasses);
-
-		foreach ($this->defaultExtensions as $name => $extension) {
-			[$class, $args] = is_string($extension)
-				? [$extension, []]
-				: $extension;
-			if (class_exists($class)) {
-				$args = DI\Helpers::expand($args, $this->staticParameters);
-				$compiler->addExtension($name, (new \ReflectionClass($class))->newInstanceArgs($args));
+			} else {
+				return FALSE;
 			}
+
+		case 'debug':
+			// determines if the debugger is active
+			if (defined('DEBUG_MODE')) {
+				return (bool) DEBUG_MODE;
+
+			} else {
+				return Environment::getMode('localhost') && isset($_REQUEST['DBGSESSID']);
+				// function_exists('DebugBreak');
+			}
+
+		case 'console':
+			return PHP_SAPI === 'cli';
+
+		default:
+			// unknowm mode
+			return NULL;
 		}
-
-		Nette\Utils\Arrays::invoke($this->onCompile, $this, $compiler);
 	}
 
-
-	protected function createLoader(): DI\Config\Loader
-	{
-		return new DI\Config\Loader;
-	}
-
-
-	protected function generateContainerKey(): array
-	{
-		return [
-			$this->staticParameters,
-			array_keys($this->dynamicParameters),
-			$this->configs,
-			PHP_VERSION_ID - PHP_RELEASE_VERSION, // minor PHP version
-			class_exists(ClassLoader::class) // composer update
-				? filemtime((new \ReflectionClass(ClassLoader::class))->getFilename())
-				: null,
-		];
-	}
-
-
-	protected function getCacheDirectory(): string
-	{
-		if (empty($this->staticParameters['tempDir'])) {
-			throw new Nette\InvalidStateException('Set path to temporary directory using setTempDirectory().');
-		}
-
-		$dir = $this->staticParameters['tempDir'] . '/cache';
-		Nette\Utils\FileSystem::createDir($dir);
-		return $dir;
-	}
-
-
-	/********************* tools ****************d*g**/
 
 
 	/**
-	 * Detects debug mode by IP addresses or computer names whitelist detection.
+	 * Loads global configuration from file and process it.
+	 * @param  string|Config  file name or Config object
+	 * @return Config
 	 */
-	public static function detectDebugMode(string|array $list = null): bool
+	public function loadConfig($file = NULL)
 	{
-		$addr = $_SERVER['REMOTE_ADDR'] ?? php_uname('n');
-		$secret = is_string($_COOKIE[self::CookieSecret] ?? null)
-			? $_COOKIE[self::CookieSecret]
-			: null;
-		$list = is_string($list)
-			? preg_split('#[,\s]+#', $list)
-			: (array) $list;
-		if (!isset($_SERVER['HTTP_X_FORWARDED_FOR']) && !isset($_SERVER['HTTP_FORWARDED'])) {
-			$list[] = '127.0.0.1';
-			$list[] = '::1';
-			$list[] = '[::1]'; // workaround for PHP < 7.3.4
+		$name = Environment::getName();
+
+		if ($this->useCache === NULL) {
+			$this->useCache = $name === Environment::PRODUCTION;
 		}
 
-		return in_array($addr, $list, true) || in_array("$secret@$addr", $list, true);
+		$cache = $this->useCache ? Environment::getCache('Nette.Environment') : NULL;
+
+		if (isset($cache[$name])) {
+			Environment::swapState($cache[$name]);
+			$config = Environment::getConfig();
+
+		} else {
+			if ($file instanceof Config) {
+				$config = $file;
+				$file = NULL;
+
+			} else {
+				if ($file === NULL) {
+					$file = $this->defaultConfigFile;
+				}
+				$file = Environment::expand($file);
+				$config = Config::fromFile($file, $name, 0);
+			}
+
+			// process environment variables
+			if ($config->variable instanceof Config) {
+				foreach ($config->variable as $key => $value) {
+					Environment::setVariable($key, $value);
+				}
+			}
+
+			if (isset($config->set->include_path)) {
+				$config->set->include_path = strtr($config->set->include_path, ';', PATH_SEPARATOR);
+			}
+
+			$config->expand();
+			$config->setReadOnly();
+
+			// process services
+			$locator = Environment::getServiceLocator();
+			if ($config->service instanceof Config) {
+				foreach ($config->service as $key => $value) {
+					$locator->addService($value, $key);
+				}
+			}
+
+			// save cache
+			if ($cache) {
+				$state = Environment::swapState(NULL);
+				$state[0] = $config; // TODO: better!
+				$cache->save($name, $state, array('files' => $file));
+			}
+		}
+
+
+		// check temporary directory - TODO: discuss
+		/*
+		$dir = Environment::getVariable('tempDir');
+		if ($dir && !(is_dir($dir) && is_writable($dir))) {
+			trigger_error("Temporary directory '$dir' is not writable", E_USER_NOTICE);
+		}
+		*/
+
+		// process ini settings
+		if ($config->set instanceof Config) {
+			if (!function_exists('ini_set')) {
+				throw new /*::*/NotSupportedException('Function ini_set() is not enabled.');
+			}
+
+			foreach ($config->set as $key => $value) {
+				ini_set($key, $value);
+			}
+		}
+
+		// define constants
+		if ($config->const instanceof Config) {
+			foreach ($config->const as $key => $value) {
+				define($key, $value);
+			}
+		}
+
+		// set mode
+		if (isset($config->mode)) {
+			foreach(explode(',', $config->mode) as $mode) {
+				Environment::setMode($mode);
+			}
+		}
+
+		// execute services - TODO: discuss
+		/*
+		if ($config->run) {
+			$run = (array) $config->run;
+			ksort($run);
+			foreach ($run as $value) {
+				$a = strrpos($value, ':');
+				$service = substr($value, 0, $a - 1);
+				$service = $locator->getService($service);
+				$method = substr($value, $a + 1);
+				$service->$method();
+			}
+		}
+		*/
+
+		return $config;
 	}
+
 }
-
-
-class_exists(Nette\Configurator::class);
