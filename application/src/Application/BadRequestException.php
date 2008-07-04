@@ -22,36 +22,23 @@
 
 
 /**
- * Responsible for loading presenters.
+ * Bad HTTP / presenter request exception.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenterLoader
+class BadRequestException extends /*::*/Exception
 {
 
 	/**
-	 * @param  string  presenter name
-	 * @return string  class name
-	 * @throws InvalidPresenterException
-	 */
-	function getPresenterClass(& $name);
+	 * Returns HTTP status code.
+     * @return int
+     */
+	public function getHttpCode()
+	{
+		return /*Nette::Web::*/IHttpResponse::S404_NOT_FOUND;
+	}
 
-}
-
-
-
-
-/**
- * The exception that is thrown when a presenter cannot be loaded.
- *
- * @author     David Grudl
- * @copyright  Copyright (c) 2004, 2008 David Grudl
- * @package    Nette::Application
- * @version    $Revision$ $Date$
- */
-class InvalidPresenterException extends /*::*/InvalidArgumentException
-{
 }

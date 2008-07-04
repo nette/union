@@ -26,7 +26,7 @@ require_once dirname(__FILE__) . '/../Application/AbortException.php';
 
 
 /**
- * Abort presenter and forwarding to new request.
+ * Abort presenter and forwards to new request.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
