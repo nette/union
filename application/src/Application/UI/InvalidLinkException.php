@@ -22,21 +22,13 @@
 
 
 /**
- * Responsible for loading presenters.
+ * Link generation exception.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Application
  * @version    $Revision$ $Date$
  */
-interface IPresenterLoader
+class InvalidLinkException extends /*::*/Exception
 {
-
-	/**
-	 * @param  string  presenter name
-	 * @return string  class name
-	 * @throws InvalidPresenterException
-	 */
-	function getPresenterClass(& $name);
-
 }
