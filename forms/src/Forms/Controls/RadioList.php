@@ -1,128 +1,163 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms\Controls;
 
-use Nette;
-use Nette\Utils\Html;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../../Forms/Controls/FormControl.php';
+
 
 
 /**
  * Set of radio button controls.
  *
- * @property-read Html $separatorPrototype
- * @property-read Html $containerPrototype
- * @property-read Html $itemLabelPrototype
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
-class RadioList extends ChoiceControl
+class RadioList extends FormControl
 {
-	public bool $generateId = false;
+	/** @var Nette::Web::Html  separator element template */
+	protected $separator;
 
-	/** separator element template */
-	protected Html $separator;
+	/** @var Nette::Web::Html  container element template */
+	protected $container;
 
-	/** container element template */
-	protected Html $container;
-
-	/** item label template */
-	protected Html $itemLabel;
+	/** @var array */
+	protected $items;
 
 
-	public function __construct(string|Stringable|null $label = null, ?array $items = null)
+
+	/**
+	 * @param  string  label
+	 * @param  array   options from which to choose
+	 */
+	public function __construct($label, array $items)
 	{
-		parent::__construct($label, $items);
+		parent::__construct($label);
+		$this->items = $items;
 		$this->control->type = 'radio';
-		$this->container = Html::el();
-		$this->separator = Html::el('br');
-		$this->itemLabel = Html::el('label');
-		$this->setOption('type', 'radio');
+		$this->label->for = NULL;
+		$this->container = /*Nette::Web::*/Html::el();
+		$this->separator = /*Nette::Web::*/Html::el('br');
 	}
 
 
-	public function getControl(): Html
+
+	/**
+	 * Sets selected radio value.
+	 * @param  string|int
+	 * @return void
+	 */
+	public function setValue($value)
 	{
-		$input = parent::getControl();
-		$items = $this->getItems();
-		$ids = [];
-		if ($this->generateId) {
-			foreach ($items as $value => $label) {
-				$ids[$value] = $input->id . '-' . $value;
-			}
-		}
-
-		return $this->container->setHtml(
-			Nette\Forms\Helpers::createInputList(
-				$this->translate($items),
-				array_merge($input->attrs, [
-					'id:' => $ids,
-					'checked?' => $this->value,
-					'disabled:' => $this->disabled,
-					'data-nette-rules:' => [key($items) => $input->attrs['data-nette-rules']],
-				]),
-				['for:' => $ids] + $this->itemLabel->attrs,
-				$this->separator,
-			),
-		);
+		$this->value = isset($this->items[$value]) ? $value : NULL;
 	}
 
 
-	public function getLabel($caption = null): Html
+
+	/**
+	 * Returns options from which to choose.
+	 * @return array
+	 */
+	final public function getItems()
 	{
-		return parent::getLabel($caption)->for(null);
+		return $this->items;
 	}
 
-
-	public function getControlPart($key = null): Html
-	{
-		$key = key([(string) $key => null]);
-		return parent::getControl()->addAttributes([
-			'id' => $this->getHtmlId() . '-' . $key,
-			'checked' => in_array($key, (array) $this->value, true),
-			'disabled' => is_array($this->disabled) ? isset($this->disabled[$key]) : $this->disabled,
-			'value' => $key,
-		]);
-	}
-
-
-	public function getLabelPart($key = null): Html
-	{
-		$itemLabel = clone $this->itemLabel;
-		return func_num_args()
-			? $itemLabel->setText($this->translate($this->items[$key]))->for($this->getHtmlId() . '-' . $key)
-			: $this->getLabel();
-	}
 
 
 	/**
 	 * Returns separator HTML element template.
+	 * @return Nette::Web::Html
 	 */
-	public function getSeparatorPrototype(): Html
+	final public function getSeparatorPrototype()
 	{
 		return $this->separator;
 	}
 
 
+
 	/**
 	 * Returns container HTML element template.
+	 * @return Nette::Web::Html
 	 */
-	public function getContainerPrototype(): Html
+	final public function getContainerPrototype()
 	{
 		return $this->container;
 	}
 
 
+
 	/**
-	 * Returns item label HTML element template.
+	 * Generates control's HTML element.
+	 * @return Nette::Web::Html
 	 */
-	public function getItemLabelPrototype(): Html
+	public function getControl()
 	{
-		return $this->itemLabel;
+		$container = clone $this->container;
+		$separator = (string) $this->separator;
+		$control = parent::getControl();
+		$id = $control->id;
+		$counter = 0;
+		$value = $this->value === NULL ? NULL : (string) $this->value;
+		$label = /*Nette::Web::*/Html::el('label');
+		$translator = $this->getTranslator();
+
+		foreach ($this->items as $key => $val) {
+			$control->id = $label->for = $id . '-' . $counter;
+			$control->checked = (string) $key === $value;
+			$control->value = $key;
+			$label->setText($translator === NULL ? $val : $translator->translate($val));
+			$container->add((string) $control)->add((string) $label)->add($separator);
+			$counter++;
+			// TODO: separator after last item?
+		}
+
+		return $container;
 	}
+
+
+
+	/**
+	 * Generates label's HTML element.
+	 * @return void
+	 */
+	public function getLabel()
+	{
+		$label = parent::getLabel();
+		$label->for = NULL;
+		return $label;
+	}
+
+
+
+	/**
+	 * Filled validator: has been any radio button selected?
+	 * @param  IFormControl
+	 * @return bool
+	 */
+	public static function validateFilled(IFormControl $control)
+	{
+		return $control->getValue() !== NULL;
+	}
+
 }

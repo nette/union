@@ -22,42 +22,13 @@
 
 
 
-require_once dirname(__FILE__) . '/../../Forms/Controls/SubmitButton.php';
-
-
-
 /**
- * Submittable image button form control.
+ * Identifies a container that creates a new namespace for form's control hierarchy.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Forms
  */
-class ImageButton extends SubmitButton
+interface INamingContainer
 {
-
-	/**
-	 * @param  string  URI of the image
-	 * @param  string  alternate text for the image
-	 */
-	public function __construct($src, $alt)
-	{
-		parent::__construct(NULL);
-		$this->control->type = 'image';
-		$this->control->src = $src;
-		$this->control->alt = $alt;
-	}
-
-
-
-	/**
-	 * Loads HTTP data.
-	 * @param  array
-	 * @return void
-	 */
-	public function loadHttpData($data)
-	{
-		$this->value = isset($data[$this->getName() . '_x']);
-	}
-
 }

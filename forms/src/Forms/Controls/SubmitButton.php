@@ -1,113 +1,88 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms\Controls;
 
-use Nette;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../../Forms/Controls/Button.php';
+
+require_once dirname(__FILE__) . '/../../Forms/ISubmitterControl.php';
+
 
 
 /**
  * Submittable button control.
  *
- * @property-read bool $submittedBy
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
-class SubmitButton extends Button implements Nette\Forms\SubmitterControl
+class SubmitButton extends Button implements ISubmitterControl
 {
+	/** @var array  click event handlers: function($sender) */
+	public $onClick;
+
+
+
 	/**
-	 * Occurs when the button is clicked and form is successfully validated
-	 * @var array<callable(self, array|object): void|callable(Nette\Forms\Form, array|object): void|callable(array|object): void>
+	 * @param  string  label
 	 */
-	public array $onClick = [];
-
-	/** @var array<callable(self): void>  Occurs when the button is clicked and form is not validated */
-	public array $onInvalidClick = [];
-
-	private ?array $validationScope = null;
-
-
-	public function __construct(string|Stringable|null $caption = null)
+	public function __construct($label)
 	{
-		parent::__construct($caption);
+		parent::__construct($label);
 		$this->control->type = 'submit';
-		$this->setOmitted(true);
 	}
 
-
-	public function loadHttpData(): void
-	{
-		parent::loadHttpData();
-		if ($this->isFilled()) {
-			$this->getForm()->setSubmittedBy($this);
-		}
-	}
 
 
 	/**
 	 * Tells if the form was submitted by this button.
+	 * @return bool
 	 */
-	public function isSubmittedBy(): bool
+	public function isSubmittedBy()
 	{
-		return $this->getForm()->isSubmitted() === $this;
+		return (bool) $this->value;
 	}
 
-
-	/**
-	 * Sets the validation scope. Clicking the button validates only the controls within the specified scope.
-	 */
-	public function setValidationScope(?iterable $scope): static
-	{
-		if ($scope === null) {
-			$this->validationScope = null;
-		} else {
-			$this->validationScope = [];
-			foreach ($scope ?: [] as $control) {
-				if (!$control instanceof Nette\Forms\Container && !$control instanceof Nette\Forms\Control) {
-					throw new Nette\InvalidArgumentException('Validation scope accepts only Nette\Forms\Container or Nette\Forms\Control instances.');
-				}
-
-				$this->validationScope[] = $control;
-			}
-		}
-
-		return $this;
-	}
-
-
-	/**
-	 * Gets the validation scope.
-	 */
-	public function getValidationScope(): ?array
-	{
-		return $this->validationScope;
-	}
 
 
 	/**
 	 * Fires click event.
+	 * @return void
 	 */
-	public function click(): void
+	public function click()
 	{
-		Nette\Utils\Arrays::invoke($this->onClick, $this);
+		$this->onClick($this);
 	}
 
 
-	public function getControl($caption = null): Nette\Utils\Html
-	{
-		$scope = [];
-		foreach ((array) $this->validationScope as $control) {
-			$scope[] = $control->lookupPath(Nette\Forms\Form::class);
-		}
 
-		return parent::getControl($caption)->addAttributes([
-			'formnovalidate' => $this->validationScope !== null,
-			'data-nette-validation-scope' => $scope ?: null,
-		]);
+	/**
+	 * Submitted validator: has been button pressed?
+	 * @param  IFormControl
+	 * @return bool
+	 */
+	public static function validateSubmitted(IFormControl $control)
+	{
+		return $control->isSubmittedBy();
 	}
+
 }

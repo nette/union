@@ -1,114 +1,118 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms\Controls;
 
-use Nette;
-use Nette\Forms\Form;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../../Forms/Controls/TextBase.php';
+
 
 
 /**
  * Single line text input control.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
 class TextInput extends TextBase
 {
-	public function __construct(string|Stringable|null $label = null, ?int $maxLength = null)
+
+	/**
+	 * @param  string  control name
+	 * @param  string  label
+	 * @param  int  width of the control
+	 * @param  int  maximum number of characters the user may enter
+	 */
+	public function __construct($label, $cols = NULL, $maxLenght = NULL)
 	{
 		parent::__construct($label);
-		$this->control->maxlength = $maxLength;
-		$this->setOption('type', 'text');
+		$this->control->type = 'text';
+		$this->control->size = $cols;
+		$this->control->maxlength = $maxLenght;
+		$this->filters[] = 'trim';
+		$this->value = '';
 	}
 
-
-	public function loadHttpData(): void
-	{
-		$this->setValue($this->getHttpData(Form::DataLine));
-	}
 
 
 	/**
-	 * Changes control's type attribute.
+	 * Loads HTTP data.
+	 * @param  array
+	 * @return void
 	 */
-	public function setHtmlType(string $type): static
+	public function loadHttpData($data)
 	{
-		$this->control->type = $type;
+		parent::loadHttpData($data);
+
+		if ($this->control->type === 'password') {
+			$this->rawValue = '';
+		}
+
+		if ($this->control->maxlength && iconv_strlen($this->value) > $this->control->maxlength) {
+			$this->value = iconv_substr($this->value, 0, $this->control->maxlength);
+		}
+	}
+
+
+
+	/**
+	 * Sets or unsets the password mode.
+	 * @param  bool
+	 * @return TextInput  provides a fluent interface
+	 */
+	public function setPasswordMode($mode)
+	{
+		$this->control->type = $mode ? 'password' : 'text';
 		return $this;
 	}
 
 
+
 	/**
-	 * @deprecated  use setHtmlType()
+	 * Generates control's HTML element.
+	 * @return Nette::Web::Html
 	 */
-	public function setType(string $type): static
+	public function getControl()
 	{
-		return $this->setHtmlType($type);
+		$control = parent::getControl();
+		$control->value = $this->value === '' ? $this->emptyValue : $this->rawValue;
+		return $control;
 	}
 
 
-	public function getControl(): Nette\Utils\Html
-	{
-		return parent::getControl()->addAttributes([
-			'value' => $this->control->type === 'password' ? $this->control->value : $this->getRenderedValue(),
-			'type' => $this->control->type ?: 'text',
-		]);
-	}
 
-
-	public function addRule(
-		callable|string $validator,
-		string|Stringable|null $errorMessage = null,
-		mixed $arg = null,
-	): static
+	public function notifyRule(Rule $rule)
 	{
-		foreach ($this->getRules() as $rule) {
-			if (!$rule->canExport() && !$rule->branch) {
-				return parent::addRule($validator, $errorMessage, $arg);
-			}
+		if (!is_string($rule->operation)) {
+			// nothing to do
+		} elseif (!$rule->isCondition && strcasecmp($rule->operation, /*Nette::Forms::*/'TextBase::validateLength') === 0) {
+			$this->control->maxlength = $rule->arg[1];
+
+		} elseif (!$rule->isCondition && strcasecmp($rule->operation, /*Nette::Forms::*/'TextBase::validateMaxLength') === 0) {
+			$this->control->maxlength = $rule->arg;
 		}
 
-		if ($this->control->type === null && in_array($validator, [Form::Email, Form::URL, Form::Integer], true)) {
-			$types = [Form::Email => 'email', Form::URL => 'url', Form::Integer => 'number'];
-			$this->control->type = $types[$validator];
-
-		} elseif (
-			in_array($validator, [Form::Min, Form::Max, Form::Range], true)
-			&& in_array($this->control->type, ['number', 'range', 'datetime-local', 'datetime', 'date', 'month', 'week', 'time'], true)
-		) {
-			if ($validator === Form::Min) {
-				$range = [$arg, null];
-			} elseif ($validator === Form::Max) {
-				$range = [null, $arg];
-			} else {
-				$range = $arg;
-			}
-
-			if (isset($range[0]) && is_scalar($range[0])) {
-				$this->control->min = isset($this->control->min)
-					? max($this->control->min, $range[0])
-					: $range[0];
-			}
-
-			if (isset($range[1]) && is_scalar($range[1])) {
-				$this->control->max = isset($this->control->max)
-					? min($this->control->max, $range[1])
-					: $range[1];
-			}
-
-		} elseif (
-			$validator === Form::Pattern
-			&& is_scalar($arg)
-			&& in_array($this->control->type, [null, 'text', 'search', 'tel', 'url', 'email', 'password'], true)
-		) {
-			$this->control->pattern = $arg;
-		}
-
-		return parent::addRule($validator, $errorMessage, $arg);
+		parent::notifyRule($rule);
 	}
+
+
 }

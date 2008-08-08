@@ -22,60 +22,57 @@
 
 
 
-require_once dirname(__FILE__) . '/../../Forms/Controls/FormControl.php';
-
-
-
 /**
- * Hidden form control used to store a non-displayed value.
+ * Defines method that must be implemented to allow a component to act like a form control.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Forms
  */
-class HiddenField extends FormControl
+interface IFormControl
 {
 
-	public function __construct()
-	{
-		parent::__construct(NULL);
-		$this->control->type = 'hidden';
-		$this->value = '';
-		$this->setHtmlId(FALSE);
-	}
-
-
-
 	/**
-	 * Bypasses label generation.
+	 * Loads HTTP data.
+	 * @param  array
 	 * @return void
 	 */
-	public function getLabel()
-	{
-		return NULL;
-	}
-
-
+	function loadHttpData($data);
 
 	/**
 	 * Sets control's value.
-	 * @param  string
+	 * @param  mixed
 	 * @return void
 	 */
-	public function setValue($value)
-	{
-		$this->value = (string) $value;
-	}
-
-
+	function setValue($value);
 
 	/**
-	 * Generates control's HTML element.
-	 * @return Nette::Web::Html
+	 * Returns control's value.
+	 * @return mixed
 	 */
-	public function getControl()
-	{
-		return parent::getControl()->value($this->value);
-	}
+	function getValue();
+
+	/**
+	 * @return Rules
+	 */
+	function getRules();
+
+	/**
+	 * Returns errors corresponding to control.
+	 * @return array
+	 */
+	function getErrors();
+
+	/**
+	 * Is control disabled?
+	 * @return bool
+	 */
+	function getDisabled();
+
+	/**
+	 * Returns translator adapter.
+	 * @return ITranslator
+	 */
+	function getTranslator();
 
 }

@@ -1,147 +1,239 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms\Controls;
 
-use Nette;
-use Nette\Forms\Form;
-use Nette\Utils\Strings;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../../Forms/Controls/FormControl.php';
+
 
 
 /**
  * Implements the basic functionality common to text input controls.
- * @extends BaseControl<string>
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
-abstract class TextBase extends BaseControl
+abstract class TextBase extends FormControl
 {
-	protected string $emptyValue = '';
+	/** @var string */
+	protected $emptyValue = '';
 
-	/** unfiltered submitted value */
-	protected mixed $rawValue = '';
+	/** @var string original submitted value */
+	protected $rawValue;
 
-	private bool $nullable = false;
+	/** @var array */
+	protected $filters = array();
+
 
 
 	/**
 	 * Sets control's value.
-	 * @internal
+	 * @param  string
+	 * @return void
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
-		if ($value === null) {
-			$value = '';
-		} elseif (!is_scalar($value) && !$value instanceof \Stringable) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", gettype($value), $this->name));
+		$value = (string) $value;
+		foreach ($this->filters as $filter) {
+			$value = (string) call_user_func($filter, $value);
 		}
-
-		$this->value = $value;
-		$this->rawValue = (string) $value;
-		return $this;
+		$this->rawValue = $this->value = $value === $this->emptyValue ? '' : $value;
 	}
+
 
 
 	/**
-	 * Returns control's value.
+	 * Loads HTTP data.
+	 * @param  array
+	 * @return void
 	 */
-	public function getValue(): mixed
+	public function loadHttpData($data)
 	{
-		$value = $this->value === Strings::trim($this->translate($this->emptyValue))
-			? ''
-			: $this->value;
-		return $this->nullable && $value === '' ? null : $value;
+		$name = $this->getName();
+		$rawValue = isset($data[$name]) ? $data[$name] : NULL;
+		$this->setValue($rawValue);
+		$this->rawValue = $rawValue;
 	}
 
-
-	/**
-	 * Sets whether getValue() returns null instead of empty string.
-	 */
-	public function setNullable(bool $value = true): static
-	{
-		$this->nullable = $value;
-		return $this;
-	}
 
 
 	/**
 	 * Sets the special value which is treated as empty string.
+	 * @param  string
+	 * @return TextBase  provides a fluent interface
 	 */
-	public function setEmptyValue(string $value): static
+	public function setEmptyValue($value)
 	{
 		$this->emptyValue = $value;
 		return $this;
 	}
 
 
+
 	/**
 	 * Returns the special value which is treated as empty string.
+	 * @return string
 	 */
-	public function getEmptyValue(): string
+	final public function getEmptyValue()
 	{
 		return $this->emptyValue;
 	}
 
 
+
 	/**
-	 * Sets the maximum number of allowed characters.
+	 * Appends string filter callback.
+	 * @param  callback
+	 * @return TextBase  provides a fluent interface
 	 */
-	public function setMaxLength(int $length): static
+	public function addFilter($filter)
 	{
-		$this->control->maxlength = $length;
+		$this->filters[] = $filter;
 		return $this;
 	}
 
 
-	public function getControl(): Nette\Utils\Html
+
+	public function notifyRule(Rule $rule)
 	{
-		$el = parent::getControl();
-		if ($this->emptyValue !== '') {
-			$el->attrs['data-nette-empty-value'] = Strings::trim($this->translate($this->emptyValue));
+		if (is_string($rule->operation) && strcasecmp($rule->operation, /*Nette::Forms::*/'TextBase::validateRegexp') === 0 && $rule->arg[0] !== '/') {
+			throw new /*::*/InvalidArgumentException('Regular expression must be JavaScript compatible.');
 		}
-
-		if (isset($el->placeholder)) {
-			$el->placeholder = $this->translate($el->placeholder);
-		}
-
-		return $el;
+		parent::notifyRule($rule);
 	}
 
 
-	protected function getRenderedValue(): ?string
+
+	/**
+	 * Min-length validator: has control's value minimal length?
+	 * @param  IFormControl
+	 * @param  int  length
+	 * @return bool
+	 */
+	public static function validateMinLength(IFormControl $control, $length)
 	{
-		return $this->rawValue === ''
-			? ($this->emptyValue === '' ? null : $this->translate($this->emptyValue))
-			: $this->rawValue;
+		// bug #33268 iconv_strlen works since PHP 5.0.5
+		return iconv_strlen($control->getValue()) >= $length;
 	}
 
 
-	public function addRule(
-		callable|string $validator,
-		string|Stringable|null $errorMessage = null,
-		mixed $arg = null,
-	): static
+
+	/**
+	 * Max-length validator: is control's value length in limit?
+	 * @param  IFormControl
+	 * @param  int  length
+	 * @return bool
+	 */
+	public static function validateMaxLength(IFormControl $control, $length)
 	{
-		foreach ($this->getRules() as $rule) {
-			if (!$rule->canExport() && !$rule->branch) {
-				return parent::addRule($validator, $errorMessage, $arg);
-			}
-		}
-
-		if ($validator === Form::Length || $validator === Form::MaxLength) {
-			$tmp = is_array($arg) ? $arg[1] : $arg;
-			if (is_scalar($tmp)) {
-				$this->control->maxlength = isset($this->control->maxlength)
-					? min($this->control->maxlength, $tmp)
-					: $tmp;
-			}
-		}
-
-		return parent::addRule($validator, $errorMessage, $arg);
+		return iconv_strlen($control->getValue()) <= $length;
 	}
+
+
+
+	/**
+	 * Length validator: is control's value length in range?
+	 * @param  IFormControl
+	 * @param  array  min and max length pair
+	 * @return bool
+	 */
+	public static function validateLength(IFormControl $control, $range)
+	{
+		return iconv_strlen($control->getValue()) >= $range[0] && iconv_strlen($control->getValue()) <= $range[1];
+	}
+
+
+
+	/**
+	 * Email validator: is control's value valid email address?
+	 * @param  IFormControl
+	 * @return bool
+	 */
+	public static function validateEmail(IFormControl $control)
+	{
+		return preg_match('/^[^@]+@[^@]+\.[a-z]{2,6}$/i', $control->getValue());
+	}
+
+
+
+	/**
+	 * URL validator: is control's value valid URL?
+	 * @param  IFormControl
+	 * @return bool
+	 */
+	public static function validateUrl(IFormControl $control)
+	{
+		return preg_match('/^.+\.[a-z]{2,6}(\\/.*)?$/i', $control->getValue());
+	}
+
+
+
+	/**
+	 * Regular expression validator: matches control's value regular expression?
+	 * @param  IFormControl
+	 * @param  string
+	 * @return bool
+	 */
+	public static function validateRegexp(IFormControl $control, $regexp)
+	{
+		return preg_match($regexp, $control->getValue());
+	}
+
+
+
+	/**
+	 * Numeric validator: is a control's value decimal number?
+	 * @param  IFormControl
+	 * @return bool
+	 */
+	public static function validateNumeric(IFormControl $control)
+	{
+		return preg_match('/^-?[0-9]+$/', $control->getValue());
+	}
+
+
+
+	/**
+	 * Float validator: is a control's value float number?
+	 * @param  IFormControl
+	 * @return bool
+	 */
+	public static function validateFloat(IFormControl $control)
+	{
+		return preg_match('/^-?[0-9]*[.,]?[0-9]+$/', $control->getValue());
+	}
+
+
+
+	/**
+	 * Rangle validator: is a control's value number in specified range?
+	 * @param  IFormControl
+	 * @param  array  min and max value pair
+	 * @return bool
+	 */
+	public static function validateRange(IFormControl $control, $range)
+	{
+		return $control->getValue() >= $range[0] && $control->getValue() <= $range[1];
+	}
+
 }

@@ -1,800 +1,602 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms;
 
-use Nette;
-use Nette\Utils\Arrays;
-use Nette\Utils\Html;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../Forms/FormContainer.php';
+
 
 
 /**
- * Creates, validates and renders HTML forms.
+ * Form - create, validate and render (X)HTML forms.
  *
- * @property-read array $errors
- * @property-read array $ownErrors
- * @property-read Html $elementPrototype
- * @property-read FormRenderer $renderer
- * @property string $action
- * @property string $method
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
-class Form extends Container implements Nette\HtmlStringable
+class Form extends FormContainer
 {
-	/** validator */
-	public const
-		Equal = ':equal',
-		IsIn = self::Equal,
-		NotEqual = ':notEqual',
-		IsNotIn = self::NotEqual,
-		Filled = ':filled',
-		Blank = ':blank',
-		Required = self::Filled,
-		Valid = ':valid',
+	/** Deprecated constants. */
+	const EQUAL = ':Equal';
+	const FILLED = ':Filled';
+	const SCRIPT = /*Nette::Forms::*/'InstantClientScript::javascript';
 
-		// button
-		Submitted = ':submitted',
+	const SUBMITTED = /*Nette::Forms::*/'SubmitButton::validateSubmitted';
 
-		// text
-		MinLength = ':minLength',
-		MaxLength = ':maxLength',
-		Length = ':length',
-		Email = ':email',
-		URL = ':url',
-		Pattern = ':pattern',
-		PatternCI = ':patternCaseInsensitive',
-		Integer = ':integer',
-		Numeric = ':numeric',
-		Float = ':float',
-		Min = ':min',
-		Max = ':max',
-		Range = ':range',
+	const MIN_LENGTH = /*Nette::Forms::*/'TextBase::validateMinLength';
+	const MAX_LENGTH = /*Nette::Forms::*/'TextBase::validateMaxLength';
+	const LENGTH = /*Nette::Forms::*/'TextBase::validateLength';
+	const EMAIL = /*Nette::Forms::*/'TextBase::validateEmail';
+	const URL = /*Nette::Forms::*/'TextBase::validateUrl';
+	const REGEXP = /*Nette::Forms::*/'TextBase::validateRegexp';
+	const NUMERIC = /*Nette::Forms::*/'TextBase::validateNumeric';
+	const FLOAT = /*Nette::Forms::*/'TextBase::validateFloat';
+	const RANGE = /*Nette::Forms::*/'TextBase::validateRange';
 
-		// multiselect
-		Count = self::Length,
+	const MAX_FILE_SIZE = /*Nette::Forms::*/'FileUpload::validateFileSize';
+	const MIME_TYPE = /*Nette::Forms::*/'FileUpload::validateMimeType';
 
-		// file upload
-		MaxFileSize = ':fileSize',
-		MimeType = ':mimeType',
-		Image = ':image',
-		MaxPostSize = ':maxPostSize';
 
-	/** method */
-	public const
-		Get = 'get',
-		Post = 'post';
+	/** Tracker ID */
+	const TRACKER_ID = '_form_';
 
-	/** submitted data types */
-	public const
-		DataText = 1,
-		DataLine = 2,
-		DataFile = 3,
-		DataKeys = 8;
+	/** @var array - function($sender, $submittor) */
+	public $onSubmit;
 
-	/** @internal tracker ID */
-	public const TrackerId = '_form_';
+	/** @var bool  fire event onSubmit only for valid form? */
+	public $onlyValid = TRUE;
 
-	/** @internal protection token ID */
-	public const ProtectorId = '_token_';
+	/** @var bool */
+	protected $isPost = TRUE;
 
-	/** @deprecated use Form::Equal */
-	public const EQUAL = self::Equal;
+	/** @var mixed */
+	protected $submittedBy;
 
-	/** @deprecated use Form::IsIn */
-	public const IS_IN = self::IsIn;
+	/** @var Html  <form> element */
+	private $element;
 
-	/** @deprecated use Form::NotEqual */
-	public const NOT_EQUAL = self::NotEqual;
+	/** @var ITranslator */
+	private $translator;
 
-	/** @deprecated use Form::IsNotIn */
-	public const IS_NOT_IN = self::IsNotIn;
+	/** @var bool */
+	private $isPopulated = FALSE;
 
-	/** @deprecated use Form::Filled */
-	public const FILLED = self::Filled;
+	/** @var bool */
+	private $valid;
 
-	/** @deprecated use Form::Blank */
-	public const BLANK = self::Blank;
+	/** @var array */
+	private $errors = array();
 
-	/** @deprecated use Form::Required */
-	public const REQUIRED = self::Required;
 
-	/** @deprecated use Form::Valid */
-	public const VALID = self::Valid;
-
-	/** @deprecated use Form::Submitted */
-	public const SUBMITTED = self::Submitted;
-
-	/** @deprecated use Form::MinLength */
-	public const MIN_LENGTH = self::MinLength;
-
-	/** @deprecated use Form::MaxLength */
-	public const MAX_LENGTH = self::MaxLength;
-
-	/** @deprecated use Form::Length */
-	public const LENGTH = self::Length;
-
-	/** @deprecated use Form::Email */
-	public const EMAIL = self::Email;
-
-	/** @deprecated use Form::Pattern */
-	public const PATTERN = self::Pattern;
-
-	/** @deprecated use Form::PatternCI */
-	public const PATTERN_ICASE = self::PatternCI;
-
-	/** @deprecated use Form::Integer */
-	public const INTEGER = self::Integer;
-
-	/** @deprecated use Form::Numeric */
-	public const NUMERIC = self::Numeric;
-
-	/** @deprecated use Form::Float */
-	public const FLOAT = self::Float;
-
-	/** @deprecated use Form::Min */
-	public const MIN = self::Min;
-
-	/** @deprecated use Form::Max */
-	public const MAX = self::Max;
-
-	/** @deprecated use Form::Range */
-	public const RANGE = self::Range;
-
-	/** @deprecated use Form::Count */
-	public const COUNT = self::Count;
-
-	/** @deprecated use Form::MaxFileSize */
-	public const MAX_FILE_SIZE = self::MaxFileSize;
-
-	/** @deprecated use Form::MimeType */
-	public const MIME_TYPE = self::MimeType;
-
-	/** @deprecated use Form::Image */
-	public const IMAGE = self::Image;
-
-	/** @deprecated use Form::MaxPostSize */
-	public const MAX_POST_SIZE = self::MaxPostSize;
-
-	/** @deprecated use Form::Get */
-	public const GET = self::Get;
-
-	/** @deprecated use Form::Post */
-	public const POST = self::Post;
-
-	/** @deprecated use Form::DataText */
-	public const DATA_TEXT = self::DataText;
-
-	/** @deprecated use Form::DataLine */
-	public const DATA_LINE = self::DataLine;
-
-	/** @deprecated use Form::DataFile */
-	public const DATA_FILE = self::DataFile;
-
-	/** @deprecated use Form::DataKeys */
-	public const DATA_KEYS = self::DataKeys;
-
-	/** @deprecated use Form::TrackerId */
-	public const TRACKER_ID = self::TrackerId;
-
-	/** @deprecated use Form::ProtectorId */
-	public const PROTECTOR_ID = self::ProtectorId;
 
 	/**
-	 * Occurs when the form is submitted and successfully validated
-	 * @var array<callable(self, array|object): void|callable(array|object): void>
+	 * Form constructor.
 	 */
-	public array $onSuccess = [];
-
-	/** @var array<callable(self): void>  Occurs when the form is submitted and is not valid */
-	public array $onError = [];
-
-	/** @var array<callable(self): void>  Occurs when the form is submitted */
-	public array $onSubmit = [];
-
-	/** @var array<callable(self): void>  Occurs before the form is rendered */
-	public array $onRender = [];
-
-	/** @internal used only by standalone form */
-	public Nette\Http\IRequest $httpRequest;
-
-	protected bool $crossOrigin = false;
-
-	private static ?Nette\Http\IRequest $defaultHttpRequest = null;
-
-	private SubmitterControl|bool $submittedBy;
-
-	private array $httpData;
-
-	/** element <form> */
-	private Html $element;
-
-	private FormRenderer $renderer;
-
-	private ?Nette\Localization\Translator $translator = null;
-
-	/** @var ControlGroup[] */
-	private array $groups = [];
-
-	private array $errors = [];
-
-	private bool $beforeRenderCalled = false;
-
-
-	public function __construct(?string $name = null)
+	public function __construct($name = NULL, $parent = NULL)
 	{
-		if ($name !== null) {
-			$this->getElementPrototype()->id = 'frm-' . $name;
-			$tracker = new Controls\HiddenField($name);
-			$tracker->setOmitted();
-			$this[self::TrackerId] = $tracker;
-			$this->setParent(null, $name);
+		$this->element = /*Nette::Web::*/Html::el('form');
+		$this->setAction(''); // RFC 1808 -> empty uri means 'this'
+		$this->monitor(__CLASS__);
+		parent::__construct($parent, $name);
+	}
+
+
+
+	/**
+	 * This method will be called when the component (or component's parent)
+	 * becomes attached to a monitored object. Do not call this method yourself.
+	 * @param  IComponent
+	 * @return void
+	 */
+	protected function attached($obj)
+	{
+		if ($obj instanceof self) {
+			throw new /*::*/InvalidStateException('Nested forms are forbidden.');
 		}
-
-		$this->monitor(self::class, function (): void {
-			throw new Nette\InvalidStateException('Nested forms are forbidden.');
-		});
 	}
+
 
 
 	/**
-	 * Returns self.
+	 * Sets form's action and method.
+	 * @param  mixed URI
+	 * @param  bool  use POST method to submit the form?
+	 * @return void
 	 */
-	public function getForm(bool $throw = true): static
+	public function setAction($url, $isPost = NULL)
 	{
-		return $this;
+		if ($isPost !== NULL) {
+			$this->isPost = (bool) $isPost;
+		}
+		$this->element->action = $url;
+		$this->element->method = $this->isPost ? 'post' : 'get';
 	}
 
-
-	/**
-	 * Sets form's action.
-	 */
-	public function setAction(string|Stringable $url): static
-	{
-		$this->getElementPrototype()->action = $url;
-		return $this;
-	}
 
 
 	/**
 	 * Returns form's action.
+	 * @return mixed URI
 	 */
-	public function getAction(): mixed
+	public function getAction()
 	{
-		return $this->getElementPrototype()->action;
+		return $this->element->action;
 	}
+
 
 
 	/**
-	 * Sets form's method GET or POST.
+	 * @return HiddenField
 	 */
-	public function setMethod(string $method): static
+	public function addTracker($name)
 	{
-		if (isset($this->httpData)) {
-			throw new Nette\InvalidStateException(__METHOD__ . '() must be called until the form is empty.');
-		}
-
-		$this->getElementPrototype()->method = strtolower($method);
-		return $this;
+		// TODO: implement Cross-Site Request Forgery token
+		$this[self::TRACKER_ID] = new HiddenField;
+		$this[self::TRACKER_ID]->setValue($name);
 	}
 
-
-	/**
-	 * Returns form's method.
-	 */
-	public function getMethod(): string
-	{
-		return $this->getElementPrototype()->method;
-	}
-
-
-	/**
-	 * Checks if the request method is the given one.
-	 */
-	public function isMethod(string $method): bool
-	{
-		return strcasecmp($this->getElementPrototype()->method, $method) === 0;
-	}
-
-
-	/**
-	 * Changes forms's HTML attribute.
-	 */
-	public function setHtmlAttribute(string $name, mixed $value = true): static
-	{
-		$this->getElementPrototype()->$name = $value;
-		return $this;
-	}
-
-
-	/**
-	 * Disables CSRF protection using a SameSite cookie.
-	 */
-	public function allowCrossOrigin(): void
-	{
-		$this->crossOrigin = true;
-	}
-
-
-	/**
-	 * Cross-Site Request Forgery (CSRF) form protection.
-	 */
-	public function addProtection(?string $errorMessage = null): Controls\CsrfProtection
-	{
-		$control = new Controls\CsrfProtection($errorMessage);
-		$children = (array) $this->getComponents();
-		$first = $children ? (string) array_key_first($children) : null;
-		$this->addComponent($control, self::ProtectorId, $first);
-		return $control;
-	}
-
-
-	/**
-	 * Adds fieldset group to the form.
-	 */
-	public function addGroup(string|Stringable|null $caption = null, bool $setAsCurrent = true): ControlGroup
-	{
-		$group = new ControlGroup;
-		$group->setOption('label', $caption);
-		$group->setOption('visual', true);
-
-		if ($setAsCurrent) {
-			$this->setCurrentGroup($group);
-		}
-
-		return !is_scalar($caption) || isset($this->groups[$caption])
-			? $this->groups[] = $group
-			: $this->groups[$caption] = $group;
-	}
-
-
-	/**
-	 * Removes fieldset group from form.
-	 */
-	public function removeGroup(string|ControlGroup $name): void
-	{
-		if (is_string($name) && isset($this->groups[$name])) {
-			$group = $this->groups[$name];
-
-		} elseif ($name instanceof ControlGroup && in_array($name, $this->groups, true)) {
-			$group = $name;
-			$name = array_search($group, $this->groups, true);
-
-		} else {
-			throw new Nette\InvalidArgumentException("Group not found in form '$this->name'");
-		}
-
-		foreach ($group->getControls() as $control) {
-			$control->getParent()->removeComponent($control);
-		}
-
-		unset($this->groups[$name]);
-	}
-
-
-	/**
-	 * Returns all defined groups.
-	 * @return ControlGroup[]
-	 */
-	public function getGroups(): array
-	{
-		return $this->groups;
-	}
-
-
-	/**
-	 * Returns the specified group.
-	 */
-	public function getGroup(string|int $name): ?ControlGroup
-	{
-		return $this->groups[$name] ?? null;
-	}
 
 
 	/********************* translator ****************d*g**/
 
 
+
 	/**
 	 * Sets translate adapter.
+	 * @param  ITranslator
+	 * @return void
 	 */
-	public function setTranslator(?Nette\Localization\Translator $translator): static
+	public function setTranslator($translator = NULL)
 	{
 		$this->translator = $translator;
-		return $this;
 	}
+
 
 
 	/**
 	 * Returns translate adapter.
+	 * @return ITranslator
 	 */
-	public function getTranslator(): ?Nette\Localization\Translator
+	final public function getTranslator()
 	{
 		return $this->translator;
 	}
 
 
+
 	/********************* submission ****************d*g**/
 
-
-	/**
-	 * Tells if the form is anchored.
-	 */
-	public function isAnchored(): bool
-	{
-		return true;
-	}
 
 
 	/**
 	 * Tells if the form was submitted.
+	 * @return ISubmitterControl|FALSE  submittor control
 	 */
-	public function isSubmitted(): SubmitterControl|bool
+	public function isSubmitted()
 	{
-		if (!isset($this->httpData)) {
-			$this->getHttpData();
+		if ($this->submittedBy === NULL) {
+			$this->detectSubmission();
 		}
 
 		return $this->submittedBy;
 	}
 
 
-	/**
-	 * Tells if the form was submitted and successfully validated.
-	 */
-	public function isSuccess(): bool
-	{
-		return $this->isSubmitted() && $this->isValid();
-	}
-
 
 	/**
 	 * Sets the submittor control.
-	 * @internal
+	 * @params ISubmitterControl
+	 * @return void
 	 */
-	public function setSubmittedBy(?SubmitterControl $by): static
+	public function setSubmittedBy(ISubmitterControl $by = NULL)
 	{
-		$this->submittedBy = $by ?? false;
-		return $this;
+		$this->submittedBy = $by === NULL ? FALSE : $by;
 	}
 
 
-	/**
-	 * Returns submitted HTTP data.
-	 */
-	public function getHttpData(?int $type = null, ?string $htmlName = null): mixed
-	{
-		if (!isset($this->httpData)) {
-			if (!$this->isAnchored()) {
-				throw new Nette\InvalidStateException('Form is not anchored and therefore can not determine whether it was submitted.');
-			}
-
-			$data = $this->receiveHttpData();
-			$this->httpData = (array) $data;
-			$this->submittedBy = is_array($data);
-		}
-
-		if ($htmlName === null) {
-			return $this->httpData;
-		}
-
-		return Helpers::extractHttpData($this->httpData, $htmlName, $type);
-	}
-
 
 	/**
-	 * Fires submit/click events.
+	 * Detects form submission and loads HTTP values.
+	 * @return void
 	 */
-	public function fireEvents(): void
+	protected function detectSubmission()
 	{
-		if (!$this->isSubmitted()) {
-			return;
+		$this->submittedBy = FALSE;
 
-		} elseif (!$this->getErrors()) {
-			$this->validate();
-		}
+		// standalone mode
+		if ($this->isPost xor @$_SERVER['REQUEST_METHOD'] === 'POST') return;
 
-		$handled = count($this->onSuccess ?? []) || count($this->onSubmit ?? []);
-
-		if ($this->submittedBy instanceof Controls\SubmitButton) {
-			$handled = $handled || count($this->submittedBy->onClick ?? []);
-			if ($this->isValid()) {
-				$this->invokeHandlers($this->submittedBy->onClick, $this->submittedBy);
+		$tracker = $this->getComponent(self::TRACKER_ID);
+		if ($tracker) {
+			if ($this->isPost) {
+				if (!isset($_POST[self::TRACKER_ID])) return;
+				if ($_POST[self::TRACKER_ID] !== $tracker->getValue()) return;
 			} else {
-				Arrays::invoke($this->submittedBy->onInvalidClick, $this->submittedBy);
+				if (!isset($_GET[self::TRACKER_ID])) return;
+				if ($_GET[self::TRACKER_ID] !== $tracker->getValue()) return;
 			}
 		}
 
-		if ($this->isValid()) {
-			$this->invokeHandlers($this->onSuccess);
-		}
-
-		if (!$this->isValid()) {
-			Arrays::invoke($this->onError, $this);
-		}
-
-		Arrays::invoke($this->onSubmit, $this);
-
-		if (!$handled) {
-			trigger_error("Form was submitted but there are no associated handlers (form '{$this->getName()}').", E_USER_WARNING);
-		}
+		$this->submittedBy = TRUE;
+		$this->loadHttpData();
 	}
 
 
-	private function invokeHandlers(iterable $handlers, $button = null): void
-	{
-		foreach ($handlers as $handler) {
-			$params = Nette\Utils\Callback::toReflection($handler)->getParameters();
-			$types = array_map([Helpers::class, 'getSingleType'], $params);
-			if (!isset($types[0])) {
-				$arg0 = $button ?: $this;
-			} elseif ($this instanceof $types[0]) {
-				$arg0 = $this;
-			} elseif ($button instanceof $types[0]) {
-				$arg0 = $button;
-			} else {
-				$arg0 = $this->getValues($types[0]);
-			}
 
-			$arg1 = isset($params[1]) ? $this->getValues($types[1]) : null;
-			$handler($arg0, $arg1);
+	/********************* data exchange ****************d*g**/
 
-			if (!$this->isValid()) {
-				return;
-			}
-		}
-	}
 
 
 	/**
-	 * Resets form.
+	 * Fill-in with default values.
+	 * @param  array    values used to fill the form
+	 * @return void
 	 */
-	public function reset(): static
+	public function setDefaults(array $values)
 	{
-		$this->setSubmittedBy(null);
-		$this->setValues([], true);
-		return $this;
+		// tracker value cannot be changed
+		$tracker = $this->getComponent(self::TRACKER_ID);
+		if ($tracker) {
+			$values[self::TRACKER_ID] = $tracker->getValue();
+		}
+
+		$cursor = & $values;
+		$iterator = $this->getComponents(TRUE);
+		foreach ($iterator as $name => $control) {
+			$sub = $iterator->getSubIterator();
+			if (!isset($sub->cursor)) {
+				$sub->cursor = & $cursor;
+			}
+			if ($control instanceof IFormControl) {
+				$control->setValue(isset($sub->cursor[$name]) ? $sub->cursor[$name] : NULL);
+			}
+			if ($control instanceof INamingContainer) {
+				$cursor = & $sub->cursor[$name];
+				if (!is_array($cursor)) $cursor = array(); // note: modifies data
+			}
+		}
+		$this->isPopulated = TRUE;
 	}
+
 
 
 	/**
-	 * Internal: returns submitted HTTP data or null when form was not submitted.
+	 * Fill-in the form with HTTP data. Doesn't check if form was submitted.
+	 * @param  array    user data
+	 * @return void
 	 */
-	protected function receiveHttpData(): ?array
+	public function loadHttpData(array $data = NULL)
 	{
-		$httpRequest = $this->getHttpRequest();
-		if (strcasecmp($this->getMethod(), $httpRequest->getMethod())) {
-			return null;
+		if ($data === NULL) {
+			$data = $this->isPost ? $_POST + $_FILES : $_GET;
 		}
 
-		if ($httpRequest->isMethod('post')) {
-			if (!$this->crossOrigin && !$httpRequest->isSameSite()) {
-				return null;
+		$cursor = & $data;
+		$iterator = $this->getComponents(TRUE);
+		foreach ($iterator as $name => $control) {
+			$sub = $iterator->getSubIterator();
+			if (!isset($sub->cursor)) {
+				$sub->cursor = & $cursor;
 			}
-
-			$data = Nette\Utils\Arrays::mergeTree($httpRequest->getPost(), $httpRequest->getFiles());
-		} else {
-			$data = $httpRequest->getQuery();
-			if (!$data) {
-				return null;
+			if ($control instanceof IFormControl && !$control->getDisabled()) {
+				$control->loadHttpData($sub->cursor);
+				if ($control instanceof ISubmitterControl && ($this->submittedBy === TRUE || $control->isSubmittedBy())) {
+					$this->submittedBy = $control;
+				}
+			}
+			if ($control instanceof INamingContainer) {
+				$cursor = & $sub->cursor[$name];
+				if (!is_array($cursor)) $cursor = array(); // note: modifies data
 			}
 		}
-
-		if ($tracker = $this->getComponent(self::TrackerId, false)) {
-			if (!isset($data[self::TrackerId]) || $data[self::TrackerId] !== $tracker->getValue()) {
-				return null;
-			}
-		}
-
-		return $data;
+		$this->isPopulated = TRUE;
 	}
+
+
+
+	/**
+	 * Was form populated by setDefaults() or populate() yet?
+	 * @return bool
+	 */
+	public function isPopulated()
+	{
+		return $this->isPopulated;
+	}
+
+
+
+	/**
+	 * Returns the values submitted by the form.
+	 * @return array
+	 */
+	public function getValues()
+	{
+		if (!$this->isPopulated) {
+			throw new /*::*/InvalidStateException('Form was not populated yet. Call method isSubmitted() or setDefaults().');
+		}
+
+		$values = array();
+		$cursor = & $values;
+		$iterator = $this->getComponents(TRUE);
+		foreach ($iterator as $name => $control) {
+			$sub = $iterator->getSubIterator();
+			if (!isset($sub->cursor)) {
+				$sub->cursor = & $cursor;
+			}
+			if ($control instanceof IFormControl && !$control->getDisabled() && !($control instanceof ISubmitterControl)) {
+				$sub->cursor[$name] = $control->getValue();
+			}
+			if ($control instanceof INamingContainer) {
+				$cursor = & $sub->cursor[$name];
+				$cursor = array();
+			}
+		}
+		unset($values[self::TRACKER_ID]);
+		return $values;
+	}
+
+
+
+	/********************* rules ****************d*g**/
+
+
+
+	/**
+	 * Adds a validation rule for the control. Deprecated.
+	 * @param  string     form control name
+	 * @param  mixed      rule type
+	 * @param  string     message to display for invalid data
+	 * @param  mixed      optional extra rule data
+	 * @return void
+	 * @deprecated
+	 */
+	public function addRule($name, $operation, $message, $arg = NULL)
+	{
+		trigger_error("Deprecated: use \$form['$name']->addRule(...) instead.", E_USER_NOTICE);
+		$this->getComponent($name, TRUE)->addRule($operation, $message, $arg);
+	}
+
+
+
+	/**
+	 * Adds a validation condition. Deprecated
+	 * @param  string     form control name
+	 * @param  mixed      condition type
+	 * @param  mixed      optional condition data
+	 * @param  string     optional HTML #ID to be toggled
+	 * @return Rules
+	 * @deprecated
+	 */
+	public function addCondition($name, $operation, $value = NULL, $toggle = NULL)
+	{
+		trigger_error("Deprecated: use \$form['$name']->addCondition(...) instead.", E_USER_NOTICE);
+		$cond = $this->getComponent($name, TRUE)->addCondition($operation, $value, $toggle);
+		if ($toggle) $cond->toggle($toggle);
+		return $cond;
+	}
+
 
 
 	/********************* validation ****************d*g**/
 
 
-	public function validate(?array $controls = null): void
-	{
-		$this->cleanErrors();
-		if ($controls === null && $this->submittedBy instanceof SubmitterControl) {
-			$controls = $this->submittedBy->getValidationScope();
-		}
 
-		$this->validateMaxPostSize();
-		parent::validate($controls);
+	/**
+	 * Is form valid?
+	 * @return bool
+	 */
+	public function isValid()
+	{
+		if ($this->valid === NULL) {
+			$this->validate();
+		}
+		return $this->valid;
 	}
 
-
-	/** @internal */
-	public function validateMaxPostSize(): void
-	{
-		if (!$this->submittedBy || !$this->isMethod('post') || empty($_SERVER['CONTENT_LENGTH'])) {
-			return;
-		}
-
-		$maxSize = Helpers::iniGetSize('post_max_size');
-		if ($maxSize > 0 && $maxSize < $_SERVER['CONTENT_LENGTH']) {
-			$this->addError(sprintf(Validator::$messages[self::MaxFileSize], $maxSize));
-		}
-	}
 
 
 	/**
-	 * Adds global error message.
+	 * Performs the server side validation.
+	 * @param  bool
+	 * @return void
 	 */
-	public function addError(string|Stringable $message, bool $translate = true): void
+	public function validate($stopOnFirst = FALSE)
 	{
-		if ($translate && $this->translator) {
-			$message = $this->translator->translate($message);
+		if (!$this->isPopulated) {
+			throw new /*::*/InvalidStateException('Form was not populated yet. Call method isSubmitted() or setDefaults().');
+		}
+		$this->valid = TRUE;
+		foreach ($this->getComponents(TRUE, 'Nette::Forms::IFormControl') as $control) {
+			if (!$control->getRules()->validate()) {
+				$this->valid = FALSE;
+				if ($stopOnFirst) break;
+			}
 		}
 
-		$this->errors[] = $message;
+		if (!$this->valid) {
+			foreach ($this->getComponents(TRUE, 'Nette::Forms::IFormControl') as $control) {
+				$this->errors = array_merge($this->errors, $control->getErrors());
+			}
+		}
 	}
+
 
 
 	/**
-	 * Returns global validation errors.
+	 * Adds error message to the list.
+	 * @param  string  error message
+	 * @return void
 	 */
-	public function getErrors(): array
+	public function addError($message)
 	{
-		return array_unique(array_merge($this->errors, parent::getErrors()));
+		if (!in_array($message, $this->errors, TRUE)) {
+			$this->errors[] = $message;
+		}
 	}
 
 
-	public function hasErrors(): bool
+
+	/**
+	 * Returns validation errors.
+	 * @return array
+	 */
+	public function getErrors()
+	{
+		return $this->errors;
+	}
+
+
+
+	/**
+	 * @return bool
+	 */
+	public function hasErrors()
 	{
 		return (bool) $this->getErrors();
 	}
 
 
-	public function cleanErrors(): void
-	{
-		$this->errors = [];
-	}
-
 
 	/**
-	 * Returns form's validation errors.
+	 * @return void
 	 */
-	public function getOwnErrors(): array
+	public function cleanErrors()
 	{
-		return array_unique($this->errors);
+		$this->errors = array();
 	}
+
 
 
 	/********************* rendering ****************d*g**/
 
 
+
 	/**
 	 * Returns form's HTML element template.
+	 * @return Nette::Web::Html
 	 */
-	public function getElementPrototype(): Html
+	public function getElementPrototype()
 	{
-		if (!isset($this->element)) {
-			$this->element = Html::el('form');
-			$this->element->action = ''; // RFC 1808 -> empty uri means 'this'
-			$this->element->method = self::Post;
-		}
-
 		return $this->element;
 	}
 
 
-	/**
-	 * Sets form renderer.
-	 */
-	public function setRenderer(?FormRenderer $renderer): static
-	{
-		$this->renderer = $renderer;
-		return $this;
-	}
-
 
 	/**
-	 * Returns form renderer.
+	 * Provides complete form rendering.
+	 * @return void
 	 */
-	public function getRenderer(): FormRenderer
+	public function renderForm()
 	{
-		if (!isset($this->renderer)) {
-			$this->renderer = new Rendering\DefaultFormRenderer;
+		// TODO:
+		//$js = new InstantClientScript($this);
+		//$js->enable();
+
+		$this->renderBegin();
+		if ($this->submittedBy) {
+			$this->renderErrors();
 		}
-
-		return $this->renderer;
+		$this->renderBody();
+		$this->renderEnd();
+		//$js->renderClientScript();
 	}
 
 
-	protected function beforeRender()
+
+	private $js;
+
+	/**
+	 * Renders form's start tag.
+	 * @return void
+	 */
+	public function renderBegin()
 	{
+		$this->js = new InstantClientScript($this);
+		$this->js->enable();
+		echo $this->element->startTag();
 	}
+
 
 
 	/**
-	 * Must be called before form is rendered and render() is not used.
+	 * Renders the rest of the form.
+	 * @return void
 	 */
-	public function fireRenderEvents(): void
+	public function renderEnd()
 	{
-		if (!$this->beforeRenderCalled) {
-			$this->beforeRenderCalled = true;
-			$this->beforeRender();
-			Arrays::invoke($this->onRender, $this);
-		}
+		echo $this->element->endTag();
+		$this->js->renderClientScript();
 	}
+
 
 
 	/**
-	 * Renders form.
+	 * Renders validation errors (per form or per control).
+	 * @param  IFormControl
+	 * @return void
 	 */
-	public function render(...$args): void
+	public function renderErrors($control = NULL)
 	{
-		$this->fireRenderEvents();
-		echo $this->getRenderer()->render($this, ...$args);
-	}
-
-
-	/**
-	 * Renders form to string.
-	 */
-	public function __toString(): string
-	{
-		$this->fireRenderEvents();
-		return $this->getRenderer()->render($this);
-	}
-
-
-	public function getToggles(): array
-	{
-		$toggles = [];
-		foreach ($this->getComponents(true, Controls\BaseControl::class) as $control) {
-			$toggles = $control->getRules()->getToggleStates($toggles);
-		}
-
-		return $toggles;
-	}
-
-
-	/********************* backend ****************d*g**/
-
-
-	/**
-	 * Initialize standalone forms.
-	 */
-	public static function initialize(bool $reinit = false): void
-	{
-		if ($reinit) {
-			self::$defaultHttpRequest = null;
-			return;
-		} elseif (self::$defaultHttpRequest) {
-			return;
-		}
-
-		self::$defaultHttpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
-
-		if (PHP_SAPI !== 'cli') {
-			if (headers_sent($file, $line)) {
-				throw new Nette\InvalidStateException(
-					'Create a form or call Nette\Forms\Form::initialize() before the headers are sent to initialize CSRF protection.'
-					. ($file ? " (output started at $file:$line)" : '') . '. ',
-				);
+		$errors = $control ? $control->getErrors() : $this->getErrors();
+		if (count($errors)) {
+			$ul = /*Nette::Web::*/Html::el('ul')->class('error');
+			foreach ($errors as $error) {
+				$ul->create('li', $error);
 			}
-
-			$response = new Nette\Http\Response;
-			$response->cookieSecure = self::$defaultHttpRequest->isSecured();
-			Nette\Http\Helpers::initCookie(self::$defaultHttpRequest, $response);
+			echo "\n", $ul;
 		}
 	}
 
 
-	private function getHttpRequest(): Nette\Http\IRequest
+
+	/**
+	 * Renders form body.
+	 * @param  FormContainer
+	 * @return void
+	 */
+	public function renderBody()
 	{
-		if (!isset($this->httpRequest)) {
-			self::initialize();
-			$this->httpRequest = self::$defaultHttpRequest;
-		}
+		// TODO: implement some decorators
+		$begin = "\n<table>\n";
+		$hidden = /*Nette::Web::*/Html::el('div');
+		foreach ($this->getComponents(TRUE, 'Nette::Forms::IFormControl') as $control) {
+			if ($control->isRendered()) {
+				// skip
+			} elseif ($control instanceof HiddenField) {
+				$hidden->add($control->getControl());
 
-		return $this->httpRequest;
+			} elseif ($control instanceof Checkbox) {
+				echo $begin, "<tr>\n\t<th>&nbsp;</th>\n\t<td>", $control->control, $control->label, "</td>\n</tr>\n\n";
+				$begin = '';
+
+			} else {
+				echo $begin, "<tr>\n\t<th>", ($control->label ? $control->label : '&nbsp;'), "</th>\n\t<td>", $control->control, "</td>\n</tr>\n\n";
+				$begin = '';
+			}
+		}
+		if (!$begin) {
+			echo "</table>\n";
+		}
+		if (count($hidden)) echo $hidden;
 	}
+
 }

@@ -22,42 +22,24 @@
 
 
 
-require_once dirname(__FILE__) . '/../../Forms/Controls/SubmitButton.php';
+require_once dirname(__FILE__) . '/../Forms/IFormControl.php';
 
 
 
 /**
- * Submittable image button form control.
+ * Defines method that must be implemented to allow a control to submit web form.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2008 David Grudl
  * @package    Nette::Forms
  */
-class ImageButton extends SubmitButton
+interface ISubmitterControl extends IFormControl
 {
 
 	/**
-	 * @param  string  URI of the image
-	 * @param  string  alternate text for the image
+	 * Tells if the form was submitted by this button.
+	 * @return bool
 	 */
-	public function __construct($src, $alt)
-	{
-		parent::__construct(NULL);
-		$this->control->type = 'image';
-		$this->control->src = $src;
-		$this->control->alt = $alt;
-	}
-
-
-
-	/**
-	 * Loads HTTP data.
-	 * @param  array
-	 * @return void
-	 */
-	public function loadHttpData($data)
-	{
-		$this->value = isset($data[$this->getName() . '_x']);
-	}
+	function isSubmittedBy();
 
 }

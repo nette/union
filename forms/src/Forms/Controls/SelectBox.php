@@ -1,138 +1,179 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms\Controls;
 
-use Nette;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../../Forms/Controls/FormControl.php';
+
 
 
 /**
- * Select box control that allows single item selection.
+ * Select box control that allows single or multiple item selection.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
-class SelectBox extends ChoiceControl
+class SelectBox extends FormControl
 {
-	/** validation rule */
-	public const Valid = ':selectBoxValid';
+	/** @var array */
+	private $items;
 
-	/** @deprecated use SelectBox::Valid */
-	public const VALID = self::Valid;
+	/** @var array */
+	protected $allowed;
 
-	/** of option / optgroup */
-	private array $options = [];
+	/** @var array */
+	protected $multiple;
 
-	private string|Stringable|false $prompt = false;
+	/** @var bool */
+	protected $skipFirst = FALSE;
 
-	private array $optionAttributes = [];
-
-
-	public function __construct($label = null, ?array $items = null)
-	{
-		parent::__construct($label, $items);
-		$this->setOption('type', 'select');
-		$this->addCondition(
-			fn() => $this->prompt === false
-			&& $this->options
-			&& $this->control->size < 2,
-		)->addRule(Nette\Forms\Form::Filled, Nette\Forms\Validator::$messages[self::Valid]);
-	}
 
 
 	/**
-	 * Sets first prompt item in select box.
+	 * @param  string  label
+	 * @param  array   items from which to choose
+	 * @param  int     number of rows that should be visible
 	 */
-	public function setPrompt(string|Stringable|false $prompt): static
+	public function __construct($label, array $items, $multiple = FALSE, $size = NULL)
 	{
-		$this->prompt = $prompt;
-		return $this;
+		parent::__construct($label);
+		$this->control->setName('select');
+		$this->control->multiple = (bool) $multiple;
+		$this->control->size = $size > 1 ? (int) $size : NULL;
+		$this->control->onmousewheel = 'return false';  // prevent accidental change
+		$this->label->onclick = 'return false';  // prevent "deselect" for IE 5 - 6
+
+		$this->items = $items;
+		$this->multiple = $multiple;
+		$this->value = NULL;
+		$this->allowed = array();
+
+		foreach ($items as $key => $value) {
+			if (is_array($value)) {
+				foreach ($value as $key2 => $value2) {
+					$this->allowed[$key2] = TRUE;
+				}
+			} else {
+				$this->allowed[$key] = TRUE;
+			}
+		}
 	}
 
 
-	/**
-	 * Returns first prompt item?
-	 */
-	public function getPrompt(): string|Stringable|false
-	{
-		return $this->prompt;
-	}
-
 
 	/**
-	 * Sets options and option groups from which to choose.
+	 * Sets selected item/items.
+	 * @param  string|int|array
+	 * @return void
 	 */
-	public function setItems(array $items, bool $useKeys = true): static
+	public function setValue($value)
 	{
-		if (!$useKeys) {
-			$res = [];
-			foreach ($items as $key => $value) {
-				unset($items[$key]);
-				if (is_array($value)) {
-					foreach ($value as $val) {
-						$res[$key][(string) $val] = $val;
-					}
-				} else {
-					$res[(string) $value] = $value;
+		$allowed = $this->allowed;
+		if ($this->skipFirst) {
+			$allowed = array_slice($allowed, 1, count($allowed), TRUE);
+		}
+
+		if ($this->multiple) {
+			$this->value = array();
+			foreach ((array) $value as $val) {
+				if (isset($allowed[$val])) {
+					$this->value[] = $val;
 				}
 			}
-
-			$items = $res;
+		} else {
+			$this->value = isset($allowed[$value]) ? $value : NULL;
 		}
-
-		$this->options = $items;
-		return parent::setItems(Nette\Utils\Arrays::flatten($items, true));
 	}
 
 
-	public function getControl(): Nette\Utils\Html
+
+	/**
+	 * Ignores the first item in select box.
+	 * @param  bool
+	 * @return SelectBox|bool  provides a fluent interface or returns current value
+	 */
+	public function skipFirst($value = NULL)
 	{
-		$items = $this->prompt === false ? [] : ['' => $this->translate($this->prompt)];
-		foreach ($this->options as $key => $value) {
-			$items[is_array($value) ? $this->translate($key) : $key] = $this->translate($value);
+		if ($value === NULL) {
+			return $this->skipFirst;
 		}
-
-		return Nette\Forms\Helpers::createSelectBox(
-			$items,
-			[
-				'disabled:' => is_array($this->disabled) ? $this->disabled : null,
-			] + $this->optionAttributes,
-			$this->value,
-		)->addAttributes(parent::getControl()->attrs);
-	}
-
-
-	public function addOptionAttributes(array $attributes): static
-	{
-		// depre?
-		$this->optionAttributes = $attributes + $this->optionAttributes;
+		$this->skipFirst = (bool) $value;
 		return $this;
 	}
 
 
-	public function setOptionAttribute(string $name, mixed $value = true): static
+
+	/**
+	 * Returns items from which to choose.
+	 * @return array
+	 */
+	final public function getItems()
 	{
-		$this->optionAttributes[$name] = $value;
-		return $this;
+		return $this->items;
 	}
 
 
-	public function isOk(): bool
+
+	/**
+	 * Generates control's HTML element.
+	 * @return Nette::Web::Html
+	 */
+	public function getControl()
 	{
-		return $this->isDisabled()
-			|| $this->prompt !== false
-			|| $this->getValue() !== null
-			|| !$this->options
-			|| $this->control->size > 1;
+		$control = parent::getControl();
+		if ($this->multiple) $control->name .= '[]';
+		$selected = array_flip((array) $this->value);
+		$option = /*Nette::Web::*/Html::el('option');
+		$translator = $this->getTranslator();
+
+		foreach ($this->items as $key => $value) {
+			if (is_array($value)) {
+				$group = $control->create('optgroup')->label($key);
+				foreach ($value as $key2 => $value2) {
+					if ($translator !== NULL) $value2 = $translator->translate($value2);
+					$option->value($key2)->selected(isset($selected[$key2]))->setText($value2);
+					$group->add((string) $option);
+				}
+			} else {
+				if ($translator !== NULL) $value = $translator->translate($value);
+				$option->value($key)->selected(isset($selected[$key]))->setText($value);
+				$control->add((string) $option);
+			}
+		}
+		return $control;
 	}
 
 
-	public function getOptionAttributes(): array
+
+	/**
+	 * Filled validator: has been any item selected?
+	 * @param  IFormControl
+	 * @return bool
+	 */
+	public static function validateFilled(IFormControl $control)
 	{
-		return $this->optionAttributes;
+		$value = $control->getValue();
+		return is_array($value) ? count($value) > 0 : $value !== NULL;
 	}
+
 }

@@ -1,75 +1,74 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms\Controls;
 
-use Nette\Utils\Html;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../../Forms/Controls/FormControl.php';
+
 
 
 /**
  * Push button control with no default behavior.
- * @extends BaseControl<string>
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
-class Button extends BaseControl
+class Button extends FormControl
 {
-	public function __construct(string|Stringable|null $caption = null)
-	{
-		parent::__construct($caption);
-		$this->control->type = 'button';
-		$this->setOption('type', 'button');
-	}
-
 
 	/**
-	 * Is button pressed?
+	 * @param  string  label
 	 */
-	public function isFilled(): bool
+	public function __construct($label)
 	{
-		$value = $this->getValue();
-		return $value !== null && $value !== [];
+		parent::__construct(NULL);
+		$this->control->type = 'button';
+		$this->control->value = $label;
+		$this->value = FALSE;
+		$this->setHtmlId(FALSE);
 	}
+
 
 
 	/**
 	 * Bypasses label generation.
+	 * @return void
 	 */
-	public function getLabel($caption = null): Html|string|null
+	public function getLabel()
 	{
-		return null;
+		return NULL;
 	}
 
-
-	public function renderAsButton(bool $state = true): static
-	{
-		$this->control->setName($state ? 'button' : 'input');
-		return $this;
-	}
 
 
 	/**
-	 * Generates control's HTML element.
+	 * Sets 'pressed' indicator.
+	 * @param  bool
+	 * @return void
 	 */
-	public function getControl(string|Stringable|null $caption = null): Html
+	public function setValue($value)
 	{
-		$this->setOption('rendered', true);
-		$caption = $this->translate($caption ?? $this->getCaption());
-		$el = (clone $this->control)->addAttributes([
-			'name' => $this->getHtmlName(),
-			'disabled' => $this->isDisabled(),
-		]);
-		if ($caption instanceof Html || ($caption !== null && $el->getName() === 'button')) {
-			$el->setName('button')->setText($caption);
-		} else {
-			$el->value = $caption;
-		}
-
-		return $el;
+		$this->value = (bool) $value;
 	}
+
 }

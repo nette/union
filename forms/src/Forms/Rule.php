@@ -1,43 +1,59 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * Nette Framework
+ *
+ * Copyright (c) 2004, 2008 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license" that is bundled
+ * with this package in the file license.txt.
+ *
+ * For more information please see http://nettephp.com
+ *
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @license    http://nettephp.com/license  Nette license
+ * @link       http://nettephp.com
+ * @category   Nette
+ * @package    Nette::Forms
+ * @version    $Id$
  */
 
-declare(strict_types=1);
+/*namespace Nette::Forms;*/
 
-namespace Nette\Forms;
 
-use Nette;
-use Stringable;
+
+require_once dirname(__FILE__) . '/../Object.php';
+
 
 
 /**
  * Single validation rule or condition represented as value object.
+ *
+ * @author     David Grudl
+ * @copyright  Copyright (c) 2004, 2008 David Grudl
+ * @package    Nette::Forms
  */
-final class Rule
+final class Rule extends /*Nette::*/Object
 {
-	use Nette\SmartObject;
+	/** @var IFormControl */
+	public $control;
 
-	public Control $control;
+	/** @var mixed */
+	public $operation;
 
-	public mixed $validator;
+	/** @var mixed */
+	public $arg;
 
-	public mixed $arg = null;
+	/** @var bool */
+	public $isCondition = FALSE;
 
-	public bool $isNegative = false;
+	/** @var bool */
+	public $isNegative = FALSE;
 
-	public string|Stringable|null $message;
+	/** @var string */
+	public $message;
 
-	/** for conditions */
-	public ?Rules $branch = null;
+	/** @var Rules */
+	public $subRules;
 
-
-	/** @internal */
-	public function canExport(): bool
-	{
-		return is_string($this->validator)
-			|| Nette\Utils\Callback::isStatic($this->validator);
-	}
 }
