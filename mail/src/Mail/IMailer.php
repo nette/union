@@ -22,18 +22,14 @@
 
 
 
-require_once dirname(__FILE__) . '/../Object.php';
-
-
-
 /**
- * Sends e-mails via the PHP internal mail() function.
+ * Mailer interface.
  *
  * @author     David Grudl
  * @copyright  Copyright (c) 2004, 2009 David Grudl
  * @package    Nette\Mail
  */
-class SendmailMailer extends /*Nette\*/Object implements IMailer
+interface IMailer
 {
 
 	/**
@@ -41,20 +37,6 @@ class SendmailMailer extends /*Nette\*/Object implements IMailer
 	 * @param  Mail
 	 * @return bool
 	 */
-	function send(Mail $mail)
-	{
-		$tmp = clone $mail;
-		$tmp->setHeader('Subject', NULL);
-		$tmp->setHeader('To', NULL);
-
-		$parts = explode(Mail::EOL . Mail::EOL, $tmp->generateMessage(), 2);
-		$linux = strncasecmp(PHP_OS, 'win', 3);
-		return mail(
-			$mail->getEncodedHeader('To'),
-			$mail->getEncodedHeader('Subject'),
-			$linux ? $parts[1] : str_replace(Mail::EOL, "\r\n", $parts[1]),
-			$linux ? $parts[0] : str_replace(Mail::EOL, "\r\n", $parts[0])
-		);
-	}
+	function send(Mail $mail);
 
 }
