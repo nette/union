@@ -1,27 +1,39 @@
 <?php
 
 /**
- * Test: Nette\SafeStream basic usage.
+ * Test: Nette\IO\SafeStream basic usage.
+ *
+ * @author     David Grudl
+ * @category   Nette
+ * @package    Nette\IO
+ * @subpackage UnitTests
  */
 
-declare(strict_types=1);
+/*use Nette\IO\SafeStream;*/
 
-use Tester\Assert;
 
-require __DIR__ . '/../bootstrap.php';
+
+require dirname(__FILE__) . '/../NetteTest/initialize.php';
+
+
+
+SafeStream::register();
 
 
 // actually it creates temporary file
-$handle = fopen('nette.safe://myfile.txt', 'x');
+$handle = fopen('safe://myfile.txt', 'x');
 fwrite($handle, 'atomic and safe');
 // and now rename it
 fclose($handle);
 
-Assert::true(is_file('nette.safe://myfile.txt'));
-Assert::same('atomic and safe', file_get_contents('nette.safe://myfile.txt'));
-
 // removes file thread-safe way
-unlink('nette.safe://myfile.txt');
+unlink('safe://myfile.txt');
 
 // this is not thread safe - don't relay on returned value
-Assert::false(is_file('nette.safe://myfile.txt'));
+$ok = is_file('safe://SafeStream.php');
+
+
+
+__halt_compiler();
+
+------EXPECT------
