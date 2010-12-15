@@ -1,304 +1,265 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework.
+ *
+ * Copyright (c) 2004, 2010 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license", and/or
+ * GPL license. For more information please see http://nette.org
  */
-
-declare(strict_types=1);
 
 namespace Nette\Database;
 
-use JetBrains\PhpStorm\Language;
-use Nette;
-use Nette\Utils\Arrays;
+use Nette,
+	Nette\ObjectMixin,
+	PDO;
+
 
 
 /**
  * Represents a connection between PHP and a database server.
+ *
+ * @author     David Grudl
  */
-class Connection
+class Connection extends PDO
 {
-	use Nette\SmartObject;
+	/** @var Nette\Database\ISupplementalDriver */
+	private $driver;
 
-	/** @var array<callable(self): void>  Occurs after connection is established */
-	public array $onConnect = [];
-
-	/** @var array<callable(self, ResultSet|DriverException): void>  Occurs after query is executed */
-	public array $onQuery = [];
-
-	private array $params;
-	private array $options;
-	private ?Driver $driver = null;
-	private SqlPreprocessor $preprocessor;
-
-	/** @var callable(array, ResultSet): array */
-	private $rowNormalizer;
-	private ?string $sql = null;
-	private int $transactionDepth = 0;
+	public $profiler;
 
 
-	public function __construct(
-		string $dsn,
-		#[\SensitiveParameter]
-		?string $user = null,
-		#[\SensitiveParameter]
-		?string $password = null,
-		?array $options = null,
-	) {
-		$this->params = [$dsn, $user, $password];
-		$this->options = (array) $options;
-		$this->rowNormalizer = new RowNormalizer;
 
-		if (empty($options['lazy'])) {
-			$this->connect();
+	public function __construct($dsn, $username = NULL, $password  = NULL, array $options = array())
+	{
+		parent::__construct($dsn, $username, $password, $options);
+		$this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('Nette\Database\Statement', array($this)));
+
+		$class = 'Nette\Database\Drivers\Pdo' . $this->getAttribute(PDO::ATTR_DRIVER_NAME) . 'Driver';
+		if (class_exists($class)) {
+			$this->driver = new $class($this, $options);
 		}
 	}
 
 
-	public function connect(): void
+
+	/** @return ISupplementalDriver */
+	public function getSupplementalDriver()
 	{
-		if ($this->driver) {
-			return;
-		}
-
-		$dsn = explode(':', $this->params[0])[0];
-		$class = empty($this->options['driverClass'])
-			? 'Nette\Database\Drivers\\' . ucfirst(str_replace('sql', 'Sql', $dsn)) . 'Driver'
-			: $this->options['driverClass'];
-		if (!class_exists($class)) {
-			throw new ConnectionException("Invalid data source '$dsn'.");
-		}
-
-		$this->driver = new $class;
-		$this->driver->connect($this->params[0], $this->params[1], $this->params[2], $this->options);
-		$this->preprocessor = new SqlPreprocessor($this);
-		Arrays::invoke($this->onConnect, $this);
-	}
-
-
-	public function reconnect(): void
-	{
-		$this->disconnect();
-		$this->connect();
-	}
-
-
-	public function disconnect(): void
-	{
-		$this->driver = null;
-	}
-
-
-	public function getDsn(): string
-	{
-		return $this->params[0];
-	}
-
-
-	/** deprecated use getDriver()->getPdo() */
-	public function getPdo(): \PDO
-	{
-		$this->connect();
-		return $this->driver->getPdo();
-	}
-
-
-	public function getDriver(): Driver
-	{
-		$this->connect();
 		return $this->driver;
 	}
 
-
-	/** @deprecated use getDriver() */
-	public function getSupplementalDriver(): Driver
-	{
-		trigger_error(__METHOD__ . '() is deprecated, use getDriver()', E_USER_DEPRECATED);
-		$this->connect();
-		return $this->driver;
-	}
-
-
-	public function setRowNormalizer(?callable $normalizer): self
-	{
-		$this->rowNormalizer = $normalizer;
-		return $this;
-	}
-
-
-	public function getInsertId(?string $sequence = null): string
-	{
-		$this->connect();
-		return $this->driver->getInsertId($sequence);
-	}
-
-
-	public function quote(string $string): string
-	{
-		$this->connect();
-		return $this->driver->quote($string);
-	}
-
-
-	public function beginTransaction(): void
-	{
-		if ($this->transactionDepth !== 0) {
-			throw new \LogicException(__METHOD__ . '() call is forbidden inside a transaction() callback');
-		}
-
-		$this->query('::beginTransaction');
-	}
-
-
-	public function commit(): void
-	{
-		if ($this->transactionDepth !== 0) {
-			throw new \LogicException(__METHOD__ . '() call is forbidden inside a transaction() callback');
-		}
-
-		$this->query('::commit');
-	}
-
-
-	public function rollBack(): void
-	{
-		if ($this->transactionDepth !== 0) {
-			throw new \LogicException(__METHOD__ . '() call is forbidden inside a transaction() callback');
-		}
-
-		$this->query('::rollBack');
-	}
-
-
-	public function transaction(callable $callback): mixed
-	{
-		if ($this->transactionDepth === 0) {
-			$this->beginTransaction();
-		}
-
-		$this->transactionDepth++;
-		try {
-			$res = $callback($this);
-		} catch (\Throwable $e) {
-			$this->transactionDepth--;
-			if ($this->transactionDepth === 0) {
-				$this->rollback();
-			}
-
-			throw $e;
-		}
-
-		$this->transactionDepth--;
-		if ($this->transactionDepth === 0) {
-			$this->commit();
-		}
-
-		return $res;
-	}
 
 
 	/**
 	 * Generates and executes SQL query.
-	 * @param  literal-string  $sql
+	 * @param  string  statement
+	 * @param  mixed   [parameters, ...]
+	 * @return Statement
 	 */
-	public function query(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ResultSet
+	public function query($sql)
 	{
-		[$this->sql, $params] = $this->preprocess($sql, ...$params);
-		try {
-			$result = new ResultSet($this, $this->sql, $params, $this->rowNormalizer);
-		} catch (DriverException $e) {
-			Arrays::invoke($this->onQuery, $this, $e);
-			throw $e;
-		}
-
-		Arrays::invoke($this->onQuery, $this, $result);
-		return $result;
+		$args = func_get_args();
+		return $this->queryArgs($args);
 	}
 
-
-	/** @deprecated  use query() */
-	public function queryArgs(string $sql, array $params): ResultSet
-	{
-		trigger_error(__METHOD__ . '() is deprecated, use query()', E_USER_DEPRECATED);
-		return $this->query($sql, ...$params);
-	}
 
 
 	/**
-	 * @param  literal-string  $sql
-	 * @return array{string, array}
+	 * Generates and executes SQL query.
+	 * @param  string  statement
+	 * @param  mixed   [parameters, ...]
+	 * @return int     number of affected rows
 	 */
-	public function preprocess(string $sql, ...$params): array
+	public function exec($sql)
 	{
-		$this->connect();
-		return $params
-			? $this->preprocessor->process(func_get_args())
-			: [$sql, []];
+		$args = func_get_args();
+		return $this->queryArgs($args)->rowCount();
 	}
 
 
-	public function getLastQueryString(): ?string
+
+	/**
+	 * @param  array
+	 * @return Statement
+	 */
+	private function queryArgs($params)
 	{
-		return $this->sql;
+		$sql = array_shift($params);
+		return $this->prepare($sql)->execute($params);
 	}
+
 
 
 	/********************* shortcuts ****************d*g**/
 
 
+
 	/**
 	 * Shortcut for query()->fetch()
-	 * @param  literal-string  $sql
+	 * @param  string  statement
+	 * @param  mixed   [parameters, ...]
+	 * @return Row
 	 */
-	public function fetch(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ?Row
+	public function fetch($args)
 	{
-		return $this->query($sql, ...$params)->fetch();
+		$args = func_get_args();
+		return $this->queryArgs($args)->fetch();
 	}
+
 
 
 	/**
-	 * Shortcut for query()->fetchField()
-	 * @param  literal-string  $sql
+	 * Shortcut for query()->fetchColumn()
+	 * @param  string  statement
+	 * @param  mixed   [parameters, ...]
+	 * @return mixed
 	 */
-	public function fetchField(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): mixed
+	public function fetchColumn($args)
 	{
-		return $this->query($sql, ...$params)->fetchField();
+		$args = func_get_args();
+		return $this->queryArgs($args)->fetchColumn();
 	}
 
-
-	/**
-	 * Shortcut for query()->fetchFields()
-	 * @param  literal-string  $sql
-	 */
-	public function fetchFields(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ?array
-	{
-		return $this->query($sql, ...$params)->fetchFields();
-	}
 
 
 	/**
 	 * Shortcut for query()->fetchPairs()
-	 * @param  literal-string  $sql
+	 * @param  string  statement
+	 * @param  mixed   [parameters, ...]
+	 * @return array
 	 */
-	public function fetchPairs(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): array
+	public function fetchPairs($args)
 	{
-		return $this->query($sql, ...$params)->fetchPairs();
+		$args = func_get_args();
+		return $this->queryArgs($args)->fetchPairs();
 	}
+
+
+
+	/********************* misc ****************d*g**/
+
 
 
 	/**
-	 * Shortcut for query()->fetchAll()
-	 * @param  literal-string  $sql
+	 * Import SQL dump from file - extreme fast.
+	 * @param  string  filename
+	 * @return int  count of commands
 	 */
-	public function fetchAll(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): array
+	public function loadFile()
 	{
-		return $this->query($sql, ...$params)->fetchAll();
+		@set_time_limit(0); // intentionally @
+
+		$handle = @fopen($file, 'r'); // intentionally @
+		if (!$handle) {
+			throw new FileNotFoundException("Cannot open file '$file'.");
+		}
+
+		$count = 0;
+		$sql = '';
+		while (!feof($handle)) {
+			$s = fgets($handle);
+			$sql .= $s;
+			if (substr(rtrim($s), -1) === ';') {
+				$this->query($sql);
+				$sql = '';
+				$count++;
+			}
+		}
+		fclose($handle);
+		return $count;
 	}
 
 
-	public static function literal(string $value, ...$params): SqlLiteral
+
+	/**
+	 * Returns syntax highlighted SQL command.
+	 * @param  string
+	 * @return string
+	 */
+	public static function highlightSql($sql)
 	{
-		return new SqlLiteral($value, $params);
+		static $keywords1 = 'SELECT|UPDATE|INSERT(?:\s+INTO)?|REPLACE(?:\s+INTO)?|DELETE|FROM|WHERE|HAVING|GROUP\s+BY|ORDER\s+BY|LIMIT|OFFSET|SET|VALUES|LEFT\s+JOIN|INNER\s+JOIN|TRUNCATE';
+		static $keywords2 = 'ALL|DISTINCT|DISTINCTROW|AS|USING|ON|AND|OR|IN|IS|NOT|NULL|LIKE|TRUE|FALSE';
+
+		// insert new lines
+		$sql = " $sql ";
+		$sql = preg_replace("#(?<=[\\s,(])($keywords1)(?=[\\s,)])#i", "\n\$1", $sql);
+
+		// reduce spaces
+		$sql = preg_replace('#[ \t]{2,}#', " ", $sql);
+
+		$sql = wordwrap($sql, 100);
+		$sql = preg_replace("#([ \t]*\r?\n){2,}#", "\n", $sql);
+
+		// syntax highlight
+		$sql = htmlSpecialChars($sql);
+		$sql = preg_replace_callback("#(/\\*.+?\\*/)|(\\*\\*.+?\\*\\*)|(?<=[\\s,(])($keywords1)(?=[\\s,)])|(?<=[\\s,(=])($keywords2)(?=[\\s,)=])#is", function($matches) {
+			if (!empty($matches[1])) // comment
+				return '<em style="color:gray">' . $matches[1] . '</em>';
+
+			if (!empty($matches[2])) // error
+				return '<strong style="color:red">' . $matches[2] . '</strong>';
+
+			if (!empty($matches[3])) // most important keywords
+				return '<strong style="color:blue">' . $matches[3] . '</strong>';
+
+			if (!empty($matches[4])) // other keywords
+				return '<strong style="color:green">' . $matches[4] . '</strong>';
+		}, $sql);
+
+		return '<pre class="dump">' . trim($sql) . "</pre>\n";
 	}
+
+
+
+	/********************* Nette\Object behaviour ****************d*g**/
+
+
+
+	/**
+	 * @return Nette\Reflection\ClassReflection
+	 */
+	public /**/static/**/ function getReflection()
+	{
+		return new Nette\Reflection\ClassReflection(/*5.2*$this*//**/get_called_class()/**/);
+	}
+
+
+
+	public function __call($name, $args)
+	{
+		return ObjectMixin::call($this, $name, $args);
+	}
+
+
+
+	public function &__get($name)
+	{
+		return ObjectMixin::get($this, $name);
+	}
+
+
+
+	public function __set($name, $value)
+	{
+		return ObjectMixin::set($this, $name, $value);
+	}
+
+
+
+	public function __isset($name)
+	{
+		return ObjectMixin::has($this, $name);
+	}
+
+
+
+	public function __unset($name)
+	{
+		throw new \MemberAccessException("Cannot unset the property {$this->reflection->name}::\$$name.");
+	}
+
 }

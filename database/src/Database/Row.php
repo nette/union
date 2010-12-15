@@ -1,64 +1,76 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework.
+ *
+ * Copyright (c) 2004, 2010 David Grudl (http://davidgrudl.com)
+ *
+ * This source file is subject to the "Nette license", and/or
+ * GPL license. For more information please see http://nette.org
  */
-
-declare(strict_types=1);
 
 namespace Nette\Database;
 
 use Nette;
 
 
+
 /**
  * Represents a single table row.
+ *
+ * @author     David Grudl
  */
-class Row extends Nette\Utils\ArrayHash implements IRow
+class Row implements \ArrayAccess, \IteratorAggregate, \Countable
 {
-	public function __get($key)
+
+	public function __construct($statement)
 	{
-		$hint = Nette\Utils\Helpers::getSuggestion(array_map('strval', array_keys((array) $this)), $key);
-		throw new Nette\MemberAccessException("Cannot read an undeclared column '$key'" . ($hint ? ", did you mean '$hint'?" : '.'));
 	}
 
 
-	public function __isset($key)
+
+	public function count()
 	{
-		return isset($this->key);
+		return count((array) $this);
 	}
 
 
-	/**
-	 * Returns a item.
-	 * @param  string|int  $key  key or index
-	 */
-	public function offsetGet($key): mixed
-	{
-		if (is_int($key)) {
-			$arr = array_slice((array) $this, $key, 1);
-			if (!$arr) {
-				throw new Nette\MemberAccessException("Cannot read an undeclared column '$key'.");
-			}
 
-			return current($arr);
+	public function getIterator()
+	{
+		return new \ArrayIterator($this);
+	}
+
+
+
+	public function offsetSet($nm, $val)
+	{
+		$this->$nm = $val;
+	}
+
+
+
+	public function offsetGet($nm)
+	{
+		if (is_int($nm)) {
+			$arr = array_values((array) $this);
+			return $arr[$nm];
 		}
-
-		return $this->$key;
+		return $this->$nm;
 	}
 
 
-	/**
-	 * Checks if $key exists.
-	 * @param  string|int  $key  key or index
-	 */
-	public function offsetExists($key): bool
+
+	public function offsetExists($nm)
 	{
-		if (is_int($key)) {
-			return (bool) current(array_slice((array) $this, $key, 1));
-		}
-
-		return parent::offsetExists($key);
+		return isset($this->$nm);
 	}
+
+
+
+	public function offsetUnset($nm)
+	{
+		unset($this->$nm);
+	}
+
 }

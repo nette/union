@@ -9,26 +9,26 @@
  * GPL license. For more information please see http://nette.org
  */
 
-namespace Nette\Database;
+namespace Nette\Database\Drivers;
 
 use Nette;
 
 
 
 /**
- * SQL literal value.
+ * Supplemental SQLite2 database driver.
  *
- * @author     Jakub Vrana
+ * @author     David Grudl
  */
-class SqlLiteral
+class PdoSqlite2Driver extends PdoSqliteDriver
 {
-	/** @var string */
-	public $value = '';
 
-
-	function __construct($value)
+	/**
+	 * Encodes string for use in a LIKE statement.
+	 */
+	public function formatLike($value, $pos)
 	{
-		$this->value = (string) $value;
+		throw new NotSupportedException;
 	}
 
 }
