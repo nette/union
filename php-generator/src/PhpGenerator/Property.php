@@ -1,125 +1,52 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ *
+ * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
-namespace Nette\PhpGenerator;
+namespace Nette\Utils\PhpGenerator;
 
 use Nette;
-use Nette\Utils\Type;
+
 
 
 /**
  * Class property description.
  *
- * @property-deprecated mixed $value
+ * @author     David Grudl
+ *
+ * @method Property setName(string $name)
+ * @method Property setValue(mixed $value)
+ * @method Property setStatic(bool $on)
+ * @method Property setVisibility(string $access)
+ * @method Property addDocument(string $doc)
  */
-final class Property
+class Property extends Nette\Object
 {
-	use Nette\SmartObject;
-	use Traits\NameAware;
-	use Traits\VisibilityAware;
-	use Traits\CommentAware;
-	use Traits\AttributeAware;
+	/** @var string */
+	public $name;
 
-	private mixed $value = null;
-	private bool $static = false;
-	private ?string $type = null;
-	private bool $nullable = false;
-	private bool $initialized = false;
-	private bool $readOnly = false;
+	/** @var mixed */
+	public $value;
+
+	/** @var bool */
+	public $static;
+
+	/** @var string  public|protected|private */
+	public $visibility = 'public';
+
+	/** @var array of string */
+	public $documents = array();
 
 
-	public function setValue(mixed $val): static
+	public function __call($name, $args)
 	{
-		$this->value = $val;
-		$this->initialized = true;
-		return $this;
+		return Nette\ObjectMixin::callProperty($this, $name, $args);
 	}
 
-
-	public function &getValue(): mixed
-	{
-		return $this->value;
-	}
-
-
-	public function setStatic(bool $state = true): static
-	{
-		$this->static = $state;
-		return $this;
-	}
-
-
-	public function isStatic(): bool
-	{
-		return $this->static;
-	}
-
-
-	public function setType(?string $type): static
-	{
-		$this->type = Helpers::validateType($type, $this->nullable);
-		return $this;
-	}
-
-
-	public function getType(bool $asObject = false): Type|string|null
-	{
-		return $asObject && $this->type
-			? Type::fromString($this->type)
-			: $this->type;
-	}
-
-
-	public function setNullable(bool $state = true): static
-	{
-		$this->nullable = $state;
-		return $this;
-	}
-
-
-	public function isNullable(): bool
-	{
-		return $this->nullable;
-	}
-
-
-	public function setInitialized(bool $state = true): static
-	{
-		$this->initialized = $state;
-		return $this;
-	}
-
-
-	public function isInitialized(): bool
-	{
-		return $this->initialized || $this->value !== null;
-	}
-
-
-	public function setReadOnly(bool $state = true): static
-	{
-		$this->readOnly = $state;
-		return $this;
-	}
-
-
-	public function isReadOnly(): bool
-	{
-		return $this->readOnly;
-	}
-
-
-	/** @throws Nette\InvalidStateException */
-	public function validate(): void
-	{
-		if ($this->readOnly && !$this->type) {
-			throw new Nette\InvalidStateException("Property \$$this->name: Read-only properties are only supported on typed property.");
-		}
-	}
 }

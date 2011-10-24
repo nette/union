@@ -1,276 +1,145 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ *
+ * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
-namespace Nette\PhpGenerator;
+namespace Nette\Utils\PhpGenerator;
 
 use Nette;
 
 
+
 /**
- * Class description.
+ * Class/Interface/Trait description.
  *
- * @property-deprecated Method[] $methods
- * @property-deprecated Property[] $properties
+ * @author     David Grudl
+ *
+ * @method ClassType setName(string $name)
+ * @method ClassType setType(string $type)
+ * @method ClassType setFinal(bool $on)
+ * @method ClassType setAbstract(bool $on)
+ * @method ClassType addExtend(string $class)
+ * @method ClassType addImplement(string $interface)
+ * @method ClassType addTrait(string $trait)
+ * @method ClassType addDocument(string $doc)
  */
-final class ClassType extends ClassLike
+class ClassType extends Nette\Object
 {
-	use Traits\ConstantsAware;
-	use Traits\MethodsAware;
-	use Traits\PropertiesAware;
-	use Traits\TraitsAware;
+	/** @var string */
+	public $name;
 
-	/** @deprecated */
-	public const
-		TYPE_CLASS = 'class',
-		TYPE_INTERFACE = 'interface',
-		TYPE_TRAIT = 'trait',
-		TYPE_ENUM = 'enum';
+	/** @var string  class|interface|trait */
+	public $type = 'class';
 
-	private string $type = self::TYPE_CLASS;
-	private bool $final = false;
-	private bool $abstract = false;
-	private ?string $extends = null;
-	private bool $readOnly = false;
+	/** @var bool */
+	public $final;
 
-	/** @var string[] */
-	private array $implements = [];
+	/** @var bool */
+	public $abstract;
+
+	/** @var array of string */
+	public $extends = array();
+
+	/** @var array of string */
+	public $implements = array();
+
+	/** @var array of string */
+	public $traits = array();
+
+	/** @var array of string */
+	public $documents = array();
+
+	/** @var array of name => value */
+	public $consts = array();
+
+	/** @var array of name => Property */
+	public $properties = array();
+
+	/** @var array of name => Method */
+	public $methods = array();
 
 
-	/** @deprecated  create object using 'new Nette\PhpGenerator\ClassType' */
-	public static function class(?string $name): self
+	public function __construct($name)
 	{
-		return new self($name);
+		$this->name = $name;
 	}
 
 
-	/** @deprecated  create object using 'new Nette\PhpGenerator\InterfaceType' */
-	public static function interface(string $name): InterfaceType
+
+	/** @return ClassType */
+	public function addConst($name, $value)
 	{
-		return new InterfaceType($name);
+		$this->consts[$name] = $value;
+		return $this;
 	}
 
 
-	/** @deprecated  create object using 'new Nette\PhpGenerator\TraitType' */
-	public static function trait(string $name): TraitType
+
+	/** @return Property */
+	public function addProperty($name, $value = NULL)
 	{
-		return new TraitType($name);
+		$property = new Property;
+		return $this->properties[$name] = $property->setName($name)->setValue($value);
 	}
 
 
-	/** @deprecated  create object using 'new Nette\PhpGenerator\EnumType' */
-	public static function enum(string $name): EnumType
-	{
-		return new EnumType($name);
-	}
 
-
-	public function __construct(?string $name = null, ?PhpNamespace $namespace = null)
+	/** @return Method */
+	public function addMethod($name)
 	{
-		if ($name === null) {
-			parent::__construct('foo', $namespace);
-			$this->setName(null);
+		$method = new Method;
+		if ($this->type === 'interface') {
+			$method->setVisibility('')->setBody(FALSE);
 		} else {
-			parent::__construct($name, $namespace);
+			$method->setVisibility('public');
 		}
+		return $this->methods[$name] = $method->setName($name);
 	}
 
 
-	/** @deprecated */
-	public function setClass(): static
+
+	public function __call($name, $args)
 	{
-		trigger_error(__METHOD__ . '() is deprecated.', E_USER_DEPRECATED);
-		$this->type = self::TYPE_CLASS;
-		return $this;
+		return Nette\ObjectMixin::callProperty($this, $name, $args);
 	}
 
 
-	public function isClass(): bool
+
+	/** @return string  PHP code */
+	public function __toString()
 	{
-		return $this->type === self::TYPE_CLASS;
-	}
-
-
-	/** @deprecated  create object using 'new Nette\PhpGenerator\InterfaceType' */
-	public function setInterface(): static
-	{
-		trigger_error(__METHOD__ . "() is deprecated, create object using 'new Nette\\PhpGenerator\\InterfaceType'", E_USER_DEPRECATED);
-		$this->type = self::TYPE_INTERFACE;
-		return $this;
-	}
-
-
-	public function isInterface(): bool
-	{
-		return $this->type === self::TYPE_INTERFACE;
-	}
-
-
-	/** @deprecated  create object using 'new Nette\PhpGenerator\TraitType' */
-	public function setTrait(): static
-	{
-		trigger_error(__METHOD__ . "() is deprecated, create object using 'new Nette\\PhpGenerator\\TraitType'", E_USER_DEPRECATED);
-		$this->type = self::TYPE_TRAIT;
-		return $this;
-	}
-
-
-	public function isTrait(): bool
-	{
-		return $this->type === self::TYPE_TRAIT;
-	}
-
-
-	/** @deprecated  create object using 'new Nette\PhpGenerator\InterfaceType' or 'TraitType' */
-	public function setType(string $type): static
-	{
-		$upper = ucfirst($type);
-		trigger_error(__METHOD__ . "() is deprecated, create object using 'new Nette\\PhpGenerator\\{$upper}Type'", E_USER_DEPRECATED);
-		if (!in_array($type, [self::TYPE_CLASS, self::TYPE_INTERFACE, self::TYPE_TRAIT], true)) {
-			throw new Nette\InvalidArgumentException('Argument must be class|interface|trait.');
+		$consts = array();
+		foreach ($this->consts as $name => $value) {
+			$consts[] = "const $name = " . Helpers::dump($value) . ";\n";
 		}
-
-		$this->type = $type;
-		return $this;
-	}
-
-
-	/** @deprecated */
-	public function getType(): string
-	{
-		return $this->type;
-	}
-
-
-	public function setFinal(bool $state = true): static
-	{
-		$this->final = $state;
-		return $this;
-	}
-
-
-	public function isFinal(): bool
-	{
-		return $this->final;
-	}
-
-
-	public function setAbstract(bool $state = true): static
-	{
-		$this->abstract = $state;
-		return $this;
-	}
-
-
-	public function isAbstract(): bool
-	{
-		return $this->abstract;
-	}
-
-
-	public function setReadOnly(bool $state = true): static
-	{
-		$this->readOnly = $state;
-		return $this;
-	}
-
-
-	public function isReadOnly(): bool
-	{
-		return $this->readOnly;
-	}
-
-
-	public function setExtends(?string $name): static
-	{
-		if ($name) {
-			$this->validateNames([$name]);
+		$properties = array();
+		foreach ($this->properties as $property) {
+			$properties[] = ($property->documents ? str_replace("\n", "\n * ", "/**\n" . implode("\n", (array) $property->documents)) . "\n */\n" : '')
+				. $property->visibility . ' $' . $property->name
+				. ($property->value === NULL ? '' : ' = ' . Helpers::dump($property->value))
+				. ";\n";
 		}
-		$this->extends = $name;
-		return $this;
+		return Nette\Utils\Strings::normalize(
+			($this->documents ? str_replace("\n", "\n * ", "/**\n" . implode("\n", (array) $this->documents)) . "\n */\n" : '')
+			. ($this->abstract ? 'abstract ' : '')
+			. ($this->final ? 'final ' : '')
+			. $this->type . ' '
+			. $this->name . ' '
+			. ($this->extends ? 'extends ' . implode(', ', (array) $this->extends) . ' ' : '')
+			. ($this->implements ? 'implements ' . implode(', ', (array) $this->implements) . ' ' : '')
+			. "\n{\n\n"
+			. Nette\Utils\Strings::indent(
+				($this->traits ? "use " . implode(', ', (array) $this->traits) . ";\n\n" : '')
+				. ($this->consts ? implode('', $consts) . "\n" : '')
+				. ($this->properties ? implode("\n", $properties) . "\n" : '')
+				. implode("\n\n\n", $this->methods), 1)
+			. "\n\n}") . "\n";
 	}
 
-
-	public function getExtends(): ?string
-	{
-		return $this->extends;
-	}
-
-
-	/**
-	 * @param  string[]  $names
-	 */
-	public function setImplements(array $names): static
-	{
-		$this->validateNames($names);
-		$this->implements = $names;
-		return $this;
-	}
-
-
-	/** @return string[] */
-	public function getImplements(): array
-	{
-		return $this->implements;
-	}
-
-
-	public function addImplement(string $name): static
-	{
-		$this->validateNames([$name]);
-		$this->implements[] = $name;
-		return $this;
-	}
-
-
-	public function removeImplement(string $name): static
-	{
-		$this->implements = array_diff($this->implements, [$name]);
-		return $this;
-	}
-
-
-	public function addMember(Method|Property|Constant|TraitUse $member): static
-	{
-		$name = $member->getName();
-		[$type, $n] = match (true) {
-			$member instanceof Constant => ['consts', $name],
-			$member instanceof Method => ['methods', strtolower($name)],
-			$member instanceof Property => ['properties', $name],
-			$member instanceof TraitUse => ['traits', $name],
-		};
-		if (isset($this->$type[$n])) {
-			throw new Nette\InvalidStateException("Cannot add member '$name', because it already exists.");
-		}
-		$this->$type[$n] = $member;
-		return $this;
-	}
-
-
-	/** @throws Nette\InvalidStateException */
-	public function validate(): void
-	{
-		$name = $this->getName();
-		if ($name === null && ($this->abstract || $this->final)) {
-			throw new Nette\InvalidStateException('Anonymous class cannot be abstract or final.');
-
-		} elseif ($this->abstract && $this->final) {
-			throw new Nette\InvalidStateException("Class '$name' cannot be abstract and final at the same time.");
-		}
-	}
-
-
-	public function __clone()
-	{
-		$clone = fn($item) => clone $item;
-		$this->consts = array_map($clone, $this->consts);
-		$this->methods = array_map($clone, $this->methods);
-		$this->properties = array_map($clone, $this->properties);
-		$this->traits = array_map($clone, $this->traits);
-	}
 }

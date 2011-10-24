@@ -1,7 +1,0 @@
-/**
- * @return resource
- */
-final public function first(Bar\C $var): stdClass
-{
-	return $this->handle;
-}

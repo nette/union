@@ -1,106 +1,121 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ *
+ * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
 
-declare(strict_types=1);
-
-namespace Nette\PhpGenerator;
+namespace Nette\Utils\PhpGenerator;
 
 use Nette;
 
 
+
 /**
- * Class method.
+ * Class method description.
+ *
+ * @author     David Grudl
+ *
+ * @method Method setName(string $name)
+ * @method Method setBody(string $body)
+ * @method Method setStatic(bool $on)
+ * @method Method setVisibility(string $access)
+ * @method Method setFinal(bool $on)
+ * @method Method setAbstract(bool $on)
+ * @method Method setReturnReference(bool $on)
+ * @method Method addDocument(string $doc)
  */
-final class Method extends FunctionLike
+class Method extends Nette\Object
 {
-	use Traits\NameAware;
-	use Traits\VisibilityAware;
-	use Traits\CommentAware;
-	use Traits\AttributeAware;
+	/** @var string */
+	public $name;
 
-	private bool $static = false;
-	private bool $final = false;
-	private bool $abstract = false;
+	/** @var array of name => Parameter */
+	public $parameters = array();
+
+	/** @var array of name => bool */
+	public $uses = array();
+
+	/** @var string|FALSE */
+	public $body;
+
+	/** @var bool */
+	public $static;
+
+	/** @var string  public|protected|private or none */
+	public $visibility;
+
+	/** @var bool */
+	public $final;
+
+	/** @var bool */
+	public $abstract;
+
+	/** @var bool */
+	public $returnReference;
+
+	/** @var array of string */
+	public $documents = array();
 
 
-	public static function from(string|array $method): static
+	/** @return Parameter */
+	public function addParameter($name, $defaultValue = NULL)
 	{
-		return (new Factory)->fromMethodReflection(Nette\Utils\Callback::toReflection($method));
-	}
-
-
-	public function __toString(): string
-	{
-		return (new Printer)->printMethod($this);
-	}
-
-
-	public function setStatic(bool $state = true): static
-	{
-		$this->static = $state;
-		return $this;
-	}
-
-
-	public function isStatic(): bool
-	{
-		return $this->static;
-	}
-
-
-	public function setFinal(bool $state = true): static
-	{
-		$this->final = $state;
-		return $this;
-	}
-
-
-	public function isFinal(): bool
-	{
-		return $this->final;
-	}
-
-
-	public function setAbstract(bool $state = true): static
-	{
-		$this->abstract = $state;
-		return $this;
-	}
-
-
-	public function isAbstract(): bool
-	{
-		return $this->abstract;
-	}
-
-
-	/**
-	 * @param  string  $name without $
-	 */
-	public function addPromotedParameter(string $name, mixed $defaultValue = null): PromotedParameter
-	{
-		$param = new PromotedParameter($name);
+		$param = new Parameter;
 		if (func_num_args() > 1) {
-			$param->setDefaultValue($defaultValue);
+			$param->setOptional(TRUE)->setDefaultValue($defaultValue);
 		}
-
-		$params = $this->getParameters();
-		$params[$name] = $param;
-		$this->setParameters($params);
-
-		return $param;
+		return $this->parameters[] = $param->setName($name);
 	}
 
 
-	/** @throws Nette\InvalidStateException */
-	public function validate(): void
+
+	/** @return Parameter */
+	public function addUse($name)
 	{
-		if ($this->abstract && ($this->final || $this->visibility === ClassLike::VisibilityPrivate)) {
-			throw new Nette\InvalidStateException("Method $this->name() cannot be abstract and final or private at the same time.");
-		}
+		$param = new Parameter;
+		return $this->uses[] = $param->setName($name);
 	}
+
+
+
+	public function __call($name, $args)
+	{
+		return Nette\ObjectMixin::callProperty($this, $name, $args);
+	}
+
+
+
+	/** @return string  PHP code */
+	public function __toString()
+	{
+		$parameters = array();
+		foreach ($this->parameters as $param) {
+			$parameters[] = ($param->typeHint ? $param->typeHint . ' ' : '')
+				. ($param->reference ? '&' : '')
+				. '$' . $param->name
+				. ($param->optional ? ' = ' . Helpers::dump($param->defaultValue) : '');
+		}
+		$uses = array();
+		foreach ($this->uses as $param) {
+			$uses[] = ($param->reference ? '&' : '') . '$' . $param->name;
+		}
+		return ($this->documents ? str_replace("\n", "\n * ", "/**\n" . implode("\n", (array) $this->documents)) . "\n */\n" : '')
+			. ($this->abstract ? 'abstract ' : '')
+			. ($this->final ? 'final ' : '')
+			. ($this->visibility ? $this->visibility . ' ' : '')
+			. ($this->static ? 'static ' : '')
+			. 'function'
+			. ($this->returnReference ? ' &' : '')
+			. ($this->name ? ' ' . $this->name : '')
+			. '(' . implode(', ', $parameters) . ')'
+			. ($this->uses ? ' use (' . implode(', ', $uses) . ')' : '')
+			. ($this->abstract || $this->body === FALSE ? ';'
+				: ($this->name ? "\n" : ' ') . "{\n" . Nette\Utils\Strings::indent($this->body, 1) . "\n}");
+	}
+
 }
