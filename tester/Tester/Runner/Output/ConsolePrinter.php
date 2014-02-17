@@ -46,7 +46,7 @@ class ConsolePrinter implements Tester\Runner\OutputHandler
 		$this->time = -microtime(TRUE);
 		echo 'PHP ' . $this->runner->getPhp()->getVersion()
 			. ' | ' . $this->runner->getPhp()->getCommandLine()
-			. " | {$this->runner->threadCount} threads\n\n";
+			. " | {$this->runner->threadCount} thread" . ($this->runner->threadCount > 1 ? 's' : '') . "\n\n";
 	}
 
 
@@ -59,13 +59,14 @@ class ConsolePrinter implements Tester\Runner\OutputHandler
 		);
 		echo $outputs[$result];
 
-		if ($result === Runner::FAILED) {
-			$lines = explode("\n", trim($message), self::PRINT_LINES + 1);
-			$lines[self::PRINT_LINES] = isset($lines[self::PRINT_LINES]) ? '...' : '';
-			$this->buffer .= "\033[1;31m-- FAILED: $testName\033[0m\n   " . implode("\n   ", $lines) . "\n";
+		$lines = explode("\n", trim($message), self::PRINT_LINES + 1);
+		$lines[self::PRINT_LINES] = isset($lines[self::PRINT_LINES]) ? '...' : '';
+		$message = '   ' . implode("\n   ", $lines) . "\n";
 
+		if ($result === Runner::FAILED) {
+			$this->buffer .= "\033[1;31m-- FAILED: $testName\033[0m\n$message";
 		} elseif ($result === Runner::SKIPPED && $this->displaySkipped) {
-			$this->buffer .= "-- Skipped: $testName\n   $message\n\n";
+			$this->buffer .= "-- Skipped: $testName\n$message";
 		}
 	}
 
@@ -78,8 +79,8 @@ class ConsolePrinter implements Tester\Runner\OutputHandler
 		echo !$jobCount ? "No tests found\n" :
 			"\n\n" . $this->buffer . "\n"
 			. ($results[Runner::FAILED] ? "\033[1;41;37mFAILURES!" : "\033[1;42;37mOK")
-			. " ($jobCount tests, "
-			. ($results[Runner::FAILED] ? $results[Runner::FAILED] . ' failures, ' : '')
+			. " ($jobCount test" . ($jobCount > 1 ? 's' : '') . ", "
+			. ($results[Runner::FAILED] ? $results[Runner::FAILED] . ' failure' . ($results[Runner::FAILED] > 1 ? 's' : '') . ', ' : '')
 			. ($results[Runner::SKIPPED] ? $results[Runner::SKIPPED] . ' skipped, ' : '')
 			. ($jobCount !== $count ? ($jobCount - $count) . ' not run, ' : '')
 			. sprintf('%0.1f', $this->time + microtime(TRUE)) . " seconds)\033[0m\n";
