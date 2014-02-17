@@ -59,15 +59,16 @@ class ConsolePrinter implements Tester\Runner\OutputHandler
 		);
 		echo $outputs[$result];
 
-		if ($result === Runner::FAILED) {
-			$lines = explode("\n", trim($message));
-			if (count($lines) > self::PRINT_LINES) {
-				$lines = array_merge(array('...'), array_slice($lines, -self::PRINT_LINES));
-			}
-			$this->buffer .= "\033[1;31m-- FAILED: $testName\033[0m\n   " . implode("\n   ", $lines) . "\n";
+		$lines = explode("\n", trim($message));
+		if (count($lines) > self::PRINT_LINES) {
+			$lines = array_merge(array('...'), array_slice($lines, -self::PRINT_LINES));
+		}
+		$message = '   ' . implode("\n   ", $lines) . "\n";
 
+		if ($result === Runner::FAILED) {
+			$this->buffer .= "\033[1;31m-- FAILED: $testName\033[0m\n$message";
 		} elseif ($result === Runner::SKIPPED && $this->displaySkipped) {
-			$this->buffer .= "-- Skipped: $testName\n   $message\n\n";
+			$this->buffer .= "-- Skipped: $testName\n$message";
 		}
 	}
 
