@@ -162,10 +162,8 @@ class TestHandler
 	{
 		$code = (int) $code;
 		if ($job->getExitCode() === Job::CODE_SKIP) {
-			$message = preg_match('#.*Skipped:\n(.*?)\z#s', $output = $job->getOutput(), $m)
-				? $m[1]
-				: $output;
-			return array(Runner::SKIPPED, trim($message));
+			$lines = explode("\n", trim($job->getOutput()));
+			return array(Runner::SKIPPED, end($lines));
 
 		} elseif ($job->getExitCode() !== $code) {
 			$message = $job->getExitCode() !== Job::CODE_FAIL ? "Exited with error code {$job->getExitCode()} (expected $code)" : '';
