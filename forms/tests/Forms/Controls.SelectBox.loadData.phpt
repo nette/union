@@ -41,19 +41,6 @@ test(function() use ($series) { // Select
 });
 
 
-test(function() use ($series) { // Empty select
-	$_POST = array('select' => 'red-dwarf');
-
-	$form = new Form;
-	$input = $form->addSelect('select');
-
-	Assert::true( $form->isValid() );
-	Assert::same( NULL, $input->getValue() );
-	Assert::same( NULL, $input->getSelectedItem() );
-	Assert::false( $input->isFilled() );
-});
-
-
 test(function() use ($series) { // Select with prompt
 	$_POST = array('select' => 'red-dwarf');
 
@@ -265,4 +252,16 @@ test(function() use ($series) { // disabled one
 	$form['select'] = $input;
 
 	Assert::null( $input->getValue() );
+});
+
+test(function() {
+	$_POST = array('select' => 1);
+
+	$form = new Form;
+	$input = $form->addSelect('select', NULL, array(
+		1 => NULL,
+		2 => 'Red dwarf'
+	));
+
+	Assert::same( 1, $input->getValue() );
 });
