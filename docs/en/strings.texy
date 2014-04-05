@@ -319,5 +319,3 @@ echo Strings::replace('One,  two,three', '~[a-z]+~i', function ($m) {
 });
 // 'enO,  owt,eerht'
 \--
-
-{{composer: nette/utils}}

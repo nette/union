@@ -376,4 +376,3 @@ Events: onLoggedIn, onLoggedOut
 
 {{themeicon: icon-key.png}}
 {{care: Honza Doleček|3537}}
-{{composer: nette/security}}

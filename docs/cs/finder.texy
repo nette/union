@@ -184,4 +184,6 @@ foreach (Finder::findFiles('photos*')
 Šikovné, že? Finder určitě najde využití ve vašich aplikacích.
 
 
-{{composer: nette/finder}}
+.[see]
+Viz také:
+- [Nette\Utils\Finder API reference | api:Nette\Utils\Finder]

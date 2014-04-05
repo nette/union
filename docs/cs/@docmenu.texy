@@ -15,7 +15,7 @@
 - [AJAX]
 - [Rozšíření PHP |PHP Language Enhancements]
 - [HTTP request & response]
-- [Databáze |database], [Table |database-table], [Selection |database-selection], [ActiveRow |database-activerow]
+- [Databáze & ORM |database]
 - [Sessions |sessions]
 - [E-maily |mailing]
 - [Zpracování obrázků |images]
