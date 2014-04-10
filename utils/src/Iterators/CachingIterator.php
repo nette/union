@@ -7,8 +7,7 @@
 
 namespace Nette\Iterators;
 
-use Nette,
-	Nette\Utils\ObjectMixin;
+use Nette;
 
 
 /**
@@ -48,7 +47,7 @@ class CachingIterator extends \CachingIterator implements \Countable
 			}
 
 		} else {
-			throw new Nette\InvalidArgumentException(sprintf('Invalid argument passed to %s; array or Traversable expected, %s given.', __CLASS__, is_object($iterator) ? get_class($iterator) : gettype($iterator)));
+			throw new Nette\InvalidArgumentException("Invalid argument passed to foreach resp. " . __CLASS__ . "; array or Traversable expected, " . (is_object($iterator) ? get_class($iterator) : gettype($iterator)) ." given.");
 		}
 
 		parent::__construct($iterator, 0);
@@ -189,7 +188,7 @@ class CachingIterator extends \CachingIterator implements \Countable
 	 */
 	public function __call($name, $args)
 	{
-		return ObjectMixin::call($this, $name, $args);
+		return Nette\ObjectMixin::call($this, $name, $args);
 	}
 
 
@@ -201,7 +200,7 @@ class CachingIterator extends \CachingIterator implements \Countable
 	 */
 	public function &__get($name)
 	{
-		return ObjectMixin::get($this, $name);
+		return Nette\ObjectMixin::get($this, $name);
 	}
 
 
@@ -214,7 +213,7 @@ class CachingIterator extends \CachingIterator implements \Countable
 	 */
 	public function __set($name, $value)
 	{
-		ObjectMixin::set($this, $name, $value);
+		Nette\ObjectMixin::set($this, $name, $value);
 	}
 
 
@@ -225,7 +224,7 @@ class CachingIterator extends \CachingIterator implements \Countable
 	 */
 	public function __isset($name)
 	{
-		return ObjectMixin::has($this, $name);
+		return Nette\ObjectMixin::has($this, $name);
 	}
 
 
@@ -237,7 +236,7 @@ class CachingIterator extends \CachingIterator implements \Countable
 	 */
 	public function __unset($name)
 	{
-		ObjectMixin::remove($this, $name);
+		Nette\ObjectMixin::remove($this, $name);
 	}
 
 
