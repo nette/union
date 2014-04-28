@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Test: Nette\Utils\DateTime::from().
+ * Test: Nette\Utils\DateTime test.
  *
  * @author     David Grudl
  */
