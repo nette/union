@@ -144,7 +144,6 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 
 
 	/**
-	 * @param  string
 	 * @return bool
 	 */
 	public function isSupported($item)

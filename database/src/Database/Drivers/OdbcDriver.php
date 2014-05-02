@@ -143,7 +143,6 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
 
 
 	/**
-	 * @param  string
 	 * @return bool
 	 */
 	public function isSupported($item)
