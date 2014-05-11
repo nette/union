@@ -111,12 +111,12 @@ class Runner
 	private function findTests($path)
 	{
 		if (is_dir($path)) {
-			foreach (glob("$path/*", GLOB_ONLYDIR) ?: array() as $dir) {
+			foreach (glob("$path/*", GLOB_ONLYDIR) as $dir) {
 				$this->findTests($dir);
 			}
 			$path .= '/*.phpt';
 		}
-		foreach (glob($path) ?: array() as $file) {
+		foreach (glob($path) as $file) {
 			if (is_file($file)) {
 				$this->testHandler->initiate(realpath($file));
 			}
