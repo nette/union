@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms default rendering GET form.
+ *
+ * @author     David Grudl
  */
 
 use Tester\Assert;

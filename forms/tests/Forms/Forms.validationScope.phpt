@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms validation scope.
+ *
+ * @author     Jan Skrasek
  */
 
 use Nette\Forms\Form;

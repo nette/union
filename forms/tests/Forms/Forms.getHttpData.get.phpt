@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms HTTP data.
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Form,

@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Controls\TextBase validators.
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Controls\TextInput,

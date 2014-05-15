@@ -3,8 +3,7 @@
 //
 // main template
 //
-echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin($form = $_form = $_control["myForm"], array()) ?>
-
+Nette\Bridges\FormsLatte\Runtime::renderFormBegin($form = $_form = $_control["myForm"], array()) ?>
 <table>
 	<tr>
 		<th><?php if ($_label = $_form["input1"]->getLabel()) echo $_label  ?></th>
@@ -39,4 +38,4 @@ echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin($form = $_form = $_contro
 		<td><?php echo $_form["input8"]->getControl() ?></td>
 	</tr>
 </table>
-<?php echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd($_form) ?>
+<?php Nette\Bridges\FormsLatte\Runtime::renderFormEnd($_form) ;
