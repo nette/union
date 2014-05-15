@@ -44,7 +44,6 @@ class Validator extends Nette\Object
 	);
 
 
-	/** @internal */
 	public static function formatMessage(Rule $rule, $withValue = TRUE)
 	{
 		$message = $rule->message;

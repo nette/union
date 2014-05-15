@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Bridges\FormsLatte\FormMacros: GET form
+ *
+ * @author     Filip Procházka
  */
 
 use Nette\Bridges\FormsLatte\Runtime;
@@ -15,13 +17,12 @@ $form = new Form;
 $form->setMethod('GET');
 $form->action = 'http://example.com/?do=foo-submit#toc';
 
-Assert::same(
-	'<form action="http://example.com/#toc" method="get">',
-	Runtime::renderFormBegin($form, array())
-);
+ob_start();
+Runtime::renderFormBegin($form, array());
+Assert::same('<form action="http://example.com/#toc" method="get">', ob_get_clean());
 
-Assert::match(
-	'<input type="hidden" name="do" value="foo-submit"><!--[if IE]><input type=IEbug disabled style="display:none"><![endif]-->
-</form>',
-	Runtime::renderFormEnd($form)
-);
+ob_start();
+Runtime::renderFormEnd($form);
+Assert::match('<div><input type="hidden" name="do" value="foo-submit"><!--[if IE]><input type=IEbug disabled style="display:none"><![endif]--></div>
+</form>
+', ob_get_clean());

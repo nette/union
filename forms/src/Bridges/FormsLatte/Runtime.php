@@ -16,14 +16,13 @@ use Nette,
  * Runtime helpers for Latte.
  *
  * @author     David Grudl
- * @internal
  */
 class Runtime extends Nette\Object
 {
 
 	/**
 	 * Renders form begin.
-	 * @return string
+	 * @return void
 	 */
 	public static function renderFormBegin(Form $form, array $attrs, $withTags = TRUE)
 	{
@@ -31,13 +30,13 @@ class Runtime extends Nette\Object
 			$control->setOption('rendered', FALSE);
 		}
 		$el = $form->getElementPrototype();
-		$el->action = (string) $el->action;
+		$el->action = $action = (string) $el->action;
 		$el = clone $el;
 		if (strcasecmp($form->getMethod(), 'get') === 0) {
 			$el->action = preg_replace('~\?[^#]*~', '', $el->action, 1);
 		}
 		$el->addAttributes($attrs);
-		return $withTags ? $el->startTag() : $el->attributes();
+		echo $withTags ? $el->startTag() : $el->attributes();
 	}
 
 
@@ -65,10 +64,10 @@ class Runtime extends Nette\Object
 		}
 
 		if (iterator_count($form->getComponents(TRUE, 'Nette\Forms\Controls\TextInput')) < 2) {
-			$s .= "<!--[if IE]><input type=IEbug disabled style=\"display:none\"><![endif]-->\n";
+			$s .= '<!--[if IE]><input type=IEbug disabled style="display:none"><![endif]-->';
 		}
 
-		return $s . ($withTags ? $form->getElementPrototype()->endTag() . "\n" : '');
+		echo ($s ? "<div>$s</div>\n" : '') . ($withTags ? $form->getElementPrototype()->endTag() . "\n" : '');
 	}
 
 }
