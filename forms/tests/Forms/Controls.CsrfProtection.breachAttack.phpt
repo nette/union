@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Controls\CsrfProtection and BREACH attack.
+ *
+ * @author     Jan-Sebastian Fabík
  */
 
 use Nette\Forms\Controls\CsrfProtection,

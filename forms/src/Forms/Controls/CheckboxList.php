@@ -34,7 +34,7 @@ class CheckboxList extends MultiChoiceControl
 
 	/**
 	 * Generates control's HTML element.
-	 * @return string
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl()
 	{
@@ -84,7 +84,7 @@ class CheckboxList extends MultiChoiceControl
 	{
 		return parent::getControl()->addAttributes(array(
 			'id' => $this->getHtmlId() . '-' . $key,
-			'checked' => in_array($key, (array) $this->value, TRUE),
+			'checked' => in_array($key, (array) $this->value),
 			'disabled' => is_array($this->disabled) ? isset($this->disabled[$key]) : $this->disabled,
 			'required' => NULL,
 			'value' => $key,
