@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Controls\Checkbox.
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Form,

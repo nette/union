@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Controls\Button & SubmitButton
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Form,

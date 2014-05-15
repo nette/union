@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Controls\CsrfProtection.
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Controls\CsrfProtection,

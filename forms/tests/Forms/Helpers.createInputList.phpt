@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Helpers::createInputList()
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Helpers,

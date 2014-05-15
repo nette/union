@@ -2,6 +2,8 @@
 
 /**
  * Test: FormMacros: {formContainer}
+ *
+ * @author     Miloslav Hůla
  */
 
 use Nette\Forms\Form,

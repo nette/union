@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Helpers::extractHttpData()
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Form,
@@ -75,7 +77,7 @@ test(function() { // files
 
 
 	Assert::equal(array($file, $file), Helpers::extractHttpData(array(
-		'multiple' => array('avatar' => array('x' => $file, NULL, $file)),
+		'multiple' => array('avatar' => array('x' => $file, $file)),
 	), 'multiple[avatar][]', Form::DATA_FILE));
 
 	Assert::equal(array('x' => $file, $file), Helpers::extractHttpData(array(

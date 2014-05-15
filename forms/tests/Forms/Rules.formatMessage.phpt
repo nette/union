@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Rules::formatMessage()
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Form,

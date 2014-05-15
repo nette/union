@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms validateMaxPostSize
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Form,

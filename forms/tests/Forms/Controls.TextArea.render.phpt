@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Controls\TextArea.
+ *
+ * @author     David Grudl
  */
 
 use Nette\Forms\Form,

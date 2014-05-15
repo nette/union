@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms\Container::validate().
+ *
+ * @author     Filip Procházka
  */
 
 use Nette\Forms\Form,
@@ -12,16 +14,9 @@ use Nette\Forms\Form,
 require __DIR__ . '/../bootstrap.php';
 
 $form = new Form;
-$form->addText('name')->addRule($form::NUMERIC);
-
+$form->addText('name', 'Text:')->addRule($form::NUMERIC);
 $form->onValidate[] = function (Container $container) {
-	$container['name']->addError('fail 1');
-};
-
-$container = $form->addContainer('cont');
-$container->addText('name');
-$container->onValidate[] = function (Container $container) {
-	$container['name']->addError('fail 2');
+	$container['name']->addError('just fail');
 };
 
 $form->setValues(array('name' => "invalid*input"));
@@ -29,6 +24,5 @@ $form->validate();
 
 Assert::same(array(
 	'Please enter a valid integer.',
-	'fail 1',
-	'fail 2'
-), $form->getErrors());
+	'just fail',
+), $form['name']->getErrors());

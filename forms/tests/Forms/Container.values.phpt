@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms naming container.
+ *
+ * @author     David Grudl
  */
 
 use Nette\Http,

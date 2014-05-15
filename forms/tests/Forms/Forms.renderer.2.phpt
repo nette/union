@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Forms default rendering.
+ *
+ * @author     David Grudl
  */
 
 use Nette\Utils\Html,

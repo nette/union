@@ -242,7 +242,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 
 	/**
 	 * Generates control's HTML element.
-	 * @return Nette\Utils\Html|string
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl()
 	{
@@ -261,7 +261,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	/**
 	 * Generates label's HTML element.
 	 * @param  string
-	 * @return Nette\Utils\Html|string
+	 * @return Nette\Utils\Html
 	 */
 	public function getLabel($caption = NULL)
 	{
