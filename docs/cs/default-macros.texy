@@ -118,7 +118,7 @@ Věk: {date('Y') - $birth}<br>
 
 Alternativně lze použit zápis s rovnítkem `{=expression}`.
 
-Díky technologií [Context-Aware Escaping | templating|#Context-aware escaping] je mimo jiné možné nativně používat PHP proměnné uvnitř JavaScriptu:
+Díky technologií [Context-Aware Escaping | templating#Context-aware escaping] je mimo jiné možné nativně používat PHP proměnné uvnitř JavaScriptu:
 
 /--php
 $template->arr = array(1, 2, 3);
@@ -563,6 +563,14 @@ V bloku lze vložit i sebe sama, což lze použít např. pro vykreslení stromo
 Místo `{include menu, ...}` lze psát také `{include this, ...}`.
 
 
+Pokud je potřeba doplnit již definovaný blok (např. přidání nových stylů), není kvůli tomu potřeba kopírovat celý obsah tohoto bloku. Místo toho si nadefinujeme nový (stejně pojmenovaný) blok a uvnitř zavoláme `{include parent}`.
+
+/--html
+{block styles}
+    {include parent}
+    <link href="http://url.to.styles.css" rel="stylesheet">
+{/block}
+\--
 
 
 Rozšiřování a dědičnost šablon `{layout}` .{toc: Rozšiřování a dědičnost}
@@ -729,3 +737,4 @@ Určuje místo, kde dojde k zastavení vykonávání programu. Používá se př
 \--
 
 {{care: David Grudl|2}}
+{{composer: latte/latte}}

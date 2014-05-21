@@ -40,7 +40,7 @@ Are you interested in taking a closer look at [Latte syntax |templating#latte]?
 | Engine ||
 |---------------------------
 | `{include 'file.latte'}`       | [includes a template from other file |#File including]
-| `{cache $key} … {/cache}`      | [caches a template section |caching#cachovani-v-sablonach]
+| `{cache $key} … {/cache}`      | [caches a template section |caching#caching-in-templates]
 | `{? expression}`               | [evaluates an expression without printing it |#Code evaluation]
 | `{* comment text *}`           | a comment (removed from evaluation)
 | `{syntax mode} … {/syntax}`    | [switches the syntax at runtime |#Syntax switching]
@@ -529,6 +529,14 @@ Blocks can also include themselves which is suitable when rendering a tree struc
 Instead of `{include menu, ...}` we can write `{include this, ...}` where #this points to the current block.
 
 
+If you need to add some code to the previously defined block (e.g. add a link to a new stylesheet), you don't need to redeclare and copy whole block. Use `{include parent}` instead.
+
+/--html
+{block styles}
+    {include parent}
+    <link href="http://url.to.styles.css" rel="stylesheet">
+{/block}
+\--
 
 
 Template expanding/inheritance `{layout}` .{toc: Template expanding/inheritance}
@@ -685,3 +693,4 @@ Specifies the place where code execution will break. It is used for debugging pu
 \--
 
 {{care: David Grudl|2}}
+{{composer: latte/latte}}
