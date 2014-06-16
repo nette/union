@@ -279,12 +279,11 @@ class Assert
 	public static function exception($function, $class, $message = NULL, $code = NULL)
 	{
 		self::$counter++;
-		$e = NULL;
 		try {
 			call_user_func($function);
 		} catch (\Exception $e) {
 		}
-		if ($e === NULL) {
+		if (!isset($e)) {
 			self::fail("$class was expected, but none was thrown");
 
 		} elseif (!$e instanceof $class) {
