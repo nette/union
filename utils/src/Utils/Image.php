@@ -159,20 +159,32 @@ class Image extends Nette\Object
 			throw new Nette\NotSupportedException('PHP extension GD is not loaded.');
 		}
 
-		static $funcs = array(
-			self::JPEG => 'imagecreatefromjpeg',
-			self::PNG => 'imagecreatefrompng',
-			self::GIF => 'imagecreatefromgif',
-		);
 		$info = @getimagesize($file); // @ - files smaller than 12 bytes causes read error
-		$format = $info[2];
 
-		if (!isset($funcs[$format])) {
-			throw new UnknownImageFileException("Unknown image type or file '$file' not found.");
-		}
-		return new static(Callback::invokeSafe($funcs[$format], array($file), function($message) {
+		set_error_handler(function ($severity, $message) {
+			restore_error_handler();
 			throw new ImageException($message);
-		}));
+		});
+		switch ($format = $info[2]) {
+			case self::JPEG:
+				$resource = imagecreatefromjpeg($file);
+				break;
+
+			case self::PNG:
+				$resource = imagecreatefrompng($file);
+				break;
+
+			case self::GIF:
+				$resource = imagecreatefromgif($file);
+				break;
+
+			default:
+				restore_error_handler();
+				throw new UnknownImageFileException("Unknown image type or file '$file' not found.");
+		}
+		restore_error_handler();
+
+		return new static($resource);
 	}
 
 
@@ -203,9 +215,14 @@ class Image extends Nette\Object
 			$format = static::getFormatFromString($s);
 		}
 
-		return new static(Callback::invokeSafe('imagecreatefromstring', array($s), function($message) {
+		set_error_handler(function ($severity, $message) {
+			restore_error_handler();
 			throw new ImageException($message);
-		}));
+		});
+		$resource = imagecreatefromstring($s);
+		restore_error_handler();
+
+		return new static($resource);
 	}
 
 
