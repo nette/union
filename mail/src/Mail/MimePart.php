@@ -129,19 +129,25 @@ class MimePart extends Nette\Object
 			$s = '';
 			foreach ($this->headers[$name] as $email => $name) {
 				if ($name != NULL) { // intentionally ==
-					$s .= self::encodeHeader($name, $offset, TRUE);
+					$s .= self::encodeHeader($name, $offset, strpbrk($name, '.,;<@>()[]"=?'));
 					$email = " <$email>";
 				}
-				$s .= self::append($email . ',', $offset);
+				$email .= ',';
+				if ($s !== '' && $offset + strlen($email) > self::LINE_LENGTH) {
+					$s .= self::EOL . "\t";
+					$offset = 1;
+				}
+				$s .= $email;
+				$offset += strlen($email);
 			}
-			return ltrim(substr($s, 0, -1)); // last comma
+			return substr($s, 0, -1); // last comma
 
 		} elseif (preg_match('#^(\S+; (?:file)?name=)"(.*)"\z#', $this->headers[$name], $m)) { // Content-Disposition
 			$offset += strlen($m[1]);
 			return $m[1] . '"' . self::encodeHeader($m[2], $offset) . '"';
 
 		} else {
-			return ltrim(self::encodeHeader($this->headers[$name], $offset));
+			return self::encodeHeader($this->headers[$name], $offset);
 		}
 	}
 
@@ -297,41 +303,29 @@ class MimePart extends Nette\Object
 	 * @param  bool
 	 * @return string
 	 */
-	private static function encodeHeader($s, & $offset = 0, $quotes = FALSE)
+	private static function encodeHeader($s, & $offset = 0, $force = FALSE)
 	{
-		if (strspn($s, "!\"#$%&\'()*+,-./0123456789:;<>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^`abcdefghijklmnopqrstuvwxyz{|}~=? _\r\n\t") === strlen($s)) {
-			if ($quotes && preg_match('#[^ a-zA-Z0-9!\#$%&\'*+/?^_`{|}~-]#', $s)) { // RFC 2822 atext except =
-				return self::append('"' . addcslashes($s, '"\\') . '"', $offset);
-			}
-			return self::append($s, $offset);
-		}
-
 		$o = '';
 		if ($offset >= 55) { // maximum for iconv_mime_encode
 			$o = self::EOL . "\t";
 			$offset = 1;
 		}
 
-		$s = iconv_mime_encode(str_repeat(' ', $old = $offset), $s, array(
+		if (!$force && strspn($s, "!\"#$%&\'()*+,-./0123456789:;<>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^`abcdefghijklmnopqrstuvwxyz{|}=? _\r\n\t") === strlen($s)
+			&& ($offset + strlen($s) <= self::LINE_LENGTH)
+		) {
+			$offset += strlen($s);
+			return $o . $s;
+		}
+
+		$o .= str_replace("\n ", "\n\t", substr(iconv_mime_encode(str_repeat(' ', $offset), $s, array(
 			'scheme' => 'B', // Q is broken
 			'input-charset' => 'UTF-8',
 			'output-charset' => 'UTF-8',
-		));
+		)), $offset + 2));
 
-		$offset = strlen($s) - strrpos($s, "\n");
-		$s = str_replace("\n ", "\n\t", substr($s, $old + 2)); // adds ': '
-		return $o . $s;
-	}
-
-
-	private static function append($s, & $offset = 0)
-	{
-		if ($offset + strlen($s) > self::LINE_LENGTH) {
-			$offset = 1;
-			$s = self::EOL . "\t" . $s;
-		}
-		$offset += strlen($s);
-		return $s;
+		$offset = strlen($o) - strrpos($o, "\n");
+		return $o;
 	}
 
 }
