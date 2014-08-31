@@ -52,11 +52,11 @@ class TemplateFactory extends Nette\Object implements UI\ITemplateFactory
 	/**
 	 * @return Template
 	 */
-	public function createTemplate(UI\Control $control = NULL)
+	public function createTemplate(UI\Control $control)
 	{
 		$latte = $this->latteFactory->create();
 		$template = new Template($latte);
-		$presenter = $control ? $control->getPresenter(FALSE) : NULL;
+		$presenter = $control->getPresenter(FALSE);
 
 		if ($control instanceof UI\Presenter) {
 			$latte->setLoader(new Loader($control));
@@ -71,9 +71,7 @@ class TemplateFactory extends Nette\Object implements UI\ITemplateFactory
 			$latte->getCompiler()->addMacro('cache', new Nette\Bridges\CacheLatte\CacheMacro($latte->getCompiler()));
 			UIMacros::install($latte->getCompiler());
 			Nette\Bridges\FormsLatte\FormMacros::install($latte->getCompiler());
-			if ($control) {
-				$control->templatePrepareFilters($template);
-			}
+			$control->templatePrepareFilters($template);
 		});
 
 		$latte->addFilter('url', 'rawurlencode'); // back compatiblity
