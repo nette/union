@@ -396,9 +396,10 @@ class Form extends Container implements Nette\Utils\IHtmlString
 	{
 		if (!$this->isSubmitted()) {
 			return;
-		}
 
-		$this->validate();
+		} elseif (!$this->getErrors()) {
+			$this->validate();
+		}
 
 		if ($this->submittedBy instanceof ISubmitterControl) {
 			if ($this->isValid()) {
@@ -469,6 +470,7 @@ class Form extends Container implements Nette\Utils\IHtmlString
 	}
 
 
+	/** @internal */
 	public function validateMaxPostSize()
 	{
 		if (!$this->submittedBy || strcasecmp($this->getMethod(), 'POST') || empty($_SERVER['CONTENT_LENGTH'])) {

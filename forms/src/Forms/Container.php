@@ -120,6 +120,9 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	public function isValid()
 	{
 		if (!$this->validated) {
+			if ($this->getErrors()) {
+				return FALSE;
+			}
 			$this->validate();
 		}
 		return !$this->getErrors();
@@ -133,7 +136,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 */
 	public function validate(array $controls = NULL)
 	{
-		foreach ($controls === NULL ? $this->getControls() : $controls as $control) {
+		foreach ($controls === NULL ? $this->getComponents() : $controls as $control) {
 			$control->validate();
 		}
 		$this->onValidate($this);

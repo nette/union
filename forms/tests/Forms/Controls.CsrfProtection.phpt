@@ -2,8 +2,6 @@
 
 /**
  * Test: Nette\Forms\Controls\CsrfProtection.
- *
- * @author     David Grudl
  */
 
 use Nette\Forms\Controls\CsrfProtection,
@@ -32,5 +30,10 @@ Assert::false(CsrfProtection::validateCsrf($input));
 $input->setValue('12345678901234567890123456789012345678');
 Assert::false(CsrfProtection::validateCsrf($input));
 
-$input->setValue($input->getControl()->value);
+$value = $input->getControl()->value;
+$input->setValue($value);
 Assert::true(CsrfProtection::validateCsrf($input));
+
+session_regenerate_id();
+$input->setValue($value);
+Assert::false(CsrfProtection::validateCsrf($input));
