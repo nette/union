@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\ResultSet::fetch()
+ *
+ * @author     David Grudl
+ * @author     Jan Skrasek
  * @dataProvider? databases.ini
  */
 

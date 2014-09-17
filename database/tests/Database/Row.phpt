@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\Row.
+ *
+ * @author     David Grudl
  * @dataProvider? databases.ini
  */
 

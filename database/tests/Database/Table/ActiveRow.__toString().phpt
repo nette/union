@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\Table: Calling __toString().
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 

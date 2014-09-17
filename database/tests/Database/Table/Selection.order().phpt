@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\Table: Search and order items.
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 

@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\SqlPreprocessor
+ *
+ * @author     David Grudl
  * @dataProvider? databases.ini
  */
 
@@ -55,17 +57,6 @@ test(function() use ($preprocessor) {
 });
 
 
-test(function() use ($preprocessor) { // IN
-	list($sql, $params) = $preprocessor->process(array('SELECT id FROM author WHERE id IN (?)', array(10, 11)));
-	Assert::same( 'SELECT id FROM author WHERE id IN (10, 11)', $sql );
-	Assert::same( array(), $params );
-
-	list($sql, $params) = $preprocessor->process(array('SELECT id FROM author WHERE (id, name) IN (?)', array(array(10, 'a'), array(11, 'b'))));
-	Assert::same( "SELECT id FROM author WHERE (id, name) IN ((10, 'a'), (11, 'b'))", $sql );
-	Assert::same( array(), $params );
-});
-
-
 test(function() use ($preprocessor) { // comments
 	list($sql, $params) = $preprocessor->process(array("SELECT id --?\nFROM author WHERE id = ?", 11));
 	Assert::same( "SELECT id --?\nFROM author WHERE id = 11", $sql );
@@ -91,12 +82,12 @@ test(function() use ($preprocessor) { // strings
 test(function() use ($preprocessor) { // where
 	list($sql, $params) = $preprocessor->process(array('SELECT id FROM author WHERE', array(
 		'id' => NULL,
-		'x.name <>' => 'a',
-		'born' => array(NULL, 1, 2, 3),
+		'name' => 'a',
+		'born' => array(1, 2, 3),
 		'web' => array(),
 	)));
 
-	Assert::same( reformat("SELECT id FROM author WHERE ([id] IS NULL) AND ([x].[name] <> 'a') AND ([born] IN (NULL, 1, 2, 3)) AND (1=0)"), $sql );
+	Assert::same( reformat("SELECT id FROM author WHERE ([id] IS NULL) AND ([name] = 'a') AND ([born] IN (1, 2, 3)) AND (1=0)"), $sql );
 	Assert::same( array(), $params );
 });
 

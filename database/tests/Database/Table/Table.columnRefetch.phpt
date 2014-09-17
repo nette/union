@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\Table: Refetching rows with all columns
+ *
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 
