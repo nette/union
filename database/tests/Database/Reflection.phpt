@@ -2,10 +2,11 @@
 
 /**
  * Test: Nette\Database\Connection: reflection
+ *
+ * @author     David Grudl
  * @dataProvider? databases.ini
  */
 
-use Nette\Database\ISupplementalDriver;
 use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
@@ -18,22 +19,12 @@ $tables = $driver->getTables();
 $tables = array_filter($tables, function($t) { return in_array($t['name'], array('author', 'book', 'book_tag', 'tag')); });
 usort($tables, function($a, $b) { return strcmp($a['name'], $b['name']); });
 
-if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
-	Assert::same(array(
-		array('name' => 'author', 'view' => FALSE, 'fullName' => 'public.author'),
-		array('name' => 'book', 'view' => FALSE, 'fullName' => 'public.book'),
-		array('name' => 'book_tag', 'view' => FALSE, 'fullName' => 'public.book_tag'),
-		array('name' => 'tag', 'view' => FALSE, 'fullName' => 'public.tag'),
-	),
-	$tables);
-} else {
-	Assert::same( array(
-		array('name' => 'author', 'view' => FALSE),
-		array('name' => 'book', 'view' => FALSE),
-		array('name' => 'book_tag', 'view' => FALSE),
-		array('name' => 'tag', 'view' => FALSE),
-	), $tables );
-}
+Assert::same( array(
+	array('name' => 'author', 'view' => FALSE),
+	array('name' => 'book', 'view' => FALSE),
+	array('name' => 'book_tag', 'view' => FALSE),
+	array('name' => 'tag', 'view' => FALSE),
+), $tables );
 
 
 $columns = $driver->getColumns('author');
@@ -186,6 +177,7 @@ switch ($driverName) {
 }
 
 
-$structure->rebuild();
-$primary = $structure->getPrimaryKey('book_tag');
+$reflection = new Nette\Database\Reflection\DiscoveredReflection($connection);
+
+$primary = $reflection->getPrimary('book_tag');
 Assert::same(array('book_id', 'tag_id'), $primary);

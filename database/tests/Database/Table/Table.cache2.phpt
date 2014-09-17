@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\Table: Special case of caching
+ *
+ * @author     Jachym Tousek
  * @dataProvider? ../databases.ini
  */
 

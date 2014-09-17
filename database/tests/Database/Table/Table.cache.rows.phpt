@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\Table: Rows invalidating.
+ *
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 

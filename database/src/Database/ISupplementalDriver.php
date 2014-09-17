@@ -21,8 +21,7 @@ interface ISupplementalDriver
 		SUPPORT_SELECT_UNGROUPED_COLUMNS = 'ungrouped_cols',
 		SUPPORT_MULTI_INSERT_AS_SELECT = 'insert_as_select',
 		SUPPORT_MULTI_COLUMN_AS_OR_COND = 'multi_column_as_or',
-		SUPPORT_SUBSELECT = 'subselect',
-		SUPPORT_SCHEMA = 'schema';
+		SUPPORT_SUBSELECT = 'subselect';
 
 	/**
 	 * Delimites identifier for use in a SQL statement.
@@ -81,7 +80,7 @@ interface ISupplementalDriver
 	/**
 	 * Returns metadata for all columns in a table.
 	 * @param  string
-	 * @return array of [name, nativetype, primary [, table, fullname, (int) size, (bool) nullable, (mixed) default, (bool) autoincrement, (array) vendor]]
+	 * @return array of [name, nativetype [, table, fullname, (int) size, (bool) nullable, (mixed) default, (bool) autoincrement, (array) vendor]]
 	 */
 	function getColumns($table);
 
@@ -100,15 +99,13 @@ interface ISupplementalDriver
 	function getForeignKeys($table);
 
 	/**
-	 * Returns associative array of detected types (IStructure::FIELD_*) in result set.
-	 * @param  \PDOStatement
+	 * Returns associative array of detected types (IReflection::FIELD_*) in result set.
 	 * @return array
 	 */
 	function getColumnTypes(\PDOStatement $statement);
 
 	/**
 	 * Cheks if driver supports specific property
-	 * @param  string self::SUPPORT_* property
 	 * @return bool
 	 */
 	function isSupported($item);

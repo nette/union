@@ -28,6 +28,7 @@ class SqliteDriver extends Nette\Object implements Nette\Database\ISupplementalD
 	{
 		$this->connection = $connection;
 		$this->fmtDateTime = isset($options['formatDateTime']) ? $options['formatDateTime'] : 'U';
+		//$connection->query('PRAGMA foreign_keys = ON');
 	}
 
 
@@ -148,7 +149,7 @@ class SqliteDriver extends Nette\Object implements Nette\Database\ISupplementalD
 				'nullable' => $row['notnull'] == '0',
 				'default' => $row['dflt_value'],
 				'autoincrement' => (bool) preg_match($pattern, $meta['sql']),
-				'primary' => $row['pk'] > 0,
+				'primary' => $row['pk'] == '1',
 				'vendor' => (array) $row,
 			);
 		}
@@ -236,7 +237,7 @@ class SqliteDriver extends Nette\Object implements Nette\Database\ISupplementalD
 			$meta = $statement->getColumnMeta($col);
 			if (isset($meta['sqlite:decl_type'])) {
 				if ($meta['sqlite:decl_type'] === 'DATE') {
-					$types[$meta['name']] = Nette\Database\IStructure::FIELD_UNIX_TIMESTAMP;
+					$types[$meta['name']] = Nette\Database\IReflection::FIELD_UNIX_TIMESTAMP;
 				} else {
 					$types[$meta['name']] = Nette\Database\Helpers::detectType($meta['sqlite:decl_type']);
 				}
@@ -249,7 +250,6 @@ class SqliteDriver extends Nette\Object implements Nette\Database\ISupplementalD
 
 
 	/**
-	 * @param  string
 	 * @return bool
 	 */
 	public function isSupported($item)

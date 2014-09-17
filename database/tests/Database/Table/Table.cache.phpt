@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\Table: Caching.
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 
@@ -13,41 +16,25 @@ Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverN
 
 
 test(function() use ($context) { // Testing Selection caching
-	$sql = array();
-	for ($i = 0; $i < 4; $i += 1) {
-		if ($i !== 2) {
-			$bookSelection = $context->table('book')->wherePrimary(2);
-		}
+	$bookSelection = $context->table('book')->wherePrimary(2);
+	Assert::same(reformat('SELECT * FROM [book] WHERE ([book].[id] = ?)'), $bookSelection->getSql());
 
-		$sql[] = $bookSelection->getSql();
 
-		if ($i !== 2) {
-			$book = $bookSelection->fetch();
-			$book->title;
-			$book->translator;
-			if ($i === 1) {
-				$book->author;
-			} else {
-				$bookSelection->__destruct();
-			}
-		} else {
-			$bookSelection->__destruct();
-		}
-	}
+	$book = $bookSelection->fetch();
+	$book->title;
+	$book->translator;
+	$bookSelection->__destruct();
+	$bookSelection = $context->table('book')->wherePrimary(2);
+	Assert::same(reformat('SELECT [id], [title], [translator_id] FROM [book] WHERE ([book].[id] = ?)'), $bookSelection->getSql());
 
-	/*
-	 * schedule:
-	 * - fetch all columns / cycle 1
-	 * - fetch used columns, require another and fetch all again / cycle 2, 3
-	 * - fetch used column with new used column / cycle 4
-	 */
 
-	Assert::same(array(
-		reformat('SELECT * FROM [book] WHERE ([book].[id] = ?)'),
-		reformat('SELECT [id], [title], [translator_id] FROM [book] WHERE ([book].[id] = ?)'),
-		reformat('SELECT * FROM [book] WHERE ([book].[id] = ?)'),
-		reformat('SELECT [id], [title], [translator_id], [author_id] FROM [book] WHERE ([book].[id] = ?)')
-	), $sql);
+	$book = $bookSelection->fetch();
+	$book->author_id;
+	Assert::same(reformat('SELECT * FROM [book] WHERE ([book].[id] = ?)'), $bookSelection->getSql());
+
+	$bookSelection->__destruct();
+	$bookSelection = $context->table('book')->wherePrimary(2);
+	Assert::same(reformat('SELECT [id], [title], [translator_id], [author_id] FROM [book] WHERE ([book].[id] = ?)'), $bookSelection->getSql());
 });
 
 
@@ -123,65 +110,61 @@ test(function() use ($context) {
 });
 
 
-test(function() use ($context) { // Test saving joining keys even with 0 rows
-	$cols = array();
-	for ($i = 0; $i < 2; $i += 1) {
-		$author = $context->table('author')->get(11);
-		$books = $author->related('book')->where('translator_id', 99); // 0 rows
-		$cols[] = $books->getPreviousAccessedColumns();
-		foreach ($books as $book) {}
-		$books->__destruct();
-	}
+test(function() use ($context) {
+	$author = $context->table('author')->get(11);
+	$books = $author->related('book')->where('translator_id', 99); // 0 rows
+	foreach ($books as $book) {}
+	$books->__destruct();
+	unset($author);
 
-	Assert::same(array(
-		array(),
-		array('id', 'author_id'),
-	), $cols);
+	$author = $context->table('author')->get(11);
+	$books = $author->related('book')->where('translator_id', 11);
+	Assert::same(array('id', 'author_id'), $books->getPreviousAccessedColumns());
 });
 
 
 test(function() use ($context) { // Test saving the union of needed cols, the second call is subset
-	$cols = array();
-	for ($i = 0; $i < 3; $i += 1) {
-		$author = $context->table('author')->get(11);
-		$books = $author->related('book');
-		$cols[] = $books->getPreviousAccessedColumns();
-		foreach ($books as $book) {
-			if ($i === 0) {
-				$book->translator_id;
-			}
-			$book->title;
-		}
-		$books->__destruct();
+	$author = $context->table('author')->get(11);
+	$books = $author->related('book');
+	foreach ($books as $book) {
+		$book->translator_id;
+		$book->title;
 	}
+	$books->__destruct();
 
-	Assert::same(array(
-		array(),
-		array('id', 'author_id', 'translator_id', 'title'),
-		array('id', 'author_id', 'translator_id', 'title'),
-	), $cols);
+	$author = $context->table('author')->get(11);
+	$books = $author->related('book');
+	foreach ($books as $book) {
+		$book->title;
+	}
+	$books->__destruct();
+
+	$author = $context->table('author')->get(11);
+	Assert::same(
+		reformat('SELECT [id], [author_id], [translator_id], [title] FROM [book] WHERE ([book].[author_id] IN (?))'),
+		$author->related('book')->getSql()
+	);
 });
 
 
 test(function() use ($context) { // Test saving the union of needed cols, the second call is not subset
-	$cols = array();
-	for ($i = 0; $i < 3; $i += 1) {
-		$author = $context->table('author')->get(11);
-		$books = $author->related('book');
-		$cols[] = $books->getPreviousAccessedColumns();
-		foreach ($books as $book) {
-			if ($i === 0) {
-				$book->translator_id;
-			} else {
-				$book->title;
-			}
-		}
-		$books->__destruct();
+	$author = $context->table('author')->get(11);
+	$books = $author->related('book');
+	foreach ($books as $book) {
+		$book->translator_id;
 	}
+	$books->__destruct();
 
-	Assert::same(array(
-		array(),
-		array('id', 'author_id', 'translator_id'),
-		array('id', 'author_id', 'translator_id', 'title'),
-	), $cols);
+	$author = $context->table('author')->get(11);
+	$books = $author->related('book');
+	foreach ($books as $book) {
+		$book->title;
+	}
+	$books->__destruct();
+
+	$author = $context->table('author')->get(11);
+	Assert::same(
+		reformat('SELECT [id], [author_id], [translator_id], [title] FROM [book] WHERE ([book].[author_id] IN (?))'),
+		$author->related('book')->getSql()
+	);
 });

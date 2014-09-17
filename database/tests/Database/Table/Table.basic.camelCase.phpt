@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\Table: Basic operations with camelCase name conventions.
+ *
+ * @author     David Grudl
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 

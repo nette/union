@@ -10,7 +10,11 @@ namespace Nette\Database\Reflection;
 use Nette;
 
 
-/** @deprecated */
+/**
+ * Reflection metadata class with discovery for a database.
+ *
+ * @author     Jan Skrasek
+ */
 class DiscoveredReflection extends Nette\Object implements Nette\Database\IReflection
 {
 	/** @var Nette\Database\Connection */
@@ -31,8 +35,6 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 	 */
 	public function __construct(Nette\Database\Connection $connection, Nette\Caching\IStorage $cacheStorage = NULL)
 	{
-		trigger_error(__CLASS__ . '() is deprecated; use Nette\Database\Conventions\DiscoverConventions instead.', E_USER_DEPRECATED);
-
 		$this->connection = $connection;
 		if ($cacheStorage) {
 			$this->cache = new Nette\Caching\Cache($cacheStorage, 'Nette.Database.' . md5($connection->getDsn()));
