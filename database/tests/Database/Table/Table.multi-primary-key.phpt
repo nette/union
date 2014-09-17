@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\Table: Multi primary key support.
+ *
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 

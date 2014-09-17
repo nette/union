@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\ResultSet::normalizeRow()
+ *
+ * @author     Miloslav Hůla
  * @dataProvider? databases.ini  sqlite
  */
 

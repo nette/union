@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\Table: Update operations
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 

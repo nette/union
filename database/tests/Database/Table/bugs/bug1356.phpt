@@ -2,6 +2,8 @@
 
 /**
  * Test: bug 1356
+ *
+ * @author     Jan Skrasek
  * @dataProvider? ../../databases.ini
  */
 

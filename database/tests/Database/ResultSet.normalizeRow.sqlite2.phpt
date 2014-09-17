@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\ResultSet::normalizeRow()
+ *
+ * @author     David Grudl
  */
 
 use Tester\Assert;

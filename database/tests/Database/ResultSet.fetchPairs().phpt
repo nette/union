@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\ResultSet: Fetch pairs.
+ *
+ * @author     David Grudl
  * @dataProvider? databases.ini
  */
 
