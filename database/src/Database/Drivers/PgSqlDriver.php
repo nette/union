@@ -101,16 +101,15 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	{
 		$tables = array();
 		foreach ($this->connection->query("
-			SELECT DISTINCT ON (c.relname)
+			SELECT
 				c.relname::varchar AS name,
-				c.relkind = 'v' AS view,
-				n.nspname::varchar || '.' || c.relname::varchar AS \"fullName\"
+				c.relkind = 'v' AS view
 			FROM
 				pg_catalog.pg_class AS c
 				JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
 			WHERE
 				c.relkind IN ('r', 'v')
-				AND n.nspname = ANY (pg_catalog.current_schemas(FALSE))
+				AND ARRAY[n.nspname] <@ pg_catalog.current_schemas(FALSE)
 			ORDER BY
 				c.relname
 		") as $row) {
@@ -142,12 +141,14 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 			FROM
 				pg_catalog.pg_attribute AS a
 				JOIN pg_catalog.pg_class AS c ON a.attrelid = c.oid
+				JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
 				JOIN pg_catalog.pg_type AS t ON a.atttypid = t.oid
 				LEFT JOIN pg_catalog.pg_attrdef AS ad ON ad.adrelid = c.oid AND ad.adnum = a.attnum
-				LEFT JOIN pg_catalog.pg_constraint AS co ON co.connamespace = c.relnamespace AND contype = 'p' AND co.conrelid = c.oid AND a.attnum = ANY(co.conkey)
+				LEFT JOIN pg_catalog.pg_constraint AS co ON co.connamespace = n.oid AND contype = 'p' AND co.conrelid = c.oid AND a.attnum = ANY(co.conkey)
 			WHERE
 				c.relkind IN ('r', 'v')
-				AND c.oid = {$this->connection->quote($this->delimiteFQN($table))}::regclass
+				AND c.relname::varchar = {$this->connection->quote($table)}
+				AND ARRAY[n.nspname] <@ pg_catalog.current_schemas(FALSE)
 				AND a.attnum > 0
 				AND NOT a.attisdropped
 			ORDER BY
@@ -178,12 +179,14 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 				a.attname::varchar AS column
 			FROM
 				pg_catalog.pg_class AS c1
+				JOIN pg_catalog.pg_namespace AS n ON c1.relnamespace = n.oid
 				JOIN pg_catalog.pg_index AS i ON c1.oid = i.indrelid
 				JOIN pg_catalog.pg_class AS c2 ON i.indexrelid = c2.oid
 				LEFT JOIN pg_catalog.pg_attribute AS a ON c1.oid = a.attrelid AND a.attnum = ANY(i.indkey)
 			WHERE
-				c1.relkind = 'r'
-				AND c1.oid = {$this->connection->quote($this->delimiteFQN($table))}::regclass
+				ARRAY[n.nspname] <@ pg_catalog.current_schemas(FALSE)
+				AND c1.relkind = 'r'
+				AND c1.relname = {$this->connection->quote($table)}
 		") as $row) {
 			$indexes[$row['name']]['name'] = $row['name'];
 			$indexes[$row['name']]['unique'] = $row['unique'];
@@ -205,19 +208,19 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 			SELECT
 				co.conname::varchar AS name,
 				al.attname::varchar AS local,
-				nf.nspname || '.' || cf.relname::varchar AS table,
+				cf.relname::varchar AS table,
 				af.attname::varchar AS foreign
 			FROM
 				pg_catalog.pg_constraint AS co
+				JOIN pg_catalog.pg_namespace AS n ON co.connamespace = n.oid
 				JOIN pg_catalog.pg_class AS cl ON co.conrelid = cl.oid
 				JOIN pg_catalog.pg_class AS cf ON co.confrelid = cf.oid
-				JOIN pg_catalog.pg_namespace AS nf ON nf.oid = cf.relnamespace
 				JOIN pg_catalog.pg_attribute AS al ON al.attrelid = cl.oid AND al.attnum = co.conkey[1]
 				JOIN pg_catalog.pg_attribute AS af ON af.attrelid = cf.oid AND af.attnum = co.confkey[1]
 			WHERE
-				co.contype = 'f'
-				AND cl.oid = {$this->connection->quote($this->delimiteFQN($table))}::regclass
-				AND nf.nspname = ANY (pg_catalog.current_schemas(FALSE))
+				ARRAY[n.nspname] <@ pg_catalog.current_schemas(FALSE)
+				AND co.contype = 'f'
+				AND cl.relname = {$this->connection->quote($table)}
 		")->fetchAll();
 	}
 
@@ -232,23 +235,11 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 
 
 	/**
-	 * @param  string
 	 * @return bool
 	 */
 	public function isSupported($item)
 	{
-		return $item === self::SUPPORT_SEQUENCE || $item === self::SUPPORT_SUBSELECT || $item === self::SUPPORT_SCHEMA;
-	}
-
-
-	/**
-	 * Converts: schema.name => "schema"."name"
-	 * @param  string
-	 * @return string
-	 */
-	private function delimiteFQN($name)
-	{
-		return implode('.', array_map(array($this, 'delimite'), explode('.', $name)));
+		return $item === self::SUPPORT_SEQUENCE || $item === self::SUPPORT_SUBSELECT;
 	}
 
 }

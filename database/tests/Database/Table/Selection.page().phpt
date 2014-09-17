@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\Table\Selection: Page
+ *
+ * @author     s4muel
  * @dataProvider? ../databases.ini
  */
 use Tester\Assert;

@@ -5,19 +5,18 @@
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
-namespace Nette\Database\Conventions;
+namespace Nette\Database\Reflection;
 
-use Nette\Database\IConventions;
-use Nette\Object;
+use Nette;
 
 
 /**
- * Conventions based on static definition.
+ * Reflection metadata class for a database.
  *
  * @author     Jakub Vrana
  * @author     Jan Skrasek
  */
-class StaticConventions extends Object implements IConventions
+class ConventionalReflection extends Nette\Object implements Nette\Database\IReflection
 {
 	/** @var string */
 	protected $primary;
@@ -30,7 +29,7 @@ class StaticConventions extends Object implements IConventions
 
 
 	/**
-	 * Create static conventional structure.
+	 * Create conventional structure.
 	 * @param  string %s stands for table name
 	 * @param  string %1$s stands for key used after ->, %2$s for table name
 	 * @param  string %1$s stands for key used after ->, %2$s for table name

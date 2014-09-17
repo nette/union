@@ -2,6 +2,8 @@
 
 /**
  * Test: Nette\Database\Table: limit.
+ *
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini, sqlsrv
  */
 

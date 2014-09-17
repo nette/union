@@ -2,16 +2,17 @@
 
 /**
  * Test: Nette\Database\Table: Join.
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 
-use Nette\Database\ISupplementalDriver;
 use Tester\Assert;
 
 require __DIR__ . '/../connect.inc.php'; // create $connection
 
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverName}-nette_test1.sql");
-$driver = $connection->getSupplementalDriver();
 
 
 test(function() use ($context) {
@@ -29,37 +30,15 @@ test(function() use ($context) {
 });
 
 
-test(function() use ($context, $driver) {
+test(function() use ($context) {
 	$joinSql = $context->table('book_tag')->where('book_id', 1)->select('tag.*')->getSql();
-
-	if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
-		Assert::same(
-			reformat('SELECT [tag].* FROM [book_tag] LEFT JOIN [public].[tag] AS [tag] ON [book_tag].[tag_id] = [tag].[id] WHERE ([book_id] = ?)'),
-			$joinSql
-		);
-	} else {
-		Assert::same(
-			reformat('SELECT [tag].* FROM [book_tag] LEFT JOIN [tag] ON [book_tag].[tag_id] = [tag].[id] WHERE ([book_id] = ?)'),
-			$joinSql
-		);
-	}
+	Assert::same(reformat('SELECT [tag].* FROM [book_tag] LEFT JOIN [tag] ON [book_tag].[tag_id] = [tag].[id] WHERE ([book_id] = ?)'), $joinSql);
 });
 
 
-test(function() use ($context, $driver) {
+test(function() use ($context) {
 	$joinSql = $context->table('book_tag')->where('book_id', 1)->select('Tag.id')->getSql();
-
-	if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
-		Assert::same(
-			reformat('SELECT [Tag].[id] FROM [book_tag] LEFT JOIN [public].[tag] AS [Tag] ON [book_tag].[tag_id] = [Tag].[id] WHERE ([book_id] = ?)'),
-			$joinSql
-		);
-	} else {
-		Assert::same(
-			reformat('SELECT [Tag].[id] FROM [book_tag] LEFT JOIN [tag] AS [Tag] ON [book_tag].[tag_id] = [Tag].[id] WHERE ([book_id] = ?)'),
-			$joinSql
-		);
-	}
+	Assert::same(reformat('SELECT [Tag].[id] FROM [book_tag] LEFT JOIN [tag] AS [Tag] ON [book_tag].[tag_id] = [Tag].[id] WHERE ([book_id] = ?)'), $joinSql);
 });
 
 
@@ -82,11 +61,10 @@ test(function() use ($context) {
 });
 
 
-test(function() use ($connection, $structure) {
+test(function() use ($connection) {
 	$context = new Nette\Database\Context(
 		$connection,
-		$structure,
-		new Nette\Database\Conventions\DiscoveredConventions($structure)
+		new Nette\Database\Reflection\DiscoveredReflection($connection)
 	);
 
 	$books = $context->table('book')->select('book.*, author.name, translator.name');

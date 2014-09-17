@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\Table: Aggregation functions.
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 

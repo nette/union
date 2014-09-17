@@ -1,9 +1,6 @@
 Nette Database
 ==============
 
-[![Downloads this Month](https://img.shields.io/packagist/dm/nette/database.svg)](https://packagist.org/packages/nette/database)
-[![Build Status](https://travis-ci.org/nette/database.svg?branch=master)](https://travis-ci.org/nette/database)
-
 Nette provides a powerful layer for accessing your database easily.
 
 - composes SQL queries with ease
@@ -116,3 +113,7 @@ SELECT `id`, `name` FROM `author` WHERE (`author`.`id` IN (11, 12))
 SELECT `book_id`, `tag_id` FROM `book_tag` WHERE (`book_tag`.`book_id` IN (1, 4, 2, 3))
 SELECT `id`, `name` FROM `tag` WHERE (`tag`.`id` IN (21, 22, 23))
 ```
+
+-----
+
+[![Build Status](https://secure.travis-ci.org/nette/database.png?branch=master)](http://travis-ci.org/nette/database)

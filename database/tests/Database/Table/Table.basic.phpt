@@ -2,6 +2,9 @@
 
 /**
  * Test: Nette\Database\Table: Basic operations.
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 
@@ -72,11 +75,10 @@ test(function() use ($context) {
 });
 
 
-test(function() use ($connection, $structure) {
+test(function() use ($connection) {
 	$context = new Nette\Database\Context(
 		$connection,
-		$structure,
-		new Nette\Database\Conventions\DiscoveredConventions($structure)
+		new Nette\Database\Reflection\DiscoveredReflection($connection)
 	);
 
 	$book = $context->table('book')->get(1);
@@ -86,9 +88,9 @@ test(function() use ($connection, $structure) {
 
 	Assert::exception(function() use ($book) {
 		$book->ref('test');
-	}, 'Nette\MemberAccessException', 'No reference found for $book->ref(test).');
+	}, 'Nette\Database\Reflection\MissingReferenceException', 'No reference found for $book->test.');
 
 	Assert::exception(function() use ($book) {
 		$book->related('test');
-	}, 'Nette\MemberAccessException', 'No reference found for $book->related(test).');
+	}, 'Nette\Database\Reflection\MissingReferenceException', 'No reference found for $book->related(test).');
 });
