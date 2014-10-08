@@ -238,8 +238,8 @@ class Debugger
 			$error = isset($e) ? $logMsg : NULL;
 			if (self::isHtmlMode()) {
 				require __DIR__ . '/templates/error.phtml';
-			} elseif (PHP_SAPI === 'cli') {
-				fwrite(STDERR, "ERROR: application encountered an error and can not continue.\n$error\n");
+			} else {
+				echo "ERROR: application encountered an error and can not continue.\n$error\n";
 			}
 
 		} elseif (!connection_aborted() && self::isHtmlMode()) {

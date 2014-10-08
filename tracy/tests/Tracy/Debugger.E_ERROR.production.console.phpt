@@ -4,7 +4,7 @@
  * Test: Tracy\Debugger E_ERROR in production & console mode.
  * @exitCode   255
  * @httpCode   500
- * @outputMatch
+ * @outputMatch ERROR:%A%
  */
 
 use Tracy\Debugger,
