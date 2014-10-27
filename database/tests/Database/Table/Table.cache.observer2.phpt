@@ -2,8 +2,6 @@
 
 /**
  * Test: Nette\Database\Table: Cache observer.
- *
- * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 
@@ -27,25 +25,24 @@ class CacheMock extends MemoryStorage
 }
 
 $cacheStorage = new CacheMock;
-$context = new Nette\Database\Context($context->getConnection(), $context->getDatabaseReflection(), $cacheStorage);
+$context = new Nette\Database\Context($connection, $structure, $conventions, $cacheStorage);
 
+for ($i = 0; $i < 2; $i += 1) {
+	$authors = $context->table('author');
+	foreach ($authors as $author) {
+		$author->name;
+	}
 
-$authors = $context->table('author');
-foreach ($authors as $author) {
-	$author->name;
+	if ($i === 0) {
+		$authors->where('web IS NOT NULL');
+		foreach ($authors as $author) {
+			$author->web;
+		}
+		$authors->__destruct();
+	} else {
+		$sql = $authors->getSql();
+	}
 }
 
-
-$authors->where('web IS NOT NULL');
-foreach ($authors as $author) {
-	$author->web;
-}
-
-$authors->__destruct();
-
-
-$authors = $context->table('author');
-Assert::equal(reformat('SELECT [id], [name] FROM [author]'), $authors->getSql());
-
-
+Assert::equal(reformat('SELECT [id], [name] FROM [author]'), $sql);
 Assert::same(2, $cacheStorage->writes);
