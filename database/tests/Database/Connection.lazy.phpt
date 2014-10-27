@@ -2,11 +2,11 @@
 
 /**
  * Test: Nette\Database\Connection lazy connection.
- *
- * @author     David Grudl
  * @dataProvider? databases.ini
  */
 
+use Nette\Caching\Storages\DevNullStorage;
+use Nette\Database\Structure;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
@@ -26,7 +26,7 @@ test(function() { // non lazy
 
 test(function() { // lazy
 	$connection = new Nette\Database\Connection('dsn', 'user', 'password', array('lazy' => TRUE));
-	$context = new Nette\Database\Context($connection);
+	$context = new Nette\Database\Context($connection, new Structure($connection, new DevNullStorage()));
 	Assert::exception(function() use ($context) {
 		$context->query('SELECT ?', 10);
 	}, 'PDOException', 'invalid data source name');

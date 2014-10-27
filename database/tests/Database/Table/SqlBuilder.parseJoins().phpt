@@ -2,13 +2,12 @@
 
 /**
  * Test: Nette\Database\Table\SqlBuilder: parseJoins().
- *
- * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 
+use Nette\Database\ISupplementalDriver;
 use Tester\Assert;
-use Nette\Database\Reflection\DiscoveredReflection;
+use Nette\Database\Conventions\DiscoveredConventions;
 use Nette\Database\Table\SqlBuilder;
 
 require __DIR__ . '/../connect.inc.php'; // create $connection
@@ -28,8 +27,9 @@ class SqlBuilderMock extends SqlBuilder
 	}
 }
 
-$reflection = new DiscoveredReflection($connection);
-$sqlBuilder = new SqlBuilderMock('nUsers', $connection, $reflection);
+$conventions = new DiscoveredConventions($structure);
+$sqlBuilder = new SqlBuilderMock('nUsers', $context);
+$driver = $connection->getSupplementalDriver();
 
 
 $joins = array();
@@ -40,12 +40,23 @@ Assert::same('WHERE priorit.id IS NULL', $query);
 
 $tables = $connection->getSupplementalDriver()->getTables();
 if (!in_array($tables[0]['name'], array('npriorities', 'ntopics', 'nusers', 'nusers_ntopics', 'nusers_ntopics_alt'), TRUE)) {
-	Assert::same(
-		'LEFT JOIN nUsers_nTopics AS nusers_ntopics ON nUsers.nUserId = nusers_ntopics.nUserId ' .
-		'LEFT JOIN nTopics AS topic ON nusers_ntopics.nTopicId = topic.nTopicId ' .
-		'LEFT JOIN nPriorities AS priorit ON topic.nPriorityId = priorit.nPriorityId',
-		trim($join)
-	);
+	if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+		Assert::same(
+			'LEFT JOIN public.nUsers_nTopics AS nusers_ntopics ON nUsers.nUserId = nusers_ntopics.nUserId ' .
+			'LEFT JOIN public.nTopics AS topic ON nusers_ntopics.nTopicId = topic.nTopicId ' .
+			'LEFT JOIN public.nPriorities AS priorit ON topic.nPriorityId = priorit.nPriorityId',
+			trim($join)
+		);
+
+	} else {
+		Assert::same(
+			'LEFT JOIN nUsers_nTopics AS nusers_ntopics ON nUsers.nUserId = nusers_ntopics.nUserId ' .
+			'LEFT JOIN nTopics AS topic ON nusers_ntopics.nTopicId = topic.nTopicId ' .
+			'LEFT JOIN nPriorities AS priorit ON topic.nPriorityId = priorit.nPriorityId',
+			trim($join)
+		);
+	}
+
 } else {
 	Assert::same(
 		'LEFT JOIN nusers_ntopics ON nUsers.nUserId = nusers_ntopics.nUserId ' .
@@ -57,8 +68,9 @@ if (!in_array($tables[0]['name'], array('npriorities', 'ntopics', 'nusers', 'nus
 
 
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverName}-nette_test1.sql");
+$structure->rebuild();
 
-$sqlBuilder = new SqlBuilderMock('author', $connection, $reflection);
+$sqlBuilder = new SqlBuilderMock('author', $context);
 
 $joins = array();
 $query = 'WHERE :book(translator).next_volume IS NULL';
@@ -69,3 +81,30 @@ Assert::same(
 	'LEFT JOIN book ON author.id = book.translator_id',
 	trim($join)
 );
+
+
+if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+	$sqlBuilder = new SqlBuilderMock('public.book', $context);
+} else {
+	$sqlBuilder = new SqlBuilderMock('book', $context);
+}
+
+$joins = array();
+$query = 'WHERE :book.translator_id IS NULL AND :book:book.translator_id IS NULL';
+$sqlBuilder->parseJoins($joins, $query);
+$join = $sqlBuilder->buildQueryJoins($joins);
+Assert::same('WHERE book_ref.translator_id IS NULL AND book_ref_ref.translator_id IS NULL', $query);
+
+if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+	Assert::same(
+		'LEFT JOIN public.book AS book_ref ON book.id = book_ref.next_volume ' .
+		'LEFT JOIN public.book AS book_ref_ref ON book_ref.id = book_ref_ref.next_volume',
+		trim($join)
+	);
+} else {
+	Assert::same(
+		'LEFT JOIN book AS book_ref ON book.id = book_ref.next_volume ' .
+		'LEFT JOIN book AS book_ref_ref ON book_ref.id = book_ref_ref.next_volume',
+		trim($join)
+	);
+}
