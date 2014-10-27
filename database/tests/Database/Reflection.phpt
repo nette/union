@@ -2,11 +2,10 @@
 
 /**
  * Test: Nette\Database\Connection: reflection
- *
- * @author     David Grudl
  * @dataProvider? databases.ini
  */
 
+use Nette\Database\ISupplementalDriver;
 use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
@@ -19,12 +18,22 @@ $tables = $driver->getTables();
 $tables = array_filter($tables, function($t) { return in_array($t['name'], array('author', 'book', 'book_tag', 'tag')); });
 usort($tables, function($a, $b) { return strcmp($a['name'], $b['name']); });
 
-Assert::same( array(
-	array('name' => 'author', 'view' => FALSE),
-	array('name' => 'book', 'view' => FALSE),
-	array('name' => 'book_tag', 'view' => FALSE),
-	array('name' => 'tag', 'view' => FALSE),
-), $tables );
+if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+	Assert::same(array(
+		array('name' => 'author', 'view' => FALSE, 'fullName' => 'public.author'),
+		array('name' => 'book', 'view' => FALSE, 'fullName' => 'public.book'),
+		array('name' => 'book_tag', 'view' => FALSE, 'fullName' => 'public.book_tag'),
+		array('name' => 'tag', 'view' => FALSE, 'fullName' => 'public.tag'),
+	),
+	$tables);
+} else {
+	Assert::same( array(
+		array('name' => 'author', 'view' => FALSE),
+		array('name' => 'book', 'view' => FALSE),
+		array('name' => 'book_tag', 'view' => FALSE),
+		array('name' => 'tag', 'view' => FALSE),
+	), $tables );
+}
 
 
 $columns = $driver->getColumns('author');
@@ -87,8 +96,6 @@ switch ($driverName) {
 		$expectedColumns[0]['nativetype'] = 'INT4';
 		$expectedColumns[0]['default'] = "nextval('author_id_seq'::regclass)";
 		$expectedColumns[0]['size'] = NULL;
-		$expectedColumns[1]['size'] = NULL;
-		$expectedColumns[2]['size'] = NULL;
 		break;
 	case 'sqlite':
 		$expectedColumns[0]['nativetype'] = 'INTEGER';
@@ -177,7 +184,6 @@ switch ($driverName) {
 }
 
 
-$reflection = new Nette\Database\Reflection\DiscoveredReflection($connection);
-
-$primary = $reflection->getPrimary('book_tag');
+$structure->rebuild();
+$primary = $structure->getPrimaryKey('book_tag');
 Assert::same(array('book_id', 'tag_id'), $primary);

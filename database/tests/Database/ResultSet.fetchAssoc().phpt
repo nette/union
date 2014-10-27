@@ -2,8 +2,6 @@
 
 /**
  * Test: Nette\Database\ResultSet: Fetch assoc.
- *
- * @author     David Grudl
  * @dataProvider? databases.ini
  */
 
@@ -32,6 +30,16 @@ test(function() use ($context) {
 		2 => array('id' => 2),
 		3 => array('id' => 3),
 		4 => array('id' => 4),
+	), $pairs);
+});
+
+test(function() use ($context) {
+	$pairs = $context->query('SELECT id FROM book ORDER BY id')->fetchAssoc('id[]=id');
+	Assert::equal(array(
+		1 => array(1),
+		2 => array(2),
+		3 => array(3),
+		4 => array(4),
 	), $pairs);
 });
 

@@ -2,9 +2,6 @@
 
 /**
  * Test: Nette\Database\Table: tryDelimite.
- *
- * @author     Jakub Vrana
- * @author     Jan Skrasek
  * @dataProvider? ../databases.ini
  */
 
@@ -13,7 +10,7 @@ use Tester\Assert;
 require __DIR__ . '/../connect.inc.php'; // create $connection
 
 
-$sqlBuilder = new Nette\Database\Table\SqlBuilder('book', $connection, new Nette\Database\Reflection\ConventionalReflection);
+$sqlBuilder = new Nette\Database\Table\SqlBuilder('book', $context);
 $tryDelimite = $sqlBuilder->reflection->getMethod('tryDelimite');
 $tryDelimite->setAccessible(TRUE);
 
