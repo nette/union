@@ -20,7 +20,11 @@
 		"nette/utils": "~2.2"
 	},
 	"require-dev": {
-		"nette/tester": "~1.0"
+		"nette/tester": "~1.0",
+		"mockery/mockery": "~0.9.1"
+	},
+	"conflict": {
+		"nette/nette": "<2.2"
 	},
 	"autoload": {
 		"classmap": ["src/"]
@@ -28,7 +32,7 @@
 	"minimum-stability": "dev",
 	"extra": {
 		"branch-alias": {
-			"dev-master": "2.2-dev"
+			"dev-master": "2.3-dev"
 		}
 	}
 }

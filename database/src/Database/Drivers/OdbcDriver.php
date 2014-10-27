@@ -17,15 +17,6 @@ use Nette;
  */
 class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
-	/** @var Nette\Database\Connection */
-	private $connection;
-
-
-	public function __construct(Nette\Database\Connection $connection, array $options)
-	{
-		$this->connection = $connection;
-	}
-
 
 	/********************* SQL ****************d*g**/
 
@@ -143,6 +134,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
 
 
 	/**
+	 * @param  string
 	 * @return bool
 	 */
 	public function isSupported($item)
