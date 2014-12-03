@@ -44,10 +44,10 @@ class ArrayList extends Nette\Object implements \ArrayAccess, \Countable, \Itera
 
 	/**
 	 * Replaces or appends a item.
-	 * @param  int|NULL
+	 * @param  int
 	 * @param  mixed
 	 * @return void
-	 * @throws Nette\OutOfRangeException
+	 * @throws OutOfRangeException
 	 */
 	public function offsetSet($index, $value)
 	{
@@ -67,7 +67,7 @@ class ArrayList extends Nette\Object implements \ArrayAccess, \Countable, \Itera
 	 * Returns a item.
 	 * @param  int
 	 * @return mixed
-	 * @throws Nette\OutOfRangeException
+	 * @throws OutOfRangeException
 	 */
 	public function offsetGet($index)
 	{
@@ -93,7 +93,7 @@ class ArrayList extends Nette\Object implements \ArrayAccess, \Countable, \Itera
 	 * Removes the element at the specified position in this list.
 	 * @param  int
 	 * @return void
-	 * @throws Nette\OutOfRangeException
+	 * @throws OutOfRangeException
 	 */
 	public function offsetUnset($index)
 	{
