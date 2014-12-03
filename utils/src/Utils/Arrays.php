@@ -29,11 +29,7 @@ class Arrays
 
 	/**
 	 * Returns item from array or $default if item is not set.
-	 * @param  array
-	 * @param  string|int|array one or more keys
-	 * @param  mixed
 	 * @return mixed
-	 * @throws Nette\InvalidArgumentException if item does not exist and default value is not provided
 	 */
 	public static function get(array $arr, $key, $default = NULL)
 	{
@@ -53,10 +49,7 @@ class Arrays
 
 	/**
 	 * Returns reference to array item.
-	 * @param  array
-	 * @param  string|int|array one or more keys
 	 * @return mixed
-	 * @throws Nette\InvalidArgumentException if traversed item is not an array
 	 */
 	public static function & getRef(& $arr, $key)
 	{
@@ -89,7 +82,7 @@ class Arrays
 
 	/**
 	 * Searches the array for a given key and returns the offset if successful.
-	 * @return int|FALSE offset if it is found, FALSE otherwise
+	 * @return int    offset if it is found, FALSE otherwise
 	 */
 	public static function searchKey($arr, $key)
 	{
@@ -173,7 +166,7 @@ class Arrays
 
 	/**
 	 * Reformats table to associative tree. Path looks like 'field|field[]field->field=field'.
-	 * @return array|\stdClass
+	 * @return array|stdClass
 	 */
 	public static function associate(array $arr, $path)
 	{
