@@ -108,12 +108,6 @@ class Route extends Nette\Object implements Application\IRouter
 	/** @var int */
 	private $flags;
 
-	/** @var Nette\Http\Url */
-	private $lastRefUrl;
-
-	/** @var string */
-	private $lastBaseUrl;
-
 
 	/**
 	 * @param  string  URL mask, e.g. '<presenter>/<action>/<id \d{1,3}>'
@@ -394,14 +388,12 @@ class Route extends Nette\Object implements Application\IRouter
 		} while (TRUE);
 
 
-		if ($this->type !== self::HOST) {
-			if ($this->lastRefUrl !== $refUrl) {
-				$scheme = ($this->flags & self::SECURED ? 'https://' : 'http://');
-				$basePath = ($this->type === self::RELATIVE ? $refUrl->getBasePath() : '');
-				$this->lastBaseUrl = $scheme . $refUrl->getAuthority() . $basePath;
-				$this->lastRefUrl = $refUrl;
-			}
-			$url = $this->lastBaseUrl . $url;
+		// absolutize path
+		if ($this->type === self::RELATIVE) {
+			$url = '//' . $refUrl->getAuthority() . $refUrl->getBasePath() . $url;
+
+		} elseif ($this->type === self::PATH) {
+			$url = '//' . $refUrl->getAuthority() . $url;
 
 		} else {
 			$host = $refUrl->getHost();
@@ -411,12 +403,13 @@ class Route extends Nette\Object implements Application\IRouter
 				'%tld%' => $host[0],
 				'%domain%' => isset($host[1]) ? "$host[1].$host[0]" : $host[0],
 			));
-			$url = ($this->flags & self::SECURED ? 'https:' : 'http:') . $url;
 		}
 
-		if (strpos($url, '//', 7) !== FALSE) {
+		if (strpos($url, '//', 2) !== FALSE) {
 			return NULL;
 		}
+
+		$url = ($this->flags & self::SECURED ? 'https:' : 'http:') . $url;
 
 		// build query string
 		if ($this->xlat) {
