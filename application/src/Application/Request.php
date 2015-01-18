@@ -114,17 +114,6 @@ class Request extends Nette\Object
 
 
 	/**
-	 * Returns a parameter provided to the presenter.
-	 * @param  string
-	 * @return mixed
-	 */
-	public function getParameter($key)
-	{
-		return isset($this->params[$key]) ? $this->params[$key] : NULL;
-	}
-
-
-	/**
 	 * Sets variables provided to the presenter via POST.
 	 * @return self
 	 */
@@ -136,22 +125,12 @@ class Request extends Nette\Object
 
 
 	/**
-	 * Returns a variable provided to the presenter via POST.
-	 * If no key is passed, returns the entire array.
-	 * @param  string
-	 * @return mixed
+	 * Returns all variables provided to the presenter via POST.
+	 * @return array
 	 */
-	public function getPost($key = NULL)
+	public function getPost()
 	{
-		if (func_num_args() === 0) {
-			return $this->post;
-
-		} elseif (isset($this->post[$key])) {
-			return $this->post[$key];
-
-		} else {
-			return NULL;
-		}
+		return $this->post;
 	}
 
 
@@ -210,11 +189,11 @@ class Request extends Nette\Object
 
 
 	/**
-	 * @deprecated
+	 * Checks if the method is POST.
+	 * @return bool
 	 */
 	public function isPost()
 	{
-		trigger_error('Method isPost() is deprecated, use isMethod(\'POST\') instead.', E_USER_DEPRECATED);
 		return strcasecmp($this->method, 'post') === 0;
 	}
 
