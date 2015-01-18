@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Test: Nette\Database\Connection fetch methods.
+ * Test: Nette\Database\Context fetch methods.
  * @dataProvider? databases.ini
  */
 
