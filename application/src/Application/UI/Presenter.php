@@ -766,7 +766,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 	/**
 	 * Request/URL factory.
 	 * @param  PresenterComponent  base
-	 * @param  string   destination in format "[[module:]presenter:]action" or "signal!" or "this"
+	 * @param  string   destination in format "[//] [[[module:]presenter:]action | signal! | this] [#fragment]"
 	 * @param  array    array of arguments
 	 * @param  string   forward|redirect|link
 	 * @return string   URL
@@ -1221,8 +1221,8 @@ abstract class Presenter extends Control implements Application\IPresenter
 		$params = $this->request->getParameters();
 		if ($this->isAjax()) {
 			$params += $this->request->getPost();
-		} elseif (($tmp = $this->request->getPost(self::SIGNAL_KEY)) !== NULL) {
-			$params[self::SIGNAL_KEY] = $tmp;
+		} elseif (isset($this->request->post[self::SIGNAL_KEY])) {
+			$params[self::SIGNAL_KEY] = $this->request->post[self::SIGNAL_KEY];
 		}
 
 		foreach ($params as $key => $value) {
