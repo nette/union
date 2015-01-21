@@ -33,10 +33,19 @@ class ApplicationExtension extends Nette\DI\CompilerExtension
 
 	public function loadConfiguration()
 	{
-		$config = $this->validateConfig($this->defaults);
 		$container = $this->getContainerBuilder();
 
-		$application = $container->addDefinition($this->prefix('application'))
+		$config = $this->compiler->getConfig();
+		if ($old = !isset($config[$this->name]) && isset($config['nette']['application'])) {
+			$config = Nette\DI\Config\Helpers::merge($config['nette']['application'], $this->defaults);
+			// trigger_error("Configuration section 'nette.application' is deprecated, use section '$this->name' instead.", E_USER_DEPRECATED);
+		} else {
+			$config = $this->getConfig($this->defaults);
+		}
+
+		$this->validateConfig($this->defaults, $config, $old ? 'nette.application' : $this->name);
+
+		$application = $container->addDefinition('application') // no namespace for back compatibility
 			->setClass('Nette\Application\Application')
 			->addSetup('$catchExceptions', array($config['catchExceptions']))
 			->addSetup('$errorPresenter', array($config['errorPresenter']));
@@ -45,17 +54,12 @@ class ApplicationExtension extends Nette\DI\CompilerExtension
 			$application->addSetup('Nette\Bridges\ApplicationTracy\RoutingPanel::initializePanel');
 		}
 
-		$presenterFactory = $container->addDefinition($this->prefix('presenterFactory'))
+		$presenterFactory = $container->addDefinition('nette.presenterFactory')
 			->setClass('Nette\Application\IPresenterFactory')
 			->setFactory('Nette\Application\PresenterFactory');
 
 		if ($config['mapping']) {
 			$presenterFactory->addSetup('setMapping', array($config['mapping']));
-		}
-
-		if ($this->name === 'application') {
-			$container->addAlias('application', $this->prefix('application'));
-			$container->addAlias('nette.presenterFactory', $this->prefix('presenterFactory'));
 		}
 	}
 
