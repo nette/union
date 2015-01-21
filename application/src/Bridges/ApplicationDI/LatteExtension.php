@@ -44,10 +44,23 @@ class LatteExtension extends Nette\DI\CompilerExtension
 			return;
 		}
 
-		$config = $this->validateConfig($this->defaults);
+		// back compatibility
+		$config = $this->compiler->getConfig();
+		if (isset($config['nette']['latte']) && !isset($config[$this->name])) {
+			// trigger_error("Configuration section 'nette.latte' is deprecated, use section '$this->name' instead.", E_USER_DEPRECATED);
+			$config = Nette\DI\Config\Helpers::merge($config['nette']['latte'], $this->defaults);
+		} else {
+			$config = $this->getConfig($this->defaults);
+		}
+		if (isset($config['nette']['xhtml'])) {
+			trigger_error("Configuration option 'nette.xhtml' is deprecated, use section '$this->name.xhtml' instead.", E_USER_DEPRECATED);
+			$config['xhtml'] = $config['nette']['xhtml'];
+		}
+
+		$this->validateConfig($this->defaults, $config);
 		$container = $this->getContainerBuilder();
 
-		$latteFactory = $container->addDefinition($this->prefix('latteFactory'))
+		$latteFactory = $container->addDefinition('nette.latteFactory')
 			->setClass('Latte\Engine')
 			->addSetup('setTempDirectory', array($this->tempDir))
 			->addSetup('setAutoRefresh', array($this->debugMode))
@@ -55,7 +68,7 @@ class LatteExtension extends Nette\DI\CompilerExtension
 			->addSetup('Nette\Utils\Html::$xhtml = ?;', array((bool) $config['xhtml']))
 			->setImplement('Nette\Bridges\ApplicationLatte\ILatteFactory');
 
-		$container->addDefinition($this->prefix('templateFactory'))
+		$container->addDefinition('nette.templateFactory')
 			->setClass('Nette\Application\UI\ITemplateFactory')
 			->setFactory('Nette\Bridges\ApplicationLatte\TemplateFactory');
 
@@ -83,11 +96,6 @@ class LatteExtension extends Nette\DI\CompilerExtension
 				->addSetup('registerHelperLoader', array('Nette\Templating\Helpers::loader'))
 				->setAutowired(FALSE);
 		}
-
-		if ($this->name === 'latte') {
-			$container->addAlias('nette.latteFactory', $this->prefix('latteFactory'));
-			$container->addAlias('nette.templateFactory', $this->prefix('templateFactory'));
-		}
 	}
 
 
@@ -103,7 +111,7 @@ class LatteExtension extends Nette\DI\CompilerExtension
 		$container->getDefinition('nette.latte')
 			->addSetup('?->onCompile[] = function($engine) { ' . $macro . '($engine->getCompiler()); }', array('@self'));
 
-		$container->getDefinition($this->prefix('latteFactory'))
+		$container->getDefinition('nette.latteFactory')
 			->addSetup('?->onCompile[] = function($engine) { ' . $macro . '($engine->getCompiler()); }', array('@self'));
 	}
 
