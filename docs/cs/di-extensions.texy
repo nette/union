@@ -111,6 +111,7 @@ services:
 	blog.comments:
 		class: MyBlog\CommentsModel(@connection, @blog.articles)
 
+factories:
 	blog.articlesList:
 		class: MyBlog\Components\ArticlesList(@blog.articles)
 

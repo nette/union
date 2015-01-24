@@ -113,7 +113,6 @@ nette:
 .[tip]
 Doporučuje se používat `autoStart: smart`, protože pak automaticky startuje session, pouze pokud je již vytvořena.
 
-Více o [konfiguraci sessions | sessions#Konfigurace sessions].
 
 Application
 -----------
@@ -291,15 +290,21 @@ services:
 
 	nette.presenterFactory:
 		class: MyPresenterFactory
+
+
+factories:
+	nette.mail:
+		setup:
+			- addHeader('X-Mailer', 'Nette Framework 2.2')
 \--
 
 Nebo vytvořit nové služby poděděním existujících:
 
 /--neon
-services:
-	myPresenterFactory < nette.presenterFactory
+factories:
+	securedForm < nette.basicForm:
 		setup:
-			- setMapping([])
+			- addProtection()
 \--
 
 
