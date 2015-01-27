@@ -86,7 +86,7 @@ class CliTester
 		echo <<<'XX'
  _____ ___  ___ _____ ___  ___
 |_   _/ __)( __/_   _/ __)| _ )
-  |_| \___ /___) |_| \___ |_|_\  v1.3.0
+  |_| \___ /___) |_| \___ |_|_\  v1.3.1
 
 
 XX;
@@ -239,7 +239,7 @@ XX
 			$state = array();
 			foreach ($this->options['--watch'] as $directory) {
 				foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory)) as $file) {
-					if (substr($file->getExtension(), 0, 3) === 'php') {
+					if (substr($file->getExtension(), 0, 3) === 'php' && substr($file->getBasename(), 0, 1) !== '.') {
 						$state[(string) $file] = md5_file((string) $file);
 					}
 				}
