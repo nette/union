@@ -21,11 +21,11 @@ class Service2 extends Nette\Object
 
 
 $builder = new DI\ContainerBuilder;
-$one = $builder->addDefinition('one')
+$builder->addDefinition('one')
 	->setClass('Service');
-$two = $builder->addDefinition('two')
+$builder->addDefinition('two')
 	->setClass('Service2');
-$three = $builder->addDefinition('three')
+$builder->addDefinition('three')
 	->setClass('Service2')
 	->setAutowired(FALSE);
 
@@ -33,9 +33,12 @@ $three = $builder->addDefinition('three')
 // compile-time
 $builder->prepareClassList();
 
-Assert::same( array('one' => $one), $builder->findByType('\Service') );
-Assert::same( array('two' => $two, 'three' => $three), $builder->findByType('Service2') );
+Assert::same( array('one'), $builder->findByType('\Service') );
+Assert::same( array('one'), $builder->findByType('Service', FALSE) );
+Assert::same( array('two'), $builder->findByType('Service2') );
+Assert::same( array('two', 'three'), $builder->findByType('Service2', FALSE) );
 Assert::same( array(), $builder->findByType('unknown') );
+Assert::same( array(), $builder->findByType('unknown', FALSE) );
 
 Assert::same( 'one', $builder->getByType('\Service') );
 Assert::null( $builder->getByType('unknown') );
