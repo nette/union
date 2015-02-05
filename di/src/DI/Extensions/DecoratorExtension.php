@@ -41,9 +41,9 @@ class DecoratorExtension extends Nette\DI\CompilerExtension
 	public function addSetups($type, array $setups)
 	{
 		$builder = $this->getContainerBuilder();
-		foreach ($builder->findByType($type) as $def) {
+		foreach ($builder->findByType($type, FALSE) as $name) {
 			foreach ($setups as $setup) {
-				$def->addSetup($setup);
+				$builder->getDefinition($name)->addSetup($setup);
 			}
 		}
 	}
@@ -53,7 +53,8 @@ class DecoratorExtension extends Nette\DI\CompilerExtension
 	{
 		$tags = Nette\Utils\Arrays::normalize($tags, TRUE);
 		$builder = $this->getContainerBuilder();
-		foreach ($builder->findByType($type) as $def) {
+		foreach ($builder->findByType($type, FALSE) as $name) {
+			$def = $builder->getDefinition($name);
 			$def->setTags($def->getTags() + $tags);
 		}
 	}
