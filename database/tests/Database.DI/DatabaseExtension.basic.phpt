@@ -40,6 +40,9 @@ test(function() {
 	Assert::type('Nette\Database\Context', $context);
 	Assert::same($connection, $context->getConnection());
 
+	Assert::type('Nette\Database\Structure', $context->getStructure());
+	Assert::type('Nette\Database\Conventions\DiscoveredConventions', $context->getConventions());
+
 	// aliases
 	Assert::same($connection, $container->getService('nette.database.default'));
 	Assert::same($context, $container->getService('nette.database.default.context'));
