@@ -87,25 +87,20 @@ class Session extends Nette\Object
 
 		$this->configure($this->options);
 
-		$id = $this->request->getCookie(session_name());
-		if (is_string($id) && preg_match('#^[0-9a-zA-Z,-]{22,128}\z#i', $id)) {
-			session_id($id);
-		} else {
+		$id = & $_COOKIE[session_name()];
+		if (!is_string($id) || !preg_match('#^[0-9a-zA-Z,-]{22,128}\z#i', $id)) {
 			unset($_COOKIE[session_name()]);
 		}
 
-		try {
-			// session_start returns FALSE on failure only sometimes
-			Nette\Utils\Callback::invokeSafe('session_start', array(), function ($message) use (& $e) {
-				$e = new Nette\InvalidStateException($message);
-			});
-		} catch (\Exception $e) {
-		}
+		// session_start returns FALSE on failure only sometimes
+		Nette\Utils\Callback::invokeSafe('session_start', array(), function($message) use (& $error) {
+			$error = $message;
+		});
 
 		Helpers::removeDuplicateCookies();
-		if ($e) {
+		if ($error) {
 			@session_write_close(); // this is needed
-			throw $e;
+			throw new Nette\InvalidStateException($error);
 		}
 
 		self::$started = TRUE;
