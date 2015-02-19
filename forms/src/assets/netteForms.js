@@ -44,7 +44,7 @@ Nette.getValue = function(elem) {
 		}
 		return multi ? res : null;
 
-	} else if (!elem.form.elements[elem.name].tagName) { // multi element
+	} else if (elem.name && !elem.form.elements[elem.name].tagName) { // multi element
 		return Nette.getValue(elem.form.elements[elem.name]);
 
 	} else if (elem.type === 'file') {
@@ -438,8 +438,10 @@ Nette.toggleControl = function(elem, rules, success, firsttime, value) {
 				res = Nette.validateRule(curElem, rule.op, rule.arg, curValue);
 			if (res === null) {
 				continue;
+
+			} else if (!rule.rules) {
+				success = rule.neg ? !res : res;
 			}
-			success = rule.neg ? !res : res;
 		}
 
 		if ((rule.rules && Nette.toggleControl(elem, rule.rules, success, firsttime, value)) || rule.toggle) {
