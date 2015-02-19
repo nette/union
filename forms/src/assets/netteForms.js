@@ -44,7 +44,7 @@ Nette.getValue = function(elem) {
 		}
 		return multi ? res : null;
 
-	} else if (elem.name && !elem.form.elements[elem.name].tagName) { // multi element
+	} else if (!elem.form.elements[elem.name].tagName) { // multi element
 		return Nette.getValue(elem.form.elements[elem.name]);
 
 	} else if (elem.type === 'file') {
@@ -110,6 +110,10 @@ Nette.validateControl = function(elem, rules, onlyCheck, value) {
 		var rule = rules[id],
 			op = rule.op.match(/(~)?([^?]+)/),
 			curElem = rule.control ? elem.form.elements[rule.control] : elem;
+
+		if (!curElem) {
+			continue;
+		}
 
 		rule.neg = op[1];
 		rule.op = op[2];
@@ -422,6 +426,10 @@ Nette.toggleControl = function(elem, rules, success, firsttime, value) {
 		var rule = rules[id],
 			op = rule.op.match(/(~)?([^?]+)/),
 			curElem = rule.control ? elem.form.elements[rule.control] : elem;
+
+		if (!curElem) {
+			continue;
+		}
 
 		if (success !== false) {
 			rule.neg = op[1];
