@@ -19,7 +19,6 @@ class TracyExtension extends Nette\DI\CompilerExtension
 {
 	public $defaults = array(
 		'email' => NULL,
-		'logSeverity' => NULL,
 		'editor' => NULL,
 		'browser' => NULL,
 		'errorTemplate' => NULL,
