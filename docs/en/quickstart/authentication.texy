@@ -9,17 +9,16 @@ Normally you would write your own authenticator, but for this simple small blog,
 
 
 /--neon
-	nette:
-		security:
-			users:
-				admin: secret  # user 'admin', password 'secret'
+	security:
+		users:
+			admin: secret  # user 'admin', password 'secret'
 \--
 
 
 Nette will automatically create a service called `authenticator` in the DI container.
 
 .[caution]
-There is already sophisticated authenticator in the Sandbox. It is necessary to delete line `- Model\UserManager` in `config.neon` in section *services* to avoid collision between both of them.
+There is already sophisticated authenticator in the Sandbox. It is necessary to delete line `- App\Model\UserManager` in `config.neon` in section *services* to avoid collision between both of them.
 
 .[note]
 You can read more about [Dependency Injection here |/dependency-injection], and about [Configuration here |/configuring]
@@ -41,7 +40,7 @@ Let's start with the login form. You already know how forms work in a presenter.
 /--php
 	protected function createComponentSignInForm()
 	{
-		$form = new Nette\Application\UI\Form;
+		$form = new Form;
 		$form->addText('username', 'Username:')
 			->setRequired('Please enter your username.');
 
@@ -52,8 +51,7 @@ Let's start with the login form. You already know how forms work in a presenter.
 
 		$form->addSubmit('send', 'Sign in');
 
-		// call method signInFormSucceeded() on success
-		$form->onSuccess[] = $this->signInFormSucceeded;
+		$form->onSuccess[] = array($this, 'signInFormSucceeded');
 		return $form;
 	}
 \--
@@ -64,7 +62,7 @@ There is an input for username and password. You can delete the `remember` check
 View
 ---
 
-The form is rendered in the template `app/templates/Sign/in.latte`
+The form is rendered in the template `app/presenters/templates/Sign/in.latte`
 
 /--html
 {block content}
@@ -104,7 +102,7 @@ When the error occurs in the form, the page with the form will be rendered again
 Post Form
 ===
 
-First of all, let's secure the form for creating new posts. It's defined in `PostPresenter` and rendered in `app/templates/Post/create.latte`. Our first goal is not to allow the user to view the page if he's not logged in.
+First of all, let's secure the form for creating new posts. It's defined in `PostPresenter` and rendered in `app/presenters/templates/Post/create.latte`. Our first goal is not to allow the user to view the page if he's not logged in.
 
 
 Presenter Views
@@ -115,7 +113,7 @@ Let's create an action method `actionCreate` that will redirect the user to the 
 /--php
 	public function actionCreate()
 	{
-		if (!$this->user->isLoggedIn()) {
+		if (!$this->getUser()->isLoggedIn()) {
 			$this->redirect('Sign:in');
 		}
 	}
@@ -126,7 +124,7 @@ We should also secure the edit view, so simply add those three lines there too.
 /--php
 	public function actionEdit($postId)
 	{
-		if (!$this->user->isLoggedIn()) {
+		if (!$this->getUser()->isLoggedIn()) {
 			$this->redirect('Sign:in');
 		}
 \--
@@ -135,7 +133,7 @@ We should also secure the edit view, so simply add those three lines there too.
 Hide Links
 ----
 
-An unauthenticated user cannot see the *create* nor *edit page*, but he can still see the links pointing to them. Let's hide those as well. One such link is in `app/templates/Homepage/default.latte`, and it should be visible only if the user is logged in.
+An unauthenticated user cannot see the *create* nor *edit page*, but he can still see the links pointing to them. Let's hide those as well. One such link is in `app/presenters/templates/Homepage/default.latte`, and it should be visible only if the user is logged in.
 
 We can hide it using *n:macro* called `n:if`. If the statement inside it is `false`, the whole `<a>` tag and it's contents will be not displayed
 
@@ -149,7 +147,7 @@ this is a shortcut for (do not confuse it with `tag-if`)
 {if $user->loggedIn}<a n:href="Post:create">Create post</a>{/if}
 \--
 
-You should hide the edit link located in `app/templates/Post/show.latte` in a similar fashion.
+You should hide the edit link located in `app/presenters/templates/Post/show.latte` in a similar fashion.
 
 
 Form Handlers
@@ -162,7 +160,7 @@ It can be prevented with a simple *if* that we will add at the beginning of `pos
 /--php
 	public function postFormSucceeded($form)
 	{
-		if (!$this->user->isLoggedIn()) {
+		if (!$this->getUser()->isLoggedIn()) {
 			$this->error('You need to log in to create or edit posts');
 		}
 \--
@@ -173,7 +171,7 @@ It's simple as that, but you shall **never forget to do this** as it's really cr
 Login Form Link
 ====
 
-Hey, but how do we get to the login page? There is no link pointing to it. Let's add one in the `app/templates/@layout.latte` template file. Try finding a nice place, it can be anywhere you like it the most.
+Hey, but how do we get to the login page? There is no link pointing to it. Let's add one in the `app/presenters/templates/@layout.latte` template file. Try finding a nice place, it can be anywhere you like it the most.
 
 /--html
 <ul class="navig">
