@@ -153,9 +153,10 @@ Zprovoznění trvalého přihlášení
 Aby fungovalo trvalé přihlášení, je nutné nastavit delší dobu vypršení session. Toho nejsnáze docílíme pomocí konfigurace v `config.neon`. Najdeme sekci `nette` a do podsekce `session` přidáme:
 
 /---neon
-	session:
-		autoStart: smart
-		expiration: 30 days
+	nette:
+		session:
+			autoStart: smart
+			expiration: 30 days
 \---
 
 

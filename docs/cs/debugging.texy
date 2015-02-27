@@ -133,8 +133,10 @@ Debugger::$email = 'admin@example.com';
 
 Alternativně je také možné toto nastavit v konfiguračním souboru:
 /--code neon
-	tracy:
-		email: admin@example.com
+common:
+	nette:
+		debugger:
+			email: admin@example.com
 
 \--
 
