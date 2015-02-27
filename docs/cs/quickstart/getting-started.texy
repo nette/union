@@ -54,12 +54,13 @@ Sandbox má následující strukturu:
     │   ├── <b>config/</b>       ← konfigurační soubory
     │   ├── <b>model/</b>        ← třídy modelové vrstvy
     │   ├── <b>presenters/</b>   ← třídy presenterů
-    │   │   └── <b>templates/</b>← šablony
     │   ├── <b>router/</b>       ← konfigurace URL adres
+    │   ├── <b>templates/</b>    ← šablony
     │   └── <b>bootstrap.php</b> ← spouštěcí soubor
     │
     ├── <b>vendor/</b>           ← knihovny pro vaší aplikaci
     │   └── <b>nette/</b>        ← jako například váš oblíbený framework :-)
+    │   └── <b>others/</b>       ← nebo všechny knihovny, které nebudete instalovat přes Composer
     │
     ├── <b>log/</b>              ← zde naleznete chybové logy
     ├── <b>temp/</b>             ← místo pro dočasné soubory (cache, sessiony, atd.)
@@ -76,7 +77,7 @@ Nejdůležitější složka je pro nás `app/`. Zde nalezneme soubor `bootstrap.
 Úklid
 =======
 
-Sandbox obsahuje ukázkový kód. Měli bychom začít tím, že ho pročistíme, předtím než začneme něco programovat - bez obav tedy smažeme soubor `app/presenters/templates/Homepage/default.latte`. Vlastní obsah přidáme za moment.
+Sandbox obsahuje ukázkový kód. Měli bychom začít tím, že ho pročistíme, předtím než začneme něco programovat - bez obav tedy smažeme soubor `app/templates/Homepage/default.latte`. Vlastní obsah přidáme za moment.
 
 
 Tracy

@@ -40,7 +40,8 @@ Tracy\Debugger::getBar()->addPanel(new ExamplePanel);
 or you can simply register your panel in application configuration:
 
 /--neon
-    tracy:
+nette:
+    debugger:
         bar:
             - ExamplePanel
 \--

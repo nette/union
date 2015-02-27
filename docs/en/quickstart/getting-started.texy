@@ -54,12 +54,13 @@ Sandbox has the following structure:
     │   ├── <b>config/</b>       ← configuration files
     │   ├── <b>model/</b>        ← model layer classes
     │   ├── <b>presenters/</b>   ← presenter classes
-    │   │   └── <b>templates/</b>← templates
     │   ├── <b>router/</b>       ← configuration of URL addresses
+    │   ├── <b>templates/</b>    ← templates
     │   └── <b>bootstrap.php</b> ← boot file
     │
     ├── <b>vendor/</b>           ← libraries for your application
     │   └── <b>nette/</b>        ← like your favorite framework :-)
+    │   └── <b>others/</b>       ← or all libraries that you won't install via Composer
     │
     ├── <b>log/</b>              ← here you can find error message logs
     ├── <b>temp/</b>             ← place for temporary files (cache, sessions, etc.)
@@ -76,7 +77,7 @@ The most important directory for you is `app/`. You can find `bootstrap.php` fil
 Cleanup
 =======
 
-The sandbox contains some sample code. You should probably start by removing it before you write your own code - feel free to delete the `app/presenters/templates/Homepage/default.latte` file. We’ll add our own content in a minute.
+The sandbox contains some sample code. You should probably start by removing it before you write your own code - feel free to delete the `app/templates/Homepage/default.latte` file. We’ll add our own content in a minute.
 
 
 Tracy

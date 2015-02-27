@@ -94,7 +94,8 @@ Framework configuration
 ***********************
 
 Configuration is usually written in NEON format. Have fun trying out the syntax at http://ne-on.org.
-Many features of Nette Framework can be set up in configuration file.
+Many features of Nette Framework can be set up in configuration file. Framework configures itself by a [DI container extension |di-extensions] ([api:Nette\DI\Extensions\NetteExtension])
+ which accepts parameters in `nette:` section of the configuration file.
 
 
 HTTP proxies
@@ -103,6 +104,7 @@ HTTP proxies
 You can define your http proxy, so that HTTP request's remote address and remote host will be correct.
 
 /--neon
+nette:
 	http:
 		proxy: 127.0.0.1  # ip address, range, hostname or array of these values
 \--
@@ -114,6 +116,7 @@ Sessions
 Here you can set all [directives |php:session.configuration] (in camelCase format).
 
 /-- neon
+nette:
 	session:
 		autoStart: true  # default is smart
 		expiration: 10 days
@@ -131,6 +134,7 @@ Application
 ===========
 
 /--neon
+nette:
 	application:
 		debugger: true  # debugger bar panel
 		catchExceptions: %productionMode%
@@ -144,6 +148,7 @@ Routing
 =======
 
 /--neon
+nette:
 	routing:
 		debugger: true  # debugger bar panel
 		routes:
@@ -158,8 +163,10 @@ Security
 ========
 
 /--neon
+nette:
 	security:
 		debugger: true  # debugger bar panel
+		frames: ...     # affects X-Frame-Options header
 
 		users:
 			johndoe: secretpassword
@@ -175,15 +182,6 @@ Security
 
 By filling in `users` option you create `SimpleAuthenticator`, by defining `roles` or `resources` you create `Nette\Security\Permission` authorizator. More in [User Authorization and Privileges |access-control].
 
-
-HTTP headers
--------------
-
-/--neon
-	http:
-		frames: ... # ovlivňuje hlavičku X-Frame-Options
-\--
-
 For security reasons Nette Framework sends HTTP header `X-Frame-Options: SAMEORIGIN` by default, so that the page can be embedded in iframe only from pages on the same domain. This behavior may be unwanted in certain situations (for example if you are developing a facebook application). You can override this setting by `frames: yes`, `frames: http://allowed-host.com` or `frames: no`.
 
 
@@ -193,7 +191,8 @@ Mailing
 Default mailer is `SendmailMailer`. By setting `smtp` you activate `SmtpMailer`.
 
 /--neon
-	mail:
+nette:
+	mailer:
 		smtp: true  # use SmtpMailer instead of SendmailMailer
 		host: ...
 		port: ...
@@ -210,6 +209,7 @@ Database
 You can define multiple database connections, if you do so you can set which one will be [automatically injected |configuring#toc-auto-wiring] to your services by the `autowired` option. The following code shows how to set up one connection called `default`.
 
 /--neon
+nette:
 	database:
 		default:
 			dsn: "sqlite2:%appDir%/models/demo.db"
@@ -231,6 +231,7 @@ Forms
 You can change default validation error messages.
 
 /--neon
+nette:
 	forms:
 		messages:
 			EQUAL: 'Please enter %s.'
@@ -246,6 +247,7 @@ Latte
 You can turn on and off XHTML rendering mode and register custom macros.
 
 /--neon
+nette:
 	latte:
 		xhtml: yes  # default is no
 		macros:
@@ -257,24 +259,26 @@ DI container
 ============
 
 /--neon
-	di:
+nette:
+	container:
 		debugger: true  #debugger bar panel
 		accessors: true  #enables $container->serviceName shortcut
 \--
 
 
-Tracy debugger
-==============
+Debugger
+========
 
 /--neon
-	tracy:
+nette:
+	debugger:
 		email: webmaster@example.com  # for sending error logs
 		strictMode: TRUE
 		editor: ...
 		browser: ...
 
 		bar:  # debugger bar panels
-			- Nette\Bridges\DITracy\ContainerPanel  # alias of DI container bar
+			- Nette\DI\Diagnostics\ContainerPanel  # alias of DI container bar
 			- IncludePanel
 			- XDebugHelper('myIdeKey')
 			- MyPanel(@MyService)
@@ -291,10 +295,10 @@ All these settings affect final DI container. Compared to direct definition in `
 
 /--neon
 services:
-	mail.mailer:
+	nette.mailer:
 		class: MySmtpMailer
 
-	application.presenterFactory:
+	nette.presenterFactory:
 		class: MyPresenterFactory
 \--
 
