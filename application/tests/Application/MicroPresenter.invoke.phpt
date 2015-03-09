@@ -13,7 +13,7 @@ require __DIR__ . '/../bootstrap.php';
 
 class Invokable extends Nette\Object
 {
-	public function __invoke($page, $id, NetteModule\MicroPresenter $presenter)
+	public function __invoke($page, $id)
 	{
 		Notes::add('Callback id ' . $id . ' page ' . $page);
 	}
@@ -21,11 +21,10 @@ class Invokable extends Nette\Object
 
 
 test(function() {
-	$presenter = $p = new NetteModule\MicroPresenter;
+	$presenter = new NetteModule\MicroPresenter;
 
 	$presenter->run(new Request('Nette:Micro', 'GET', array(
-		'callback' => function($id, $page, $presenter) use ($p) {
-			Assert::same($p, $presenter);
+		'callback' => function($id, $page) {
 			Notes::add('Callback id ' . $id . ' page ' . $page);
 		},
 		'id' => 1,
