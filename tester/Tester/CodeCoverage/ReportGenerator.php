@@ -5,14 +5,23 @@
  * Copyright (c) 2009 David Grudl (http://davidgrudl.com)
  */
 
-namespace Tester\CodeCoverage\Generators;
+namespace Tester\CodeCoverage;
 
 
 /**
  * Code coverage report generator.
  */
-class HtmlGenerator extends AbstractGenerator
+class ReportGenerator
 {
+	/** @var array */
+	public $acceptFiles = array('php', 'phpc', 'phpt', 'phtml');
+
+	/** @var array */
+	private $data;
+
+	/** @var string */
+	private $source;
+
 	/** @var string */
 	private $title;
 
@@ -27,25 +36,49 @@ class HtmlGenerator extends AbstractGenerator
 
 	/** @var array */
 	public static $classes = array(
-		self::CODE_TESTED => 't', // tested
-		self::CODE_UNTESTED => 'u', // untested
-		self::CODE_DEAD => 'dead', // dead code
+		1 => 't', // tested
+		-1 => 'u', // untested
+		-2 => 'dead', // dead code
 	);
 
 
 	/**
-	 * @param  string  path to coverage.dat file
-	 * @param  string  path to source file/directory
-	 * @param  string
+	 * @param string  path to coverage.dat file
+	 * @param string  path to source file/directory
 	 */
-	public function __construct($file, $source = NULL, $title = NULL)
+	public function __construct($file, $source, $title = NULL)
 	{
-		parent::__construct($file, $source);
+		if (!is_file($file)) {
+			throw new \Exception("File '$file' is missing.");
+		}
+
+		$this->data = @unserialize(file_get_contents($file));
+		if (!is_array($this->data)) {
+			throw new \Exception("Content of file '$file' is invalid.");
+		}
+
+		if (!$source) {
+			$source = key($this->data);
+			for ($i = 0; $i < strlen($source); $i++) {
+				foreach ($this->data as $s => $foo) {
+					if (!isset($s[$i]) || $source[$i] !== $s[$i]) {
+						$source = substr($source, 0, $i);
+						break 2;
+					}
+				}
+			}
+			$source = dirname($source . 'x');
+
+		} elseif (!file_exists($source)) {
+			throw new \Exception("File or directory '$source' is missing.");
+		}
+
+		$this->source = realpath($source);
 		$this->title = $title;
 	}
 
 
-	protected function renderSelf()
+	public function render($file = NULL)
 	{
 		$this->setupHighlight();
 		$this->parse();
@@ -56,7 +89,13 @@ class HtmlGenerator extends AbstractGenerator
 		$totalSum = $this->totalSum;
 		$coveredSum = $this->coveredSum;
 
+		$handle = $file ? @fopen($file, 'w') : STDOUT;
+		if (!$handle) {
+			throw new \Exception("Unable to write to file '$file'.");
+		}
+		ob_start(function($buffer) use ($handle) { fwrite($handle, $buffer); }, 4096);
 		include __DIR__ . '/template.phtml';
+		ob_end_flush();
 	}
 
 
@@ -76,8 +115,17 @@ class HtmlGenerator extends AbstractGenerator
 			return;
 		}
 
+		$entries = is_dir($this->source)
+			? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->source))
+			: array(new \SplFileInfo($this->source));
+
 		$this->files = array();
-		foreach ($this->getSourceIterator() as $entry) {
+		foreach ($entries as $entry) {
+			if (substr($entry->getBasename(), 0, 1) === '.'  // . or .. or .gitignore
+				|| !in_array(pathinfo($entry, PATHINFO_EXTENSION), $this->acceptFiles, TRUE))
+			{
+				continue;
+			}
 			$entry = (string) $entry;
 
 			$coverage = $covered = $total = 0;
@@ -86,10 +134,10 @@ class HtmlGenerator extends AbstractGenerator
 			if ($loaded) {
 				$lines = $this->data[$entry];
 				foreach ($lines as $flag) {
-					if ($flag >= self::CODE_UNTESTED) {
+					if ($flag >= -1) {
 						$total++;
 					}
-					if ($flag >= self::CODE_TESTED) {
+					if ($flag >= 1) {
 						$covered++;
 					}
 				}
@@ -109,5 +157,4 @@ class HtmlGenerator extends AbstractGenerator
 			);
 		}
 	}
-
 }
