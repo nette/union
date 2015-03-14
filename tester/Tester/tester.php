@@ -17,16 +17,14 @@ require __DIR__ . '/Runner/OutputHandler.php';
 require __DIR__ . '/Runner/Output/Logger.php';
 require __DIR__ . '/Runner/Output/TapPrinter.php';
 require __DIR__ . '/Runner/Output/ConsolePrinter.php';
+require __DIR__ . '/Runner/Output/JUnitPrinter.php';
 require __DIR__ . '/Framework/Helpers.php';
 require __DIR__ . '/Framework/Environment.php';
 require __DIR__ . '/Framework/Assert.php';
 require __DIR__ . '/Framework/Dumper.php';
 require __DIR__ . '/Framework/DataProvider.php';
 require __DIR__ . '/Framework/TestCase.php';
-require __DIR__ . '/CodeCoverage/PhpParser.php';
-require __DIR__ . '/CodeCoverage/Generators/AbstractGenerator.php';
-require __DIR__ . '/CodeCoverage/Generators/HtmlGenerator.php';
-require __DIR__ . '/CodeCoverage/Generators/CloverXMLGenerator.php';
+require __DIR__ . '/CodeCoverage/ReportGenerator.php';
 
 
 $tester = new Tester\Runner\CliTester;
