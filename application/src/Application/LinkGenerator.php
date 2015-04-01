@@ -48,7 +48,7 @@ class LinkGenerator extends Nette\Object
 
 		try {
 			$class = $this->presenterFactory ? $this->presenterFactory->getPresenterClass($presenter) : NULL;
-		} catch (InvalidPresenterException $e) {
+		} catch (Application\InvalidPresenterException $e) {
 			throw new UI\InvalidLinkException($e->getMessage(), NULL, $e);
 		}
 
