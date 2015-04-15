@@ -17,7 +17,7 @@ if (!extension_loaded('pdo_sqlite')) {
 }
 
 
-$cache = new Cache(new SQLiteStorage);
+$cache = new Cache(new SQLiteStorage(TEMP_DIR . '/db.db3'));
 
 
 // Writing cache...
