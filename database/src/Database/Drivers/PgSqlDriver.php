@@ -12,6 +12,8 @@ use Nette;
 
 /**
  * Supplemental PostgreSQL database driver.
+ *
+ * @author     David Grudl
  */
 class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
