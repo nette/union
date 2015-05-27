@@ -12,6 +12,8 @@ use Nette;
 
 /**
  * Supplemental Oracle database driver.
+ *
+ * @author     David Grudl
  */
 class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {

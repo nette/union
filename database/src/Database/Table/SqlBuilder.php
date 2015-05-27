@@ -7,17 +7,20 @@
 
 namespace Nette\Database\Table;
 
-use Nette;
-use Nette\Database\ISupplementalDriver;
-use Nette\Database\SqlLiteral;
-use Nette\Database\IConventions;
-use Nette\Database\Context;
-use Nette\Database\IStructure;
+use Nette,
+	Nette\Database\ISupplementalDriver,
+	Nette\Database\SqlLiteral,
+	Nette\Database\IConventions,
+	Nette\Database\Context,
+	Nette\Database\IStructure;
 
 
 /**
  * Builds SQL query.
  * SqlBuilder is based on great library NotORM http://www.notorm.com written by Jakub Vrana.
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  */
 class SqlBuilder extends Nette\Object
 {
@@ -126,7 +129,7 @@ class SqlBuilder extends Nette\Object
 	public function buildSelectQuery($columns = NULL)
 	{
 		$queryCondition = $this->buildConditions();
-		$queryEnd = $this->buildQueryEnd();
+		$queryEnd       = $this->buildQueryEnd();
 
 		$joins = [];
 		$this->parseJoins($joins, $queryCondition);
@@ -413,7 +416,7 @@ class SqlBuilder extends Nette\Object
 				(?P<node> (?&del)? (?&word) (\((?&word)\))? )
 			)
 			(?P<chain> (?!\.) (?&node)*)  \. (?P<column> (?&word) | \*  )
-		~xi', function ($match) use (& $joins, $builder) {
+		~xi', function($match) use (& $joins, $builder) {
 			return $builder->parseJoinsCb($joins, $match);
 		}, $query);
 	}
@@ -540,7 +543,7 @@ class SqlBuilder extends Nette\Object
 	protected function tryDelimite($s)
 	{
 		$driver = $this->driver;
-		return preg_replace_callback('#(?<=[^\w`"\[?]|^)[a-z_][a-z0-9_]*(?=[^\w`"(\]]|\z)#i', function ($m) use ($driver) {
+		return preg_replace_callback('#(?<=[^\w`"\[?]|^)[a-z_][a-z0-9_]*(?=[^\w`"(\]]|\z)#i', function($m) use ($driver) {
 			return strtoupper($m[0]) === $m[0] ? $m[0] : $driver->delimite($m[0]);
 		}, $s);
 	}

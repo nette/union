@@ -12,6 +12,9 @@ use Nette;
 
 /**
  * Nette Framework Database services.
+ *
+ * @author     David Grudl
+ * @author     Jan Skrasek
  */
 class DatabaseExtension extends Nette\DI\CompilerExtension
 {

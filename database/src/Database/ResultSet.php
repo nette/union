@@ -7,12 +7,15 @@
 
 namespace Nette\Database;
 
-use Nette;
-use PDO;
+use Nette,
+	PDO;
 
 
 /**
  * Represents a result set.
+ *
+ * @author     David Grudl
+ * @author     Jan Skrasek
  *
  * @property-read Connection $connection
  */

@@ -7,17 +7,19 @@
 
 namespace Nette\Database;
 
-use Nette;
-use Tracy;
+use Nette,
+	Tracy;
 
 
 /**
  * Database helpers.
+ *
+ * @author     David Grudl
  */
 class Helpers
 {
 	/** @var int maximum SQL length */
-	public static $maxLength = 100;
+	static public $maxLength = 100;
 
 	/** @var array */
 	public static $typePatterns = [
@@ -91,7 +93,7 @@ class Helpers
 
 		// syntax highlight
 		$sql = htmlSpecialChars($sql, ENT_IGNORE, 'UTF-8');
-		$sql = preg_replace_callback("#(/\\*.+?\\*/)|(\\*\\*.+?\\*\\*)|(?<=[\\s,(])($keywords1)(?=[\\s,)])|(?<=[\\s,(=])($keywords2)(?=[\\s,)=])#is", function ($matches) {
+		$sql = preg_replace_callback("#(/\\*.+?\\*/)|(\\*\\*.+?\\*\\*)|(?<=[\\s,(])($keywords1)(?=[\\s,)])|(?<=[\\s,(=])($keywords2)(?=[\\s,)=])#is", function($matches) {
 			if (!empty($matches[1])) { // comment
 				return '<em style="color:gray">' . $matches[1] . '</em>';
 
@@ -107,7 +109,7 @@ class Helpers
 		}, $sql);
 
 		// parameters
-		$sql = preg_replace_callback('#\?#', function () use ($params, $connection) {
+		$sql = preg_replace_callback('#\?#', function() use ($params, $connection) {
 			static $i = 0;
 			if (!isset($params[$i])) {
 				return '?';
@@ -184,9 +186,9 @@ class Helpers
 	 */
 	public static function loadFromFile(Connection $connection, $file)
 	{
-		@set_time_limit(0); // @ function may be disabled
+		@set_time_limit(0); // intentionally @
 
-		$handle = @fopen($file, 'r'); // @ is escalated to exception
+		$handle = @fopen($file, 'r'); // intentionally @
 		if (!$handle) {
 			throw new Nette\FileNotFoundException("Cannot open file '$file'.");
 		}
@@ -194,7 +196,6 @@ class Helpers
 		$count = 0;
 		$delimiter = ';';
 		$sql = '';
-		$pdo = $connection->getPdo(); // native query without logging
 		while (!feof($handle)) {
 			$s = rtrim(fgets($handle));
 			if (!strncasecmp($s, 'DELIMITER ', 10)) {
@@ -202,7 +203,7 @@ class Helpers
 
 			} elseif (substr($s, -strlen($delimiter)) === $delimiter) {
 				$sql .= substr($s, 0, -strlen($delimiter));
-				$pdo->exec($sql);
+				$connection->query($sql); // native query without logging
 				$sql = '';
 				$count++;
 
@@ -211,7 +212,7 @@ class Helpers
 			}
 		}
 		if (trim($sql) !== '') {
-			$pdo->exec($sql);
+			$connection->query($sql);
 			$count++;
 		}
 		fclose($handle);

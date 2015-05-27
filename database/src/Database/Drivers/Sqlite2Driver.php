@@ -12,6 +12,8 @@ use Nette;
 
 /**
  * Supplemental SQLite2 database driver.
+ *
+ * @author     David Grudl
  */
 class Sqlite2Driver extends SqliteDriver
 {
