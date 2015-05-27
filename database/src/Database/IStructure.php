@@ -7,6 +7,8 @@
 
 namespace Nette\Database;
 
+use Nette;
+
 
 /**
  * Provides cached reflection for database structure.

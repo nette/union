@@ -13,6 +13,8 @@ use Nette\Database;
 /**
  * Container of database result fetched into IRow objects.
  *
+ * @author     Jan Skrasek
+ *
  * @method     IRow|bool  fetch() Fetches single row object.
  * @method     IRow[]     fetchAll() Fetches all rows.
  */

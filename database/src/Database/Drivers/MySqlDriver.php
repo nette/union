@@ -12,6 +12,8 @@ use Nette;
 
 /**
  * Supplemental MySQL database driver.
+ *
+ * @author     David Grudl
  */
 class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {

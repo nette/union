@@ -10,6 +10,8 @@ namespace Nette\Database;
 
 /**
  * Row interface.
+ *
+ * @author     Jan Skrasek
  */
 interface IRow extends \Traversable, \ArrayAccess
 {

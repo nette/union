@@ -18,8 +18,8 @@ $context->query('
 	)
 ');
 
-$result = $context->table('Bug10')->insert([
-	'D1' => 123,
+$result = $context->table("Bug10")->insert([
+	'D1' => 123
 ]);
 
-Tester\Assert::notEqual(NULL, $result);
+Tester\Assert::notEqual(null, $result);

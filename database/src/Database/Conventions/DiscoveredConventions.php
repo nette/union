@@ -13,6 +13,8 @@ use Nette\Database\IStructure;
 
 /**
  * Conventions based on database structure.
+ *
+ * @author     Jan Skrasek
  */
 class DiscoveredConventions implements IConventions
 {

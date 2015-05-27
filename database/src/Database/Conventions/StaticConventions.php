@@ -13,6 +13,9 @@ use Nette\Object;
 
 /**
  * Conventions based on static definition.
+ *
+ * @author     Jakub Vrana
+ * @author     Jan Skrasek
  */
 class StaticConventions extends Object implements IConventions
 {

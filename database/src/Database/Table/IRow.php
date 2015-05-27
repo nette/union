@@ -12,6 +12,8 @@ use Nette\Database;
 
 /**
  * Row interface.
+ *
+ * @author     Jan Skrasek
  */
 interface IRow extends Database\IRow
 {
