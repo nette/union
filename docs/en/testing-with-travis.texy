@@ -24,7 +24,7 @@ The sections are executed in following order:
 - `before_install`
 - `install`
 - `before_script`
-- `script` (required)
+- `script` (jediný povinný)
 - `after_success` or `after_failure`
 - `after_script`
 

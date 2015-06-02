@@ -87,11 +87,12 @@ try {
 Autentikátor obvykle budeme nastavovat přímo v [konfiguračním souboru |configuring], v takovém případě se objekt vytvoří, až když ho bude skutečně potřeba. Vyše uvedený příklad by se v `config.neon` zapsal takto:
 
 /--
-services:
-	authenticator: Nette\Security\SimpleAuthenticator([
-			john: IJ^%4dfh54*
-			kathy: 12345
-		])
+common:
+	services:
+		authenticator: Nette\Security\SimpleAuthenticator([
+				john: IJ^%4dfh54*
+				kathy: 12345
+			])
 \--
 
 
@@ -136,8 +137,9 @@ Třída MyAuthenticator komunikuje s databází prostřednictvím [Nette\Databas
 Autentikátor by se v konfiguračním souboru nastavil takto:
 
 /--
-services:
-	authenticator: MyAuthenticator
+common:
+	services:
+		authenticator: MyAuthenticator
 \--
 
 
@@ -392,4 +394,5 @@ Služba `user` disponuje události `$onLoggedIn` a `$onLoggedOut` například pr
 
 
 {{themeicon: icon-key.png}}
+{{care: Honza Doleček|3537}}
 {{composer: nette/security}}

@@ -156,4 +156,5 @@ Můžeme vytvořit také agregaci výsledků:
 {{toc: title}}
 
 {{themeicon: icon-database.png}}
+{{care: Jan Škrášek|449}}
 {{composer: nette/database}}
