@@ -12,6 +12,7 @@ require __DIR__ . '/../bootstrap.php';
 
 
 Assert::same( 10, strlen(Random::generate()) );
+Assert::same( 0, strlen(Random::generate(0)) );
 Assert::same( 5, strlen(Random::generate(5)) );
 Assert::same( 200, strlen(Random::generate(200)) );
 
