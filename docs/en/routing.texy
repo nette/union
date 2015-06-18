@@ -490,10 +490,6 @@ The **input filter** accepts value from URL and should return a value which will
 	\--
 \--
 
-
-Global filters
---------------
-
 Besides filters for specific parameters, you can also define **global filters** which accepts an associative array with all parameters and returns an array with filtered parameters. Global filters are defined under `NULL` key.
 
 /--php
@@ -665,4 +661,5 @@ Method `constructUrl` generates an absolute URL from application request, possib
 Possibilities of custom routers are unlimited, for example it's possible to implement a router based on database records.
 
 {{themeicon: icon-map.png}}
+{{care: Honza Tvrdík|1657}}
 {{composer: nette/application}}

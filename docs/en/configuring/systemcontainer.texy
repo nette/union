@@ -263,3 +263,5 @@ final class SystemContainer_Nette_Bridges_ApplicationLatte_ILatteFactoryImpl_net
 
 }
 \--
+
+{{care: David Grudl|2}}

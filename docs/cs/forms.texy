@@ -49,7 +49,7 @@ class HomepagePresenter extends UI\Presenter
 
 v šabloně ho vykreslíme makrem control:
 
-/--html
+/--
 {control registrationForm}
 \--
 
@@ -226,11 +226,6 @@ addMultiUpload($name, $label = NULL) .{toc: addMultiUpload()}
 -------------------------------------------------------------
 
 Přidá políčko, které uživateli umožní nahrát více souborů najednou. Tato možnost je dostupná od verze 2.2.3, v dřívějších verzích se přidává pomocí `addUpload($name, $label, $multiple = TRUE);
-Validační pravidla jsou stejné, jako u `addUpload()` a přidává následující pravidla:
-
-| `Form::MIN_LENGTH` | minimální počet souborů
-| `Form::MAX_LENGTH` | maximální počet souborů
-| `Form::LENGTH` | počet souborů v daném rozsahu nebo právě tato délka
 
 /--php
 $form->addMultiUpload('files', 'Soubory'); // Od verze 2.2.3
@@ -284,7 +279,7 @@ addCheckboxList($name, $label = NULL, array $items = NULL) .{toc: addCheckboxLis
 
 Přidá seznam zaškrtávacích políček pro výběr více prvků. Pole nabízených hodnot opět předáme jako třetí parametr. Stejně jako v případě selectboxů nebo radiolistů kontroluje, zda odeslané hodnoty jsou z těch, které nabízíme.
 
-/--php
+/--
 $form = new Form;
 $form->addCheckboxList('colors', 'Barvy:', array(
     'r' => 'červená',
@@ -384,7 +379,7 @@ Low-level formuláře
 
 Od verze 2.1 lze používat i prvky, které zapíšeme pouze v šabloně a nepřidáme je do formuláře některou z metod `$form->addXyz()`. Když například vypisujeme záznamy z databáze a dopředu nevíme, kolik jich bude a jaké budou mít ID, a chceme u každého řádku zobrazit checkbox nebo radio button, stačí jej nakódovat v šabloně:
 
-/--php
+/--
 {foreach $items as $item}
     <p><input type=checkbox name="sel[]" value={$item->id}> {$item->name}</p>
 {/foreach}
@@ -522,6 +517,8 @@ Nette.validators.divisibilityValidator = function(elem, args, val) {
 </script>
 \--
 
+Pokud náš validační callback v PHP je statická metoda ve třídě, tak název pro JavaScriptový validátor vytvoříme smazáním zpětných lomítek `\` a nahrazením dvojité dvojtečky za jedno podtržítko `_`, např. `App\MyValidator::divisibilityValidator` zapíšeme jako `AppMyValidator_divisibilityValidator`.
+
 Vypnutí validace
 ----------------
 
@@ -562,7 +559,7 @@ Pokud prvek ve formuláři je, ale jeho hodnotu pomocí výše uvedeného způso
 Deaktivace prvků
 ----------------
 
-Pokud chceme některý prvek deaktivovat, můžeme využít metodu `$control->setDisabled(TRUE)`
+Pokud chcete některý prvek deaktivovat, můžete využít metodu `$control->setDisabled(TRUE)`
 
 /--php
 $form->addText('email', 'E-mail:')->setDisabled(TRUE);
@@ -570,10 +567,10 @@ $form->addText('email', 'E-mail:')->setDisabled(TRUE);
 
 Do tohoto prvku nepůjde zapisovat a jeho hodnota nebude obsažena v datech vracených funkcí `$form->getValues()`.
 
-Pokud potřebujeme prvek pouze vyjmout z těchto dat, použijeme funkci `$control->setOmitted(TRUE)`. To se hodí pro různá hesla pro kontrolu, antispamové prvky atd.
+Pokud potřebujete prvek pouze vyjmout z těchto dat, použijte funkcu `$control->setOmmited(TRUE)`. To se hodí pro různé hesla pro kontrolu, antispamové prvky atd.
 
 /--php
-$form->addText('antispam', 'Antispam:')->setOmitted(TRUE);
+$form->addText('antispam', 'Antispam:')->setOmmited(TRUE);
 \--
 
 
@@ -897,7 +894,7 @@ function createComponentSignInForm()
 }
 \--
 
-/--html
+/--
 <form n:name=signInForm class=form>
     <p><label n:name=user>Username: <input n:name=user size=20></label>
     <p><label n:name=password>Password: <input n:name=password></label>
@@ -1093,4 +1090,5 @@ Každý prvek disponuje metodami `getLabel()` a `getControl()`, které vracejí 
 \--
 
 {{themeicon: icon-form.png}}
+{{care: David Grudl|2}}
 {{composer: nette/forms}}

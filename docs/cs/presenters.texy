@@ -48,18 +48,17 @@ Když se po stažení distribuce Nette Framework podíváte do adresáře `sandb
 <b>sandbox/</b>
 ├── <b>app/</b>                  ← adresář s aplikací
 │   ├── <b>config/</b>           ← konfigurační soubory
-│   │   ├── <b>config.neon</b>   ← konfigurační soubor
+│   │   └── <b>config.neon</b>   ← konfigurační soubor
 │   │   └── <b>config.local.neon</b>
 │   │
-│   ├── <b>forms/</b>            ← třídy formulářů
 │   ├── <b>model/</b>            ← modelová vrstva a její třídy
 │   ├── <b>presenters/</b>       ← třídy presenterů
-│   │   ├── <b>HomepagePresenter.php</b>  ← třída presenteru Homepage
-│   │   └── <b>templates/</b>    ← adresář se šablonami
-│   │       ├── <b>@layout.latte</b> ← šablona společného layoutu
-│   │       └── <b>Homepage/</b>     ← šablony presenteru Homepage
-│   │           └── <b>default.latte</b>  ← šablona akce default
-│   ├── <b>router/</b>           ← třídy routerů
+│   │   └── <b>HomepagePresenter.php</b>  ← třída presenteru Homepage
+│   │
+│   ├── <b>templates/</b>        ← adresář se šablonami
+│   │   ├── <b>@layout.latte</b> ← šablona společného layoutu
+│   │   └── <b>Homepage/</b>     ← šablony presenteru Homepage
+│   │       └── <b>default.latte</b>  ← šablona akce default
 │   │
 │   └── <b>bootstrap.php</b>     ← zaváděcí soubor aplikace
 │
@@ -694,4 +693,5 @@ Kde mohu získat komponenty?
 Na stránce [Doplňky, pluginy a komponenty |addons:] můžete najít open-source komponenty, které sem umístili dobrovolníci z komunity okolo Nette Framework. Nette Foundation za ně neručí.
 
 {{themeicon: icon-house.png}}
+{{care: Filip Procházka|2117}}
 {{composer: nette/application}}

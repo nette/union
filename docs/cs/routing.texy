@@ -393,32 +393,6 @@ $route = new Route('//files.example.com/<path .+>', array(
 \--
 
 
-Globální filtry
----------------
-Vedle filtrů určených pro konkrétní parametry (`<presenter>`, `<action>`, ...) můžeme definovat též **globální filtry**, které akceptují asociativní pole se všemi parametry a vrací pole vyfiltrovaných parametrů. Globální filtry definujeme pod klíčem `NULL`.
-
-/--php
-$route = new Route('<presenter>/<action>', array(
-	'presenter' => 'Homepage',
-	'action' => 'default',
-	NULL => array(
-		Route::FILTER_IN => function(array $params) {
-			// ...
-			return $params;
-		},
-		Route::FILTER_OUT => function(array $params) {
-			// ...
-			return $params;
-		},
-	),
-));
-\--
-
-.[tip]
-
-*Globální filtry* můžeme použít též pro filtrování parameterů na základě jiných parametrů. Například přeložení `<presenter>` a `<action>` na základě parametru `<lang>`.
-
-
 Masky
 -----------------------
 
@@ -532,4 +506,5 @@ Metoda `constructUrl` naopak sestaví z interního požadavku výsledné absolut
 Možnosti vlastního routeru jsou prakticky neomezené, lze třeba implementovat router, který bude routovat na základě databázové tabulky.
 
 {{themeicon: icon-map.png}}
+{{care: Honza Tvrdík|1657}}
 {{composer: nette/application}}

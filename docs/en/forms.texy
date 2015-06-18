@@ -49,7 +49,7 @@ class HomepagePresenter extends UI\Presenter
 
 render in template is done using control macro:
 
-/--html
+/--
 {control registrationForm}
 \--
 
@@ -223,11 +223,6 @@ addMultiUpload($name, $label = NULL) .{toc: addMultiUpload()}
 -------------------------------------------------------------
 
 Adds multiple file upload field. This method is available since version 2.2.3. In earlier versions, you can use third optional parameter of `addUpload()` to do the same.
-Validation rules are same as `addUpload()` and adds following:
-
-| `Form::MIN_LENGTH` | minimal count files
-| `Form::MAX_LENGTH` | maximal count files
-| `Form::LENGTH` | exact count of uploaded files
 
 /--php
 $form->addMultiUpload('files', 'Files'); // Since 2.2.3
@@ -390,7 +385,7 @@ Low-level forms
 
 To add an item to the form, you don't have to call `$form->addXyz()`. Since version 2.1, form items can introduced exclusively in templates instead. This is useful if you, for example, need to generate dynamic items:
 
-/--php
+/--
 {foreach $items as $item}
     <p><input type=checkbox name="sel[]" value={$item->id}> {$item->name}</p>
 {/foreach}
@@ -543,6 +538,7 @@ Nette.validators.divisibilityValidator = function(elem, args, val) {
 </script>
 \--
 
+If our PHP validation callback is a static method in a class, we create the name for JavaScript by removing all backslashes `\` and by replacing the double colon by single underscore `_`, e.g. `App\MyValidator::divisibilityValidator` is converted to `AppMyValidator_divisibilityValidator`.
 
 Disabling validation
 --------------------
@@ -1099,7 +1095,7 @@ It's recommended to redirect to other page after you have processed the data. Yo
 Rendering the form
 ------------------
 
-Each element has `getLabel()` and `getControl()` methods which return HTML code of label and the element itself. Nette provides *getter* and *setter* property acces as if you are [accesing the attribute itself |php-language-enhancements#Properties, getters and setters].
+Each element has `getLabel()` and `getControl()` methods which return HTML code of label and the element itself. Nette provides *getter* and *setter* property acces as if you are [accesing the attribute itself |php-language-enhancements#Properties, getters a setters].
 
 /--html
 <?php $form->render('begin') ?>
@@ -1125,4 +1121,5 @@ Each element has `getLabel()` and `getControl()` methods which return HTML code 
 
 
 {{themeicon: icon-form.png}}
+{{care: David Grudl|2}}
 {{composer: nette/forms}}
