@@ -44,7 +44,7 @@ Zajímají vás bližší informace o [syntaxi Latte |templating#latte] nebo o [
 | `{cache $key} … {/cache}`      | [cachuje část šablony |caching#cachovani-v-sablonach]
 | `{php expression}`             | [vyhodnotí výraz, ale nevypíše |#Vyhodnocení kódu]
 | `{* text komentáře *}`         | komentář, bude odstraněn
-| `{syntax mode}`                | [změna syntaxe maker za běhu |#Změna syntaxe]
+| `{syntax mode} … {/syntax}`    | [změna syntaxe maker za běhu |#Změna syntaxe]
 | `{use Class}`                  | načte nová makra
 | `{l}` nebo `{r}`               | vypíše znak { nebo }
 | `{contentType $type}`          | [přepne escapování a pošle HTTP hlavičku |#hlavicka-contenttype]
@@ -54,7 +54,6 @@ Zajímají vás bližší informace o [syntaxi Latte |templating#latte] nebo o [
 |---------------------------
 | `n:class`                      |  [chytrý zápis HTML atributu class |#n-class]
 | `n:attr`                       |  [chytrý zápis jakéhokoliv HTML atributu |#n-attr]
-| `n:ifcontent`                  |  [Vynechá prázdný HTML tag |#n-ifcontent]
 | `n:tag-if`                     |  Vynechá HTML tag, pokud je podmínka FALSE
 |---------------------------
 | Překlady ||
@@ -442,29 +441,6 @@ Vypíše v závislosti na hodnotách proměnných `$value` nebo `$checked`:
 <input type="checkbox" value="Hello" checked>
 \--
 
-n:ifcontent
------------
-
-`n:ifcontent` macro odstraní prázdný tag
-
-/--html
-<div>
-	<div class="error" n:ifcontent>{$error}</div>
-</div>
-\--
-
-Vypíše v závislosti na hodnotě proměnné `$error`:
-
-/--html
-{* $error = '' *}
-<div>
-</div>
-
-{* $error = 'Required' *}
-<div>
-	<div class="error">Required</div>
-</div>
-\--
 
 
 Překlady `{_expression}` .{toc: Překlady}
@@ -679,34 +655,13 @@ Metoda `getComponent()` vrací komponentu `cartControl` a nad touto komponentou 
 Lze použít i volání s parametry, které se předají render metodám, například:
 
 /--html
-{control cartControl, $maxItems, $showSummary}
-{control cartControl, maxItems => 5, showSummary => true}
-{control cartControl, [maxItems => 5, showSummary => true]}
-{control cartControl:small, $maxItems, $showSummary}
+{control cartControl:small, $maxItems}
 \--
 
 se přeloží jako:
 
 /--php
-$control->getComponent('cartControl')->render($maxItems, $showSummary);
-$control->getComponent('cartControl')->render(array('maxItems' => 5, 'showSummary' => true));
-$control->getComponent('cartControl')->render(array(array('maxItems' => 5, 'showSummary' => true)));
-$control->getComponent('cartControl')->renderSmall($maxItems, $showSummary);
-\--
-
-.[caution]
-Pokud se kdekoliv v parametrech objeví **`=>`**, všechny parametry budou zabaleny do pole a předány jako první argument.
-
-Vykreslení sub-komponety:
-
-/--html
-{control cartControl-someForm}
-\--
-
-se přeloží jako:
-
-/--php
-$control->getComponent("cartControl-someForm")->render();
+$control->getComponent('cartControl')->renderSmall($maxItems);
 \--
 
 
@@ -764,4 +719,5 @@ Určuje místo, kde dojde k zastavení vykonávání programu. Používá se př
 {debugbreak $counter == 1}  {* Zastaví program při splnění podmínky *}
 \--
 
+{{care: David Grudl|2}}
 {{composer: latte/latte}}

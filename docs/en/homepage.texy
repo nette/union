@@ -26,7 +26,7 @@ Here you can find a lot of sources which can help you to learn Nette Framework a
 - [Server Requirements | Requirements]
 - [License | www:license]
 - [Contributors | http://nette.org/contributors]
-- [Chat room | https://gitter.im/nette/nette]
+- <a href="irc://irc.freenode.net/nettefw">IRC #nettefw @ freenode.org</a>
 
 
 [* icon-ruler.png *] Development
@@ -70,7 +70,7 @@ Here you can find a lot of sources which can help you to learn Nette Framework a
 - [Atomic Operations | atomicity]
 - [Validation | validators]
 - Utilities for [strings], [arrays], [HTML elements] and [URLs]
-- Tools: [Code-Checker], [Composer]
+- Tools: [Code-Checker]
 
 \---
 
