@@ -9,17 +9,17 @@ require __DIR__ . '/../../src/CodeCoverage/Generators/AbstractGenerator.php';
 require __DIR__ . '/../../src/CodeCoverage/Generators/CloverXMLGenerator.php';
 
 
-$coveredDir = __DIR__ . DIRECTORY_SEPARATOR . 'clover';
+$coveredFile = __DIR__ . DIRECTORY_SEPARATOR . 'CloverXMLGenerator.covered.php';
 
 $coverageData = Tester\FileMock::create(serialize(array(
-	$coveredDir . DIRECTORY_SEPARATOR . 'Logger.php' => array_map('intval', preg_filter(
+	$coveredFile => array_map('intval', preg_filter(
 		'~.*# (-?\d+)~',
 		'$1',
-		explode("\n", "\n" . file_get_contents($coveredDir . DIRECTORY_SEPARATOR . 'Logger.php'))
+		explode("\n", "\n" . file_get_contents($coveredFile))
 	)),
 )));
 
-$generator = new CodeCoverage\Generators\CloverXMLGenerator($coverageData, $coveredDir);
+$generator = new CodeCoverage\Generators\CloverXMLGenerator($coverageData, $coveredFile);
 $generator->render($output = Tester\FileMock::create('', 'xml'));
 
 Assert::matchFile(__DIR__ . '/CloverXMLGenerator.expected.xml', file_get_contents($output));
