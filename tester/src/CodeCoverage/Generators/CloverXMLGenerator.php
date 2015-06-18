@@ -7,9 +7,9 @@
 
 namespace Tester\CodeCoverage\Generators;
 
-use DOMDocument,
-	DOMElement,
-	Tester\CodeCoverage\PhpParser;
+use DOMDocument;
+use DOMElement;
+use Tester\CodeCoverage\PhpParser;
 
 
 class CloverXMLGenerator extends AbstractGenerator
@@ -35,7 +35,7 @@ class CloverXMLGenerator extends AbstractGenerator
 	public function __construct($file, $source = NULL)
 	{
 		if (!extension_loaded('dom')) {
-			throw new \LogicException("CloverXML generator requires DOM extension to be loaded.");
+			throw new \LogicException('CloverXML generator requires DOM extension to be loaded.');
 		}
 		parent::__construct($file, $source);
 	}
@@ -141,7 +141,7 @@ class CloverXMLGenerator extends AbstractGenerator
 
 
 	/**
-	 * @return  \stdClass
+	 * @return \stdClass
 	 */
 	private function calculateClassMetrics(\stdClass $info, array $coverageData = NULL)
 	{
@@ -157,7 +157,7 @@ class CloverXMLGenerator extends AbstractGenerator
 		);
 
 		foreach ($info->methods as $name => $methodInfo) {
-			list($lineCount, $coveredLineCount) = $this->analyzeMethod($methodInfo, $coverageData);
+			list($lineCount, $coveredLineCount) = $this->analyzeMethod($methodInfo, (array) $coverageData);
 
 			$stats->statementCount += $lineCount;
 
@@ -177,20 +177,16 @@ class CloverXMLGenerator extends AbstractGenerator
 	/**
 	 * @return array
 	 */
-	private static function analyzeMethod(\stdClass $info, array $coverageData = NULL)
+	private static function analyzeMethod(\stdClass $info, array $coverageData)
 	{
 		$count = 0;
 		$coveredCount = 0;
 
-		if ($coverageData === NULL) { // Never loaded file
-			$count = max(1, $info->end - $info->start - 2);
-		} else {
-			for ($i = $info->start; $i <= $info->end; $i++) {
-				if (isset($coverageData[$i]) && $coverageData[$i] !== self::CODE_DEAD) {
-					$count++;
-					if ($coverageData[$i] > 0) {
-						$coveredCount++;
-					}
+		for ($i = $info->start; $i <= $info->end; $i++) {
+			if (isset($coverageData[$i]) && $coverageData[$i] !== self::CODE_DEAD) {
+				$count++;
+				if ($coverageData[$i] > 0) {
+					$coveredCount++;
 				}
 			}
 		}
