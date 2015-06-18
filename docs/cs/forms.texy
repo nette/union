@@ -279,7 +279,7 @@ addCheckboxList($name, $label = NULL, array $items = NULL) .{toc: addCheckboxLis
 
 Přidá seznam zaškrtávacích políček pro výběr více prvků. Pole nabízených hodnot opět předáme jako třetí parametr. Stejně jako v případě selectboxů nebo radiolistů kontroluje, zda odeslané hodnoty jsou z těch, které nabízíme.
 
-/--php
+/--
 $form = new Form;
 $form->addCheckboxList('colors', 'Barvy:', array(
     'r' => 'červená',
@@ -535,6 +535,8 @@ $form->addSubmit('send3')->setValidationScope(array($form['name'])); // Validuje
 $form->addSubmit('send4')->setValidationScope(array($form['details']['age'])); // Validuje pouze pole age
 $form->addSubmit('send5')->setValidationScope(array($form['details'])); // Validuje kontejner details
 \--
+
+`setValidationScope` neovlivní událost `onValidate` u formuláře, která bude zavolána vždy. Událost `onValidate` u kontejneru bude vyvolána pouze pokud je tento kontejner označen pro částečnou validaci.
 
 Zpracování hodnot
 =================
@@ -892,7 +894,7 @@ function createComponentSignInForm()
 }
 \--
 
-/--html
+/--
 <form n:name=signInForm class=form>
     <p><label n:name=user>Username: <input n:name=user size=20></label>
     <p><label n:name=password>Password: <input n:name=password></label>
