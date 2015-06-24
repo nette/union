@@ -7,9 +7,9 @@
 
 namespace Tester\Runner\Output;
 
-use Tester;
-use Tester\Dumper;
-use Tester\Runner\Runner;
+use Tester,
+	Tester\Dumper,
+	Tester\Runner\Runner;
 
 
 /**
