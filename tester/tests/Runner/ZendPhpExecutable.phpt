@@ -4,8 +4,8 @@
  * @phpversion 5.4
  */
 
-use Tester\Assert;
-use Tester\Environment;
+use Tester\Assert,
+	Tester\Environment;
 
 require __DIR__ . '/../bootstrap.php';
 
