@@ -7,9 +7,9 @@
 
 namespace Tester\Runner;
 
-use Tester\CodeCoverage,
-	Tester\Environment,
-	Tester\Helpers;
+use Tester\CodeCoverage;
+use Tester\Environment;
+use Tester\Helpers;
 
 
 /**
@@ -161,6 +161,9 @@ XX
 			NULL,
 			array('bypass_shell' => TRUE)
 		);
+		if ($proc === FALSE) {
+			throw new \Exception('Cannot run PHP interpreter ' . $this->options['-p'] . '. Use -p option.');
+		}
 		$output = stream_get_contents($pipes[1]);
 		$error = stream_get_contents($pipes[2]);
 		if (proc_close($proc)) {
@@ -202,7 +205,7 @@ XX
 		}
 
 		if ($this->options['--setup']) {
-			call_user_func(function() use ($runner) {
+			call_user_func(function () use ($runner) {
 				require func_get_arg(0);
 			}, $this->options['--setup']);
 		}
@@ -259,7 +262,7 @@ XX
 				$prev = $state;
 				$runner->run();
 			}
-			echo "Watching " . implode(', ', $this->options['--watch']) . " " . str_repeat('.', ++$counter % 5) . "    \r";
+			echo 'Watching ' . implode(', ', $this->options['--watch']) . ' ' . str_repeat('.', ++$counter % 5) . "    \r";
 			sleep(2);
 		}
 	}
