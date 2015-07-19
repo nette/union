@@ -12,8 +12,6 @@ use Nette;
 
 /**
  * Cached reflection of database structure.
- *
- * @author     Jan Skrasek
  */
 class Structure extends Nette\Object implements IStructure
 {
@@ -165,7 +163,6 @@ class Structure extends Nette\Object implements IStructure
 
 	/**
 	 * @internal
-	 * @ignore
 	 */
 	public function loadStructure()
 	{
@@ -193,7 +190,7 @@ class Structure extends Nette\Object implements IStructure
 
 		if (isset($structure['hasMany'])) {
 			foreach ($structure['hasMany'] as & $table) {
-				uksort($table, function($a, $b) {
+				uksort($table, function ($a, $b) {
 					return strlen($a) - strlen($b);
 				});
 			}
@@ -230,7 +227,7 @@ class Structure extends Nette\Object implements IStructure
 		}
 
 		if (isset($structure['belongsTo'][$table])) {
-			uksort($structure['belongsTo'][$table], function($a, $b) {
+			uksort($structure['belongsTo'][$table], function ($a, $b) {
 				return strlen($a) - strlen($b);
 			});
 		}
