@@ -7,14 +7,12 @@
 
 namespace Nette\Database;
 
-use Nette,
-	Nette\Database\Conventions\StaticConventions;
+use Nette;
+use Nette\Database\Conventions\StaticConventions;
 
 
 /**
  * Database context.
- *
- * @author     David Grudl
  */
 class Context extends Nette\Object
 {
@@ -121,14 +119,6 @@ class Context extends Nette\Object
 	/** @return IConventions */
 	public function getConventions()
 	{
-		return $this->conventions;
-	}
-
-
-	/** @deprecated */
-	public function getDatabaseReflection()
-	{
-		trigger_error(__METHOD__ . '() is deprecated; use getConventions() instead.', E_USER_DEPRECATED);
 		return $this->conventions;
 	}
 
