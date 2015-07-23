@@ -47,6 +47,10 @@ class Structure extends Nette\Object implements IStructure
 		$this->needStructure();
 		$table = $this->resolveFQTableName($table);
 
+		if (!isset($this->structure['columns'][$table])) {
+			throw new Nette\InvalidArgumentException("Table '$table' does not exist.");
+		}
+
 		return $this->structure['columns'][$table];
 	}
 
@@ -137,6 +141,7 @@ class Structure extends Nette\Object implements IStructure
 	{
 		$this->structure = $this->loadStructure();
 		$this->cache->save('structure', $this->structure);
+		$this->isRebuilt = TRUE;
 	}
 
 
@@ -191,8 +196,6 @@ class Structure extends Nette\Object implements IStructure
 			}
 		}
 
-		$this->isRebuilt = TRUE;
-
 		return $structure;
 	}
 
@@ -242,12 +245,7 @@ class Structure extends Nette\Object implements IStructure
 			return $this->structure['aliases'][$name];
 		}
 
-		if (!$this->isRebuilt()) {
-			$this->rebuild();
-			return $this->resolveFQTableName($table);
-		}
-
-		throw new Nette\InvalidArgumentException("Table '$name' does not exist.");
+		return $name;
 	}
 
 }
