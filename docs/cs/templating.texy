@@ -374,6 +374,16 @@ $latte->render('template.latte', $parameters);
 // or $html = $latte->renderToString('template.latte', $parameters);
 \--
 
+Načítání šablon z řetězce
+-------------------------
+
+Pokud nemáme naši šablonu uloženou v souboru, ale pouze v proměnné (například načtenou z databáze), musíme nastavit loader na `Latte\Loaders\StringLoader`.
+
+/--php
+$latte->setLoader(new Latte\Loaders\StringLoader());
+$latte->render('My template {$var}', $parameters);
+\--
+
 
 Snazší použití šablon v presenteru či komponentách
 ==================================================
@@ -388,5 +398,4 @@ $template->setFile(__DIR__ . '/templates/template.latte');
 
 A nyní už víte o šablonách úplně vše.
 
-{{care: David Grudl|2}}
 {{composer: latte/latte}}
