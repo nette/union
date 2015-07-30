@@ -232,7 +232,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 						$this->response->send($this->httpRequest, $this->httpResponse);
 						$this->sendPayload();
 					} elseif (!$this->response && $hasPayload) { // back compatibility for use terminate() instead of sendPayload()
-					$this->sendPayload();
+						$this->sendPayload();
 					}
 				} catch (Application\AbortException $e) {
 				}
@@ -1223,8 +1223,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 		$params = $this->request->getParameters();
 		if ($this->isAjax()) {
 			$params += $this->request->getPost();
-		}
-		if (($tmp = $this->request->getPost(self::SIGNAL_KEY)) !== NULL) {
+		} elseif (($tmp = $this->request->getPost(self::SIGNAL_KEY)) !== NULL) {
 			$params[self::SIGNAL_KEY] = $tmp;
 		}
 
