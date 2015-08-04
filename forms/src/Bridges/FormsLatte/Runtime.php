@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Bridges\FormsLatte;
@@ -56,13 +56,13 @@ class Runtime extends Nette\Object
 			}
 		}
 
-		foreach ($form->getControls() as $control) {
-			if ($control->getOption('type') === 'hidden' && !$control->getOption('rendered')) {
+		foreach ($form->getComponents(TRUE, 'Nette\Forms\Controls\HiddenField') as $control) {
+			if (!$control->getOption('rendered')) {
 				$s .= $control->getControl();
 			}
 		}
 
-		if (iterator_count($form->getComponents(TRUE, Nette\Forms\Controls\TextInput::class)) < 2) {
+		if (iterator_count($form->getComponents(TRUE, 'Nette\Forms\Controls\TextInput')) < 2) {
 			$s .= "<!--[if IE]><input type=IEbug disabled style=\"display:none\"><![endif]-->\n";
 		}
 

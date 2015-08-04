@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
@@ -12,6 +12,8 @@ use Nette;
 
 /**
  * Select box control that allows single item selection.
+ *
+ * @property   bool $prompt
  */
 class SelectBox extends ChoiceControl
 {
@@ -23,13 +25,6 @@ class SelectBox extends ChoiceControl
 
 	/** @var mixed */
 	private $prompt = FALSE;
-
-
-	public function __construct($label = NULL, array $items = NULL)
-	{
-		parent::__construct($label, $items);
-		$this->setOption('type', 'select');
-	}
 
 
 	/**
@@ -107,7 +102,7 @@ class SelectBox extends ChoiceControl
 	public function validate()
 	{
 		parent::validate();
-		if (!$this->isDisabled() && $this->prompt === FALSE && $this->getValue() === NULL && $this->options && $this->control->size < 2) {
+		if (!$this->isDisabled() && $this->prompt === FALSE && $this->getValue() === NULL && $this->options) {
 			$this->addError(Nette\Forms\Validator::$messages[self::VALID]);
 		}
 	}

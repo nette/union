@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
@@ -19,13 +19,18 @@ use Nette\Forms\Form;
  * @property-read Form $form
  * @property-read string $htmlName
  * @property   string $htmlId
+ * @property-read array $options
+ * @property   Nette\Localization\ITranslator|NULL $translator
  * @property   mixed $value
+ * @property-read bool $filled
+ * @property-write $defaultValue
  * @property   bool $disabled
  * @property   bool $omitted
  * @property-read Html $control
  * @property-read Html $label
  * @property-read Html $controlPrototype
  * @property-read Html $labelPrototype
+ * @property-read Nette\Forms\Rules $rules
  * @property   bool $required
  * @property-read array $errors
  */
@@ -70,7 +75,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	 */
 	public function __construct($caption = NULL)
 	{
-		$this->monitor(Form::class);
+		$this->monitor('Nette\Forms\Form');
 		parent::__construct();
 		$this->control = Html::el('input', ['type' => NULL, 'name' => NULL]);
 		$this->label = Html::el('label');
@@ -100,7 +105,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	 */
 	public function getForm($need = TRUE)
 	{
-		return $this->lookup(Form::class, $need);
+		return $this->lookup('Nette\Forms\Form', $need);
 	}
 
 
@@ -130,11 +135,11 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	 */
 	public function getHtmlName()
 	{
-		return Nette\Forms\Helpers::generateHtmlName($this->lookupPath(Form::class));
+		return Nette\Forms\Helpers::generateHtmlName($this->lookupPath('Nette\Forms\Form'));
 	}
 
 
-	/********************* interface IControl ****************d*g**/
+	/********************* interface IFormControl ****************d*g**/
 
 
 	/**
@@ -191,7 +196,6 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	public function setDisabled($value = TRUE)
 	{
 		if ($this->disabled = (bool) $value) {
-			$this->omitted = TRUE;
 			$this->setValue(NULL);
 		}
 		return $this;
@@ -226,7 +230,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	 */
 	public function isOmitted()
 	{
-		return $this->omitted;
+		return $this->omitted || $this->disabled;
 	}
 
 

@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
@@ -15,6 +15,7 @@ use Nette;
  *
  * @property   array $items
  * @property-read mixed $selectedItem
+ * @property-read mixed $rawValue
  */
 abstract class ChoiceControl extends BaseControl
 {
@@ -53,7 +54,7 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Sets selected item (by key).
-	 * @param  string|int
+	 * @param  scalar
 	 * @return self
 	 */
 	public function setValue($value)
@@ -69,7 +70,7 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected key.
-	 * @return string|int
+	 * @return scalar
 	 */
 	public function getValue()
 	{
@@ -79,7 +80,7 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected key (not checked).
-	 * @return string|int
+	 * @return scalar
 	 */
 	public function getRawValue()
 	{

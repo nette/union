@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Forms\Rendering;
@@ -189,11 +189,11 @@ class DefaultFormRenderer extends Nette\Object implements Nette\Forms\IFormRende
 	{
 		$s = '';
 		foreach ($this->form->getControls() as $control) {
-			if ($control->getOption('type') === 'hidden' && !$control->getOption('rendered')) {
+			if ($control instanceof Nette\Forms\Controls\HiddenField && !$control->getOption('rendered')) {
 				$s .= $control->getControl();
 			}
 		}
-		if (iterator_count($this->form->getComponents(TRUE, Nette\Forms\Controls\TextInput::class)) < 2) {
+		if (iterator_count($this->form->getComponents(TRUE, 'Nette\Forms\Controls\TextInput')) < 2) {
 			$s .= '<!--[if IE]><input type=IEbug disabled style="display:none"><![endif]-->';
 		}
 		if ($s) {
@@ -312,10 +312,10 @@ class DefaultFormRenderer extends Nette\Object implements Nette\Forms\IFormRende
 
 		$buttons = NULL;
 		foreach ($parent->getControls() as $control) {
-			if ($control->getOption('rendered') || $control->getOption('type') === 'hidden' || $control->getForm(FALSE) !== $this->form) {
+			if ($control->getOption('rendered') || $control instanceof Nette\Forms\Controls\HiddenField || $control->getForm(FALSE) !== $this->form) {
 				// skip
 
-			} elseif ($control->getOption('type') === 'button') {
+			} elseif ($control instanceof Nette\Forms\Controls\Button) {
 				$buttons[] = $control;
 
 			} else {

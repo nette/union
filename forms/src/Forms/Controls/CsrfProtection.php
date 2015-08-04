@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
@@ -29,7 +29,7 @@ class CsrfProtection extends HiddenField
 	{
 		parent::__construct();
 		$this->setOmitted()->addRule(self::PROTECTION, $message);
-		$this->monitor(Nette\Application\UI\Presenter::class);
+		$this->monitor('Nette\Application\UI\Presenter');
 	}
 
 
