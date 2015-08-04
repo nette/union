@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Forms;
@@ -12,6 +12,9 @@ use Nette;
 
 /**
  * A user group of form controls.
+ *
+ * @property-read array $controls
+ * @property-read array $options
  */
 class ControlGroup extends Nette\Object
 {
@@ -31,22 +34,19 @@ class ControlGroup extends Nette\Object
 	/**
 	 * @return self
 	 */
-	public function add(...$items)
+	public function add()
 	{
-		foreach ($items as $item) {
+		foreach (func_get_args() as $num => $item) {
 			if ($item instanceof IControl) {
 				$this->controls->attach($item);
 
-			} elseif ($item instanceof Container) {
-				foreach ($item->getComponents() as $component) {
-					$this->add($component);
-				}
 			} elseif ($item instanceof \Traversable || is_array($item)) {
-				$this->add(...$item);
+				foreach ($item as $control) {
+					$this->controls->attach($control);
+				}
 
 			} else {
-				$type = is_object($item) ? get_class($item) : gettype($item);
-				throw new Nette\InvalidArgumentException("IControl or Container items expected, $type given.");
+				throw new Nette\InvalidArgumentException("Only IFormControl items are allowed, the #$num parameter is invalid.");
 			}
 		}
 		return $this;
@@ -54,7 +54,7 @@ class ControlGroup extends Nette\Object
 
 
 	/**
-	 * @return IControl[]
+	 * @return array IFormControl
 	 */
 	public function getControls()
 	{
