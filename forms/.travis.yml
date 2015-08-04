@@ -1,15 +1,18 @@
 language: php
 php:
+    - 5.4
+    - 5.5
     - 5.6
     - 7.0
     - hhvm
 
 matrix:
     allow_failures:
+        - php: 7.0
         - php: hhvm
 
     include:
-        - php: 5.6
+        - php: 5.5
           env: dependencies="--prefer-lowest --prefer-stable"
 
 script:
@@ -26,7 +29,7 @@ before_script:
     - travis_retry composer update --no-interaction --prefer-dist $dependencies
     - travis_retry composer create-project nette/code-checker temp/code-checker ~2.5 --no-interaction
     - if [ $TRAVIS_PHP_VERSION  == "5.6" ]; then npm install -g grunt-cli; cd tests/netteForms; npm install; bower install; cd ../..; fi
-
+  
 sudo: false
 
 cache:

@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Bridges\FormsLatte;
@@ -48,9 +48,6 @@ class FormMacros extends MacroSet
 	 */
 	public function macroForm(MacroNode $node, PhpWriter $writer)
 	{
-		if ($node->modifiers) {
-			throw new CompileException("Modifiers are not allowed in {{$node->name}}");
-		}
 		if ($node->prefix) {
 			throw new CompileException('Did you mean <form n:name=...> ?');
 		}
@@ -72,9 +69,6 @@ class FormMacros extends MacroSet
 	 */
 	public function macroFormContainer(MacroNode $node, PhpWriter $writer)
 	{
-		if ($node->modifiers) {
-			throw new CompileException("Modifiers are not allowed in {{$node->name}}");
-		}
 		$name = $node->tokenizer->fetchWord();
 		if ($name === FALSE) {
 			throw new CompileException("Missing name in {{$node->name}}.");
@@ -91,9 +85,6 @@ class FormMacros extends MacroSet
 	 */
 	public function macroLabel(MacroNode $node, PhpWriter $writer)
 	{
-		if ($node->modifiers) {
-			throw new CompileException("Modifiers are not allowed in {{$node->name}}");
-		}
 		$words = $node->tokenizer->fetchWords();
 		if (!$words) {
 			throw new CompileException("Missing name in {{$node->name}}.");
@@ -126,9 +117,6 @@ class FormMacros extends MacroSet
 	 */
 	public function macroInput(MacroNode $node, PhpWriter $writer)
 	{
-		if ($node->modifiers) {
-			throw new CompileException("Modifiers are not allowed in {{$node->name}}");
-		}
 		$words = $node->tokenizer->fetchWords();
 		if (!$words) {
 			throw new CompileException("Missing name in {{$node->name}}.");
@@ -216,9 +204,6 @@ class FormMacros extends MacroSet
 	 */
 	public function macroInputError(MacroNode $node, PhpWriter $writer)
 	{
-		if ($node->modifiers) {
-			throw new CompileException("Modifiers are not allowed in {{$node->name}}");
-		}
 		$name = $node->tokenizer->fetchWord();
 		if (!$name) {
 			return $writer->write('echo %escape($_input->getError())');
