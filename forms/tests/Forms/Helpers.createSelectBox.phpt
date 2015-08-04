@@ -14,7 +14,7 @@ require __DIR__ . '/../bootstrap.php';
 
 test(function () {
 	Assert::type(
-		Html::class,
+		'Nette\Utils\Html',
 		Helpers::createSelectBox([])
 	);
 

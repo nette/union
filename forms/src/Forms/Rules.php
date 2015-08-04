@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (https://nette.org)
- * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
+ * This file is part of the Nette Framework (http://nette.org)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  */
 
 namespace Nette\Forms;
@@ -75,9 +75,6 @@ class Rules extends Nette\Object implements \IteratorAggregate
 	 */
 	public function addRule($validator, $message = NULL, $arg = NULL)
 	{
-		if ($validator === Form::VALID || $validator === ~Form::VALID) {
-			throw new Nette\InvalidArgumentException('You cannot use Form::VALID in the addRule method.');
-		}
 		$rule = new Rule;
 		$rule->control = $this->control;
 		$rule->validator = $validator;
@@ -101,9 +98,6 @@ class Rules extends Nette\Object implements \IteratorAggregate
 	 */
 	public function addCondition($validator, $arg = NULL)
 	{
-		if ($validator === Form::VALID || $validator === ~Form::VALID) {
-			throw new Nette\InvalidArgumentException('You cannot use Form::VALID in the addCondition method.');
-		}
 		return $this->addConditionOn($this->control, $validator, $arg);
 	}
 

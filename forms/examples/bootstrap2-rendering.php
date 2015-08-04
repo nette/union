@@ -10,6 +10,7 @@ if (@!include __DIR__ . '/../vendor/autoload.php') {
 }
 
 use Nette\Forms\Form;
+use Nette\Forms\Controls;
 use Tracy\Debugger;
 use Tracy\Dumper;
 
@@ -68,12 +69,11 @@ $renderer->wrappers['control']['errorcontainer'] = 'span class=help-inline';
 $form->getElementPrototype()->class('form-horizontal');
 
 foreach ($form->getControls() as $control) {
-	$type = $control->getOption('type');
-	if ($type === 'button') {
+	if ($control instanceof Controls\Button) {
 		$control->getControlPrototype()->addClass(empty($usedPrimary) ? 'btn btn-primary' : 'btn');
 		$usedPrimary = TRUE;
 
-	} elseif (in_array($type, ['checkbox', 'radio'], TRUE)) {
+	} elseif ($control instanceof Controls\Checkbox || $control instanceof Controls\CheckboxList || $control instanceof Controls\RadioList) {
 		$control->getLabelPrototype()->addClass($control->getControlPrototype()->type);
 		$control->getSeparatorPrototype()->setName(NULL);
 	}
@@ -85,7 +85,7 @@ foreach ($form->getControls() as $control) {
 <meta charset="utf-8">
 <title>Nette Forms & Bootstrap 2 rendering example</title>
 
-<link rel="stylesheet" media="screen" href="https://netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css" />
+<link rel="stylesheet" media="screen" href="http://netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css" />
 
 <div class="container">
 	<div class="page-header">

@@ -25,11 +25,11 @@ test(function () {
 	$form = new Form;
 	$input = $form->addUpload('file', 'Label');
 
-	Assert::type(Html::class, $input->getLabel());
+	Assert::type('Nette\Utils\Html', $input->getLabel());
 	Assert::same('<label for="frm-file">Label</label>', (string) $input->getLabel());
 	Assert::same('<label for="frm-file">Another label</label>', (string) $input->getLabel('Another label'));
 
-	Assert::type(Html::class, $input->getControl());
+	Assert::type('Nette\Utils\Html', $input->getControl());
 	Assert::same('<input type="file" name="file" id="frm-file">', (string) $input->getControl());
 });
 
@@ -67,16 +67,4 @@ test(function () { // container
 	$input = $container->addUpload('file');
 
 	Assert::same('<input type="file" name="container[file]" id="frm-container-file">', (string) $input->getControl());
-});
-
-
-test(function () { // rendering options
-	$form = new Form;
-	$input = $form->addUpload('file');
-
-	Assert::same('file', $input->getOption('type'));
-
-	Assert::null($input->getOption('rendered'));
-	$input->getControl();
-	Assert::true($input->getOption('rendered'));
 });
