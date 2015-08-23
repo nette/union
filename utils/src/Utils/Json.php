@@ -47,10 +47,17 @@ class Json
 	{
 		$flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | ($options & self::PRETTY ? JSON_PRETTY_PRINT : 0);
 
-		$json = json_encode($value, $flags);
+		if (PHP_VERSION_ID < 50500) {
+			$json = Callback::invokeSafe('json_encode', [$value, $flags], function ($message) { // needed to receive 'recursion detected' error
+				throw new JsonException($message);
+			});
+		} else {
+			$json = json_encode($value, $flags);
+		}
 
 		if ($error = json_last_error()) {
-			$message = isset(static::$messages[$error]) ? static::$messages[$error] : json_last_error_msg();
+			$message = isset(static::$messages[$error]) ? static::$messages[$error]
+				: (PHP_VERSION_ID >= 50500 ? json_last_error_msg() : 'Unknown error');
 			throw new JsonException($message, $error);
 		}
 
@@ -80,7 +87,7 @@ class Json
 		if (!defined('JSON_C_VERSION') || PHP_INT_SIZE === 4) { // not implemented in PECL JSON-C 1.3.2 for 64bit systems
 			$args[] = JSON_BIGINT_AS_STRING;
 		}
-		$value = call_user_func_array('json_decode', $args);
+		$value = json_decode(...$args);
 
 		if ($value === NULL && $json !== '' && strcasecmp(trim($json, " \t\n\r"), 'null') !== 0) { // '' is not clearing json_last_error
 			$error = json_last_error();
