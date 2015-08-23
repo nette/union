@@ -112,6 +112,9 @@ class Strings
 	public static function substring($s, $start, $length = NULL)
 	{
 		if (function_exists('mb_substr')) {
+			if ($length === NULL && PHP_VERSION_ID < 50408) {
+				$length = self::length($s);
+			}
 			return mb_substr($s, $start, $length, 'UTF-8'); // MB is much faster
 		} elseif ($length === NULL) {
 			$length = self::length($s);
@@ -332,10 +335,10 @@ class Strings
 	 * @param  string|array
 	 * @return string
 	 */
-	public static function findPrefix($strings)
+	public static function findPrefix(...$strings)
 	{
-		if (!is_array($strings)) {
-			$strings = func_get_args();
+		if (is_array($strings[0])) {
+			$strings = $strings[0];
 		}
 		$first = array_shift($strings);
 		for ($i = 0; $i < strlen($first); $i++) {
