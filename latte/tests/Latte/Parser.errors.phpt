@@ -20,19 +20,19 @@ Assert::exception(function () {
 Assert::exception(function () use (& $parser) {
 	$parser = new Parser;
 	$parser->parse("{var \n'abc}");
-}, Latte\CompileException::class, 'Malformed macro');
+}, 'Latte\CompileException', 'Malformed macro');
 Assert::same(1, $parser->getLine());
 
 
 Assert::exception(function () use (& $parser) {
 	$parser = new Parser;
 	$parser->parse("\n{* \n'abc}");
-}, Latte\CompileException::class, 'Malformed macro');
+}, 'Latte\CompileException', 'Malformed macro');
 Assert::same(2, $parser->getLine());
 
 
 Assert::exception(function () use (& $parser) {
 	$parser = new Parser;
 	$parser->parse('{');
-}, Latte\CompileException::class, 'Malformed macro');
+}, 'Latte\CompileException', 'Malformed macro');
 Assert::same(1, $parser->getLine());
