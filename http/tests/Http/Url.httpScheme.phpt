@@ -14,6 +14,7 @@ require __DIR__ . '/../bootstrap.php';
 $url = new Url('http://username%3A:password%3A@hostn%61me:60/p%61th/script.php?%61rg=value#%61nchor');
 
 Assert::same('http://hostname:60/p%61th/script.php?arg=value#anchor',  (string) $url);
+Assert::same('"http:\/\/hostname:60\/p%61th\/script.php?arg=value#anchor"',  json_encode($url));
 Assert::same('http',  $url->scheme);
 Assert::same('username:',  $url->user);
 Assert::same('password:',  $url->password);
@@ -41,13 +42,13 @@ Assert::same('/x',  $url->getPath());
 $url->setPath('/x');
 Assert::same('/x',  $url->getPath());
 
-$url->setScheme('');
+$url->setScheme(NULL);
 Assert::same('//username%3A:password%3A@hostname:60/x?arg=value#anchor',  $url->absoluteUrl);
 
 $url->setPath('');
 Assert::same('/',  $url->getPath());
 
-$url->setHost('')->setPath('');
+$url->setHost(NULL)->setPath(NULL);
 Assert::same('//?arg=value#anchor',  $url->absoluteUrl);
 
 $url->setPath('');
