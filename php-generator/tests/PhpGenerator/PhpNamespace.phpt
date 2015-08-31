@@ -21,6 +21,10 @@ Assert::same('\Bar', $namespace->unresolveName('Bar'));
 Assert::same('C', $namespace->unresolveName('bar\C'));
 Assert::same('C\D', $namespace->unresolveName('Bar\C\D'));
 
+foreach (['String', 'string', 'int', 'float', 'bool', 'array', 'callable', 'self', 'parent', ''] as $type) {
+	Assert::same($type, $namespace->unresolveName($type));
+}
+
 
 $classA = $namespace->addClass('A');
 Assert::same($namespace, $classA->getNamespace());
@@ -31,7 +35,7 @@ Assert::same($namespace, $interfaceB->getNamespace());
 Assert::exception(function () use ($namespace) {
 	$traitC = $namespace->addTrait('C');
 	Assert::same($namespace, $traitC->getNamespace());
-}, 'Nette\InvalidStateException', "Alias 'C' used already for 'Bar\\C', cannot use for 'Foo\\C'.");
+}, Nette\InvalidStateException::class, "Alias 'C' used already for 'Bar\\C', cannot use for 'Foo\\C'.");
 
 $classA
 	->addImplement('Foo\\A')
