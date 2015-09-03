@@ -142,8 +142,8 @@ Což vypíše v závislosti na proměnné `$url`:
 {* když je $url prázdné *}
 <p>Title</p>
 
-{* když $url obsahuje 'http://nette.org' *}
-<p><a href="http://nette.org">Title</a></p>
+{* když $url obsahuje 'https://nette.org' *}
+<p><a href="https://nette.org">Title</a></p>
 \--
 
 Avšak n:makra nejsou jen zkratkou pro párová makra, existují i ryzí n:makra, jako třeba [n:href |presenters#Odkazy v šablonách] nebo velešikovný pomocník kodéra [n:class |default-macros#n:class].
@@ -323,6 +323,9 @@ Latte zápis zjednodušuje, filtry se uvádějí za svislítkem, lze je zřetěz
 /--html
 <p>{$text|shortify:100}</p>
 \--
+
+.[tip]
+Je doporučeno registrovat vlastní filtr vždy v tom presenteru, ve kterém ho využijete.
 
 Univerzální filter
 ------------------
