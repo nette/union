@@ -207,7 +207,7 @@ class MyPresenter extends Nette\Application\UI\Presenter
 	/** @inject @var \App\Service2 */
 	private $service2;
 
-	protected function createComponentMyControl()
+	protected function createCompoonentMyControl()
 	{
 		$control = new MyControl($this->service1);
 		$control->setService2($this->service2);
