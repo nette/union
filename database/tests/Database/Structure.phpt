@@ -44,9 +44,9 @@ class StructureTestCase extends TestCase
 	protected function setUp()
 	{
 		parent::setUp();
-		$this->driver = Mockery::mock('Nette\Database\ISupplementalDriver');
-		$this->connection = Mockery::mock('Nette\Database\Connection');
-		$this->storage = Mockery::mock('Nette\Caching\IStorage');
+		$this->driver = Mockery::mock(Nette\Database\ISupplementalDriver::class);
+		$this->connection = Mockery::mock(Nette\Database\Connection::class);
+		$this->storage = Mockery::mock(Nette\Caching\IStorage::class);
 
 		$this->connection->shouldReceive('getDsn')->once()->andReturn('');
 		$this->connection->shouldReceive('getSupplementalDriver')->once()->andReturn($this->driver);
@@ -72,6 +72,10 @@ class StructureTestCase extends TestCase
 		$this->driver->shouldReceive('getColumns')->with('books_x_tags')->once()->andReturn([
 			['name' => 'book_id', 'primary' => TRUE, 'vendor' => []],
 			['name' => 'tag_id', 'primary' => TRUE, 'vendor' => []],
+		]);
+		$this->driver->shouldReceive('getColumns')->with('books_view')->once()->andReturn([
+			['name' => 'id', 'primary' => FALSE, 'vendor' => []],
+			['name' => 'title', 'primary' => FALSE, 'vendor' => []],
 		]);
 		$this->connection->shouldReceive('getSupplementalDriver')->times(4)->andReturn($this->driver);
 		$this->driver->shouldReceive('getForeignKeys')->with('authors')->once()->andReturn([]);
@@ -114,7 +118,7 @@ class StructureTestCase extends TestCase
 		$structure = $this->structure;
 		Assert::exception(function () use ($structure) {
 			$structure->getColumns('InvaliD');
-		}, 'Nette\InvalidArgumentException', "Table 'invalid' does not exist.");
+		}, Nette\InvalidArgumentException::class, "Table 'invalid' does not exist.");
 	}
 
 
@@ -122,7 +126,9 @@ class StructureTestCase extends TestCase
 	{
 		Assert::same('id', $this->structure->getPrimaryKey('books'));
 		Assert::same(['book_id', 'tag_id'], $this->structure->getPrimaryKey('Books_x_tags'));
-		Assert::null($this->structure->getPrimaryKey('invalid'));
+		Assert::exception(function() {
+			$this->structure->getPrimaryKey('invalid');
+		}, Nette\InvalidArgumentException::class, "Table 'invalid' does not exist.");
 	}
 
 
