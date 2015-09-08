@@ -224,6 +224,26 @@ class Selection extends Nette\Object implements \Iterator, IRowContainer, \Array
 
 
 	/**
+	 * Fetches single field.
+	 * @param  string|NULL
+	 * @return mixed|FALSE
+	 */
+	public function fetchField($column = NULL)
+	{
+		if ($column) {
+			$this->select($column);
+		}
+
+		$row = $this->fetch();
+		if ($row) {
+			return $column ? $row[$column] : array_values($row->toArray())[0];
+		}
+
+		return FALSE;
+	}
+
+
+	/**
 	 * @inheritDoc
 	 */
 	public function fetchPairs($key = NULL, $value = NULL)
@@ -486,8 +506,8 @@ class Selection extends Nette\Object implements \Iterator, IRowContainer, \Array
 		foreach ($result->getPdoStatement() as $key => $row) {
 			$row = $this->createRow($result->normalizeRow($row));
 			$primary = $row->getSignature(FALSE);
-			$usedPrimary = $usedPrimary && (string) $primary !== '';
-			$this->rows[$usedPrimary ? $primary : $key] = $row;
+			$usedPrimary = $usedPrimary && $primary;
+			$this->rows[$primary ?: $key] = $row;
 		}
 		$this->data = $this->rows;
 
@@ -538,6 +558,7 @@ class Selection extends Nette\Object implements \Iterator, IRowContainer, \Array
 		$this->specificCacheKey = NULL;
 		$this->generalCacheKey = NULL;
 		$this->refCache['referencingPrototype'] = [];
+		$this->refCache['referenced'] = [];
 	}
 
 
