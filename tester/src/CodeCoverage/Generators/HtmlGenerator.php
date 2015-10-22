@@ -96,8 +96,6 @@ class HtmlGenerator extends AbstractGenerator
 				$coverage = round($covered * 100 / $total);
 				$this->totalSum += $total;
 				$this->coveredSum += $covered;
-			} else {
-				$this->totalSum += count(file($entry, FILE_SKIP_EMPTY_LINES));
 			}
 
 			$light = $total ? $total < 5 : count(file($entry)) < 50;
