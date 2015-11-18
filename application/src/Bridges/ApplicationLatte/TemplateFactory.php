@@ -84,17 +84,10 @@ class TemplateFactory extends Nette\Object implements UI\ITemplateFactory
 			return $time == NULL ? NULL : Nette\Utils\DateTime::from($time)->modify($delta . $unit); // intentionally ==
 		});
 
-		if (!isset($latte->getFilters()['translate'])) {
-			$latte->addFilter('translate', function () {
-				throw new Nette\InvalidStateException('Translator has not been set. Set translator using $template->setTranslator().');
-			});
-		}
-
 		// default parameters
 		$template->control = $template->_control = $control;
 		$template->presenter = $template->_presenter = $presenter;
 		$template->user = $this->user;
-		$template->netteHttpResponse = $this->httpResponse;
 		$template->netteCacheStorage = $this->cacheStorage;
 		$template->baseUri = $template->baseUrl = $this->httpRequest ? rtrim($this->httpRequest->getUrl()->getBaseUrl(), '/') : NULL;
 		$template->basePath = preg_replace('#https?://[^/]+#A', '', $template->baseUrl);
