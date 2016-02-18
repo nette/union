@@ -16,14 +16,16 @@ if (!MemcachedStorage::isAvailable()) {
 	Tester\Environment::skip('Requires PHP extension Memcache.');
 }
 
+Tester\Environment::lock('memcached-files', TEMP_DIR);
 
-$key = 'nette-files-key';
+
+$key = 'nette-memcache-files-key';
 $value = 'rulez';
 
 $cache = new Cache(new MemcachedStorage('localhost'));
 
 
-$dependentFile = TEMP_DIR . '/spec.file';
+$dependentFile = TEMP_DIR . '/spec-memcache.file';
 @unlink($dependentFile);
 
 // Writing cache...

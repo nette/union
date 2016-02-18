@@ -16,8 +16,10 @@ if (!MemcachedStorage::isAvailable()) {
 	Tester\Environment::skip('Requires PHP extension Memcache.');
 }
 
+Tester\Environment::lock('memcached-sliding', TEMP_DIR);
 
-$key = 'nette-sliding-key';
+
+$key = 'nette-memcache-sliding-key';
 $value = 'rulez';
 
 $cache = new Cache(new MemcachedStorage('localhost'));

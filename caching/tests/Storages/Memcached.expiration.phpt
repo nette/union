@@ -16,8 +16,10 @@ if (!MemcachedStorage::isAvailable()) {
 	Tester\Environment::skip('Requires PHP extension Memcache.');
 }
 
+Tester\Environment::lock('memcached-expiration', TEMP_DIR);
 
-$key = 'nette-expiration-key';
+
+$key = 'nette-memcache-expiration-key';
 $value = 'rulez';
 
 $cache = new Cache(new MemcachedStorage('localhost'));
