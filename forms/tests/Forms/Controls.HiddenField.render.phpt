@@ -26,7 +26,7 @@ test(function () {
 	$input = $form->addHidden('hidden', 'value');
 
 	Assert::null($input->getLabel());
-	Assert::type('Nette\Utils\Html', $input->getControl());
+	Assert::type(Html::class, $input->getControl());
 	Assert::same('<input type="hidden" name="hidden" value="value">', (string) $input->getControl());
 });
 
@@ -54,4 +54,16 @@ test(function () { // forced ID
 	$input->setHtmlId($input->getHtmlId());
 
 	Assert::same('<input type="hidden" name="hidden" id="frm-hidden" value="">', (string) $input->getControl());
+});
+
+
+test(function () { // rendering options
+	$form = new Form;
+	$input = $form->addHidden('hidden');
+
+	Assert::same('hidden', $input->getOption('type'));
+
+	Assert::null($input->getOption('rendered'));
+	$input->getControl();
+	Assert::true($input->getOption('rendered'));
 });

@@ -26,7 +26,7 @@ test(function () {
 	$input = $form->addImage('button', 'image.gif');
 
 	Assert::null($input->getLabel());
-	Assert::type('Nette\Utils\Html', $input->getControl());
+	Assert::type(Html::class, $input->getControl());
 	Assert::same('<input type="image" name="button[]" src="image.gif">', (string) $input->getControl());
 });
 
@@ -54,4 +54,16 @@ test(function () { // container
 	$input = $container->addImage('button', 'image.gif');
 
 	Assert::same('<input type="image" name="container[button][]" src="image.gif">', (string) $input->getControl());
+});
+
+
+test(function () { // rendering options
+	$form = new Form;
+	$input = $form->addImage('button');
+
+	Assert::same('button', $input->getOption('type'));
+
+	Assert::null($input->getOption('rendered'));
+	$input->getControl();
+	Assert::true($input->getOption('rendered'));
 });

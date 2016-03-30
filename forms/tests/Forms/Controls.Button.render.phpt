@@ -26,7 +26,7 @@ test(function () {
 	$input = $form->addButton('button', 'Caption');
 
 	Assert::null($input->getLabel());
-	Assert::type('Nette\Utils\Html', $input->getControl());
+	Assert::type(Html::class, $input->getControl());
 	Assert::same('<input type="button" name="button" value="Caption">', (string) $input->getControl());
 	Assert::same('<input type="button" name="button" value="Another caption">', (string) $input->getControl('Another caption'));
 });
@@ -74,7 +74,7 @@ test(function () { // SubmitButton
 	$input = $form->addSubmit('button', 'Caption');
 
 	Assert::null($input->getLabel());
-	Assert::type('Nette\Utils\Html', $input->getControl());
+	Assert::type(Html::class, $input->getControl());
 	Assert::same('<input type="submit" name="button" value="Caption">', (string) $input->getControl());
 	Assert::same('<input type="submit" name="button" value="Another caption">', (string) $input->getControl('Another caption'));
 });
@@ -104,4 +104,16 @@ test(function () { // forced ID
 	$input->setHtmlId($input->getHtmlId());
 
 	Assert::same('<input type="button" name="button" id="frm-button" value="Caption">', (string) $input->getControl());
+});
+
+
+test(function () { // rendering options
+	$form = new Form;
+	$input = $form->addButton('button');
+
+	Assert::same('button', $input->getOption('type'));
+
+	Assert::null($input->getOption('rendered'));
+	$input->getControl();
+	Assert::true($input->getOption('rendered'));
 });
