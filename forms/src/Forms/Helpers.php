@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Forms;
@@ -112,12 +112,15 @@ class Helpers extends Nette\Object
 				];
 				if ($rule->branch->getToggles()) {
 					$item['toggle'] = $rule->branch->getToggles();
+				} elseif (!$item['rules']) {
+					continue;
 				}
 			} else {
 				$item = ['op' => ($rule->isNegative ? '~' : '') . $op, 'msg' => Validator::formatMessage($rule, FALSE)];
 			}
 
 			if (is_array($rule->arg)) {
+				$item['arg'] = [];
 				foreach ($rule->arg as $key => $value) {
 					$item['arg'][$key] = $value instanceof IControl ? ['control' => $value->getHtmlName()] : $value;
 				}

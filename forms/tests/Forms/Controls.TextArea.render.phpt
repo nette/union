@@ -27,11 +27,11 @@ test(function () {
 		->setValue('&text')
 		->setAttribute('autocomplete', 'off');
 
-	Assert::type('Nette\Utils\Html', $input->getLabel());
+	Assert::type(Html::class, $input->getLabel());
 	Assert::same('<label for="frm-text">Label</label>', (string) $input->getLabel());
 	Assert::same('<label for="frm-text">Another label</label>', (string) $input->getLabel('Another label'));
 
-	Assert::type('Nette\Utils\Html', $input->getControl());
+	Assert::type(Html::class, $input->getControl());
 	Assert::same('<textarea name="text" autocomplete="off" id="frm-text">&amp;text</textarea>', (string) $input->getControl());
 });
 
@@ -84,4 +84,16 @@ test(function () { // container
 	$input = $container->addTextArea('text');
 
 	Assert::same('<textarea name="container[text]" id="frm-container-text"></textarea>', (string) $input->getControl());
+});
+
+
+test(function () { // rendering options
+	$form = new Form;
+	$input = $form->addTextArea('text');
+
+	Assert::same('textarea', $input->getOption('type'));
+
+	Assert::null($input->getOption('rendered'));
+	$input->getControl();
+	Assert::true($input->getOption('rendered'));
 });

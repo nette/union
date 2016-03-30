@@ -1,13 +1,14 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
 
 use Nette;
+use Nette\Forms;
 use Nette\Http\FileUpload;
 
 
@@ -16,6 +17,8 @@ use Nette\Http\FileUpload;
  */
 class UploadControl extends BaseControl
 {
+	/** validation rule */
+	const VALID = ':uploadControlValid';
 
 	/**
 	 * @param  string  label
@@ -26,6 +29,9 @@ class UploadControl extends BaseControl
 		parent::__construct($label);
 		$this->control->type = 'file';
 		$this->control->multiple = (bool) $multiple;
+		$this->setOption('type', 'file');
+		$this->addCondition(Forms\Form::FILLED)
+			->addRule([$this, 'isOk'], Forms\Validator::$messages[self::VALID]);
 	}
 
 
@@ -85,7 +91,23 @@ class UploadControl extends BaseControl
 	 */
 	public function isFilled()
 	{
-		return $this->value instanceof FileUpload ? $this->value->isOk() : (bool) $this->value; // ignore NULL object
+		return $this->value instanceof FileUpload
+			? $this->value->getError() !== UPLOAD_ERR_NO_FILE // ignore NULL object
+			: (bool) $this->value;
+	}
+
+
+	/**
+	 * Have been all files succesfully uploaded?
+	 * @return bool
+	 */
+	public function isOk()
+	{
+		return $this->value instanceof FileUpload
+			? $this->value->isOk()
+			: $this->value && array_reduce($this->value, function ($carry, $fileUpload) {
+				return $carry && $fileUpload->isOk();
+			}, TRUE);
 	}
 
 }
