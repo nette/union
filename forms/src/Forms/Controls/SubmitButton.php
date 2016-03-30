@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
@@ -14,7 +14,6 @@ use Nette;
  * Submittable button control.
  *
  * @property-read bool $submittedBy
- * @property   mixed $validationScope
  */
 class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
 {
@@ -112,7 +111,7 @@ class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
 	{
 		$scope = [];
 		foreach ((array) $this->validationScope as $control) {
-			$scope[] = $control->lookupPath('Nette\Forms\Form');
+			$scope[] = $control->lookupPath(Nette\Forms\Form::class);
 		}
 		return parent::getControl($caption)->addAttributes([
 			'formnovalidate' => $this->validationScope !== NULL,

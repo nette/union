@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Forms;
@@ -13,10 +13,7 @@ use Nette;
 /**
  * Container for form controls.
  *
- * @property-write $defaults
  * @property   Nette\Utils\ArrayHash $values
- * @property-read bool $valid
- * @property   ControlGroup $currentGroup
  * @property-read \ArrayIterator $controls
  * @property-read Form $form
  */
@@ -137,10 +134,15 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 		foreach ($controls === NULL ? $this->getComponents() : $controls as $control) {
 			$control->validate();
 		}
-		foreach ($this->onValidate ?: [] as $handler) {
-			$params = Nette\Utils\Callback::toReflection($handler)->getParameters();
-			$values = isset($params[1]) ? $this->getValues($params[1]->isArray()) : NULL;
-			Nette\Utils\Callback::invoke($handler, $this, $values);
+		if ($this->onValidate !== NULL) {
+			if (!is_array($this->onValidate) && !$this->onValidate instanceof \Traversable) {
+				throw new Nette\UnexpectedValueException('Property Form::$onValidate must be array or Traversable, ' . gettype($this->onValidate) . ' given.');
+			}
+			foreach ($this->onValidate as $handler) {
+				$params = Nette\Utils\Callback::toReflection($handler)->getParameters();
+				$values = isset($params[1]) ? $this->getValues($params[1]->isArray()) : NULL;
+				Nette\Utils\Callback::invoke($handler, $this, $values);
+			}
 		}
 		$this->validated = TRUE;
 	}
@@ -194,7 +196,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	public function addComponent(Nette\ComponentModel\IComponent $component, $name, $insertBefore = NULL)
 	{
 		parent::addComponent($component, $name, $insertBefore);
-		if ($this->currentGroup !== NULL && $component instanceof IControl) {
+		if ($this->currentGroup !== NULL) {
 			$this->currentGroup->add($component);
 		}
 		return $this;
@@ -207,7 +209,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 */
 	public function getControls()
 	{
-		return $this->getComponents(TRUE, 'Nette\Forms\IControl');
+		return $this->getComponents(TRUE, IControl::class);
 	}
 
 
@@ -218,7 +220,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 */
 	public function getForm($need = TRUE)
 	{
-		return $this->lookup('Nette\Forms\Form', $need);
+		return $this->lookup(Form::class, $need);
 	}
 
 
@@ -429,6 +431,9 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	{
 		$control = new self;
 		$control->currentGroup = $this->currentGroup;
+		if ($this->currentGroup !== NULL) {
+			$this->currentGroup->add($control);
+		}
 		return $this[$name] = $control;
 	}
 

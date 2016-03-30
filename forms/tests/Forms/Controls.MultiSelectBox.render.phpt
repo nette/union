@@ -28,11 +28,11 @@ test(function () {
 		0 => 'Second',
 	]);
 
-	Assert::type('Nette\Utils\Html', $input->getLabel());
+	Assert::type(Html::class, $input->getLabel());
 	Assert::same('<label for="frm-list">Label</label>', (string) $input->getLabel());
 	Assert::same('<label for="frm-list">Another label</label>', (string) $input->getLabel('Another label'));
 
-	Assert::type('Nette\Utils\Html', $input->getControl());
+	Assert::type(Html::class, $input->getControl());
 	Assert::same('<select name="list[]" id="frm-list" multiple><option value="a">First</option><option value="0">Second</option></select>', (string) $input->getControl());
 });
 
@@ -118,4 +118,16 @@ test(function () { // disabled one
 	])->setDisabled(['a']);
 
 	Assert::same('<select name="list[]" id="frm-list" multiple><option value="a" disabled>First</option><option value="0">Second</option></select>', (string) $input->getControl());
+});
+
+
+test(function () { // rendering options
+	$form = new Form;
+	$input = $form->addMultiSelect('list');
+
+	Assert::same('select', $input->getOption('type'));
+
+	Assert::null($input->getOption('rendered'));
+	$input->getControl();
+	Assert::true($input->getOption('rendered'));
 });

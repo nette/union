@@ -39,7 +39,7 @@ test(function () use ($series) { // Select
 });
 
 
-test(function () use ($series) { // Empty select
+test(function () { // Empty select
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -65,7 +65,19 @@ test(function () use ($series) { // Select with prompt
 });
 
 
-test(function () use ($series) { // Select with optgroups
+test(function () use ($series) { // Select with more visible options and no input
+	$form = new Form;
+	$input = $form->addSelect('select', NULL, $series);
+	$input->getControlPrototype()->size = 2;
+
+	Assert::true($form->isValid());
+	Assert::same(NULL, $input->getValue());
+	Assert::same(NULL, $input->getSelectedItem());
+	Assert::false($input->isFilled());
+});
+
+
+test(function () { // Select with optgroups
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -192,7 +204,7 @@ test(function () use ($series) { // setItems without keys
 });
 
 
-test(function () use ($series) { // setItems without keys
+test(function () { // setItems without keys
 	$form = new Form;
 	$input = $form->addSelect('select')->setItems(range(1, 5), FALSE);
 	Assert::same([1 => 1, 2, 3, 4, 5], $input->getItems());
@@ -222,7 +234,7 @@ test(function () use ($series) { // setValue() and invalid argument
 
 	Assert::exception(function () use ($input) {
 		$input->setValue('unknown');
-	}, 'Nette\InvalidArgumentException', "Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.");
+	}, Nette\InvalidArgumentException::class, "Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.");
 });
 
 
