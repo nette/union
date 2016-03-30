@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
@@ -23,8 +23,9 @@ class HiddenField extends BaseControl
 	{
 		parent::__construct();
 		$this->control->type = 'hidden';
+		$this->setOption('type', 'hidden');
 		if ($persistentValue !== NULL) {
-			$this->unmonitor('Nette\Forms\Form');
+			$this->unmonitor(Nette\Forms\Form::class);
 			$this->persistValue = TRUE;
 			$this->value = (string) $persistentValue;
 		}
