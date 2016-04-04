@@ -9,6 +9,9 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
+/**
+ * @property array $items
+ */
 class TestClass
 {
 	use Nette\SmartObject;

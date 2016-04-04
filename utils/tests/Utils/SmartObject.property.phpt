@@ -9,6 +9,12 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
+/**
+ * @property int $foo
+ * @property int $bar
+ * @property int $bazz
+ * @property int $s
+ */
 class TestClass
 {
 	use Nette\SmartObject;
@@ -37,7 +43,7 @@ class TestClass
 		$this->foo = $foo;
 	}
 
-	public function getBar()
+	protected function getBar()
 	{
 		return $this->bar;
 	}
@@ -59,7 +65,9 @@ class TestClass
 $obj = new TestClass;
 $obj->foo = 'hello';
 Assert::same('hello', $obj->foo);
-Assert::same('hello', $obj->Foo);
+Assert::error(function () use ($obj) {
+	$val = $obj->Foo;
+}, E_USER_DEPRECATED, 'Missing annotation @property for TestClass::$Foo used in ' . __FILE__ . ':' . (__LINE__ - 1));
 
 
 $obj->foo .= ' world';
@@ -94,7 +102,7 @@ Assert::exception(function () use ($obj) {
 
 // write-only property
 $obj = new TestClass;
-Assert::false(isset($obj->bazz));
+Assert::true(isset($obj->bazz));
 $obj->bazz = 'World';
 Assert::same('World', $obj->bar);
 
