@@ -199,16 +199,8 @@ class Configurator
 	 */
 	public function createContainer()
 	{
-		$loader = new DI\ContainerLoader(
-			$this->getCacheDirectory() . '/Nette.Configurator',
-			$this->parameters['debugMode']
-		);
-		$class = $loader->load(
-			[$this->parameters, $this->files, PHP_VERSION_ID - PHP_RELEASE_VERSION],
-			[$this, 'generateContainer']
-		);
-
-		$container = new $class;
+		$class = $this->loadContainer();
+		$container = new $class();
 		foreach ($this->services as $name => $service) {
 			$container->addService($name, $service);
 		}
@@ -217,6 +209,24 @@ class Configurator
 			Nette\Environment::setContext($container); // back compatibility
 		}
 		return $container;
+	}
+
+
+	/**
+	 * Loads system DI container class and returns its name.
+	 * @return string
+	 */
+	public function loadContainer()
+	{
+		$loader = new DI\ContainerLoader(
+			$this->getCacheDirectory() . '/Nette.Configurator',
+			$this->parameters['debugMode']
+		);
+		$class = $loader->load(
+			[$this->parameters, $this->files, PHP_VERSION_ID - PHP_RELEASE_VERSION],
+			[$this, 'generateContainer']
+		);
+		return $class;
 	}
 
 
@@ -294,8 +304,6 @@ class Configurator
 				$new = is_int($new) ? $old : $new;
 				if (isset($config[$new])) {
 					throw new Nette\DeprecatedException("You can use (deprecated) section 'nette.$old' or new section '$new', but not both of them.");
-				} else {
-					trigger_error("Configuration section 'nette.$old' is deprecated, use section '$new' (without 'nette')", E_USER_DEPRECATED);
 				}
 				$config[$new] = $config['nette'][$old];
 				unset($config['nette'][$old]);
