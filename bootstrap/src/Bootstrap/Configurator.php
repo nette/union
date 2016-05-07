@@ -41,7 +41,6 @@ class Configurator
 		'http' => Nette\Bridges\HttpDI\HttpExtension::class,
 		'latte' => [Nette\Bridges\ApplicationDI\LatteExtension::class, ['%tempDir%/cache/latte', '%debugMode%']],
 		'mail' => Nette\Bridges\MailDI\MailExtension::class,
-		'reflection' => [Nette\Bridges\ReflectionDI\ReflectionExtension::class, ['%debugMode%']],
 		'routing' => [Nette\Bridges\ApplicationDI\RoutingExtension::class, ['%debugMode%']],
 		'security' => [Nette\Bridges\SecurityDI\SecurityExtension::class, ['%debugMode%']],
 		'session' => [Nette\Bridges\HttpDI\SessionExtension::class, ['%debugMode%']],
@@ -304,6 +303,8 @@ class Configurator
 				$new = is_int($new) ? $old : $new;
 				if (isset($config[$new])) {
 					throw new Nette\DeprecatedException("You can use (deprecated) section 'nette.$old' or new section '$new', but not both of them.");
+				} else {
+					trigger_error("Configuration section 'nette.$old' is deprecated, use section '$new' (without 'nette')", E_USER_DEPRECATED);
 				}
 				$config[$new] = $config['nette'][$old];
 				unset($config['nette'][$old]);
