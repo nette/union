@@ -22,7 +22,13 @@
 	Panel.prototype.init = function() {
 		var _this = this, elem = this.elem;
 
+		elem.Tracy.onMove = function(coords) {
+			_this.moveConstrains(this, coords);
+		};
+
 		draggable(elem, {
+			rightEdge: true,
+			bottomEdge: true,
 			handle: elem.querySelector('h1'),
 			stop: function() {
 				_this.toFloat();
@@ -172,6 +178,13 @@
 		}
 	};
 
+	Panel.prototype.moveConstrains = function(el, coords) { // forces constrained inside window
+		var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth,
+			height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+		coords.right = Math.min(Math.max(coords.right, -0.2 * el.offsetWidth), width - 0.8 * el.offsetWidth);
+		coords.bottom = Math.min(Math.max(coords.bottom, -0.2 * el.offsetHeight), height - el.offsetHeight);
+	};
+
 	Panel.prototype.savePosition = function() {
 		var pos = getPosition(this.elem);
 		if (this.is(Panel.WINDOW)) {
@@ -202,9 +215,16 @@
 	Bar.prototype.id = 'tracy-debug-bar';
 
 	Bar.prototype.init = function() {
-		var elem = document.getElementById(this.id);
+		var elem = document.getElementById(this.id), _this = this;
+
+		elem.Tracy = {};
+		elem.Tracy.onMove = function(coords) {
+			_this.moveConstrains(this, coords);
+		};
 
 		draggable(elem, {
+			rightEdge: true,
+			bottomEdge: true,
 			draggedClass: 'tracy-dragged'
 		});
 
@@ -265,6 +285,13 @@
 
 	Bar.prototype.close = function() {
 		document.getElementById('tracy-debug').style.display = 'none';
+	};
+
+	Bar.prototype.moveConstrains = function(el, coords) { // forces constrained inside window
+		var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth,
+			height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+		coords.right = Math.min(Math.max(coords.right, 0), width - el.offsetWidth);
+		coords.bottom = Math.min(Math.max(coords.bottom, 0), height - el.offsetHeight);
 	};
 
 	Bar.prototype.savePosition = function() {
@@ -398,15 +425,8 @@
 	var dragging;
 
 	function draggable(elem, options) {
-		var dE = document.documentElement, started, deltaX, deltaY, clientX, clientY;
+		var dE = document.documentElement, started, pos, deltaX, deltaY;
 		options = options || {};
-
-		var redraw = function () {
-			if (dragging) {
-				setPosition(elem, {right: deltaX - clientX, bottom: deltaY - clientY});
-				requestAnimationFrame(redraw);
-			}
-		};
 
 		var onmousemove = function(e) {
 			if (e.buttons === 0) {
@@ -422,8 +442,10 @@
 				started = true;
 			}
 
-			clientX = e.clientX;
-			clientY = e.clientY;
+			var pos = {};
+			pos[options.rightEdge ? 'right' : 'left'] = options.rightEdge ? deltaX - e.clientX : e.clientX + deltaX;
+			pos[options.bottomEdge ? 'bottom' : 'top'] = options.bottomEdge ? deltaY - e.clientY : e.clientY + deltaY;
+			setPosition(elem, pos);
 			return false;
 		};
 
@@ -450,16 +472,13 @@
 				return onmouseup(e);
 			}
 
-			var pos = getPosition(elem);
-			clientX = e.clientX;
-			clientY = e.clientY;
-			deltaX = pos.right + clientX;
-			deltaY = pos.bottom + clientY;
+			pos = getPosition(elem);
+			deltaX = options.rightEdge ? pos.right + e.clientX : pos.left - e.clientX;
+			deltaY = options.bottomEdge ? pos.bottom + e.clientY : pos.top - e.clientY;
 			dragging = true;
 			started = false;
 			dE.addEventListener('mousemove', onmousemove);
 			dE.addEventListener('mouseup', onmouseup);
-			requestAnimationFrame(redraw);
 		});
 
 		(options.handle || elem).addEventListener('click', function(e) {
@@ -480,8 +499,12 @@
 
 	// move to new position
 	function setPosition(elem, coords) {
-		elem.style.right = Math.min(Math.max(coords.right, 0), window.innerWidth - elem.offsetWidth) + 'px';
-		elem.style.bottom = Math.min(Math.max(coords.bottom, 0), window.innerHeight - elem.offsetHeight) + 'px';
+		if (elem.Tracy && elem.Tracy.onMove) {
+			elem.Tracy.onMove.call(elem, coords);
+		}
+		for (var item in coords) {
+			elem.style[item] = coords[item] + 'px';
+		}
 	}
 
 	// returns current position
