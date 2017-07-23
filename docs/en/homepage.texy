@@ -1,11 +1,14 @@
 /---div .[row navig documentation]
 /---div .[column]
 
-MVC Application
----------------
+Framework
+---------
 - **[Create Your First Application! |quickstart] .[main]**
 - [Bootstrap]
 - [Configuration |configuring]
+
+MVC Application
+---------------
 - [Presenters |presenters]
 - [Components and Controls |components]
 - [URL Routing |routing] - cool URL addresses
@@ -21,8 +24,8 @@ Latte Templating Engine
 
 Dependency Injection
 --------------------
-- [Dependency Injection]
-- [Services Configuration |di-configuration]
+- [Overview |dependency-injection]
+- [Services Configuration |di-configuration] - NEON syntax
 - [Getting Dependencies |di-usage] - inject objects
 - [DI Container Extensions |di-extensions]
 
@@ -60,7 +63,7 @@ HTTP
 ----
 - [Request & Response |http-request-response]
 - [Sessions]
-- [URL] - parse and build URL
+- [URL |urls] - parse and build URL
 
 Testing
 -------
@@ -70,7 +73,7 @@ Testing
 Utils
 -----
 - [Arrays] - manipulate arrays
-- [Date] - modify times and dates
+- [DateTime] - modify times and dates
 - [Finder] - finds files and directories
 - [HTML elements] - generate HTML
 - [Images] - crop, resize, rotate images
