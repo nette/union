@@ -26,13 +26,6 @@ http:
 	headers:
 		A: b
 		C:
-	csp:
-		default-src: "'self' https://example.com"
-		upgrade-insecure-requests:
-		script-src: 'nonce'
-		style-src:
-			- self
-			- https://example.com
 EOD
 , 'neon'));
 
@@ -47,9 +40,6 @@ Assert::contains('Content-Type: text/html; charset=utf-8', $headers);
 Assert::contains('X-Powered-By: Nette Framework 3', $headers);
 Assert::contains('A: b', $headers);
 Assert::notContains('C:', $headers);
-
-preg_match('#nonce-([\w+/]+=*)#', implode($headers), $nonce);
-Assert::contains("Content-Security-Policy: default-src 'self' https://example.com; upgrade-insecure-requests; script-src 'nonce-$nonce[1]'; style-src 'self' https://example.com;", $headers);
 
 
 echo ' '; @ob_flush(); flush();
