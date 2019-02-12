@@ -11,7 +11,7 @@ require __DIR__ . '/../bootstrap.php';
 
 $list = new RouteList;
 $list->add(new Route('foo', ['route' => 'foo']), RouteList::ONE_WAY);
-$list->add(new Route('bar', ['route' => 'bar']), RouteList::ONE_WAY);
+$list->addRoute('bar', ['route' => 'bar'], RouteList::ONE_WAY);
 $list->add(new Route('hello', ['route' => 'hello']));
 
 
