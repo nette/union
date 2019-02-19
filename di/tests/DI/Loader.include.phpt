@@ -34,4 +34,5 @@ Assert::same([
 		'list' => [5, 6, 1, 2],
 		'force' => [1, 2],
 	],
+	'services' => ['a' => ['autowired' => false]],
 ], $data);
