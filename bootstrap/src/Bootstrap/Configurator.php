@@ -160,7 +160,7 @@ class Configurator
 		return [
 			'appDir' => isset($trace[1]['file']) ? dirname($trace[1]['file']) : null,
 			'wwwDir' => isset($last['file']) ? dirname($last['file']) : null,
-			'vendorDir' => $loaderRc ? dirname(dirname($loaderRc->getFileName())) : null,
+			'vendorDir' => $loaderRc ? dirname($loaderRc->getFileName(), 2) : null,
 			'debugMode' => $debugMode,
 			'productionMode' => !$debugMode,
 			'consoleMode' => PHP_SAPI === 'cli',
@@ -250,9 +250,6 @@ class Configurator
 	 */
 	public function generateContainer(DI\Compiler $compiler): void
 	{
-		$compiler->addConfig(['parameters' => $this->parameters]);
-		$compiler->setDynamicParameterNames(array_keys($this->dynamicParameters));
-
 		$loader = $this->createLoader();
 		$loader->setParameters($this->parameters);
 
@@ -263,6 +260,9 @@ class Configurator
 				$compiler->addConfig($config);
 			}
 		}
+
+		$compiler->addConfig(['parameters' => $this->parameters]);
+		$compiler->setDynamicParameterNames(array_keys($this->dynamicParameters));
 
 		$builder = $compiler->getContainerBuilder();
 		$builder->addExcludedClasses($this->autowireExcludedClasses);
