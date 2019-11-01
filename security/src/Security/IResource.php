@@ -13,13 +13,10 @@ namespace Nette\Security;
 /**
  * Represents resource, an object to which access is controlled.
  */
-interface Resource
+interface IResource
 {
 	/**
 	 * Returns a string identifier of the Resource.
 	 */
 	function getResourceId(): string;
 }
-
-
-interface_exists(IResource::class);

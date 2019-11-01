@@ -1,20 +1,20 @@
 <?php
 
 /**
- * Test: Nette\Security\SimpleIdentity.
+ * Test: Nette\Security\Identity.
  */
 
 declare(strict_types=1);
 
-use Nette\Security\SimpleIdentity;
+use Nette\Security\Identity;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-test('', function () {
-	$id = new SimpleIdentity(12, 'admin', ['name' => 'John']);
+test(function () {
+	$id = new Identity(12, 'admin', ['name' => 'John']);
 
 	Assert::same(12, $id->getId());
 	Assert::same(12, $id->id);
@@ -26,11 +26,11 @@ test('', function () {
 });
 
 
-test('', function () {
-	$id = new SimpleIdentity('12');
+test(function () {
+	$id = new Identity('12');
 	Assert::same(12, $id->getId());
 
 
-	$id = new SimpleIdentity('12345678901234567890');
+	$id = new Identity('12345678901234567890');
 	Assert::same('12345678901234567890', $id->getId());
 });

@@ -19,7 +19,7 @@ use Nette;
  * @property   array $roles
  * @property   array $data
  */
-class SimpleIdentity implements IIdentity
+class Identity implements IIdentity
 {
 	use Nette\SmartObject {
 		__get as private parentGet;
@@ -41,9 +41,7 @@ class SimpleIdentity implements IIdentity
 	{
 		$this->setId($id);
 		$this->setRoles((array) $roles);
-		$this->data = $data instanceof \Traversable
-			? iterator_to_array($data)
-			: (array) $data;
+		$this->data = $data instanceof \Traversable ? iterator_to_array($data) : (array) $data;
 	}
 
 

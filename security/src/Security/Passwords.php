@@ -27,8 +27,7 @@ class Passwords
 
 
 	/**
-	 * Chooses which secure algorithm is used for hashing and how to configure it.
-	 * @see https://php.net/manual/en/password.constants.php
+	 * See https://php.net/manual/en/password.constants.php
 	 */
 	public function __construct($algo = PASSWORD_DEFAULT, array $options = [])
 	{
@@ -38,15 +37,14 @@ class Passwords
 
 
 	/**
-	 * Computes password´s hash. The result contains the algorithm ID and its settings, cryptographical salt and the hash itself.
+	 * Computes salted password hash.
 	 */
 	public function hash(string $password): string
 	{
-		if ($password === '') {
-			throw new Nette\InvalidArgumentException('Password can not be empty.');
-		}
+		$hash = isset($this)
+			? @password_hash($password, $this->algo, $this->options) // @ is escalated to exception
+			: @password_hash($password, PASSWORD_BCRYPT, func_get_args()[1] ?? []); // back compatibility with v2.x
 
-		$hash = @password_hash($password, $this->algo, $this->options); // @ is escalated to exception
 		if (!$hash) {
 			throw new Nette\InvalidStateException('Computed hash is invalid. ' . error_get_last()['message']);
 		}
@@ -55,7 +53,7 @@ class Passwords
 
 
 	/**
-	 * Finds out, whether the given password matches the given hash.
+	 * Verifies that a password matches a hash.
 	 */
 	public function verify(string $password, string $hash): bool
 	{
@@ -64,10 +62,12 @@ class Passwords
 
 
 	/**
-	 * Finds out if the hash matches the options given in constructor.
+	 * Checks if the given hash matches the options.
 	 */
 	public function needsRehash(string $hash): bool
 	{
-		return password_needs_rehash($hash, $this->algo, $this->options);
+		return isset($this)
+			? password_needs_rehash($hash, $this->algo, $this->options)
+			: password_needs_rehash($hash, PASSWORD_BCRYPT, func_get_args()[1] ?? []); // back compatibility with v2.x
 	}
 }

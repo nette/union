@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class MockUserStorage implements Nette\Security\UserStorage
+class MockUserStorage implements Nette\Security\IUserStorage
 {
 	private $auth = false;
 

@@ -19,7 +19,7 @@ use Nette;
  *
  * @copyright  Copyright (c) 2005, 2007 Zend Technologies USA Inc.
  */
-class Permission implements Authorizator
+class Permission implements IAuthorizator
 {
 	use Nette\SmartObject;
 
@@ -389,12 +389,8 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function allow(
-		$roles = self::ALL,
-		$resources = self::ALL,
-		$privileges = self::ALL,
-		callable $assertion = null
-	) {
+	public function allow($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, callable $assertion = null)
+	{
 		$this->setRule(true, self::ALLOW, $roles, $resources, $privileges, $assertion);
 		return $this;
 	}
@@ -409,12 +405,8 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function deny(
-		$roles = self::ALL,
-		$resources = self::ALL,
-		$privileges = self::ALL,
-		callable $assertion = null
-	) {
+	public function deny($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, callable $assertion = null)
+	{
 		$this->setRule(true, self::DENY, $roles, $resources, $privileges, $assertion);
 		return $this;
 	}
@@ -529,7 +521,7 @@ class Permission implements Authorizator
 									'allPrivileges' => [
 										'type' => self::DENY,
 										'assert' => null,
-									],
+										],
 									'byPrivilege' => [],
 								];
 							}
@@ -565,8 +557,8 @@ class Permission implements Authorizator
 	 * and its respective parents are checked similarly before the lower-priority parents of
 	 * the Role are checked.
 	 *
-	 * @param  string|Role|null  $role
-	 * @param  string|Resource|null  $resource
+	 * @param  string|null|IRole  $role
+	 * @param  string|null|IResource  $resource
 	 * @param  string|null  $privilege
 	 * @throws Nette\InvalidStateException
 	 */
@@ -574,7 +566,7 @@ class Permission implements Authorizator
 	{
 		$this->queriedRole = $role;
 		if ($role !== self::ALL) {
-			if ($role instanceof Role) {
+			if ($role instanceof IRole) {
 				$role = $role->getRoleId();
 			}
 			$this->checkRole($role);
@@ -582,7 +574,7 @@ class Permission implements Authorizator
 
 		$this->queriedResource = $resource;
 		if ($resource !== self::ALL) {
-			if ($resource instanceof Resource) {
+			if ($resource instanceof IResource) {
 				$resource = $resource->getResourceId();
 			}
 			$this->checkResource($resource);
@@ -590,10 +582,7 @@ class Permission implements Authorizator
 
 		do {
 			// depth-first search on $role if it is not 'allRoles' pseudo-parent
-			if (
-				$role !== null
-				&& ($result = $this->searchRolePrivileges($privilege === self::ALL, $role, $resource, $privilege)) !== null
-			) {
+			if ($role !== null && ($result = $this->searchRolePrivileges($privilege === self::ALL, $role, $resource, $privilege)) !== null) {
 				break;
 			}
 
@@ -608,17 +597,20 @@ class Permission implements Authorizator
 						break;
 					}
 				}
-			} elseif (($result = $this->getRuleType($resource, null, $privilege)) !== null) { // look for rule on 'allRoles' pseudo-parent
-				break;
-			} elseif (($result = $this->getRuleType($resource, null, null)) !== null) {
-				break;
+			} else {
+				if (($result = $this->getRuleType($resource, null, $privilege)) !== null) { // look for rule on 'allRoles' pseudo-parent
+					break;
+
+				} elseif (($result = $this->getRuleType($resource, null, null)) !== null) {
+					break;
+				}
 			}
 
 			$resource = $this->resources[$resource]['parent']; // try next Resource
 		} while (true);
 
 		$this->queriedRole = $this->queriedResource = null;
-		return $result ?? false;
+		return $result;
 	}
 
 
