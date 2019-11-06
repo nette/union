@@ -13,15 +13,11 @@ namespace Nette\Localization;
 /**
  * Translator adapter.
  */
-interface Translator
+interface ITranslator
 {
+
 	/**
 	 * Translates the given string.
-	 * @param  mixed  $message
-	 * @param  mixed  ...$parameters
 	 */
 	function translate($message, ...$parameters): string;
 }
-
-
-interface_exists(Nette\Localization\ITranslator::class);

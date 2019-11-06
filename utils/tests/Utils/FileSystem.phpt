@@ -36,7 +36,7 @@ class RemoteStream /* extends \streamWrapper */
 stream_wrapper_register('remote', RemoteStream::class, STREAM_IS_URL);
 
 
-test('createDir', function () {
+test(function () { // createDir
 	FileSystem::createDir(getTempDir() . '/1/b/');
 	Assert::true(is_dir(getTempDir() . '/1/b'));
 
@@ -45,10 +45,10 @@ test('createDir', function () {
 
 Assert::exception(function () {
 	FileSystem::createDir('');
-}, Nette\IOException::class, "Unable to create directory '' with mode 777.%A%");
+}, Nette\IOException::class, "Unable to create directory ''.%A%");
 
 
-test('write + read', function () {
+test(function () { // write + read
 	FileSystem::write(getTempDir() . '/2/file', 'Hello');
 	Assert::true(is_file(getTempDir() . '/2/file'));
 	Assert::same('Hello', FileSystem::read(getTempDir() . '/2/file'));
@@ -56,14 +56,14 @@ test('write + read', function () {
 
 Assert::exception(function () {
 	FileSystem::write('', 'Hello');
-}, Nette\IOException::class, "Unable to create directory '' with mode 777.%A%");
+}, Nette\IOException::class, "Unable to create directory ''.%A%");
 
 Assert::exception(function () {
-	FileSystem::read('missing');
-}, Nette\IOException::class, "Unable to read file 'missing'. %a%");
+	FileSystem::read('');
+}, Nette\IOException::class, "Unable to read file ''. Filename cannot be empty");
 
 
-test('copy', function () {
+test(function () { // copy
 	Assert::false(stream_is_local('remote://example.com'));
 
 	FileSystem::write(getTempDir() . '/3/file', 'Hello');
@@ -105,7 +105,7 @@ Assert::exception(function () {
 }, Nette\IOException::class, "File or directory '%S%' not found.");
 
 
-test('delete', function () {
+test(function () { // delete
 	FileSystem::write(getTempDir() . '/7/file', 'Hello');
 	FileSystem::delete(getTempDir() . '/7/file');
 	Assert::true(is_dir(getTempDir() . '/7'));
@@ -116,7 +116,7 @@ test('delete', function () {
 });
 
 
-test('rename', function () {
+test(function () { // rename
 	FileSystem::write(getTempDir() . '/8/file', 'Hello');
 	FileSystem::rename(getTempDir() . '/8', getTempDir() . '/9');
 	FileSystem::rename(getTempDir() . '/9/file', getTempDir() . '/9/x/file');
@@ -152,7 +152,7 @@ Assert::exception(function () {
 }, Nette\IOException::class, "File or directory '%S%' not found.");
 
 
-test('isAbsolute', function () {
+test(function () { // isAbsolute
 	Assert::false(FileSystem::isAbsolute(''));
 	Assert::true(FileSystem::isAbsolute('\\'));
 	Assert::true(FileSystem::isAbsolute('//'));

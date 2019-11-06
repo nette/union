@@ -13,7 +13,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('array', function () {
+test(function () { // ==> array
 	$arr = ['Nette', 'Framework'];
 	$tmp = [];
 	foreach (new Iterators\CachingIterator($arr) as $k => $v) {
@@ -26,7 +26,7 @@ test('array', function () {
 });
 
 
-test('stdClass', function () {
+test(function () { // ==> stdClass
 	$arr = (object) ['Nette', 'Framework'];
 	$tmp = [];
 	foreach (new Iterators\CachingIterator($arr) as $k => $v) {
@@ -39,7 +39,7 @@ test('stdClass', function () {
 });
 
 
-test('IteratorAggregate', function () {
+test(function () { // ==> IteratorAggregate
 	$arr = new ArrayObject(['Nette', 'Framework']);
 	$tmp = [];
 	foreach (new Iterators\CachingIterator($arr) as $k => $v) {
@@ -51,7 +51,7 @@ test('IteratorAggregate', function () {
 	], $tmp);
 });
 
-test('Iterator', function () {
+test(function () { // ==> Iterator
 	$arr = new ArrayObject(['Nette', 'Framework']);
 	$tmp = [];
 	foreach (new Iterators\CachingIterator($arr->getIterator()) as $k => $v) {
@@ -64,7 +64,7 @@ test('Iterator', function () {
 });
 
 
-test('SimpleXMLElement', function () {
+test(function () { // ==> SimpleXMLElement
 	$arr = new SimpleXMLElement('<feed><item>Nette</item><item>Framework</item></feed>');
 	$tmp = [];
 	foreach (new Iterators\CachingIterator($arr) as $k => $v) {
@@ -77,7 +77,7 @@ test('SimpleXMLElement', function () {
 });
 
 
-test('object', function () {
+test(function () { // ==> object
 	Assert::exception(function () {
 		$arr = dir('.');
 		foreach (new Iterators\CachingIterator($arr) as $k => $v);
@@ -94,7 +94,7 @@ class RecursiveIteratorAggregate implements IteratorAggregate
 }
 
 
-test('recursive IteratorAggregate', function () {
+test(function () { // ==> recursive IteratorAggregate
 	$arr = new RecursiveIteratorAggregate;
 	$tmp = [];
 	foreach (new Iterators\CachingIterator($arr) as $k => $v) {

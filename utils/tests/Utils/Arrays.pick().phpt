@@ -14,12 +14,13 @@ require __DIR__ . '/../bootstrap.php';
 
 
 $arr = [
-	'' => 'null',
+	null => 'null', // null is ''
 	1 => 'first',
 	2 => 'second',
 ];
 
-test('Single item', function () use ($arr) {
+test(function () use ($arr) { // Single item
+
 	Assert::same('null', Arrays::pick($arr, null));
 	Assert::same('first', Arrays::pick($arr, 1));
 	Assert::same('x', Arrays::pick($arr, 1, 'x'));

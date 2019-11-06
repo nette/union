@@ -24,7 +24,7 @@ class Strings
 
 
 	/**
-	 * Checks if the string is valid in UTF-8 encoding.
+	 * Checks if the string is valid for UTF-8 encoding.
 	 */
 	public static function checkEncoding(string $s): bool
 	{
@@ -33,7 +33,7 @@ class Strings
 
 
 	/**
-	 * Removes all invalid UTF-8 characters from a string.
+	 * Removes invalid code unit sequences from UTF-8 string.
 	 */
 	public static function fixEncoding(string $s): string
 	{
@@ -43,15 +43,13 @@ class Strings
 
 
 	/**
-	 * Returns a specific character in UTF-8 from code point (number in range 0x0000..D7FF or 0xE000..10FFFF).
+	 * Returns a specific character in UTF-8 from code point (0x0 to 0xD7FF or 0xE000 to 0x10FFFF).
 	 * @throws Nette\InvalidArgumentException if code point is not in valid range
 	 */
 	public static function chr(int $code): string
 	{
 		if ($code < 0 || ($code >= 0xD800 && $code <= 0xDFFF) || $code > 0x10FFFF) {
 			throw new Nette\InvalidArgumentException('Code point must be in range 0x0 to 0xD7FF or 0xE000 to 0x10FFFF.');
-		} elseif (!extension_loaded('iconv')) {
-			throw new Nette\NotSupportedException(__METHOD__ . '() requires ICONV extension that is not loaded.');
 		}
 		return iconv('UTF-32BE', 'UTF-8//IGNORE', pack('N', $code));
 	}
@@ -85,15 +83,12 @@ class Strings
 
 
 	/**
-	 * Returns a part of UTF-8 string specified by starting position and length. If start is negative,
-	 * the returned string will start at the start'th character from the end of string.
+	 * Returns a part of UTF-8 string.
 	 */
 	public static function substring(string $s, int $start, int $length = null): string
 	{
 		if (function_exists('mb_substr')) {
 			return mb_substr($s, $start, $length, 'UTF-8'); // MB is much faster
-		} elseif (!extension_loaded('iconv')) {
-			throw new Nette\NotSupportedException(__METHOD__ . '() requires extension ICONV or MBSTRING, neither is loaded.');
 		} elseif ($length === null) {
 			$length = self::length($s);
 		} elseif ($start < 0 && $length < 0) {
@@ -104,23 +99,22 @@ class Strings
 
 
 	/**
-	 * Removes control characters, normalizes line breaks to `\n`, removes leading and trailing blank lines,
-	 * trims end spaces on lines, normalizes UTF-8 to the normal form of NFC.
+	 * Removes special controls characters and normalizes line endings, spaces and normal form to NFC in UTF-8 string.
 	 */
 	public static function normalize(string $s): string
 	{
 		// convert to compressed normal form (NFC)
-		if (class_exists('Normalizer', false) && ($n = \Normalizer::normalize($s, \Normalizer::FORM_C)) !== false) {
-			$s = $n;
+		if (class_exists('Normalizer', false)) {
+			$s = \Normalizer::normalize($s, \Normalizer::FORM_C);
 		}
 
 		$s = self::normalizeNewLines($s);
 
 		// remove control characters; leave \t + \n
-		$s = self::pcre('preg_replace', ['#[\x00-\x08\x0B-\x1F\x7F-\x9F]+#u', '', $s]);
+		$s = preg_replace('#[\x00-\x08\x0B-\x1F\x7F-\x9F]+#u', '', $s);
 
 		// right trim
-		$s = self::pcre('preg_replace', ['#[\t ]+$#m', '', $s]);
+		$s = preg_replace('#[\t ]+$#m', '', $s);
 
 		// leading and trailing blank lines
 		$s = trim($s, "\n");
@@ -139,72 +133,47 @@ class Strings
 
 
 	/**
-	 * Converts UTF-8 string to ASCII, ie removes diacritics etc.
+	 * Converts UTF-8 string to ASCII.
 	 */
 	public static function toAscii(string $s): string
 	{
-		$iconv = defined('ICONV_IMPL') ? trim(ICONV_IMPL, '"\'') : null;
 		static $transliterator = null;
-		if ($transliterator === null) {
-			if (class_exists('Transliterator', false)) {
-				$transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
-			} else {
-				trigger_error(__METHOD__ . "(): it is recommended to enable PHP extensions 'intl'.", E_USER_NOTICE);
-				$transliterator = false;
-			}
+		if ($transliterator === null && class_exists('Transliterator', false)) {
+			$transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
 		}
 
-		// remove control characters and check UTF-8 validity
-		$s = self::pcre('preg_replace', ['#[^\x09\x0A\x0D\x20-\x7E\xA0-\x{2FF}\x{370}-\x{10FFFF}]#u', '', $s]);
-
-		// transliteration (by Transliterator and iconv) is not optimal, replace some characters directly
-		$s = strtr($s, ["\u{201E}" => '"', "\u{201C}" => '"', "\u{201D}" => '"', "\u{201A}" => "'", "\u{2018}" => "'", "\u{2019}" => "'", "\u{B0}" => '^', "\u{42F}" => 'Ya', "\u{44F}" => 'ya', "\u{42E}" => 'Yu', "\u{44E}" => 'yu']); // „ “ ” ‚ ‘ ’ ° Я я Ю ю
-		if ($iconv !== 'libiconv') {
-			$s = strtr($s, ["\u{AE}" => '(R)', "\u{A9}" => '(c)', "\u{2026}" => '...', "\u{AB}" => '<<', "\u{BB}" => '>>', "\u{A3}" => 'lb', "\u{A5}" => 'yen', "\u{B2}" => '^2', "\u{B3}" => '^3', "\u{B5}" => 'u', "\u{B9}" => '^1', "\u{BA}" => 'o', "\u{BF}" => '?', "\u{2CA}" => "'", "\u{2CD}" => '_', "\u{2DD}" => '"', "\u{1FEF}" => '', "\u{20AC}" => 'EUR', "\u{2122}" => 'TM', "\u{212E}" => 'e', "\u{2190}" => '<-', "\u{2191}" => '^', "\u{2192}" => '->', "\u{2193}" => 'V', "\u{2194}" => '<->']); // ® © … « » £ ¥ ² ³ µ ¹ º ¿ ˊ ˍ ˝ ` € ™ ℮ ← ↑ → ↓ ↔
-		}
-
-		if ($transliterator) {
+		$s = preg_replace('#[^\x09\x0A\x0D\x20-\x7E\xA0-\x{2FF}\x{370}-\x{10FFFF}]#u', '', $s);
+		$s = strtr($s, '`\'"^~?', "\x01\x02\x03\x04\x05\x06");
+		$s = str_replace(
+			["\u{201E}", "\u{201C}", "\u{201D}", "\u{201A}", "\u{2018}", "\u{2019}", "\u{B0}"],
+			["\x03", "\x03", "\x03", "\x02", "\x02", "\x02", "\x04"], $s
+		);
+		if ($transliterator !== null) {
 			$s = $transliterator->transliterate($s);
-			// use iconv because The transliterator leaves some characters out of ASCII, eg → ʾ
-			if ($iconv === 'glibc') {
-				$s = strtr($s, '?', "\x01"); // temporarily hide ? to distinguish them from the garbage that iconv creates
-				$s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
-				$s = str_replace(['?', "\x01"], ['', '?'], $s); // remove garbage and restore ? characters
-			} elseif ($iconv === 'libiconv') {
-				$s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
-			} else { // null or 'unknown' (#216)
-				$s = self::pcre('preg_replace', ['#[^\x00-\x7F]++#', '', $s]); // remove non-ascii chars
-			}
-		} elseif ($iconv === 'glibc' || $iconv === 'libiconv') {
-			// temporarily hide these characters to distinguish them from the garbage that iconv creates
-			$s = strtr($s, '`\'"^~?', "\x01\x02\x03\x04\x05\x06");
-			if ($iconv === 'glibc') {
-				// glibc implementation is very limited. transliterate into Windows-1250 and then into ASCII, so most Eastern European characters are preserved
-				$s = iconv('UTF-8', 'WINDOWS-1250//TRANSLIT//IGNORE', $s);
-				$s = strtr(
-					$s,
-					"\xa5\xa3\xbc\x8c\xa7\x8a\xaa\x8d\x8f\x8e\xaf\xb9\xb3\xbe\x9c\x9a\xba\x9d\x9f\x9e\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf8\xf9\xfa\xfb\xfc\xfd\xfe\x96\xa0\x8b\x97\x9b\xa6\xad\xb7",
-					'ALLSSSSTZZZallssstzzzRAAAALCCCEEEEIIDDNNOOOOxRUUUUYTsraaaalccceeeeiiddnnooooruuuuyt- <->|-.'
-				);
-				$s = self::pcre('preg_replace', ['#[^\x00-\x7F]++#', '', $s]);
-			} else {
-				$s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
-			}
-			// remove garbage that iconv creates during transliteration (eg Ý -> Y')
-			$s = str_replace(['`', "'", '"', '^', '~', '?'], '', $s);
-			// restore temporarily hidden characters
-			$s = strtr($s, "\x01\x02\x03\x04\x05\x06", '`\'"^~?');
-		} else {
-			$s = self::pcre('preg_replace', ['#[^\x00-\x7F]++#', '', $s]); // remove non-ascii chars
 		}
-
-		return $s;
+		if (ICONV_IMPL === 'glibc') {
+			$s = str_replace(
+				["\u{BB}", "\u{AB}", "\u{2026}", "\u{2122}", "\u{A9}", "\u{AE}"],
+				['>>', '<<', '...', 'TM', '(c)', '(R)'], $s
+			);
+			$s = iconv('UTF-8', 'WINDOWS-1250//TRANSLIT//IGNORE', $s);
+			$s = strtr($s, "\xa5\xa3\xbc\x8c\xa7\x8a\xaa\x8d\x8f\x8e\xaf\xb9\xb3\xbe\x9c\x9a\xba\x9d\x9f\x9e"
+				. "\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3"
+				. "\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8"
+				. "\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf8\xf9\xfa\xfb\xfc\xfd\xfe"
+				. "\x96\xa0\x8b\x97\x9b\xa6\xad\xb7",
+				'ALLSSSSTZZZallssstzzzRAAAALCCCEEEEIIDDNNOOOOxRUUUUYTsraaaalccceeeeiiddnnooooruuuuyt- <->|-.');
+			$s = preg_replace('#[^\x00-\x7F]++#', '', $s);
+		} else {
+			$s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
+		}
+		$s = str_replace(['`', "'", '"', '^', '~', '?'], '', $s);
+		return strtr($s, "\x01\x02\x03\x04\x05\x06", '`\'"^~?');
 	}
 
 
 	/**
-	 * Modifies the UTF-8 string to the form used in the URL, ie removes diacritics and replaces all characters
-	 * except letters of the English alphabet and numbers with a hyphens.
+	 * Converts UTF-8 string to web safe characters [a-z0-9-] text.
 	 */
 	public static function webalize(string $s, string $charlist = null, bool $lower = true): string
 	{
@@ -212,15 +181,14 @@ class Strings
 		if ($lower) {
 			$s = strtolower($s);
 		}
-		$s = self::pcre('preg_replace', ['#[^a-z0-9' . ($charlist !== null ? preg_quote($charlist, '#') : '') . ']+#i', '-', $s]);
+		$s = preg_replace('#[^a-z0-9' . ($charlist !== null ? preg_quote($charlist, '#') : '') . ']+#i', '-', $s);
 		$s = trim($s, '-');
 		return $s;
 	}
 
 
 	/**
-	 * Truncates a UTF-8 string to given maximal length, while trying not to split whole words. Only if the string is truncated,
-	 * an ellipsis (or something else set with third argument) is appended to the string.
+	 * Truncates UTF-8 string to maximal length.
 	 */
 	public static function truncate(string $s, int $maxLen, string $append = "\u{2026}"): string
 	{
@@ -241,8 +209,7 @@ class Strings
 
 
 	/**
-	 * Indents a multiline text from the left. Second argument sets how many indentation chars should be used,
-	 * while the indent itself is the third argument (*tab* by default).
+	 * Indents UTF-8 string from the left.
 	 */
 	public static function indent(string $s, int $level = 1, string $chars = "\t"): string
 	{
@@ -254,7 +221,7 @@ class Strings
 
 
 	/**
-	 * Converts all characters of UTF-8 string to lower case.
+	 * Converts UTF-8 string to lower case.
 	 */
 	public static function lower(string $s): string
 	{
@@ -263,7 +230,7 @@ class Strings
 
 
 	/**
-	 * Converts the first character of a UTF-8 string to lower case and leaves the other characters unchanged.
+	 * Converts first character to lower case.
 	 */
 	public static function firstLower(string $s): string
 	{
@@ -272,7 +239,7 @@ class Strings
 
 
 	/**
-	 * Converts all characters of a UTF-8 string to upper case.
+	 * Converts UTF-8 string to upper case.
 	 */
 	public static function upper(string $s): string
 	{
@@ -281,7 +248,7 @@ class Strings
 
 
 	/**
-	 * Converts the first character of a UTF-8 string to upper case and leaves the other characters unchanged.
+	 * Converts first character to upper case.
 	 */
 	public static function firstUpper(string $s): string
 	{
@@ -290,7 +257,7 @@ class Strings
 
 
 	/**
-	 * Converts the first character of every word of a UTF-8 string to upper case and the others to lower case.
+	 * Capitalizes UTF-8 string.
 	 */
 	public static function capitalize(string $s): string
 	{
@@ -299,30 +266,28 @@ class Strings
 
 
 	/**
-	 * Compares two UTF-8 strings or their parts, without taking character case into account. If length is null, whole strings are compared,
-	 * if it is negative, the corresponding number of characters from the end of the strings is compared,
-	 * otherwise the appropriate number of characters from the beginning is compared.
+	 * Case-insensitive compares UTF-8 strings.
 	 */
-	public static function compare(string $left, string $right, int $length = null): bool
+	public static function compare(string $left, string $right, int $len = null): bool
 	{
 		if (class_exists('Normalizer', false)) {
 			$left = \Normalizer::normalize($left, \Normalizer::FORM_D); // form NFD is faster
 			$right = \Normalizer::normalize($right, \Normalizer::FORM_D); // form NFD is faster
 		}
 
-		if ($length < 0) {
-			$left = self::substring($left, $length, -$length);
-			$right = self::substring($right, $length, -$length);
-		} elseif ($length !== null) {
-			$left = self::substring($left, 0, $length);
-			$right = self::substring($right, 0, $length);
+		if ($len < 0) {
+			$left = self::substring($left, $len, -$len);
+			$right = self::substring($right, $len, -$len);
+		} elseif ($len !== null) {
+			$left = self::substring($left, 0, $len);
+			$right = self::substring($right, 0, $len);
 		}
 		return self::lower($left) === self::lower($right);
 	}
 
 
 	/**
-	 * Finds the common prefix of strings or returns empty string if the prefix was not found.
+	 * Finds the length of common prefix of strings.
 	 * @param  string[]  $strings
 	 */
 	public static function findPrefix(array $strings): string
@@ -348,14 +313,12 @@ class Strings
 	 */
 	public static function length(string $s): int
 	{
-		return function_exists('mb_strlen')
-			? mb_strlen($s, 'UTF-8')
-			: strlen(utf8_decode($s));
+		return function_exists('mb_strlen') ? mb_strlen($s, 'UTF-8') : strlen(utf8_decode($s));
 	}
 
 
 	/**
-	 * Removes all left and right side spaces (or the characters passed as second argument) from a UTF-8 encoded string.
+	 * Strips whitespace from UTF-8 string.
 	 */
 	public static function trim(string $s, string $charlist = self::TRIM_CHARACTERS): string
 	{
@@ -365,7 +328,7 @@ class Strings
 
 
 	/**
-	 * Pads a UTF-8 string to given length by prepending the $pad string to the beginning.
+	 * Pad a UTF-8 string to a certain length with another string.
 	 */
 	public static function padLeft(string $s, int $length, string $pad = ' '): string
 	{
@@ -376,7 +339,7 @@ class Strings
 
 
 	/**
-	 * Pads UTF-8 string to given length by appending the $pad string to the end.
+	 * Pad a UTF-8 string to a certain length with another string.
 	 */
 	public static function padRight(string $s, int $length, string $pad = ' '): string
 	{
@@ -387,20 +350,17 @@ class Strings
 
 
 	/**
-	 * Reverses UTF-8 string.
+	 * Reverse string.
 	 */
 	public static function reverse(string $s): string
 	{
-		if (!extension_loaded('iconv')) {
-			throw new Nette\NotSupportedException(__METHOD__ . '() requires ICONV extension that is not loaded.');
-		}
 		return iconv('UTF-32LE', 'UTF-8', strrev(iconv('UTF-8', 'UTF-32BE', $s)));
 	}
 
 
 	/**
-	 * Returns part of $haystack before $nth occurence of $needle or returns null if the needle was not found.
-	 * Negative value means searching from the end.
+	 * Returns part of $haystack before $nth occurence of $needle (negative value means searching from the end).
+	 * @return string|null  returns null if the needle was not found
 	 */
 	public static function before(string $haystack, string $needle, int $nth = 1): ?string
 	{
@@ -412,8 +372,8 @@ class Strings
 
 
 	/**
-	 * Returns part of $haystack after $nth occurence of $needle or returns null if the needle was not found.
-	 * Negative value means searching from the end.
+	 * Returns part of $haystack after $nth occurence of $needle (negative value means searching from the end).
+	 * @return string|null  returns null if the needle was not found
 	 */
 	public static function after(string $haystack, string $needle, int $nth = 1): ?string
 	{
@@ -425,8 +385,8 @@ class Strings
 
 
 	/**
-	 * Returns position in bytes of $nth occurence of $needle in $haystack or null if the $needle was not found.
-	 * Negative value of `$nth` means searching from the end.
+	 * Returns position of $nth occurence of $needle in $haystack (negative value means searching from the end).
+	 * @return int|null  offset in characters or null if the needle was not found
 	 */
 	public static function indexOf(string $haystack, string $needle, int $nth = 1): ?int
 	{
@@ -438,7 +398,8 @@ class Strings
 
 
 	/**
-	 * Returns position in bytes of $nth occurence of $needle in $haystack or null if the needle was not found.
+	 * Returns position of $nth occurence of $needle in $haystack.
+	 * @return int|null  offset in bytes or null if the needle was not found
 	 */
 	private static function pos(string $haystack, string $needle, int $nth = 1): ?int
 	{
@@ -462,13 +423,12 @@ class Strings
 				$pos--;
 			}
 		}
-		return Helpers::falseToNull($pos);
+		return $pos === false ? null : $pos;
 	}
 
 
 	/**
-	 * Splits a string into array by the regular expression.
-	 * Argument $flag takes same arguments as preg_split(), but PREG_SPLIT_DELIM_CAPTURE is set by default.
+	 * Splits string by a regular expression.
 	 */
 	public static function split(string $subject, string $pattern, int $flags = 0): array
 	{
@@ -477,8 +437,7 @@ class Strings
 
 
 	/**
-	 * Checks if given string matches a regular expression pattern and returns an array with first found match and each subpattern.
-	 * Argument $flag takes same arguments as function preg_match().
+	 * Performs a regular expression match. Accepts flag PREG_OFFSET_CAPTURE (returned in bytes).
 	 */
 	public static function match(string $subject, string $pattern, int $flags = 0, int $offset = 0): ?array
 	{
@@ -492,8 +451,7 @@ class Strings
 
 
 	/**
-	 * Finds all occurrences matching regular expression pattern and returns a two-dimensional array.
-	 * Argument $flag takes same arguments as function preg_match_all(), but PREG_SET_ORDER is set by default.
+	 * Performs a global regular expression match. Accepts flag PREG_OFFSET_CAPTURE (returned in bytes), PREG_SET_ORDER is default.
 	 */
 	public static function matchAll(string $subject, string $pattern, int $flags = 0, int $offset = 0): array
 	{
@@ -510,7 +468,7 @@ class Strings
 
 
 	/**
-	 * Replaces all occurrences matching regular expression $pattern which can be string or array in the form `pattern => replacement`.
+	 * Perform a regular expression search and replace.
 	 * @param  string|array  $pattern
 	 * @param  string|callable  $replacement
 	 */

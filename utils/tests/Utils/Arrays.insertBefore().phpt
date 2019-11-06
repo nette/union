@@ -14,14 +14,21 @@ require __DIR__ . '/../bootstrap.php';
 
 
 $arr = [
-	'' => 'first',
-	0 => 'second',
+	null => 'first',
+	false => 'second',
 	1 => 'third',
 	7 => 'fourth',
 ];
 
+Assert::same([
+	'' => 'first',
+	0 => 'second',
+	1 => 'third',
+	7 => 'fourth',
+], $arr);
 
-test('First item', function () use ($arr) {
+
+test(function () use ($arr) { // First item
 	$dolly = $arr;
 	Arrays::insertBefore($dolly, null, ['new' => 'value']);
 	Assert::same([
@@ -45,7 +52,7 @@ test('First item', function () use ($arr) {
 });
 
 
-test('Last item', function () use ($arr) {
+test(function () use ($arr) { // Last item
 	$dolly = $arr;
 	Arrays::insertBefore($dolly, 7, ['new' => 'value']);
 	Assert::same([
@@ -69,7 +76,7 @@ test('Last item', function () use ($arr) {
 });
 
 
-test('Undefined item', function () use ($arr) {
+test(function () use ($arr) { // Undefined item
 	$dolly = $arr;
 	Arrays::insertBefore($dolly, 'undefined', ['new' => 'value']);
 	Assert::same([

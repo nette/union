@@ -19,7 +19,7 @@ class TestClass
 }
 
 
-test('', function () {
+test(function () {
 	$obj = new TestClass;
 	unset($obj->foo);
 	Assert::false(isset($obj->foo));
@@ -30,13 +30,15 @@ test('', function () {
 });
 
 
-test('double unset', function () {
+test(function () {
+	// double unset
 	$obj = new TestClass;
 	unset($obj->foo, $obj->foo);
 });
 
 
-test('reading of unset property', function () {
+test(function () {
+	// reading of unset property
 	Assert::exception(function () {
 		$obj = new TestClass;
 		unset($obj->foo);

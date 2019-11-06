@@ -31,7 +31,7 @@ class Person
 }
 
 
-test('', function () {
+test(function () {
 	$list = new ArrayHash;
 	$jack = new Person('Jack');
 	$mary = new Person('Mary');
@@ -78,7 +78,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$mary = new Person('Mary');
 	$list = ArrayHash::from([
 		'm' => $mary,
@@ -92,7 +92,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$mary = new Person('Mary');
 	$list = ArrayHash::from([
 		'm' => $mary,
@@ -120,7 +120,7 @@ test('', function () {
 });
 
 
-test('numeric fields', function () {
+test(function () { // numeric fields
 	$row = ArrayHash::from([1, 2]);
 
 	foreach ($row as $key => $value) {
@@ -169,7 +169,7 @@ test('numeric fields', function () {
 });
 
 
-test('null fields', function () {
+test(function () { // null fields
 	$row = ArrayHash::from(['null' => null]);
 	Assert::null($row->null);
 	Assert::null($row['null']);
@@ -178,19 +178,19 @@ test('null fields', function () {
 });
 
 
-test('undeclared fields', function () {
+test(function () { // undeclared fields
 	$row = new ArrayHash;
 	Assert::error(function () use ($row) {
 		$row->undef;
-	}, PHP_VERSION_ID < 80000 ? E_NOTICE : E_WARNING, 'Undefined property: Nette\Utils\ArrayHash::$undef');
+	}, E_NOTICE, 'Undefined property: Nette\Utils\ArrayHash::$undef');
 
 	Assert::error(function () use ($row) {
 		$row['undef'];
-	}, PHP_VERSION_ID < 80000 ? E_NOTICE : E_WARNING, 'Undefined property: Nette\Utils\ArrayHash::$undef');
+	}, E_NOTICE, 'Undefined property: Nette\Utils\ArrayHash::$undef');
 });
 
 
-test('PHP 7 changed behavior https://3v4l.org/2A1pf', function () {
+test(function () { // PHP 7 changed behavior https://3v4l.org/2A1pf
 	$hash = ArrayHash::from([1, 2, 3]);
 	foreach ($hash as $key => $value) {
 		unset($hash->$key);

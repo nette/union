@@ -17,21 +17,21 @@ require __DIR__ . '/../bootstrap.php';
 $main = Image::fromFile(__DIR__ . '/fixtures.images/alpha1.png');
 
 
-test('', function () use ($main) {
+test(function () use ($main) {
 	$main->save(getTempDir() . '/foo.png');
 	Assert::true(is_file(getTempDir() . '/foo.png'));
 	Assert::same(IMAGETYPE_PNG, getimagesize(getTempDir() . '/foo.png')[2]);
 });
 
 
-test('', function () use ($main) {
+test(function () use ($main) {
 	$main->save(getTempDir() . '/foo.x', null, Image::PNG);
 	Assert::true(is_file(getTempDir() . '/foo.x'));
 	Assert::same(IMAGETYPE_PNG, getimagesize(getTempDir() . '/foo.x')[2]);
 });
 
 
-test('', function () use ($main) {
+test(function () use ($main) {
 	if (!function_exists('imagewebp')) {
 		return;
 	}
@@ -43,21 +43,6 @@ test('', function () use ($main) {
 	$main->save(getTempDir() . '/foo.y', null, Image::WEBP);
 	Assert::true(is_file(getTempDir() . '/foo.y'));
 	Assert::same('WEBP', file_get_contents(getTempDir() . '/foo.y', false, null, 8, 4));
-});
-
-
-test('', function () use ($main) {
-	if (!function_exists('imagebmp')) {
-		return;
-	}
-
-	$main->save(getTempDir() . '/foo.bmp');
-	Assert::true(is_file(getTempDir() . '/foo.bmp'));
-	Assert::same(IMAGETYPE_BMP, getimagesize(getTempDir() . '/foo.bmp')[2]);
-
-	$main->save(getTempDir() . '/foo.y', null, Image::BMP);
-	Assert::true(is_file(getTempDir() . '/foo.y'));
-	Assert::same(IMAGETYPE_BMP, getimagesize(getTempDir() . '/foo.y')[2]);
 });
 
 

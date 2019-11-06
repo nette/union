@@ -31,7 +31,7 @@ class Person
 }
 
 
-test('', function () {
+test(function () {
 	$list = new ArrayList;
 	$jack = new Person('Jack');
 	$mary = new Person('Mary');
@@ -42,9 +42,6 @@ test('', function () {
 	Assert::same($mary, $list[0]);
 	Assert::same($jack, $list[1]);
 
-	Assert::true(isset($list[0]));
-	Assert::false(isset($list[500]));
-	Assert::false(isset($list['fake']));
 
 	Assert::same([
 		$mary,
@@ -74,7 +71,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$list = new ArrayList;
 	$list[] = 'a';
 	$list[] = 'b';
@@ -93,7 +90,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$list = new ArrayList;
 	$list[] = 'a';
 	$list[] = 'b';
@@ -112,7 +109,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$list = new ArrayList;
 	$list[] = 'a';
 	$list[] = 'b';

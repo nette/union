@@ -14,14 +14,15 @@ require __DIR__ . '/../bootstrap.php';
 
 
 $arr = [
-	'' => 'first',
+	null => 'first',
 	1 => 'second',
 	7 => [
 		'item' => 'third',
 	],
 ];
 
-test('Single item', function () use ($arr) {
+test(function () use ($arr) { // Single item
+
 	Assert::same('first', Arrays::get($arr, null));
 	Assert::same('second', Arrays::get($arr, 1));
 	Assert::same('second', Arrays::get($arr, 1, 'x'));
@@ -32,7 +33,8 @@ test('Single item', function () use ($arr) {
 });
 
 
-test('Traversing', function () use ($arr) {
+test(function () use ($arr) { // Traversing
+
 	Assert::same([
 		'' => 'first',
 		1 => 'second',

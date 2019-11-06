@@ -7,16 +7,14 @@
 
 declare(strict_types=1);
 
-namespace Nette;
+namespace Nette\Utils;
 
 
-interface HtmlStringable
+interface IHtmlString
 {
+
 	/**
 	 * Returns string in HTML format
 	 */
 	function __toString(): string;
 }
-
-
-interface_exists(Utils\IHtmlString::class);

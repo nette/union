@@ -19,7 +19,6 @@ class ArrayList implements \ArrayAccess, \Countable, \IteratorAggregate
 {
 	use Nette\SmartObject;
 
-	/** @var mixed[] */
 	private $list = [];
 
 
@@ -44,7 +43,6 @@ class ArrayList implements \ArrayAccess, \Countable, \IteratorAggregate
 	/**
 	 * Replaces or appends a item.
 	 * @param  int|null  $index
-	 * @param  mixed  $value
 	 * @throws Nette\OutOfRangeException
 	 */
 	public function offsetSet($index, $value): void
@@ -102,7 +100,6 @@ class ArrayList implements \ArrayAccess, \Countable, \IteratorAggregate
 
 	/**
 	 * Prepends a item.
-	 * @param  mixed  $value
 	 */
 	public function prepend($value): void
 	{

@@ -19,7 +19,6 @@ class Validators
 {
 	use Nette\StaticClass;
 
-	/** @var array<string,?callable> */
 	protected static $validators = [
 		// PHP types
 		'array' => 'is_array',
@@ -35,14 +34,14 @@ class Validators
 		'string' => 'is_string',
 
 		// pseudo-types
-		'callable' => [self::class, 'isCallable'],
+		'callable' => [__CLASS__, 'isCallable'],
 		'iterable' => 'is_iterable',
 		'list' => [Arrays::class, 'isList'],
-		'mixed' => [self::class, 'isMixed'],
-		'none' => [self::class, 'isNone'],
-		'number' => [self::class, 'isNumber'],
-		'numeric' => [self::class, 'isNumeric'],
-		'numericint' => [self::class, 'isNumericInt'],
+		'mixed' => [__CLASS__, 'isMixed'],
+		'none' => [__CLASS__, 'isNone'],
+		'number' => [__CLASS__, 'isNumber'],
+		'numeric' => [__CLASS__, 'isNumeric'],
+		'numericint' => [__CLASS__, 'isNumericInt'],
 
 		// string patterns
 		'alnum' => 'ctype_alnum',
@@ -51,25 +50,24 @@ class Validators
 		'lower' => 'ctype_lower',
 		'pattern' => null,
 		'space' => 'ctype_space',
-		'unicode' => [self::class, 'isUnicode'],
+		'unicode' => [__CLASS__, 'isUnicode'],
 		'upper' => 'ctype_upper',
 		'xdigit' => 'ctype_xdigit',
 
 		// syntax validation
-		'email' => [self::class, 'isEmail'],
-		'identifier' => [self::class, 'isPhpIdentifier'],
-		'uri' => [self::class, 'isUri'],
-		'url' => [self::class, 'isUrl'],
+		'email' => [__CLASS__, 'isEmail'],
+		'identifier' => [__CLASS__, 'isPhpIdentifier'],
+		'uri' => [__CLASS__, 'isUri'],
+		'url' => [__CLASS__, 'isUrl'],
 
 		// environment validation
 		'class' => 'class_exists',
 		'interface' => 'interface_exists',
 		'directory' => 'is_dir',
 		'file' => 'is_file',
-		'type' => [self::class, 'isType'],
+		'type' => [__CLASS__, 'isType'],
 	];
 
-	/** @var array<string,callable> */
 	protected static $counters = [
 		'string' => 'strlen',
 		'unicode' => [Strings::class, 'length'],
@@ -86,9 +84,7 @@ class Validators
 
 
 	/**
-	 * Verifies that the value is of expected types separated by pipe.
-	 * @param  mixed  $value
-	 * @throws AssertionException
+	 * Throws exception if a variable is of unexpected type (separated by pipe).
 	 */
 	public static function assert($value, string $expected, string $label = 'variable'): void
 	{
@@ -107,29 +103,21 @@ class Validators
 
 
 	/**
-	 * Verifies that element $key in array is of expected types separated by pipe.
-	 * @param  mixed[]  $array
-	 * @param  int|string  $key
-	 * @throws AssertionException
+	 * Throws exception if an array field is missing or of unexpected type (separated by pipe).
 	 */
-	public static function assertField(
-		array $array,
-		$key,
-		string $expected = null,
-		string $label = "item '%' in array"
-	): void {
-		if (!array_key_exists($key, $array)) {
-			throw new AssertionException('Missing ' . str_replace('%', $key, $label) . '.');
+	public static function assertField(array $arr, $field, string $expected = null, string $label = "item '%' in array"): void
+	{
+		if (!array_key_exists($field, $arr)) {
+			throw new AssertionException('Missing ' . str_replace('%', $field, $label) . '.');
 
 		} elseif ($expected) {
-			static::assert($array[$key], $expected, str_replace('%', $key, $label));
+			static::assert($arr[$field], $expected, str_replace('%', $field, $label));
 		}
 	}
 
 
 	/**
-	 * Verifies that the value is of expected types separated by pipe.
-	 * @param  mixed  $value
+	 * Finds whether a variable is of expected type (separated by pipe).
 	 */
 	public static function is($value, string $expected): bool
 	{
@@ -156,7 +144,7 @@ class Validators
 					continue;
 				}
 			} elseif ($type === 'pattern') {
-				if (Strings::match($value, '|^' . ($item[1] ?? '') . '$|D')) {
+				if (preg_match('|^' . ($item[1] ?? '') . '$|D', $value)) {
 					return true;
 				}
 				continue;
@@ -184,8 +172,7 @@ class Validators
 
 
 	/**
-	 * Finds whether all values are of expected types separated by pipe.
-	 * @param  mixed[]  $values
+	 * Finds whether all values are of expected type (separated by pipe).
 	 */
 	public static function everyIs(iterable $values, string $expected): bool
 	{
@@ -199,8 +186,7 @@ class Validators
 
 
 	/**
-	 * Checks if the value is an integer or a float.
-	 * @param  mixed  $value
+	 * Finds whether a value is an integer or a float.
 	 */
 	public static function isNumber($value): bool
 	{
@@ -209,8 +195,7 @@ class Validators
 
 
 	/**
-	 * Checks if the value is an integer or a integer written in a string.
-	 * @param  mixed  $value
+	 * Finds whether a value is an integer.
 	 */
 	public static function isNumericInt($value): bool
 	{
@@ -219,8 +204,7 @@ class Validators
 
 
 	/**
-	 * Checks if the value is a number or a number written in a string.
-	 * @param  mixed  $value
+	 * Finds whether a string is a floating point number in decimal base.
 	 */
 	public static function isNumeric($value): bool
 	{
@@ -229,8 +213,7 @@ class Validators
 
 
 	/**
-	 * Checks if the value is a syntactically correct callback.
-	 * @param  mixed  $value
+	 * Finds whether a value is a syntactically correct callback.
 	 */
 	public static function isCallable($value): bool
 	{
@@ -239,8 +222,7 @@ class Validators
 
 
 	/**
-	 * Checks if the value is a valid UTF-8 string.
-	 * @param  mixed  $value
+	 * Finds whether a value is an UTF-8 encoded string.
 	 */
 	public static function isUnicode($value): bool
 	{
@@ -249,8 +231,7 @@ class Validators
 
 
 	/**
-	 * Checks if the value is 0, '', false or null.
-	 * @param  mixed  $value
+	 * Finds whether a value is "falsy".
 	 */
 	public static function isNone($value): bool
 	{
@@ -266,9 +247,7 @@ class Validators
 
 
 	/**
-	 * Checks if a variable is a zero-based integer indexed array.
-	 * @param  mixed  $value
-	 * @deprecated  use Nette\Utils\Arrays::isList
+	 * Finds whether a variable is a zero-based integer indexed array.
 	 */
 	public static function isList($value): bool
 	{
@@ -277,9 +256,7 @@ class Validators
 
 
 	/**
-	 * Checks if the value is in the given range [min, max], where the upper or lower limit can be omitted (null).
-	 * Numbers, strings and DateTime objects can be compared.
-	 * @param  mixed  $value
+	 * Is a value in specified min and max value pair?
 	 */
 	public static function isInRange($value, array $range): bool
 	{
@@ -303,50 +280,44 @@ class Validators
 
 
 	/**
-	 * Checks if the value is a valid email address. It does not verify that the domain actually exists, only the syntax is verified.
+	 * Finds whether a string is a valid email address.
 	 */
 	public static function isEmail(string $value): bool
 	{
 		$atom = "[-a-z0-9!#$%&'*+/=?^_`{|}~]"; // RFC 5322 unquoted characters in local-part
 		$alpha = "a-z\x80-\xFF"; // superset of IDN
-		return (bool) preg_match(<<<XX
-		(^
-			("([ !#-[\\]-~]*|\\\\[ -~])+"|$atom+(\\.$atom+)*)  # quoted or unquoted
+		return (bool) preg_match("(^
+			(\"([ !#-[\\]-~]*|\\\\[ -~])+\"|$atom+(\\.$atom+)*)  # quoted or unquoted
 			@
-			([0-9$alpha]([-0-9$alpha]{0,61}[0-9$alpha])?\\.)+  # domain - RFC 1034
-			[$alpha]([-0-9$alpha]{0,17}[$alpha])?              # top domain
-		$)Dix
-XX
-, $value);
+			([0-9$alpha]([-0-9$alpha]{0,61}[0-9$alpha])?\\.)+    # domain - RFC 1034
+			[$alpha]([-0-9$alpha]{0,17}[$alpha])?                # top domain
+		$)Dix", $value);
 	}
 
 
 	/**
-	 * Checks if the value is a valid URL address.
+	 * Finds whether a string is a valid http(s) URL.
 	 */
 	public static function isUrl(string $value): bool
 	{
 		$alpha = "a-z\x80-\xFF";
-		return (bool) preg_match(<<<XX
-		(^
+		return (bool) preg_match("(^
 			https?://(
 				(([-_0-9$alpha]+\\.)*                       # subdomain
 					[0-9$alpha]([-0-9$alpha]{0,61}[0-9$alpha])?\\.)?  # domain
 					[$alpha]([-0-9$alpha]{0,17}[$alpha])?   # top domain
 				|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}  # IPv4
-				|\\[[0-9a-f:]{3,39}\\]                      # IPv6
+				|\[[0-9a-f:]{3,39}\]                        # IPv6
 			)(:\\d{1,5})?                                   # port
 			(/\\S*)?                                        # path
-			(\\?\\S*)?                                      # query
-			(\\#\\S*)?                                      # fragment
-		$)Dix
-XX
-, $value);
+			(\?\\S*)?                                       # query
+			(\#\\S*)?                                       # fragment
+		$)Dix", $value);
 	}
 
 
 	/**
-	 * Checks if the value is a valid URI address, that is, actually a string beginning with a syntactically valid schema.
+	 * Finds whether a string is a valid URI according to RFC 1738.
 	 */
 	public static function isUri(string $value): bool
 	{

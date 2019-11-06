@@ -79,9 +79,7 @@ class Paginator
 	 */
 	public function getLastPage(): ?int
 	{
-		return $this->itemCount === null
-			? null
-			: $this->base + max(0, $this->getPageCount() - 1);
+		return $this->itemCount === null ? null : $this->base + max(0, $this->getPageCount() - 1);
 	}
 
 
@@ -111,9 +109,7 @@ class Paginator
 	protected function getPageIndex(): int
 	{
 		$index = max(0, $this->page - $this->base);
-		return $this->itemCount === null
-			? $index
-			: min($index, max(0, $this->getPageCount() - 1));
+		return $this->itemCount === null ? $index : min($index, max(0, $this->getPageCount() - 1));
 	}
 
 
@@ -131,9 +127,7 @@ class Paginator
 	 */
 	public function isLast(): bool
 	{
-		return $this->itemCount === null
-			? false
-			: $this->getPageIndex() >= $this->getPageCount() - 1;
+		return $this->itemCount === null ? false : $this->getPageIndex() >= $this->getPageCount() - 1;
 	}
 
 
@@ -142,9 +136,7 @@ class Paginator
 	 */
 	public function getPageCount(): ?int
 	{
-		return $this->itemCount === null
-			? null
-			: (int) ceil($this->itemCount / $this->itemsPerPage);
+		return $this->itemCount === null ? null : (int) ceil($this->itemCount / $this->itemsPerPage);
 	}
 
 

@@ -13,7 +13,8 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('Two items in array', function () {
+test(function () { // ==> Two items in array
+
 	$arr = ['Nette', 'Framework'];
 
 	$iterator = new Iterators\CachingIterator($arr);
@@ -40,7 +41,7 @@ test('Two items in array', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$arr = ['Nette'];
 
 	$iterator = new Iterators\CachingIterator($arr);
@@ -61,7 +62,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$arr = [];
 
 	$iterator = new Iterators\CachingIterator($arr);
