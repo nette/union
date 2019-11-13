@@ -7,7 +7,12 @@
 
 declare(strict_types=1);
 
-namespace Latte;
+namespace Latte\Compiler;
+
+use Latte\CompileException;
+use Latte\Policy;
+use Latte\SecurityViolationException;
+use Latte\Strict;
 
 
 /**
@@ -23,18 +28,29 @@ class PhpWriter
 	/** @var string */
 	private $modifiers;
 
-	/** @var array|null */
+	/** @var array{string, mixed}|null */
 	private $context;
 
+	/** @var Policy|null */
+	private $policy;
 
-	public static function using(MacroNode $node): self
+	/** @var string[] */
+	private $functions = [];
+
+
+	public static function using(MacroNode $node, Compiler $compiler = null): self
 	{
 		$me = new static($node->tokenizer, null, $node->context);
 		$me->modifiers = &$node->modifiers;
+		$me->functions = $compiler ? $compiler->getFunctions() : [];
+		$me->policy = $compiler ? $compiler->getPolicy() : null;
 		return $me;
 	}
 
 
+	/**
+	 * @param  array{string, mixed}|null  $context
+	 */
 	public function __construct(MacroTokens $tokens, string $modifiers = null, array $context = null)
 	{
 		$this->tokens = $tokens;
@@ -45,6 +61,7 @@ class PhpWriter
 
 	/**
 	 * Expands %node.word, %node.array, %node.args, %escape(), %modify(), %var, %raw, %word in code.
+	 * @param  mixed  ...$args
 	 */
 	public function write(string $mask, ...$args): string
 	{
@@ -61,43 +78,46 @@ class PhpWriter
 		if (strpos($mask, '%node_word') !== false) {
 			$word = $this->tokens->fetchWord();
 			if ($word === null) {
-				throw new CompileException('Invalid content of macro');
+				throw new CompileException('Invalid content of tag');
 			}
 		}
 
-		$code = preg_replace_callback('#([,+]\s*)?%(node_|\d+_|)(word|var|raw|array|args)(\?)?(\s*\+\s*)?()#',
-		function ($m) use ($word, &$args) {
-			[, $l, $source, $format, $cond, $r] = $m;
+		$code = preg_replace_callback(
+			'#([,+]\s*)?%(node_|\d+_|)(word|var|raw|array|args)(\?)?(\s*\+\s*)?()#',
+			function ($m) use ($word, &$args) {
+				[, $l, $source, $format, $cond, $r] = $m;
 
-			switch ($source) {
-				case 'node_':
-					$arg = $word; break;
-				case '':
-					$arg = current($args); next($args); break;
-				default:
-					$arg = $args[(int) $source]; break;
-			}
+				switch ($source) {
+					case 'node_':
+						$arg = $word; break;
+					case '':
+						$arg = current($args); next($args); break;
+					default:
+						$arg = $args[(int) $source]; break;
+				}
 
-			switch ($format) {
-				case 'word':
-					$code = $this->formatWord($arg); break;
-				case 'args':
-					$code = $this->formatArgs(); break;
-				case 'array':
-					$code = $this->formatArray();
-					$code = $cond && $code === '[]' ? '' : $code; break;
-				case 'var':
-					$code = var_export($arg, true); break;
-				case 'raw':
-					$code = (string) $arg; break;
-			}
+				switch ($format) {
+					case 'word':
+						$code = $this->formatWord($arg); break;
+					case 'args':
+						$code = $this->formatArgs(); break;
+					case 'array':
+						$code = $this->formatArray();
+						$code = $cond && $code === '[]' ? '' : $code; break;
+					case 'var':
+						$code = PhpHelpers::dump($arg); break;
+					case 'raw':
+						$code = (string) $arg; break;
+				}
 
-			if ($cond && $code === '') {
-				return $r ? $l : $r;
-			} else {
-				return $l . $code . $r;
-			}
-		}, $mask);
+				if ($cond && $code === '') {
+					return $r ? $l : $r;
+				} else {
+					return $l . $code . $r;
+				}
+			},
+			$mask
+		);
 
 		$this->tokens->position = $pos;
 		return $code;
@@ -109,11 +129,14 @@ class PhpWriter
 	 */
 	public function formatModifiers(string $var, bool $isContent = false): string
 	{
+		static $uniq;
+		$uniq = $uniq ?? '$' . bin2hex(random_bytes(5));
 		$tokens = new MacroTokens(ltrim($this->modifiers, '|'));
 		$tokens = $this->preprocess($tokens);
-		$tokens = $this->modifierPass($tokens, $var, $isContent);
+		$tokens = $this->modifierPass($tokens, $uniq, $isContent);
 		$tokens = $this->quotingPass($tokens);
-		return $tokens->joinAll();
+		$this->validateKeywords($tokens);
+		return str_replace($uniq, $var, $tokens->joinAll());
 	}
 
 
@@ -124,6 +147,7 @@ class PhpWriter
 	{
 		$tokens = $this->preprocess($tokens);
 		$tokens = $this->quotingPass($tokens);
+		$this->validateKeywords($tokens);
 		return $tokens->joinAll();
 	}
 
@@ -134,8 +158,10 @@ class PhpWriter
 	public function formatArray(MacroTokens $tokens = null): string
 	{
 		$tokens = $this->preprocess($tokens);
+		$tokens = $this->namedArgumentsPass($tokens);
 		$tokens = $this->expandCastPass($tokens);
 		$tokens = $this->quotingPass($tokens);
+		$this->validateKeywords($tokens);
 		return $tokens->joinAll();
 	}
 
@@ -145,9 +171,13 @@ class PhpWriter
 	 */
 	public function formatWord(string $s): string
 	{
-		return (is_numeric($s) || preg_match('#^\$|[\'"]|^(true|TRUE)$|^(false|FALSE)$|^(null|NULL)$|^[\w\\\\]{3,}::[A-Z0-9_]{2,}$#D', $s))
-			? $this->formatArgs(new MacroTokens($s))
-			: '"' . $s . '"';
+		if (is_numeric($s)
+			|| preg_match('#^[$([]|[\'"\ ]|^(true|TRUE)$|^(false|FALSE)$|^(null|NULL)$|^[\w\\\\]{3,}::[A-Z0-9_]{2,}$#D', $s)
+		) {
+			$s = preg_match('#\s#', $s) ? "($s)" : $s;
+			return $this->formatArgs(new MacroTokens($s));
+		}
+		return '"' . $s . '"';
 	}
 
 
@@ -156,45 +186,80 @@ class PhpWriter
 	 */
 	public function preprocess(MacroTokens $tokens = null): MacroTokens
 	{
-		$tokens = $tokens === null ? $this->tokens : $tokens;
+		$tokens = $tokens ?? $this->tokens;
 		$this->validateTokens($tokens);
 		$tokens = $this->removeCommentsPass($tokens);
+		$tokens = $this->optionalChainingPass($tokens);
 		$tokens = $this->shortTernaryPass($tokens);
-		$tokens = $this->inlineModifierPass($tokens);
 		$tokens = $this->inOperatorPass($tokens);
+		$tokens = $this->sandboxPass($tokens);
+		$tokens = $this->replaceFunctionsPass($tokens);
+		$tokens = $this->inlineModifierPass($tokens);
 		return $tokens;
 	}
 
 
-	/**
-	 * @throws CompileException
-	 */
+	/** @throws CompileException */
 	public function validateTokens(MacroTokens $tokens): void
 	{
 		$brackets = [];
 		$pos = $tokens->position;
 		while ($tokens->nextToken()) {
+			$tokenValue = $tokens->currentValue();
 			if ($tokens->isCurrent('?>')) {
-				throw new CompileException('Forbidden ?> inside macro');
+				throw new CompileException('Forbidden ?> inside tag');
 
 			} elseif ($tokens->isCurrent('(', '[', '{')) {
 				static $counterpart = ['(' => ')', '[' => ']', '{' => '}'];
-				$brackets[] = $counterpart[$tokens->currentValue()];
+				$brackets[] = $counterpart[$tokenValue];
 
-			} elseif ($tokens->isCurrent(')', ']', '}') && $tokens->currentValue() !== array_pop($brackets)) {
-				throw new CompileException('Unexpected ' . $tokens->currentValue());
+			} elseif ($tokens->isCurrent(')', ']', '}') && $tokenValue !== array_pop($brackets)) {
+				throw new CompileException('Unexpected ' . $tokenValue);
+
+			} elseif ($tokens->isCurrent('`')) {
+				if ($this->policy) {
+					throw new CompileException('Forbidden backtick operator.');
+				} else {
+					trigger_error('Backtick operator is deprecated in Latte.', E_USER_DEPRECATED);
+				}
 
 			} elseif (
-				$tokens->isCurrent('function', 'class', 'interface', 'trait')
-				&& $tokens->isNext($tokens::T_SYMBOL, '&')
-				|| $tokens->isCurrent('return', 'yield')
-				&& !$brackets
+				substr($tokenValue, 0, 3) === '$__'
+				|| ($this->policy && ($tokens->isCurrent('$this') || substr($tokenValue, 0, 2) === '$_'))
 			) {
-				throw new CompileException("Forbidden keyword '{$tokens->currentValue()}' inside macro.");
+				throw new CompileException("Forbidden variable {$tokenValue}.");
 			}
 		}
 		if ($brackets) {
 			throw new CompileException('Missing ' . array_pop($brackets));
+		}
+		$tokens->position = $pos;
+	}
+
+
+	/** @throws CompileException */
+	public function validateKeywords(MacroTokens $tokens): void
+	{
+		$pos = $tokens->position;
+		while ($tokens->nextToken()) {
+			if (
+				!$tokens->isPrev('::', '->', '?->', '??->')
+				&& (
+					$tokens->isCurrent('__halt_compiler', 'declare', 'die', 'eval', 'exit', 'include', 'include_once', 'require', 'require_once')
+					|| ($this->policy && $tokens->isCurrent(
+						...['break', 'case', 'catch', 'continue', 'do', 'echo', 'else', 'elseif', 'endfor',
+							'endforeach', 'endswitch', 'endwhile', 'finally', 'for', 'foreach', 'if', 'new', 'print', 'switch', 'throw', 'try', 'while', ]
+					))
+					|| (($this->policy || !$tokens->depth) && $tokens->isCurrent('return', 'yield'))
+					|| (!$tokens->isNext('(') && $tokens->isCurrent('function', 'use'))
+					|| ($tokens->isCurrent(
+						...['abstract', 'class', 'const', 'enddeclare', 'extends', 'final', 'global', 'goto', 'implements',
+							'insteadof', 'interface', 'namespace', 'private', 'protected', 'public', 'static', 'trait', 'var', ]
+					))
+				)
+			) {
+				throw new CompileException("Forbidden keyword '{$tokens->currentValue()}' inside tag.");
+			}
 		}
 		$tokens->position = $pos;
 	}
@@ -216,6 +281,32 @@ class PhpWriter
 
 
 	/**
+	 * Replace global functions with custom ones.
+	 */
+	public function replaceFunctionsPass(MacroTokens $tokens): MacroTokens
+	{
+		$res = new MacroTokens;
+		while ($tokens->nextToken()) {
+			$name = $tokens->currentValue();
+			if (
+				$tokens->isCurrent($tokens::T_SYMBOL)
+				&& ($orig = $this->functions[strtolower($name)] ?? null)
+				&& $tokens->isNext('(')
+				&& !$tokens->isPrev('::', '->', '?->', '??->', '\\')
+			) {
+				if ($name !== $orig) {
+					trigger_error("Case mismatch on function name '$name', correct name is '$orig'.", E_USER_WARNING);
+				}
+				$res->append('($this->global->fn->' . $orig . ')');
+			} else {
+				$res->append($tokens->currentToken());
+			}
+		}
+		return $res;
+	}
+
+
+	/**
 	 * Simplified ternary expressions without third part.
 	 */
 	public function shortTernaryPass(MacroTokens $tokens): MacroTokens
@@ -223,13 +314,16 @@ class PhpWriter
 		$res = new MacroTokens;
 		$inTernary = [];
 		while ($tokens->nextToken()) {
-			if ($tokens->isCurrent('?')) {
+			if ($tokens->isCurrent('?') && $tokens->isNext() && !$tokens->isNext(',', ')', ']', '|', '[')) {
 				$inTernary[] = $tokens->depth;
 
 			} elseif ($tokens->isCurrent(':')) {
 				array_pop($inTernary);
 
-			} elseif ($tokens->isCurrent(',', ')', ']', '|') && end($inTernary) === $tokens->depth + $tokens->isCurrent(')', ']')) {
+			} elseif (
+				$tokens->isCurrent(',', ')', ']', '|')
+				&& end($inTernary) === $tokens->depth + $tokens->isCurrent(')', ']')
+			) {
 				$res->append(' : null');
 				array_pop($inTernary);
 			}
@@ -239,6 +333,79 @@ class PhpWriter
 		if ($inTernary) {
 			$res->append(' : null');
 		}
+		return $res;
+	}
+
+
+	/**
+	 * Nullsafe operator $var?->prop?->elem[1]?->call()?->item
+	 * Null-coalescing-safe operator $var??->prop??->elem[1]??->call()??->item
+	 */
+	public function optionalChainingPass(MacroTokens $tokens): MacroTokens
+	{
+		$startDepth = $tokens->depth;
+		$res = new MacroTokens;
+
+		while ($tokens->depth >= $startDepth && $tokens->nextToken()) {
+			if (!$tokens->isCurrent($tokens::T_VARIABLE) || $tokens->isPrev('::', '$')) {
+				$res->append($tokens->currentToken());
+				continue;
+			}
+
+			$addBraces = '';
+			$expr = new MacroTokens([$tokens->currentToken()]);
+
+			do {
+				if ($tokens->nextToken('?->')) {
+					if (PHP_VERSION_ID >= 80000) {
+						$expr->append($tokens->currentToken());
+						$expr->append($tokens->nextToken());
+						continue;
+					}
+
+					$expr->prepend('(($__tmp = ');
+					$expr->append(') === null ? null : ');
+					$res->tokens = array_merge($res->tokens, $expr->tokens);
+					$addBraces .= ')';
+					$expr = new MacroTokens('$__tmp->');
+					if (!$tokens->nextToken($tokens::T_SYMBOL, $tokens::T_VARIABLE)) {
+						$expr->append($addBraces);
+						break;
+					}
+					$expr->append($tokens->currentToken());
+
+				} elseif ($tokens->nextToken('??->')) {
+					$expr->prepend('(($__tmp = ');
+					$expr->append(' ?? null) === null ? null : ');
+					$res->tokens = array_merge($res->tokens, $expr->tokens);
+					$addBraces .= ')';
+					$expr = new MacroTokens('$__tmp->');
+					if (!$tokens->nextToken($tokens::T_SYMBOL, $tokens::T_VARIABLE)) {
+						$expr->append($addBraces);
+						break;
+					}
+					$expr->append($tokens->currentToken());
+
+				} elseif ($tokens->nextToken('->', '::')) {
+					$expr->append($tokens->currentToken());
+					if (!$tokens->nextToken($tokens::T_SYMBOL, $tokens::T_VARIABLE)) {
+						$expr->append($addBraces);
+						break;
+					}
+					$expr->append($tokens->currentToken());
+
+				} elseif ($tokens->nextToken('[', '(')) {
+					$expr->tokens = array_merge($expr->tokens, [$tokens->currentToken()], $this->optionalChainingPass($tokens)->tokens);
+
+				} else {
+					$expr->append($addBraces);
+					break;
+				}
+			} while (true);
+
+			$res->tokens = array_merge($res->tokens, $expr->tokens);
+		}
+
 		return $res;
 	}
 
@@ -278,13 +445,38 @@ class PhpWriter
 	{
 		$res = new MacroTokens;
 		while ($tokens->nextToken()) {
-			$res->append($tokens->isCurrent($tokens::T_SYMBOL)
+			$res->append(
+				$tokens->isCurrent($tokens::T_SYMBOL)
 				&& (!$tokens->isPrev() || $tokens->isPrev(',', '(', '[', '=>', ':', '?', '.', '<', '>', '<=', '>=', '===', '!==', '==', '!=', '<>', '&&', '||', '=', 'and', 'or', 'xor', '??'))
 				&& (!$tokens->isNext() || $tokens->isNext(',', ';', ')', ']', '=>', ':', '?', '.', '<', '>', '<=', '>=', '===', '!==', '==', '!=', '<>', '&&', '||', 'and', 'or', 'xor', '??'))
+				&& !($tokens->isPrev('(', ',') && $tokens->isNext(':'))
 				&& !preg_match('#^[A-Z_][A-Z0-9_]{2,}$#', $tokens->currentValue())
-				? "'" . $tokens->currentValue() . "'"
-				: $tokens->currentToken()
+					? "'" . $tokens->currentValue() . "'"
+					: $tokens->currentToken()
 			);
+		}
+		return $res;
+	}
+
+
+	/**
+	 * Converts named arguments name: value to 'name' => value
+	 */
+	public function namedArgumentsPass(MacroTokens $tokens): MacroTokens
+	{
+		$res = new MacroTokens;
+		while ($tokens->nextToken()) {
+			if (
+				$tokens->depth === 0
+				&& $tokens->isCurrent($tokens::T_SYMBOL)
+				&& (!$tokens->isPrev() || $tokens->isPrev(','))
+				&& $tokens->isNext(':')
+			) {
+				$res->append("'" . $tokens->currentValue() . "' =>");
+				$tokens->nextToken(':');
+			} else {
+				$res->append($tokens->currentToken());
+			}
 		}
 		return $res;
 	}
@@ -302,7 +494,7 @@ class PhpWriter
 				$expr = $arr = [];
 
 				$expr[] = $tokens->currentToken();
-				while ($tokens->isNext($tokens::T_VARIABLE, $tokens::T_SYMBOL, $tokens::T_NUMBER, $tokens::T_STRING, '[', ']', '(', ')', '->')
+				while ($tokens->isNext($tokens::T_VARIABLE, $tokens::T_SYMBOL, $tokens::T_NUMBER, $tokens::T_STRING, '[', ']', '(', ')', '->', '?->')
 					&& !$tokens->isNext('in')) {
 					$expr[] = $tokens->nextToken();
 				}
@@ -326,6 +518,129 @@ class PhpWriter
 
 
 	/**
+	 * Applies sandbox policy.
+	 */
+	public function sandboxPass(MacroTokens $tokens): MacroTokens
+	{
+		static $keywords = [
+			'array' => 1, 'catch' => 1, 'clone' => 1, 'empty' => 1, 'for' => 1,
+			'foreach' => 1, 'function' => 1, 'if' => 1, 'elseif', 'isset' => 1, 'list' => 1, 'unset' => 1,
+		];
+
+		if (!$this->policy) {
+			return $tokens;
+		}
+
+		$startDepth = $tokens->depth;
+		$res = new MacroTokens;
+
+		while ($tokens->depth >= $startDepth && $tokens->nextToken()) {
+			$static = false;
+			if ($tokens->isCurrent('[', '(')) { // starts with expression
+				$expr = new MacroTokens(array_merge([$tokens->currentToken()], $this->sandboxPass($tokens)->tokens));
+
+			} elseif ( // function or class name
+				$tokens->isCurrent($tokens::T_SYMBOL, '\\')
+				&& empty($keywords[$tokens->currentValue()])
+			) {
+				$expr = new MacroTokens(array_merge([$tokens->currentToken()], $tokens->nextAll($tokens::T_SYMBOL, '\\')));
+				$static = true;
+
+			} elseif ($tokens->isCurrent('$')) { // $$$var or ${...}
+				throw new CompileException('Forbidden variable variables.');
+
+			} elseif ($tokens->isCurrent($tokens::T_VARIABLE, $tokens::T_STRING)) {  // $var or 'func'
+				$expr = new MacroTokens([$tokens->currentToken()]);
+
+			} else { // not a begin
+				$res->append($tokens->currentToken());
+				continue;
+			}
+
+			do {
+				if ($tokens->nextToken('(')) { // call
+					if ($static) { // global function
+						$name = $expr->joinAll();
+						if (!$this->policy->isFunctionAllowed($name)) {
+							throw new SecurityViolationException("Function $name() is not allowed.");
+						}
+						$static = false;
+						$expr->append('(');
+					} else { // any calling
+						$expr->prepend('$this->call(');
+						$expr->append(')(');
+					}
+					$expr->tokens = array_merge($expr->tokens, $this->sandboxPass($tokens)->tokens);
+
+				} elseif ($tokens->nextToken('->', '?->', '::')) { // property, method or constant
+					$op = $tokens->currentValue();
+					if ($op === '::' && $tokens->nextToken($tokens::T_SYMBOL)) { // is constant?
+						if ($tokens->isNext('(')) { // go back, it was not
+							$tokens->position--;
+						} else { // it is
+							$expr->append('::');
+							$expr->append($tokens->currentValue());
+							continue;
+						}
+					}
+
+					if ($static) { // class name
+						$expr->append('::class');
+						$static = false;
+					}
+					$expr->append(', ');
+
+					if ($tokens->nextToken($tokens::T_SYMBOL)) { // $obj->member or $obj::member
+						$member = [$tokens->currentToken()];
+						$expr->append(PhpHelpers::dump($tokens->currentValue()));
+
+					} elseif ($tokens->nextToken($tokens::T_VARIABLE)) { // $obj->$var or $obj::$var
+						$member = [$tokens->currentToken()];
+						if ($op === '::' && !$tokens->isNext('(')) {
+							$expr->append(PhpHelpers::dump(substr($tokens->currentValue(), 1)));
+						} else {
+							$expr->append($tokens->currentValue());
+						}
+
+					} elseif ($tokens->nextToken('{')) { // $obj->{...}
+						$member = array_merge([$tokens->currentToken()], $this->sandboxPass($tokens)->tokens);
+						$expr->append('(string) ');
+						$expr->tokens = array_merge($expr->tokens, array_slice($member, 1, -1));
+
+					} else { // $obj->$$$var or $obj::$$$var
+						$member = $tokens->nextAll($tokens::T_VARIABLE, '$');
+						$expr->tokens = $op === '::' && !$tokens->isNext('(')
+							? array_merge($expr->tokens, array_slice($member, 1))
+							: array_merge($expr->tokens, $member);
+					}
+
+					if ($tokens->nextToken('(')) {
+						$expr->prepend('$this->call([');
+						$expr->append('])(');
+						$expr->tokens = array_merge($expr->tokens, $this->sandboxPass($tokens)->tokens);
+					} else {
+						$expr->prepend('$this->prop(');
+						$expr->append(')' . $op);
+						$expr->tokens = array_merge($expr->tokens, $member);
+					}
+
+				} elseif ($tokens->nextToken('[', '{')) { // array access
+					$static = false;
+					$expr->tokens = array_merge($expr->tokens, [$tokens->currentToken()], $this->sandboxPass($tokens)->tokens);
+
+				} else {
+					break;
+				}
+			} while (true);
+
+			$res->tokens = array_merge($res->tokens, $expr->tokens);
+		}
+
+		return $res;
+	}
+
+
+	/**
 	 * Process inline filters ($var|filter)
 	 */
 	public function inlineModifierPass(MacroTokens $tokens): MacroTokens
@@ -342,9 +657,12 @@ class PhpWriter
 	}
 
 
+	/**
+	 * @return array<array{string, int, int}>
+	 */
 	private function inlineModifierInner(MacroTokens $tokens): array
 	{
-		$isFunctionOrArray = $tokens->isPrev($tokens::T_VARIABLE, $tokens::T_SYMBOL) || $tokens->isCurrent('[');
+		$isFunctionOrArray = $tokens->isPrev($tokens::T_VARIABLE, $tokens::T_SYMBOL, ')') || $tokens->isCurrent('[');
 		$result = new MacroTokens;
 		$args = new MacroTokens;
 		$modifiers = new MacroTokens;
@@ -388,7 +706,7 @@ class PhpWriter
 
 	/**
 	 * Formats modifiers calling.
-	 * @param  string|array  $var
+	 * @param  string|array<array{string, int, int}>  $var
 	 * @throws CompileException
 	 */
 	public function modifierPass(MacroTokens $tokens, $var, bool $isContent = false): MacroTokens
@@ -400,41 +718,62 @@ class PhpWriter
 				$res->append(' ');
 
 			} elseif ($inside) {
-				if ($tokens->isCurrent(':', ',')) {
+				if ($tokens->isCurrent(':', ',') && !$tokens->depth) {
 					$res->append(', ');
 					$tokens->nextAll($tokens::T_WHITESPACE);
 
-				} elseif ($tokens->isCurrent('|')) {
+				} elseif ($tokens->isCurrent('|') && !$tokens->depth) {
 					$res->append(')');
 					$inside = false;
 
+				} elseif (
+					!$tokens->depth
+					&& $tokens->isCurrent($tokens::T_SYMBOL)
+					&& $tokens->isPrev(',', ':')
+					&& $tokens->isNext(':')
+				) {
+					$res->append($tokens->currentToken());
+					$res->append($tokens->nextToken(':'));
+
 				} else {
+					if ($tokens->isNext(':') && !$tokens->depth) {
+						$hint = (clone $tokens)->reset()->joinAll();
+						trigger_error("Colon as argument separator is deprecated, use comma in '$hint'.", E_USER_DEPRECATED);
+					}
 					$res->append($tokens->currentToken());
 				}
-			} else {
-				if ($tokens->isCurrent($tokens::T_SYMBOL)) {
-					if ($tokens->isCurrent('escape')) {
-						if ($isContent) {
-							$res->prepend('LR\Filters::convertTo($_fi, ' . var_export(implode($this->context), true) . ', ')
-								->append(')');
-						} else {
-							$res = $this->escapePass($res);
-						}
-						$tokens->nextToken('|');
-					} elseif (!strcasecmp($tokens->currentValue(), 'checkurl')) {
-						$res->prepend('LR\Filters::safeUrl(');
-						$inside = true;
+			} elseif ($tokens->isCurrent($tokens::T_SYMBOL)) {
+				if ($tokens->isCurrent('escape')) {
+					if ($isContent) {
+						$res->prepend('LR\Filters::convertTo($__fi, ' . PhpHelpers::dump(implode($this->context)) . ', ')
+							->append(')');
 					} else {
-						$name = strtolower($tokens->currentValue());
-						$res->prepend($isContent
-							? '$this->filters->filterContent(' . var_export($name, true) . ', $_fi, '
-							: '($this->filters->' . $name . ')('
-						);
-						$inside = true;
+						$res = $this->escapePass($res);
 					}
+					$tokens->nextToken('|');
+				} elseif (!strcasecmp($tokens->currentValue(), 'checkurl')) {
+					$res->prepend('LR\Filters::safeUrl(');
+					$inside = true;
+				} elseif (
+					!strcasecmp($tokens->currentValue(), 'noescape')
+					|| !strcasecmp($tokens->currentValue(), 'nocheck')
+				) {
+					throw new SecurityViolationException("Filter |{$tokens->currentValue()} is not expected here.");
 				} else {
-					throw new CompileException("Modifier name must be alphanumeric string, '{$tokens->currentValue()}' given.");
+					$name = $tokens->currentValue();
+					if ($this->policy && !$this->policy->isFilterAllowed($name)) {
+						throw new SecurityViolationException("Filter |$name is not allowed.");
+					}
+					$name = strtolower($name);
+					$res->prepend(
+						$isContent
+							? '$this->filters->filterContent(' . PhpHelpers::dump($name) . ', $__fi, '
+							: '($this->filters->' . $name . ')('
+					);
+					$inside = true;
 				}
+			} else {
+				throw new CompileException("Filter name must be alphanumeric string, '{$tokens->currentValue()}' given.");
 			}
 		}
 		if ($inside) {

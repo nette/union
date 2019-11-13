@@ -1,15 +1,15 @@
-Model
-*****
+Model <small>| First Application</small>
+****************************************
 
-As our application grows, we soon find out that we need to perform similar database operations in various locations and in various presenters, for example acquiring newest published articles. If we improve our application by adding a flag to articles to indicate work-in-progress state, we must also go through all locations in our application and add a where clause to make sure only finished articles are selected.
+As our application grows, we soon find out that we need to perform similar database operations in various locations and in various presenters, for example acquiring the newest published articles. If we improve our application by adding a flag to articles to indicate a work-in-progress state, we must also go through all locations in our application and add a where clause to make sure only finished articles are selected.
 
-At this point, direct work with the database becomes insufficient and it will be smarter to help ourselves with a new function that returns published articles. And when we add another clause later (for example not to display articles with future date), we only edit our code in one place.
+At this point, direct work with the database becomes insufficient and it will be smarter to help ourselves with a new function that returns published articles. And when we add another clause later (for example not to display articles with a future date), we only edit our code in one place.
 
 We'll place the function into the `ArticleManager` class and call it `getPublicArticles()`.
 
 We'll create our model class `ArticleManager` in the directory `app/Model/` to take care of our articles. Let's place it into the `ArticleManager.php` file.
 
-```php
+```php .{data-file:app/Model/ArticleManager.php}
 namespace App\Model;
 
 use Nette;
@@ -57,11 +57,11 @@ $articleManager = new App\Model\ArticleManager($dbContext)
 
 All that typing only to get a working ArticleManager? We wouldn't want that. That's why we are using a DI container which we will treat as a box that generates this necessary code and returns only the required object.
 
-The only thing we need is to tell the DI container to return the required object. We can sort this out in application configuration. We'll add a line with full class name to the `app/config/common.neon` file under services.
+The only thing we need is to tell the DI container to return the required object. We can sort this out in application configuration. We'll add a line with the full class name to the `app/config/common.neon` file under services.
 
 ```neon
 services:
-	router: App\RouterFactory::createRouter
+	router: App\Router\RouterFactory::createRouter
 	- App\Model\ArticleManager
 ```
 
@@ -71,7 +71,7 @@ That way we tell Nette and its [DI container |/dependency-injection] the followi
 
 We will switch to `HomepagePresenter.php` which we will edit so that we get rid of the dependency on `Nette\Database\Context` replacing that with a new dependency on our new class.
 
-```php
+```php .{data-file:app/Presenters/HomepagePresenter.php}
 namespace App\Presenters;
 
 use Nette;
@@ -100,5 +100,3 @@ In the use section, we are using `App\Model\ArticleManager`. That way we can sho
 We request `ArticleManager` in a constructor which we will assign to the `$articleManager` attribute and in the renderDefault method we are calling the `getPublicArticles()` method. We are also calling the `limit(5)` method on the result of that function.
 
 The `ArticleManager` class asks for `Nette\Database\Context` in a constructor and because this class is registered in the DI container, the container creates this instance and passes it. DI this way creates an ArticleManager instance for us and passes it in a constructor to the HomepagePresenter class which asked for it. Sort of a Matryoshka doll of code. :) All the components only request what they need and they don't care where and how it gets created. The creation is handled by [Nette DI container |/dependency-injection].
-
-{{sidebar: yes}}

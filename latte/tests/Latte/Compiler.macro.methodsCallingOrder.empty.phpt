@@ -6,17 +6,17 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler;
-use Latte\IMacro;
-use Latte\MacroNode;
-use Latte\Parser;
+use Latte\Compiler\Compiler;
+use Latte\Compiler\Macro;
+use Latte\Compiler\MacroNode;
+use Latte\Compiler\Parser;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-class MockMacro implements IMacro
+class MockMacro implements Macro
 {
 	public $calls = [];
 

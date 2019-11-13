@@ -1,40 +1,36 @@
 <?php
 %A%
 
-class Template%a% extends Latte\Runtime\Template
+final class Template%a% extends Latte\Runtime\Template
 {
-	public $blocks = [
-		'content' => 'blockContent',
-	];
-
-	public $blockTypes = [
-		'content' => 'html',
+	protected const BLOCKS = [
+		['content' => 'blockContent'],
 	];
 
 
-	function main()
+	public function main(): array
 	{
 %A%
-<?php
-		if ($this->getParentName()) return get_defined_vars();
+		if ($this->getParentName()) {
+			return get_defined_vars();
+		}
 		$this->renderBlock('content', get_defined_vars());
-		?>	<?php
 %A%
 	}
 
 
-	function prepare()
+	public function prepare(): void
 	{
 		extract($this->params);
-		$this->parentName = $ext;
+		$this->parentName = (true ? $ext : "undefined");
 
 	}
 
 
-	function blockContent($_args)
+	public function blockContent(array $__args): void
 	{
-?>	Content
-<?php
+		echo '	Content
+';
 	}
 
 }

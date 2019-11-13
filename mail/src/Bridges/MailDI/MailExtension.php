@@ -36,7 +36,7 @@ class MailExtension extends Nette\DI\CompilerExtension
 				Expect::structure([
 					'domain' => Expect::string()->dynamic(),
 					'selector' => Expect::string()->dynamic(),
-					'privateKey' => Expect::string()->dynamic()->required(),
+					'privateKey' => Expect::string()->required(),
 					'passPhrase' => Expect::string()->dynamic(),
 					'testMode' => Expect::bool(false)->dynamic(),
 				])->castTo('array')
@@ -54,7 +54,7 @@ class MailExtension extends Nette\DI\CompilerExtension
 
 		if ($this->config['dkim']) {
 			$dkim = $this->config['dkim'];
-			$dkim['privateKey'] = file_get_contents($dkim['privateKey']);
+			$dkim['privateKey'] = Nette\Utils\FileSystem::read($dkim['privateKey']);
 			unset($this->config['dkim']);
 
 			$signer = $builder->addDefinition($this->prefix('signer'))

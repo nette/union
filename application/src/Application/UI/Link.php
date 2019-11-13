@@ -42,6 +42,15 @@ final class Link
 
 
 	/**
+	 * Returns link component.
+	 */
+	public function getComponent(): Component
+	{
+		return $this->component;
+	}
+
+
+	/**
 	 * Returns link destination.
 	 */
 	public function getDestination(): string
@@ -81,6 +90,15 @@ final class Link
 
 
 	/**
+	 * Determines whether this links to the current page.
+	 */
+	public function isLinkCurrent(): bool
+	{
+		return $this->component->isLinkCurrent($this->destination, $this->params);
+	}
+
+
+	/**
 	 * Converts link to URL.
 	 */
 	public function __toString(): string
@@ -93,6 +111,7 @@ final class Link
 				throw $e;
 			}
 			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
+			return '';
 		}
 	}
 }

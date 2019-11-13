@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Tester\Assert;
-use Tester\Expect;
 use Tracy\Dumper;
 
 
@@ -24,44 +23,45 @@ $obj = (object) [
 ];
 
 
-Assert::match('stdClass #%a%
-   a => 456
-   password => ***** (string)
-   PASSWORD => ***** (string)
-   Pin => ***** (string)
-   inner => array (4)
-   |  a => 123
-   |  password => ***** (string)
-   |  PASSWORD => ***** (string)
-   |  Pin => ***** (string)
-', Dumper::toText($obj, [Dumper::KEYS_TO_HIDE => ['password', 'PIN']]));
+Assert::match(<<<'XX'
+stdClass #%d%
+   a: 456
+   password: ***** (string)
+   PASSWORD: ***** (string)
+   Pin: ***** (string)
+   inner: array (4)
+   |  'a' => 123
+   |  'password' => ***** (string)
+   |  'PASSWORD' => ***** (string)
+   |  'Pin' => ***** (string)
+XX
+, Dumper::toText($obj, [Dumper::KEYS_TO_HIDE => ['password', 'PIN']]));
 
 
 $snapshot = [];
 Assert::match(
-	'<pre class="tracy-dump" data-tracy-dump=\'{"object":1}\'></pre>',
+	'<pre class="tracy-dump tracy-light" data-tracy-dump=\'{"ref":%d%}\'></pre>',
 	Dumper::toHtml($obj, [Dumper::KEYS_TO_HIDE => ['password', 'pin'], Dumper::SNAPSHOT => &$snapshot])
 );
 
 Assert::equal([
-	1 => [
-		'name' => 'stdClass',
-		'hash' => Expect::match('%h%'),
+	[
+		'object' => 'stdClass',
 		'items' => [
-			['a', 456, 0],
-			['password', ['type' => '***** (string)'], 0],
-			['PASSWORD', ['type' => '***** (string)'], 0],
-			['Pin', ['type' => '***** (string)'], 0],
+			['a', 456, 3],
+			['password', ['text' => '***** (string)'], 3],
+			['PASSWORD', ['text' => '***** (string)'], 3],
+			['Pin', ['text' => '***** (string)'], 3],
 			[
 				'inner',
 				[
 					['a', 123],
-					['password', ['type' => '***** (string)']],
-					['PASSWORD', ['type' => '***** (string)']],
-					['Pin', ['type' => '***** (string)']],
+					['password', ['text' => '***** (string)']],
+					['PASSWORD', ['text' => '***** (string)']],
+					['Pin', ['text' => '***** (string)']],
 				],
-				0,
+				3,
 			],
 		],
 	],
-], json_decode(explode("'", Dumper::formatSnapshotAttribute($snapshot))[1], true));
+], array_values(json_decode(explode("'", Dumper::formatSnapshotAttribute($snapshot))[1], true)));

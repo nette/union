@@ -1,20 +1,17 @@
 <?php
 %A%
 
-class Template%a% extends Latte\Runtime\Template
+final class Template%a% extends Latte\Runtime\Template
 {
 
-	function main()
+	public function main(): array
 	{
 %A%
 		ob_start(function () {});
 		$this->createTemplate("inc", get_defined_vars(), "includeblock")->renderToContentType('html');
 		echo rtrim(ob_get_clean());
-?>
-
-<?php
-		$this->renderBlock('test', $this->params, 'html');
-		?>	<?php
+		echo "\n";
+		$this->renderBlock($__nm = 'test', [], 'html');
 %A%
 	}
 

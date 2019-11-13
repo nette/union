@@ -10,10 +10,10 @@ declare(strict_types=1);
 namespace Nette\Database\Table;
 
 use Nette;
-use Nette\Database\Context;
-use Nette\Database\IConventions;
+use Nette\Database\Conventions;
+use Nette\Database\Driver;
+use Nette\Database\Explorer;
 use Nette\Database\IStructure;
-use Nette\Database\ISupplementalDriver;
 use Nette\Database\SqlLiteral;
 
 
@@ -28,7 +28,7 @@ class SqlBuilder
 	/** @var string */
 	protected $tableName;
 
-	/** @var IConventions */
+	/** @var Conventions */
 	protected $conventions;
 
 	/** @var string delimited table name */
@@ -80,7 +80,7 @@ class SqlBuilder
 	/** @var string currently parsing alias for joins */
 	protected $currentAlias;
 
-	/** @var ISupplementalDriver */
+	/** @var Driver */
 	private $driver;
 
 	/** @var IStructure */
@@ -93,12 +93,12 @@ class SqlBuilder
 	private $expandingJoins = [];
 
 
-	public function __construct(string $tableName, Context $context)
+	public function __construct(string $tableName, Explorer $explorer)
 	{
 		$this->tableName = $tableName;
-		$this->driver = $context->getConnection()->getSupplementalDriver();
-		$this->conventions = $context->getConventions();
-		$this->structure = $context->getStructure();
+		$this->driver = $explorer->getConnection()->getDriver();
+		$this->conventions = $explorer->getConventions();
+		$this->structure = $explorer->getStructure();
 		$tableNameParts = explode('.', $tableName);
 		$this->delimitedTable = implode('.', array_map([$this->driver, 'delimite'], $tableNameParts));
 		$this->checkUniqueTableName(end($tableNameParts), $tableName);
@@ -160,7 +160,7 @@ class SqlBuilder
 			$parts[] = $this->select;
 		} elseif ($columns) {
 			$parts[] = [$this->delimitedTable, $columns];
-		} elseif ($this->group && !$this->driver->isSupported(ISupplementalDriver::SUPPORT_SELECT_UNGROUPED_COLUMNS)) {
+		} elseif ($this->group && !$this->driver->isSupported(Driver::SUPPORT_SELECT_UNGROUPED_COLUMNS)) {
 			$parts[] = [$this->group];
 		} else {
 			$parts[] = "{$this->delimitedTable}.*";
@@ -210,7 +210,7 @@ class SqlBuilder
 			}
 			$querySelect = $this->buildSelect($cols);
 
-		} elseif ($this->group && !$this->driver->isSupported(ISupplementalDriver::SUPPORT_SELECT_UNGROUPED_COLUMNS)) {
+		} elseif ($this->group && !$this->driver->isSupported(Driver::SUPPORT_SELECT_UNGROUPED_COLUMNS)) {
 			$querySelect = $this->buildSelect([$this->group]);
 			$this->parseJoins($joins, $querySelect);
 
@@ -235,7 +235,7 @@ class SqlBuilder
 		}
 		return array_merge(
 			$this->parameters['select'],
-			$this->parameters['joinConditionSorted'] ? call_user_func_array('array_merge', $this->parameters['joinConditionSorted']) : [],
+			$this->parameters['joinConditionSorted'] ? array_merge(...array_values($this->parameters['joinConditionSorted'])) : [],
 			$this->parameters['where'],
 			$this->parameters['group'],
 			$this->parameters['having'],
@@ -327,7 +327,9 @@ class SqlBuilder
 		while (count($params)) {
 			$arg = array_shift($params);
 			preg_match('#(?:.*?\?.*?){' . $placeholderNum . '}(((?:&|\||^|~|\+|-|\*|/|%|\(|,|<|>|=|(?<=\W|^)(?:REGEXP|ALL|AND|ANY|BETWEEN|EXISTS|IN|[IR]?LIKE|OR|NOT|SOME|INTERVAL))\s*)?(?:\(\?\)|\?))#s', $condition, $match, PREG_OFFSET_CAPTURE);
-			$hasOperator = ($match[1][0] === '?' && $match[1][1] === 0) ? true : !empty($match[2][0]);
+			$hasOperator = ($match[1][0] === '?' && $match[1][1] === 0)
+				? true
+				: !empty($match[2][0]);
 
 			if ($arg === null) {
 				$replace = 'IS NULL';
@@ -359,7 +361,7 @@ class SqlBuilder
 						}
 					}
 
-					if ($this->driver->isSupported(ISupplementalDriver::SUPPORT_SUBSELECT)) {
+					if ($this->driver->isSupported(Driver::SUPPORT_SUBSELECT)) {
 						$arg = null;
 						$subSelectPlaceholderCount = substr_count($clone->getSql(), '?');
 						$replace = $match[2][0] . '(' . $clone->getSql() . (!$subSelectPlaceholderCount && count($clone->getSqlBuilder()->getParameters()) === 1 ? ' ?' : '') . ')';
@@ -383,11 +385,9 @@ class SqlBuilder
 						if (!$hasBrackets && ($hasOperators || ($hasNot && !$hasPrefixNot))) {
 							throw new Nette\InvalidArgumentException('Possible SQL query corruption. Add parentheses around operators.');
 						}
-						if ($hasPrefixNot) {
-							$replace = 'IS NULL OR TRUE';
-						} else {
-							$replace = 'IS NULL AND FALSE';
-						}
+						$replace = $hasPrefixNot
+							? 'IS NULL OR TRUE'
+							: 'IS NULL AND FALSE';
 						$arg = null;
 					} else {
 						$replace = $match[2][0] . '(?)';
@@ -584,7 +584,9 @@ class SqlBuilder
 				}
 			}
 			$finalJoins += $tableJoins[$table];
-			$key = isset($this->aliases[$table]) ? $table : $this->reservedTableNames[$table];
+			$key = isset($this->aliases[$table])
+				? $table
+				: $this->reservedTableNames[$table];
 			if ($key[0] === '.') {
 				$key = substr($key, 1);
 			}
@@ -627,9 +629,12 @@ class SqlBuilder
 		$parentAlias = preg_replace('#^(.*\.)?(.*)$#', '$2', $this->tableName);
 
 		// join schema keyMatch and table keyMatch to schema.table keyMatch
-		if ($this->driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA) && count($keyMatches) > 1) {
+		if ($this->driver->isSupported(Driver::SUPPORT_SCHEMA) && count($keyMatches) > 1) {
 			$tables = $this->getCachedTableList();
-			if (!isset($tables[$keyMatches[0]['key']]) && isset($tables[$keyMatches[0]['key'] . '.' . $keyMatches[1]['key']])) {
+			if (
+				!isset($tables[$keyMatches[0]['key']])
+				&& isset($tables[$keyMatches[0]['key'] . '.' . $keyMatches[1]['key']])
+			) {
 				$keyMatch = array_shift($keyMatches);
 				$keyMatches[0]['key'] = $keyMatch['key'] . '.' . $keyMatches[0]['key'];
 				$keyMatches[0]['del'] = $keyMatch['del'];
@@ -639,7 +644,11 @@ class SqlBuilder
 		// do not make a join when referencing to the current table column - inner conditions
 		// check it only when not making backjoin on itself - outer condition
 		if ($keyMatches[0]['del'] === '.') {
-			if (count($keyMatches) > 1 && ($parent === $keyMatches[0]['key'] || $parentAlias === $keyMatches[0]['key'])) {
+			if (
+				count($keyMatches) > 1
+				&& ($parent === $keyMatches[0]['key']
+					|| $parentAlias === $keyMatches[0]['key'])
+			) {
 				throw new Nette\InvalidArgumentException("Do not prefix table chain with origin table name '{$keyMatches[0]['key']}'. If you want to make self reference, please add alias.");
 			}
 			if ($parent === $keyMatches[0]['key']) {
@@ -654,17 +663,17 @@ class SqlBuilder
 			if (!$index && isset($this->aliases[$keyMatch['key']])) {
 				if ($keyMatch['del'] === ':') {
 					throw new Nette\InvalidArgumentException("You are using has many syntax with alias (':{$keyMatch['key']}'). You have to move it to alias definition.");
-				} else {
-					$previousAlias = $this->currentAlias;
-					$this->currentAlias = $keyMatch['key'];
-					$requiredJoins = [];
-					$query = $this->aliases[$keyMatch['key']] . '.foo';
-					$this->parseJoins($requiredJoins, $query);
-					$aliasJoin = array_pop($requiredJoins);
-					$joins += $requiredJoins;
-					[$table, , $parentAlias, $column, $primary] = $aliasJoin;
-					$this->currentAlias = $previousAlias;
 				}
+				$previousAlias = $this->currentAlias;
+				$this->currentAlias = $keyMatch['key'];
+				$requiredJoins = [];
+				$query = $this->aliases[$keyMatch['key']] . '.foo';
+				$this->parseJoins($requiredJoins, $query);
+				$aliasJoin = array_pop($requiredJoins);
+				$joins += $requiredJoins;
+				[$table, , $parentAlias, $column, $primary] = $aliasJoin;
+				$this->currentAlias = $previousAlias;
+
 			} elseif ($keyMatch['del'] === ':') {
 				if (isset($keyMatch['throughColumn'])) {
 					$table = $keyMatch['key'];
@@ -740,7 +749,9 @@ class SqlBuilder
 
 	protected function buildConditions(): string
 	{
-		return $this->where ? ' WHERE (' . implode(') AND (', $this->where) . ')' : '';
+		return $this->where
+			? ' WHERE (' . implode(') AND (', $this->where) . ')'
+			: '';
 	}
 
 
@@ -763,14 +774,20 @@ class SqlBuilder
 	protected function tryDelimite(string $s): string
 	{
 		return preg_replace_callback('#(?<=[^\w`"\[?:]|^)[a-z_][a-z0-9_]*(?=[^\w`"(\]]|$)#Di', function (array $m): string {
-			return strtoupper($m[0]) === $m[0] ? $m[0] : $this->driver->delimite($m[0]);
+			return strtoupper($m[0]) === $m[0]
+				? $m[0]
+				: $this->driver->delimite($m[0]);
 		}, $s);
 	}
 
 
-	protected function addConditionComposition(array $columns, array $parameters, array &$conditions, array &$conditionsParameters): bool
-	{
-		if ($this->driver->isSupported(ISupplementalDriver::SUPPORT_MULTI_COLUMN_AS_OR_COND)) {
+	protected function addConditionComposition(
+		array $columns,
+		array $parameters,
+		array &$conditions,
+		array &$conditionsParameters
+	): bool {
+		if ($this->driver->isSupported(Driver::SUPPORT_MULTI_COLUMN_AS_OR_COND)) {
 			$conditionFragment = '(' . implode(' = ? AND ', $columns) . ' = ?) OR ';
 			$condition = substr(str_repeat($conditionFragment, count($parameters)), 0, -4);
 			return $this->addCondition($condition, [Nette\Utils\Arrays::flatten($parameters)], $conditions, $conditionsParameters);

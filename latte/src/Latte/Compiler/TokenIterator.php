@@ -7,7 +7,10 @@
 
 declare(strict_types=1);
 
-namespace Latte;
+namespace Latte\Compiler;
+
+use Latte\CompileException;
+use Latte\Strict;
 
 
 /**
@@ -18,13 +21,13 @@ class TokenIterator
 {
 	use Strict;
 
-	/** @var array */
+	/** @var array<array{string, int, int}> */
 	public $tokens;
 
 	/** @var int */
 	public $position = -1;
 
-	/** @var array */
+	/** @var int[] */
 	public $ignored = [];
 
 
@@ -39,6 +42,7 @@ class TokenIterator
 
 	/**
 	 * Returns current token.
+	 * @return ?array{string, int, int}
 	 */
 	public function currentToken(): ?array
 	{
@@ -58,6 +62,7 @@ class TokenIterator
 	/**
 	 * Returns next token.
 	 * @param  int|string  ...$args  desired token type or value
+	 * @return ?array{string, int, int}
 	 */
 	public function nextToken(...$args): ?array
 	{
@@ -78,7 +83,7 @@ class TokenIterator
 	/**
 	 * Returns all next tokens.
 	 * @param  int|string  ...$args  desired token type or value
-	 * @return array[]
+	 * @return array<array{string, int, int}>
 	 */
 	public function nextAll(...$args): array
 	{
@@ -89,7 +94,7 @@ class TokenIterator
 	/**
 	 * Returns all next tokens until it sees a given token type or value.
 	 * @param  int|string  ...$args  token type or value to stop before (required)
-	 * @return array[]
+	 * @return array<array{string, int, int}>
 	 */
 	public function nextUntil(...$args): array
 	{
@@ -170,9 +175,7 @@ class TokenIterator
 	}
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function reset()
 	{
 		$this->position = -1;
@@ -191,11 +194,17 @@ class TokenIterator
 
 	/**
 	 * Looks for (first) (not) wanted tokens.
-	 * @param  array  $wanted  of desired token types or values
+	 * @param  array<int|string>  $wanted  of desired token types or values
 	 * @return mixed
 	 */
-	protected function scan(array $wanted, bool $onlyFirst, bool $advance, bool $strings = false, bool $until = false, bool $prev = false)
-	{
+	protected function scan(
+		array $wanted,
+		bool $onlyFirst,
+		bool $advance,
+		bool $strings = false,
+		bool $until = false,
+		bool $prev = false
+	) {
 		$res = $onlyFirst ? null : ($strings ? '' : []);
 		$pos = $this->position + ($prev ? -1 : 1);
 		do {
@@ -204,7 +213,13 @@ class TokenIterator
 			}
 
 			$token = $this->tokens[$pos];
-			if (!$wanted || (in_array($token[Tokenizer::VALUE], $wanted, true) || in_array($token[Tokenizer::TYPE], $wanted, true)) ^ $until) {
+			if (
+				!$wanted
+				|| (
+					in_array($token[Tokenizer::VALUE], $wanted, true)
+					|| in_array($token[Tokenizer::TYPE], $wanted, true)
+				) ^ $until
+			) {
 				while ($advance && !$prev && $pos > $this->position) {
 					$this->next();
 				}

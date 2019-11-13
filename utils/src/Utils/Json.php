@@ -27,7 +27,10 @@ final class Json
 
 
 	/**
-	 * Returns the JSON representation of a value. Accepts flag Json::PRETTY.
+	 * Converts value to JSON format. The flag can be Json::PRETTY, which formats JSON for easier reading and clarity,
+	 * and Json::ESCAPE_UNICODE for ASCII output.
+	 * @param  mixed  $value
+	 * @throws JsonException
 	 */
 	public static function encode($value, int $flags = 0): string
 	{
@@ -45,8 +48,9 @@ final class Json
 
 
 	/**
-	 * Decodes a JSON string. Accepts flag Json::FORCE_ARRAY.
+	 * Parses JSON to PHP value. The flag can be Json::FORCE_ARRAY, which forces an array instead of an object as the return value.
 	 * @return mixed
+	 * @throws JsonException
 	 */
 	public static function decode(string $json, int $flags = 0)
 	{

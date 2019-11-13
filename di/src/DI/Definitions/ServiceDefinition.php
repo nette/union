@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Nette\DI\Definitions;
 
 use Nette;
-use Nette\DI\Definitions\Reference;
 use Nette\DI\ServiceCreationException;
 use Nette\PhpGenerator\Helpers as PhpHelpers;
 
@@ -37,9 +36,7 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	/**
-	 * @deprecated Use setType()
-	 */
+	/** @deprecated Use setType() */
 	public function setClass(?string $type)
 	{
 		$this->setType($type);
@@ -53,9 +50,7 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setType(?string $type)
 	{
 		return parent::setType($type);
@@ -68,7 +63,9 @@ final class ServiceDefinition extends Definition
 	 */
 	public function setFactory($factory, array $args = [])
 	{
-		$this->factory = $factory instanceof Statement ? $factory : new Statement($factory, $args);
+		$this->factory = $factory instanceof Statement
+			? $factory
+			: new Statement($factory, $args);
 		return $this;
 	}
 
@@ -79,18 +76,14 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	/**
-	 * @return string|array|Definition|Reference|null
-	 */
+	/** @return string|array|Definition|Reference|null */
 	public function getEntity()
 	{
 		return $this->factory->getEntity();
 	}
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setArguments(array $args = [])
 	{
 		$this->factory->arguments = $args;
@@ -98,9 +91,7 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setArgument($key, $value)
 	{
 		$this->factory->arguments[$key] = $value;
@@ -124,9 +115,7 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	/**
-	 * @return Statement[]
-	 */
+	/** @return Statement[] */
 	public function getSetup(): array
 	{
 		return $this->setup;
@@ -139,23 +128,21 @@ final class ServiceDefinition extends Definition
 	 */
 	public function addSetup($entity, array $args = [])
 	{
-		$this->setup[] = $entity instanceof Statement ? $entity : new Statement($entity, $args);
+		$this->setup[] = $entity instanceof Statement
+			? $entity
+			: new Statement($entity, $args);
 		return $this;
 	}
 
 
-	/**
-	 * @deprecated
-	 */
+	/** @deprecated */
 	public function setParameters(array $params)
 	{
 		throw new Nette\DeprecatedException(sprintf('Service %s: %s() is deprecated.', $this->getName(), __METHOD__));
 	}
 
 
-	/**
-	 * @deprecated
-	 */
+	/** @deprecated */
 	public function getParameters(): array
 	{
 		trigger_error(sprintf('Service %s: %s() is deprecated.', $this->getName(), __METHOD__), E_USER_DEPRECATED);
@@ -163,27 +150,21 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	/**
-	 * @deprecated use $builder->addImportedDefinition(...)
-	 */
+	/** @deprecated use $builder->addImportedDefinition(...) */
 	public function setDynamic(): void
 	{
 		throw new Nette\DeprecatedException(sprintf('Service %s: %s() is deprecated, use $builder->addImportedDefinition(...)', $this->getName(), __METHOD__));
 	}
 
 
-	/**
-	 * @deprecated use $builder->addFactoryDefinition(...) or addAccessorDefinition(...)
-	 */
+	/** @deprecated use $builder->addFactoryDefinition(...) or addAccessorDefinition(...) */
 	public function setImplement(): void
 	{
 		throw new Nette\DeprecatedException(sprintf('Service %s: %s() is deprecated, use $builder->addFactoryDefinition(...)', $this->getName(), __METHOD__));
 	}
 
 
-	/**
-	 * @deprecated use addTag('nette.inject')
-	 */
+	/** @deprecated use addTag('nette.inject') */
 	public function setInject(bool $state = true)
 	{
 		trigger_error(sprintf('Service %s: %s() is deprecated, use addTag(Nette\DI\Extensions\InjectExtension::TAG_INJECT)', $this->getName(), __METHOD__), E_USER_DEPRECATED);
@@ -226,7 +207,10 @@ final class ServiceDefinition extends Definition
 		$this->factory = $resolver->completeStatement($this->factory);
 
 		foreach ($this->setup as &$setup) {
-			if (is_string($setup->getEntity()) && strpbrk($setup->getEntity(), ':@?\\') === false) { // auto-prepend @self
+			if (
+				is_string($setup->getEntity())
+				&& strpbrk($setup->getEntity(), ':@?\\') === false
+			) { // auto-prepend @self
 				$setup = new Statement([new Reference(Reference::SELF), $setup->getEntity()], $setup->arguments);
 			}
 			$setup = $resolver->completeStatement($setup, true);
@@ -250,7 +234,8 @@ final class ServiceDefinition extends Definition
 			&& !(is_array($entity) && $entity[0] instanceof Reference && $entity[0]->getValue() === Nette\DI\ContainerBuilder::THIS_CONTAINER)
 			&& !(is_string($entity) && preg_match('#^[\w\\\\]+$#D', $entity) && is_subclass_of($entity, $type))
 		) {
-			$code .= PhpHelpers::formatArgs("if (!\$service instanceof $type) {\n"
+			$code .= PhpHelpers::formatArgs(
+				"if (!\$service instanceof $type) {\n"
 				. "\tthrow new Nette\\UnexpectedValueException(?);\n}\n",
 				["Unable to create service '{$this->getName()}', value returned by factory is not $type type."]
 			);
@@ -272,3 +257,6 @@ final class ServiceDefinition extends Definition
 		$this->setup = unserialize(serialize($this->setup));
 	}
 }
+
+
+class_exists(Nette\DI\ServiceDefinition::class);

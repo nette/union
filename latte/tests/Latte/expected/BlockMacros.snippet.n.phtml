@@ -1,68 +1,84 @@
 <?php
 %A%
 
-class Template%a% extends Latte\Runtime\Template
+final class Template%a% extends Latte\Runtime\Template
 {
-	public $blocks = [
-		'_outer' => 'blockOuter',
-		'_inner' => 'blockInner',
-		'_gallery' => 'blockGallery',
-	];
-
-	public $blockTypes = [
-		'_outer' => 'html',
-		'_inner' => 'html',
-		'_gallery' => 'html',
+	protected const BLOCKS = [
+		'snippet' => ['outer' => 'blockOuter', 'inner' => 'blockInner', 'gallery' => 'blockGallery'],
 	];
 
 
-	function main()
+	public function main(): array
 	{
 %A%
-		?>	<div class="test"<?php echo ' id="' . htmlSpecialChars($this->global->snippetDriver->getHtmlId('outer')) . '"' ?>>
-<?php $this->renderBlock('_outer', $this->params) ?>
-	</div>
+		echo '	<div class="test"';
+		echo ' id="' . htmlspecialchars($this->global->snippetDriver->getHtmlId('outer')) . '"';
+		echo '>
+';
+		$this->renderBlock('outer', [], null, 'snippet');
+		echo '	</div>
 
-	<div class="test"<?php echo ' id="' . htmlSpecialChars($this->global->snippetDriver->getHtmlId('inner')) . '"' ?>>
-<?php
-		$this->renderBlock('_inner', $this->params);
-?>	</div>
+	<div class="test"';
+		echo ' id="' . htmlspecialchars($this->global->snippetDriver->getHtmlId('inner')) . '"';
+		echo '>
+';
+		$this->renderBlock('inner', [], null, 'snippet');
+		echo '	</div>
 
-	<div class="<?php echo LR\Filters::escapeHtmlAttr('class') /* line 9 */ ?>"<?php echo ' id="' . htmlSpecialChars($this->global->snippetDriver->getHtmlId('gallery')) . '"' ?>><?php
-		$this->renderBlock('_gallery', $this->params) ?>
-</div>
-<?php
+	<div class="';
+		echo LR\Filters::escapeHtmlAttr('class') /* line 9 */;
+		echo '"';
+		echo ' id="' . htmlspecialchars($this->global->snippetDriver->getHtmlId('gallery')) . '"';
+		echo '>';
+		$this->renderBlock('gallery', [], null, 'snippet');
+		echo '</div>
+';
 %A%
 	}
 
 
-	function blockOuter($_args)
+	public function blockOuter(array $__args): void
 	{
-		extract($_args);
-		$this->global->snippetDriver->enter("outer", "static");
-?>	<p>Outer</p>
-<?php
-		$this->global->snippetDriver->leave();
+		extract($this->params);
+		extract($__args);
+		$this->global->snippetDriver->enter("outer", 'static');
+		try {
+			echo '	<p>Outer</p>
+';
+		}
+		finally {
+			$this->global->snippetDriver->leave();
+		}
 
 	}
 
 
-	function blockInner($_args)
+	public function blockInner(array $__args): void
 	{
-		extract($_args);
-		$this->global->snippetDriver->enter("inner", "static");
-?>	<p>Inner</p>
-<?php
-		$this->global->snippetDriver->leave();
+		extract($this->params);
+		extract($__args);
+		$this->global->snippetDriver->enter("inner", 'static');
+		try {
+			echo '	<p>Inner</p>
+';
+		}
+		finally {
+			$this->global->snippetDriver->leave();
+		}
 
 	}
 
 
-	function blockGallery($_args)
+	public function blockGallery(array $__args): void
 	{
-		extract($_args);
-		$this->global->snippetDriver->enter("gallery", "static");
-		$this->global->snippetDriver->leave();
+		extract($this->params);
+		extract($__args);
+		$this->global->snippetDriver->enter("gallery", 'static');
+		try {
+		}
+		finally {
+			$this->global->snippetDriver->leave();
+		}
 
 	}
 

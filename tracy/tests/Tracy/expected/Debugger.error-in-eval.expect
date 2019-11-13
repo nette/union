@@ -36,7 +36,7 @@
 			<h2><a data-tracy-ref="^+" class="tracy-toggle">Source file</a></h2>
 
 			<div class="inner">
-				<p><b>File:</b> <span>%a% : eval()&#039;d code:1</span></p>
+				<p><b>File:</b> <span>%a% : eval()&apos;d code:1</span></p>
 							</div></div>
 
 
@@ -56,18 +56,16 @@
 
 											<div class="tracy-collapsed outer args">
 						<table>
-						<tr><th>$message</th><td><pre class="tracy-dump"><span class="tracy-dump-string">"The my error"</span> (%d%)
-</pre>
+						<tr><th>$message</th><td><pre class="tracy-dump tracy-light"><span class="tracy-dump-string" title="%d% characters">'The my error'</span></pre>
 </td></tr>
-<tr><th>$error_type</th><td><pre class="tracy-dump"><span class="tracy-dump-number">256</span>
-</pre>
+<tr><th>$error_%a%</th><td><pre class="tracy-dump tracy-light"><span class="tracy-dump-number">256</span></pre>
 </td></tr>
 						</table>
 						</div>
 										</li>
 										<li><p>
 
-											<a href="editor:%a%" title="%a%Debugger.error-in-eval.phpt:%d%">%a%<b>Debugger.error-in-eval.phpt</b>:%d%</a>
+											<a href="editor:%a%" title="%a%Debugger.error-in-eval.phpt:%d%" class="tracy-editor">%a%<b>Debugger.error-in-eval.phpt</b>:%d%</a>
 					<a data-tracy-ref="^p + .file" class="tracy-toggle tracy-collapsed">source</a>&nbsp;
 					eval()
 					</p>
@@ -78,7 +76,7 @@
 										</li>
 										<li><p>
 
-											<a href="editor:%a%" title="%a%Debugger.error-in-eval.phpt:%d%">%a%<b>Debugger.error-in-eval.phpt</b>:%d%</a>
+											<a href="editor:%a%" title="%a%Debugger.error-in-eval.phpt:%d%" class="tracy-editor">%a%<b>Debugger.error-in-eval.phpt</b>:%d%</a>
 					<a data-tracy-ref="^p + .file" class="tracy-toggle tracy-collapsed">source</a>&nbsp;
 					first(<a data-tracy-ref="^p + .args" class="tracy-toggle tracy-collapsed">arguments</a>)
 					</p>
@@ -88,41 +86,23 @@
 
 											<div class="tracy-collapsed outer args">
 						<table>
-						<tr><th>$user</th><td><pre class="tracy-dump"><span class="tracy-dump-string">"root"</span> (4)
-</pre>
+						<tr><th>$user</th><td><pre class="tracy-dump tracy-light"><span class="tracy-dump-string" title="4 characters">'root'</span></pre>
 </td></tr>
-<tr><th>$pass</th><td><pre class="tracy-dump"><span class="tracy-dump-string">"*****"</span> (5)
-</pre>
+<tr><th>$pass</th><td><pre class="tracy-dump tracy-light" data-tracy-dump='{"text":"***** (string)"}'></pre>
 </td></tr>
 						</table>
 						</div>
 										</li>
 									</ol>
 			</div></div>
-
-
-						<div class="panel">
-			<h2><a data-tracy-ref="^+" class="tracy-toggle tracy-collapsed">Variables</a></h2>
-
-			<div class="tracy-collapsed inner">
-			<div class="outer">
-			<table class="tracy-sortable">
-			<tr><th>$user</th><td><pre class="tracy-dump"><span class="tracy-dump-string">"root"</span> (4)
-</pre>
-</td></tr>
-<tr><th>$pass</th><td><pre class="tracy-dump"><span class="tracy-dump-string">"*****"</span> (5)
-</pre>
-</td></tr>
-			</table>
-			</div>
-			</div></div>
+%A%
 
 
 
 				<div class="panel">
 		<h2><a data-tracy-ref="^+" class="tracy-toggle tracy-collapsed">Exception</a></h2>
 		<div class="tracy-collapsed inner">
-		<pre class="tracy-dump" data-tracy-dump='{"object":1}'></pre>
+		<pre class="tracy-dump tracy-light" data-tracy-dump='{"ref":%d%}'></pre>
 		</div></div>
 
 
@@ -130,7 +110,7 @@
 
 
 
-		<div class="panel">
+				<div class="panel">
 		<h2><a data-tracy-ref="^+" class="tracy-toggle tracy-collapsed">Environment</a></h2>
 
 		<div class="tracy-collapsed inner">

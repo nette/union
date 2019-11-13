@@ -31,13 +31,11 @@ final class NeonAdapter implements Nette\DI\Config\Adapter
 	 */
 	public function load(string $file): array
 	{
-		return $this->process((array) Neon\Neon::decode(file_get_contents($file)));
+		return $this->process((array) Neon\Neon::decode(Nette\Utils\FileSystem::read($file)));
 	}
 
 
-	/**
-	 * @throws Nette\InvalidStateException
-	 */
+	/** @throws Nette\InvalidStateException */
 	public function process(array $arr): array
 	{
 		$res = [];

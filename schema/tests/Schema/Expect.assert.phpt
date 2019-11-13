@@ -10,7 +10,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () { // single assertion
+test('single assertion', function () {
 	$schema = Expect::string()->assert('is_file');
 
 	checkValidationErrors(function () use ($schema) {
@@ -21,7 +21,7 @@ test(function () { // single assertion
 });
 
 
-test(function () { // multiple assertions
+test('multiple assertions', function () {
 	$schema = Expect::string()->assert('ctype_digit')->assert(function ($s) { return strlen($s) >= 3; });
 
 	checkValidationErrors(function () use ($schema) {
@@ -31,6 +31,23 @@ test(function () { // multiple assertions
 	checkValidationErrors(function () use ($schema) {
 		(new Processor)->process($schema, '1');
 	}, ["Failed assertion #1 for option with value '1'."]);
+
+	Assert::same('123', (new Processor)->process($schema, '123'));
+});
+
+
+test('multiple assertions with custom descriptions', function () {
+	$schema = Expect::string()
+		->assert('ctype_digit', 'Is number')
+		->assert(function ($s) { return strlen($s) >= 3; }, 'Minimal lenght');
+
+	checkValidationErrors(function () use ($schema) {
+		(new Processor)->process($schema, '');
+	}, ["Failed assertion \"Is number\" for option with value ''."]);
+
+	checkValidationErrors(function () use ($schema) {
+		(new Processor)->process($schema, '1');
+	}, ["Failed assertion \"Minimal lenght\" for option with value '1'."]);
 
 	Assert::same('123', (new Processor)->process($schema, '123'));
 });

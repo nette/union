@@ -33,13 +33,13 @@ class Connection
 	/** @var array */
 	private $options;
 
-	/** @var ISupplementalDriver */
+	/** @var Driver */
 	private $driver;
 
 	/** @var SqlPreprocessor */
 	private $preprocessor;
 
-	/** @var PDO */
+	/** @var PDO|null */
 	private $pdo;
 
 	/** @var string|null */
@@ -106,7 +106,15 @@ class Connection
 	}
 
 
-	public function getSupplementalDriver(): ISupplementalDriver
+	public function getDriver(): Driver
+	{
+		$this->connect();
+		return $this->driver;
+	}
+
+
+	/** @deprecated use getDriver() */
+	public function getSupplementalDriver(): Driver
 	{
 		$this->connect();
 		return $this->driver;
@@ -149,6 +157,23 @@ class Connection
 	public function rollBack(): void
 	{
 		$this->query('::rollBack');
+	}
+
+
+	/**
+	 * @return mixed
+	 */
+	public function transaction(callable $callback)
+	{
+		$this->beginTransaction();
+		try {
+			$res = $callback();
+		} catch (\Throwable $e) {
+			$this->rollBack();
+			throw $e;
+		}
+		$this->commit();
+		return $res;
 	}
 
 

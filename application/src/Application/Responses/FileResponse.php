@@ -15,7 +15,7 @@ use Nette;
 /**
  * File download response.
  */
-final class FileResponse implements Nette\Application\IResponse
+final class FileResponse implements Nette\Application\Response
 {
 	use Nette\SmartObject;
 
@@ -35,10 +35,14 @@ final class FileResponse implements Nette\Application\IResponse
 	private $forceDownload;
 
 
-	public function __construct(string $file, string $name = null, string $contentType = null, bool $forceDownload = true)
-	{
-		if (!is_file($file)) {
-			throw new Nette\Application\BadRequestException("File '$file' doesn't exist.");
+	public function __construct(
+		string $file,
+		string $name = null,
+		string $contentType = null,
+		bool $forceDownload = true
+	) {
+		if (!is_file($file) || !is_readable($file)) {
+			throw new Nette\Application\BadRequestException("File '$file' doesn't exist or is not readable.");
 		}
 
 		$this->file = $file;
@@ -81,13 +85,18 @@ final class FileResponse implements Nette\Application\IResponse
 	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse): void
 	{
 		$httpResponse->setContentType($this->contentType);
-		$httpResponse->setHeader('Content-Disposition',
+		$httpResponse->setHeader(
+			'Content-Disposition',
 			($this->forceDownload ? 'attachment' : 'inline')
 				. '; filename="' . $this->name . '"'
-				. '; filename*=utf-8\'\'' . rawurlencode($this->name));
+				. '; filename*=utf-8\'\'' . rawurlencode($this->name)
+		);
 
 		$filesize = $length = filesize($this->file);
 		$handle = fopen($this->file, 'r');
+		if (!$handle) {
+			throw new Nette\Application\BadRequestException("Cannot open file: '{$this->file}'.");
+		}
 
 		if ($this->resuming) {
 			$httpResponse->setHeader('Accept-Ranges', 'bytes');

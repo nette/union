@@ -13,7 +13,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () { // add
+test('add', function () {
 	$el = Html::el('ul');
 	$el->create('li')->setText('one');
 	$el->addHtml(Html::el('li')->setText('two'))->class('hello');
@@ -31,7 +31,7 @@ test(function () { // add
 });
 
 
-test(function () {
+test('', function () {
 	$el = Html::el(null);
 	$el->addHtml(Html::el('p')->setText('one'));
 	$el->addText('<p>two</p>');
@@ -48,7 +48,7 @@ test(function () {
 });
 
 
-test(function () { // ==> Iterator:
+test('Iterator', function () {
 	$el = Html::el('select');
 	$el->create('optgroup')->label('Main')->create('option')->setText('sub one')->create('option')->setText('sub two');
 	$el->create('option')->setText('Item');
@@ -56,4 +56,34 @@ test(function () { // ==> Iterator:
 	Assert::same(2, count($el));
 	Assert::same('optgroup', $el[0]->getName());
 	Assert::same('option', $el[1]->getName());
+});
+
+
+test('counting', function () {
+	$el = Html::el('ul');
+	$el->addHtml('li');
+	$el->addHtml('li');
+
+	Assert::count(2, $el);
+	Assert::count(2, $el->getChildren());
+	Assert::count(2, iterator_to_array($el->getIterator()));
+
+	unset($el[1]);
+	Assert::count(1, $el->getChildren());
+
+	$el->removeChildren();
+	Assert::count(0, $el->getChildren());
+	Assert::count(0, iterator_to_array($el->getIterator()));
+
+	Assert::same('<ul></ul>', (string) $el);
+});
+
+
+test('cloning', function () {
+	$el = Html::el('ul');
+	$el->addHtml(Html::el('li'));
+
+	$el2 = clone $el;
+
+	Assert::same((string) $el, (string) $el2);
 });

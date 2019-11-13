@@ -36,22 +36,39 @@ function testIt(string $type, $val, $res = null)
 
 $obj = new stdClass;
 
-testIt('NULL', null, null);
-testIt('NULL', []);
-testIt('NULL', $obj, $obj);
-testIt('NULL', '', '');
-testIt('NULL', 'a', 'a');
-testIt('NULL', '0', '0');
-testIt('NULL', '1', '1');
-testIt('NULL', '1.0', '1.0');
-testIt('NULL', '1.1', '1.1');
-testIt('NULL', '1a', '1a');
-testIt('NULL', true, true);
-testIt('NULL', false, false);
-testIt('NULL', 0, 0);
-testIt('NULL', 1, 1);
-testIt('NULL', 1.0, 1.0);
-testIt('NULL', 1.2, 1.2);
+testIt('scalar', null, null);
+testIt('scalar', []);
+testIt('scalar', $obj, $obj);
+testIt('scalar', '', '');
+testIt('scalar', 'a', 'a');
+testIt('scalar', '0', '0');
+testIt('scalar', '1', '1');
+testIt('scalar', '1.0', '1.0');
+testIt('scalar', '1.1', '1.1');
+testIt('scalar', '1a', '1a');
+testIt('scalar', true, true);
+testIt('scalar', false, false);
+testIt('scalar', 0, 0);
+testIt('scalar', 1, 1);
+testIt('scalar', 1.0, 1.0);
+testIt('scalar', 1.2, 1.2);
+
+testIt('mixed', null, null);
+testIt('mixed', [], []);
+testIt('mixed', $obj, $obj);
+testIt('mixed', '', '');
+testIt('mixed', 'a', 'a');
+testIt('mixed', '0', '0');
+testIt('mixed', '1', '1');
+testIt('mixed', '1.0', '1.0');
+testIt('mixed', '1.1', '1.1');
+testIt('mixed', '1a', '1a');
+testIt('mixed', true, true);
+testIt('mixed', false, false);
+testIt('mixed', 0, 0);
+testIt('mixed', 1, 1);
+testIt('mixed', 1.0, 1.0);
+testIt('mixed', 1.2, 1.2);
 
 testIt('string', null);
 testIt('string', []);
@@ -192,6 +209,23 @@ testIt('callable', 1);
 testIt('callable', 1.0);
 testIt('callable', 1.2);
 
+testIt('object', null);
+testIt('object', []);
+testIt('object', $obj, $obj);
+testIt('object', $var = function () {}, $var);
+testIt('object', '');
+testIt('object', 'a');
+testIt('object', '1');
+testIt('object', '1.0');
+testIt('object', '1.1');
+testIt('object', '1a');
+testIt('object', true);
+testIt('object', false);
+testIt('object', 0);
+testIt('object', 1);
+testIt('object', 1.0);
+testIt('object', 1.2);
+
 testIt('stdClass', null);
 testIt('stdClass', []);
 testIt('stdClass', $obj, $obj);
@@ -210,3 +244,21 @@ testIt('stdClass', 1.0);
 testIt('stdClass', 1.2);
 
 testIt('Closure', $var = function () {}, $var);
+
+
+testIt('int|array', null);
+testIt('int|array', [], []);
+testIt('int|array', $obj);
+testIt('int|array', function () {});
+testIt('int|array', '');
+testIt('int|array', 'a');
+testIt('int|array', '1', 1);
+testIt('int|array', '1.0');
+testIt('int|array', '1.1');
+testIt('int|array', '1a');
+testIt('int|array', true, 1);
+testIt('int|array', false, 0);
+testIt('int|array', 0, 0);
+testIt('int|array', 1, 1);
+testIt('int|array', 1.0, 1);
+testIt('int|array', 1.2);

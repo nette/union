@@ -21,7 +21,9 @@ class CustomLogger extends Logger
 
 	public function log($value, $priority = self::INFO): ?string
 	{
-		$exceptionFile = $value instanceof \Exception ? $this->logException($value) : null;
+		$exceptionFile = $value instanceof \Exception
+			? $this->logException($value)
+			: null;
 
 		$this->collector[] = [
 			$priority,
@@ -36,7 +38,7 @@ class CustomLogger extends Logger
 
 
 
-test(function () {
+test('', function () {
 	$logger = new CustomLogger(getTempDir());
 	$logger->log(new Exception('First'), 'a');
 
@@ -46,7 +48,7 @@ test(function () {
 	Assert::match('%a%%ds%exception-%a%.html', $logger->collector[0][3]);
 });
 
-test(function () {
+test('', function () {
 	$logger = new CustomLogger(getTempDir());
 	$logger->log('message', 'b');
 

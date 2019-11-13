@@ -10,8 +10,8 @@ declare(strict_types=1);
 namespace Nette\Database\Table;
 
 use Nette;
-use Nette\Database\Context;
-use Nette\Database\IConventions;
+use Nette\Database\Conventions;
+use Nette\Database\Explorer;
 
 
 /**
@@ -36,11 +36,17 @@ class GroupedSelection extends Selection
 	/**
 	 * Creates filtered and grouped table representation.
 	 */
-	public function __construct(Context $context, IConventions $conventions, string $tableName, string $column, Selection $refTable, Nette\Caching\IStorage $cacheStorage = null)
-	{
+	public function __construct(
+		Explorer $explorer,
+		Conventions $conventions,
+		string $tableName,
+		string $column,
+		Selection $refTable,
+		Nette\Caching\IStorage $cacheStorage = null
+	) {
 		$this->refTable = $refTable;
 		$this->column = $column;
-		parent::__construct($context, $conventions, $tableName, $cacheStorage);
+		parent::__construct($explorer, $conventions, $tableName, $cacheStorage);
 	}
 
 
@@ -154,7 +160,12 @@ class GroupedSelection extends Selection
 			foreach ((array) $this->rows as $key => $row) {
 				$ref = &$data[$row[$this->column]];
 				$skip = &$offset[$row[$this->column]];
-				if ($limit === null || $rows <= 1 || (count($ref ?? []) < $limit && $skip >= $this->sqlBuilder->getOffset())) {
+				if (
+					$limit === null
+					|| $rows <= 1
+					|| (count($ref ?? []) < $limit
+						&& $skip >= $this->sqlBuilder->getOffset())
+				) {
 					$ref[$key] = $row;
 				} else {
 					unset($this->rows[$key]);

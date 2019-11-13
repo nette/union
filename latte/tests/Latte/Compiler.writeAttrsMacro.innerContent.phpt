@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Latte\IMacro;
-use Latte\MacroNode;
+use Latte\Compiler\Macro;
+use Latte\Compiler\MacroNode;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-class TestMacro implements IMacro
+class TestMacro implements Macro
 {
 	public $delimiter;
 

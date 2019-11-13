@@ -27,11 +27,14 @@ trait Base
 	/** @var callable|null */
 	private $before;
 
-	/** @var callable[] */
+	/** @var array[] */
 	private $asserts = [];
 
 	/** @var string|null */
 	private $castTo;
+
+	/** @var string|null */
+	private $deprecated;
 
 
 	public function default($value): self
@@ -41,9 +44,9 @@ trait Base
 	}
 
 
-	public function required(): self
+	public function required(bool $state = true): self
 	{
-		$this->required = true;
+		$this->required = $state;
 		return $this;
 	}
 
@@ -62,9 +65,17 @@ trait Base
 	}
 
 
-	public function assert(callable $handler): self
+	public function assert(callable $handler, string $description = null): self
 	{
-		$this->asserts[] = $handler;
+		$this->asserts[] = [$handler, $description];
+		return $this;
+	}
+
+
+	/** Marks option as deprecated */
+	public function deprecated(string $message = 'Option %path% is deprecated.'): self
+	{
+		$this->deprecated = $message;
 		return $this;
 	}
 
@@ -72,7 +83,10 @@ trait Base
 	public function completeDefault(Context $context)
 	{
 		if ($this->required) {
-			$context->addError('The mandatory option %path% is missing.');
+			$context->addError(
+				'The mandatory option %path% is missing.',
+				Nette\Schema\Message::OPTION_MISSING
+			);
 			return null;
 		}
 		return $this->default;
@@ -92,11 +106,22 @@ trait Base
 	{
 		try {
 			Nette\Utils\Validators::assert($value, $expected, 'option %path%');
-			return true;
 		} catch (Nette\Utils\AssertionException $e) {
-			$context->addError($e->getMessage(), $expected);
+			$context->addError(
+				$e->getMessage(),
+				Nette\Schema\Message::UNEXPECTED_VALUE,
+				['value' => $value, 'expected' => $expected]
+			);
 			return false;
 		}
+
+		if ($this->deprecated !== null) {
+			$context->addWarning(
+				$this->deprecated,
+				Nette\Schema\Message::DEPRECATED
+			);
+		}
+		return true;
 	}
 
 
@@ -110,28 +135,20 @@ trait Base
 			}
 		}
 
-		foreach ($this->asserts as $i => $assert) {
-			if (!$assert($value)) {
-				$expected = is_string($assert) ? "$assert()" : "#$i";
-				$context->addError("Failed assertion $expected for option %path% with value " . static::formatValue($value) . '.');
+		foreach ($this->asserts as $i => [$handler, $description]) {
+			if (!$handler($value)) {
+				$expected = $description
+					? ('"' . $description . '"')
+					: (is_string($handler) ? "$handler()" : "#$i");
+				$context->addError(
+					'Failed assertion %assertion% for option %path% with value %value%.',
+					Nette\Schema\Message::FAILED_ASSERTION,
+					['value' => $value, 'assertion' => $expected]
+				);
 				return;
 			}
 		}
 
 		return $value;
-	}
-
-
-	private static function formatValue($value): string
-	{
-		if (is_string($value)) {
-			return "'$value'";
-		} elseif (is_bool($value)) {
-			return $value ? 'true' : 'false';
-		} elseif (is_scalar($value)) {
-			return (string) $value;
-		} else {
-			return strtolower(gettype($value));
-		}
 	}
 }

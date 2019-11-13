@@ -12,6 +12,7 @@ namespace Tester;
 
 /**
  * Data provider helpers.
+ * @internal
  */
 class DataProvider
 {
@@ -43,7 +44,7 @@ class DataProvider
 		}
 
 		foreach ($data as $key => $value) {
-			if (!self::testQuery($key, $query)) {
+			if (!is_int($key) && !self::testQuery($key, $query)) {
 				unset($data[$key]);
 			}
 		}
@@ -100,7 +101,6 @@ class DataProvider
 
 
 	/**
-	 * @internal
 	 * @throws \Exception
 	 */
 	public static function parseAnnotation(string $annotation, string $file): array

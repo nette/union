@@ -38,7 +38,7 @@ final class ComponentReflection extends \ReflectionClass
 	 */
 	public function getPersistentParams(string $class = null): array
 	{
-		$class = $class === null ? $this->getName() : $class;
+		$class = $class ?? $this->getName();
 		$params = &self::$ppCache[$class];
 		if ($params !== null) {
 			return $params;
@@ -49,10 +49,13 @@ final class ComponentReflection extends \ReflectionClass
 			$defaults = get_class_vars($class);
 			foreach ($defaults as $name => $default) {
 				$rp = new \ReflectionProperty($class, $name);
-				if (!$rp->isStatic() && self::parseAnnotation($rp, 'persistent')) {
+				if (!$rp->isStatic()
+					&& ((PHP_VERSION_ID >= 80000 && $rp->getAttributes(Nette\Application\Attributes\Persistent::class))
+						|| self::parseAnnotation($rp, 'persistent'))
+				) {
 					$params[$name] = [
 						'def' => $default,
-						'type' => Nette\Utils\Reflection::getPropertyType($rp) ?: gettype($default),
+						'type' => self::getPropertyType($rp, $default),
 						'since' => $isPresenter ? Nette\Utils\Reflection::getPropertyDeclaringClass($rp)->getName() : null,
 					];
 				}
@@ -71,7 +74,7 @@ final class ComponentReflection extends \ReflectionClass
 
 	public function getPersistentComponents(string $class = null): array
 	{
-		$class = $class === null ? $this->getName() : $class;
+		$class = $class ?? $this->getName();
 		$components = &self::$pcCache[$class];
 		if ($components !== null) {
 			return $components;
@@ -117,7 +120,7 @@ final class ComponentReflection extends \ReflectionClass
 					"Value passed to persistent parameter '%s' in %s must be %s, %s given.",
 					$name,
 					$component instanceof Presenter ? 'presenter ' . $component->getName() : "component '{$component->getUniqueId()}'",
-					$meta['type'] === 'NULL' ? 'scalar' : $meta['type'],
+					$meta['type'],
 					is_object($params[$name]) ? get_class($params[$name]) : gettype($params[$name])
 				));
 			}
@@ -154,21 +157,21 @@ final class ComponentReflection extends \ReflectionClass
 		$res = [];
 		foreach ($method->getParameters() as $i => $param) {
 			$name = $param->getName();
-			[$type, $isClass] = self::getParameterType($param);
+			$type = self::getParameterType($param);
 			if (isset($args[$name])) {
 				$res[$i] = $args[$name];
-				if (!self::convertType($res[$i], $type, $isClass)) {
+				if (!self::convertType($res[$i], $type)) {
 					throw new Nette\InvalidArgumentException(sprintf(
 						'Argument $%s passed to %s() must be %s, %s given.',
 						$name,
 						($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName(),
-						$type === 'NULL' ? 'scalar' : $type,
+						$type,
 						is_object($args[$name]) ? get_class($args[$name]) : gettype($args[$name])
 					));
 				}
 			} elseif ($param->isDefaultValueAvailable()) {
 				$res[$i] = $param->getDefaultValue();
-			} elseif ($type === 'NULL' || $param->allowsNull()) {
+			} elseif ($type === 'scalar' || $param->allowsNull()) {
 				$res[$i] = null;
 			} elseif ($type === 'array' || $type === 'iterable') {
 				$res[$i] = [];
@@ -187,19 +190,45 @@ final class ComponentReflection extends \ReflectionClass
 	/**
 	 * Non data-loss type conversion.
 	 */
-	public static function convertType(&$val, string $type, bool $isClass = false): bool
+	public static function convertType(&$val, string $types): bool
 	{
-		if ($isClass) {
+		foreach (explode('|', $types) as $type) {
+			if (self::convertSingleType($val, $type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	/**
+	 * Non data-loss type conversion.
+	 */
+	private static function convertSingleType(&$val, string $type): bool
+	{
+		static $builtin = [
+			'string' => 1, 'int' => 1, 'float' => 1, 'bool' => 1, 'array' => 1, 'object' => 1,
+			'callable' => 1, 'iterable' => 1, 'void' => 1, 'null' => 1, 'mixed' => 1,
+			'boolean' => 1, 'integer' => 1, 'double' => 1, 'scalar' => 1,
+		];
+
+		if (empty($builtin[$type])) {
 			return $val instanceof $type;
+
+		} elseif ($type === 'object') {
+			return is_object($val);
 
 		} elseif ($type === 'callable') {
 			return false;
 
-		} elseif ($type === 'NULL') { // means 'not array'
+		} elseif ($type === 'scalar') {
 			return !is_array($val);
 
 		} elseif ($type === 'array' || $type === 'iterable') {
 			return is_array($val);
+
+		} elseif ($type === 'mixed') {
+			return true;
 
 		} elseif (!is_scalar($val)) { // array, resource, null, etc.
 			return false;
@@ -233,21 +262,31 @@ final class ComponentReflection extends \ReflectionClass
 		$res = [];
 		foreach ($m[1] as $s) {
 			foreach (preg_split('#\s*,\s*#', $s, -1, PREG_SPLIT_NO_EMPTY) ?: ['true'] as $item) {
-				$res[] = array_key_exists($tmp = strtolower($item), $tokens) ? $tokens[$tmp] : $item;
+				$res[] = array_key_exists($tmp = strtolower($item), $tokens)
+					? $tokens[$tmp]
+					: $item;
 			}
 		}
 		return $res;
 	}
 
 
-	/**
-	 * @return array [string|null, bool]
-	 */
-	public static function getParameterType(\ReflectionParameter $param): array
+	public static function getParameterType(\ReflectionParameter $param): string
 	{
-		return $param->hasType()
-			? [$param->getType()->getName(), !$param->getType()->isBuiltin()]
-			: [gettype($param->isDefaultValueAvailable() ? $param->getDefaultValue() : null), false];
+		$default = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
+		$type = $param->getType();
+		return $type
+			? ($type instanceof \ReflectionNamedType ? $type->getName() : (string) $type)
+			: ($default === null ? 'scalar' : gettype($default));
+	}
+
+
+	public static function getPropertyType(\ReflectionProperty $prop, $default): string
+	{
+		$type = PHP_VERSION_ID < 70400 ? null : $prop->getType();
+		return $type
+			? ($type instanceof \ReflectionNamedType ? $type->getName() : (string) $type)
+			: ($default === null ? 'scalar' : gettype($default));
 	}
 
 
@@ -307,3 +346,6 @@ final class ComponentReflection extends \ReflectionClass
 		return $res;
 	}
 }
+
+
+class_exists(PresenterComponentReflection::class);

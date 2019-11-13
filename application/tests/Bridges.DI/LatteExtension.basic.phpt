@@ -62,7 +62,7 @@ class NonStaticMacrosFactory
 	{
 		$macros = new Latte\Macros\MacroSet($compiler);
 		$macros->addMacro('foo', 'foo ' . $this->parameter);
-		Notes::add(get_class($this) . '::install');
+		Notes::add(static::class . '::install');
 	}
 
 
@@ -70,7 +70,7 @@ class NonStaticMacrosFactory
 	{
 		$macros = new Latte\Macros\MacroSet($compiler);
 		$macros->addMacro('foo2', 'foo ' . $this->parameter);
-		Notes::add(get_class($this) . '::create');
+		Notes::add(static::class . '::create');
 	}
 }
 
@@ -108,7 +108,7 @@ eval($code);
 $container = new Container;
 
 
-Assert::type(Nette\Bridges\ApplicationLatte\ILatteFactory::class, $container->getService('nette.latteFactory'));
+Assert::type(Nette\Bridges\ApplicationLatte\LatteFactory::class, $container->getService('nette.latteFactory'));
 $container->getService('nette.latteFactory')->create()->setLoader(new Latte\Loaders\StringLoader)->compile('');
 
 Assert::same([

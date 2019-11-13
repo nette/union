@@ -21,13 +21,13 @@ class TestClass extends Container implements ArrayAccess
 
 	public function attached(IComponent $obj): void
 	{
-		Notes::add(get_class($this) . '::ATTACHED(' . get_class($obj) . ')');
+		Notes::add(static::class . '::ATTACHED(' . get_class($obj) . ')');
 	}
 
 
 	public function detached(IComponent $obj): void
 	{
-		Notes::add(get_class($this) . '::detached(' . get_class($obj) . ')');
+		Notes::add(static::class . '::detached(' . get_class($obj) . ')');
 	}
 }
 
@@ -75,7 +75,7 @@ Assert::same([
 	'C::ATTACHED(A)',
 ], Notes::fetch());
 
-Assert::same('b-c-d-e', $a['b']['c']['d']['e']->lookupPath('A', false));
+Assert::same('b-c-d-e', $a['b']['c']['d']['e']->lookupPath(A::class));
 
 
 // ==> clone 'c'
@@ -87,7 +87,7 @@ Assert::same([
 
 Assert::null($dolly['d']['e']->lookupPath('A', false));
 
-Assert::same('d-e', $dolly['d']['e']->lookupPath('C', false));
+Assert::same('d-e', $dolly['d']['e']->lookupPath(C::class));
 
 
 // ==> clone 'b'

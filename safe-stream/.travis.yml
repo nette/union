@@ -4,6 +4,7 @@ php:
     - 7.2
     - 7.3
     - 7.4
+    - 8.0snapshot
 
 before_install:
     # turn off XDebug
@@ -13,7 +14,7 @@ install:
     - travis_retry composer install --no-progress --prefer-dist
 
 script:
-    - vendor/bin/tester tests -s -p php
+    - vendor/bin/tester tests -s
 
 after_failure:
     # Print *.actual content
@@ -29,6 +30,7 @@ jobs:
 
 
         -   stage: Code Coverage
+            php: 7.4
             script:
                 - vendor/bin/tester -p phpdbg tests -s --coverage ./coverage.xml --coverage-src ./src
             after_script:
@@ -40,7 +42,7 @@ jobs:
         -   stage: Code Coverage
 
 
-sudo: false
+dist: xenial
 
 cache:
     directories:

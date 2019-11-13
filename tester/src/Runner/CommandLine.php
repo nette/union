@@ -29,7 +29,7 @@ class CommandLine
 	/** @var string[] */
 	private $aliases = [];
 
-	/** @var bool[] */
+	/** @var string[] */
 	private $positional = [];
 
 	/** @var string */
@@ -117,7 +117,14 @@ class CommandLine
 				}
 			}
 
-			if (!empty($opt[self::ENUM]) && !in_array($arg, $opt[self::ENUM], true) && !($opt[self::OPTIONAL] && $arg === true)) {
+			if (
+				!empty($opt[self::ENUM])
+				&& !in_array($arg, $opt[self::ENUM], true)
+				&& !(
+					$opt[self::OPTIONAL]
+					&& $arg === true
+				)
+			) {
 				throw new \Exception("Value of option $name must be " . implode(', or ', $opt[self::ENUM]) . '.');
 			}
 			$this->checkArg($opt, $arg);

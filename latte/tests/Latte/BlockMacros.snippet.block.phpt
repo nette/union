@@ -12,7 +12,7 @@ $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader);
 
 $template = <<<'EOD'
-<div n:snippet="snippet" n:block="block1">
+<div n:ifcontent n:snippet="test">
 		static
 </div>
 
@@ -26,7 +26,4 @@ end
 {/snippet}
 EOD;
 
-Assert::matchFile(
-	__DIR__ . '/expected/BlockMacros.snippet.block.phtml',
-	$latte->compile($template)
-);
+	$latte->render($template);

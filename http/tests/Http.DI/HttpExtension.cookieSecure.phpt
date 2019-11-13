@@ -11,7 +11,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('http', new HttpExtension);
 	$compiler->addExtension('session', new SessionExtension(false, PHP_SAPI === 'cli'));
@@ -31,7 +31,7 @@ test(function () {
 });
 
 
-test(function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('http', new HttpExtension);
 	$compiler->addExtension('session', new SessionExtension(false, PHP_SAPI === 'cli'));
@@ -51,7 +51,7 @@ test(function () {
 });
 
 
-test(function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('http', new HttpExtension);
 	$compiler->addExtension('session', new SessionExtension(false, PHP_SAPI === 'cli'));
@@ -69,7 +69,6 @@ test(function () {
 
 	Assert::false($container->getService('http.response')->cookieSecure);
 	Assert::false($container->getService('session.session')->getOptions()['cookie_secure']);
-
 
 	$container = new ContainerAuto;
 	$container->addService('http.request', new Nette\Http\Request(new Nette\Http\UrlScript('https://localhost')));

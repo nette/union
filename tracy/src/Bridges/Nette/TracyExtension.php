@@ -36,9 +36,9 @@ class TracyExtension extends Nette\DI\CompilerExtension
 	public function getConfigSchema(): Nette\Schema\Schema
 	{
 		return Expect::structure([
-			'email' => Expect::email()->dynamic(),
+			'email' => Expect::anyOf(Expect::email(), Expect::listOf('email'))->dynamic(),
 			'fromEmail' => Expect::email()->dynamic(),
-			'logSeverity' => Expect::scalar(),
+			'logSeverity' => Expect::anyOf(Expect::scalar(), Expect::listOf('scalar')),
 			'editor' => Expect::string()->dynamic(),
 			'browser' => Expect::string()->dynamic(),
 			'errorTemplate' => Expect::string()->dynamic(),
@@ -46,6 +46,9 @@ class TracyExtension extends Nette\DI\CompilerExtension
 			'showBar' => Expect::bool()->dynamic(),
 			'maxLength' => Expect::int()->dynamic(),
 			'maxDepth' => Expect::int()->dynamic(),
+			'maxItems' => Expect::int()->dynamic(),
+			'keysToHide' => Expect::array()->dynamic(),
+			'theme' => Expect::string()->dynamic(),
 			'showLocation' => Expect::bool()->dynamic(),
 			'scream' => Expect::bool()->dynamic(),
 			'bar' => Expect::listOf('string|Nette\DI\Definitions\Statement'),
@@ -74,7 +77,9 @@ class TracyExtension extends Nette\DI\CompilerExtension
 
 	public function afterCompile(Nette\PhpGenerator\ClassType $class)
 	{
-		$initialize = $class->getMethod('initialize');
+		$initialize = $this->initialization ?? $class->getMethod('initialize');
+		$initialize->addBody('if (!Tracy\Debugger::isEnabled()) { return; }');
+
 		$builder = $this->getContainerBuilder();
 
 		$options = (array) $this->config;
@@ -88,16 +93,27 @@ class TracyExtension extends Nette\DI\CompilerExtension
 		}
 		foreach ($options as $key => $value) {
 			if ($value !== null) {
-				$key = ($key === 'fromEmail' ? 'getLogger()->' : '$') . $key;
+				static $tbl = [
+					'maxLength' => 'Dumper::$maxLength',
+					'maxDepth' => 'Dumper::$maxDepth',
+					'maxItems' => 'Dumper::$maxItems',
+					'keysToHide' => 'Dumper::$keysToHide',
+					'theme' => 'Dumper::$theme',
+					'showLocation' => 'Dumper::$showLocation',
+					'fromEmail' => 'Debugger::getLogger()->fromEmail',
+				];
 				$initialize->addBody($builder->formatPhp(
-					'Tracy\Debugger::' . $key . ' = ?;',
+					'Tracy\\' . ($tbl[$key] ?? 'Debugger::$' . $key) . ' = ?;',
 					Nette\DI\Helpers::filterArguments([$value])
 				));
 			}
 		}
 
 		$logger = $builder->getDefinition($this->prefix('logger'));
-		if (!$logger instanceof Nette\DI\ServiceDefinition || $logger->getFactory()->getEntity() !== [Tracy\Debugger::class, 'getLogger']) {
+		if (
+			!$logger instanceof Nette\DI\ServiceDefinition
+			|| $logger->getFactory()->getEntity() !== [Tracy\Debugger::class, 'getLogger']
+		) {
 			$initialize->addBody($builder->formatPhp('Tracy\Debugger::setLogger(?);', [$logger]));
 		}
 		if ($this->config->netteMailer && $builder->getByType(Nette\Mail\IMailer::class)) {

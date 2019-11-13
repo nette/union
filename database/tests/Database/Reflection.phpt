@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-use Nette\Database\ISupplementalDriver;
+use Nette\Database\Driver;
 use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
@@ -15,19 +15,21 @@ require __DIR__ . '/connect.inc.php'; // create $connection
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/files/{$driverName}-nette_test1.sql");
 
 
-$driver = $connection->getSupplementalDriver();
+$driver = $connection->getDriver();
 $tables = $driver->getTables();
 $tables = array_filter($tables, function ($t) { return in_array($t['name'], ['author', 'book', 'book_tag', 'tag'], true); });
 usort($tables, function ($a, $b) { return strcmp($a['name'], $b['name']); });
 
-if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
-	Assert::same([
-		['name' => 'author', 'view' => false, 'fullName' => 'public.author'],
-		['name' => 'book', 'view' => false, 'fullName' => 'public.book'],
-		['name' => 'book_tag', 'view' => false, 'fullName' => 'public.book_tag'],
-		['name' => 'tag', 'view' => false, 'fullName' => 'public.tag'],
-	],
-	$tables);
+if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
+	Assert::same(
+		[
+			['name' => 'author', 'view' => false, 'fullName' => 'public.author'],
+			['name' => 'book', 'view' => false, 'fullName' => 'public.book'],
+			['name' => 'book_tag', 'view' => false, 'fullName' => 'public.book_tag'],
+			['name' => 'tag', 'view' => false, 'fullName' => 'public.tag'],
+		],
+		$tables
+	);
 } else {
 	Assert::same([
 		['name' => 'author', 'view' => false],

@@ -20,6 +20,8 @@ $params['url2'] = ' javascript:alert(1)';
 $params['url3'] = 'data:text/html;base64,PHN2Zy9vbmxvYWQ9YWxlcnQoMik+';
 $params['url4'] = 'ok';
 $params['url5'] = '';
+$params['url6'] = 'tel:+420123456789';
+$params['url7'] = 'sms:+420123456789';
 
 
 Assert::match('
@@ -32,11 +34,13 @@ Assert::match('
 <a href=""></a>
 <a href=ok>ok</a>
 <a href=""></a>
+<a href="tel:+420123456789"></a>
+<a href="sms:+420123456789"></a>
 <a href="data:%a%;base64,b2s="></a>
 <a href="data:%a%;base64,b2s="></a>
 <a href=""></a>
 ', $latte->renderToString(
-'
+	'
 <a href={$url1} src="{$url1}" action={$url1} formaction={$url1} title={$url1}></a>
 <a href={$url1|nocheck}></a>
 <a href="http://nette.org?val={$url4}"></a>
@@ -46,10 +50,14 @@ Assert::match('
 <a href={$url3}></a>
 <a href={$url4}>ok</a>
 <a href={$url5}></a>
+<a href={$url6}></a>
+<a href={$url7}></a>
 <a href={$url4|dataStream}></a>
 <a href={$url4|dataStream|noCheck}></a>
 <a href={$url4|dataStream|checkURL}></a>
-', $params));
+',
+	$params
+));
 
 
 Assert::match('

@@ -12,7 +12,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () {
+test('', function () {
 	$latte = new Latte\Engine;
 	$latte->setLoader(new Latte\Loaders\StringLoader);
 
@@ -67,7 +67,7 @@ test(function () {
 });
 
 
-test(function () {
+test('', function () {
 	$latte = new Latte\Engine;
 	$latte->setLoader(new Latte\Loaders\StringLoader([
 		'parent' => '<meta name={block foo}{/block}>',
@@ -145,7 +145,7 @@ test(function () {
 });
 
 
-test(function () {
+test('', function () {
 	$latte = new Latte\Engine;
 	$latte->setLoader(new Latte\Loaders\StringLoader);
 
@@ -180,7 +180,7 @@ $latte->setLoader(new Latte\Loaders\StringLoader([
 
 	'context1' => '<p>{include ical.latte}</p>',
 	'context2' => '{extends ical.latte}',
-	'context3' => 'x{includeblock ical.latte}',
+	'context3' => 'x{include ical.latte with blocks}',
 	'context4' => '{contentType calendar} {include ical.latte}',
 	'context5' => '<p>{include ical.latte|noescape}</p>',
 	'context6' => '{contentType javascript} {include ical.latte}',
@@ -303,7 +303,7 @@ Assert::same('<p><hr> " &lt;</p>', $latte->renderToString('context1'));
 
 Assert::exception(function () use ($latte) {
 	$latte->renderToString('context1a');
-}, 'LogicException', 'Filter |noescape is not defined.');
+}, Latte\CompileException::class, 'Filter |noescape is not expected here.');
 
 Assert::error(function () use ($latte) {
 	$latte->renderToString('context1b');
@@ -336,7 +336,7 @@ Assert::same('<p><hr> " &lt;</p>', $latte->renderToString('context1'));
 
 Assert::exception(function () use ($latte) {
 	$latte->renderToString('context1a');
-}, 'LogicException', 'Filter |noescape is not defined.');
+}, Latte\CompileException::class, 'Filter |noescape is not expected here.');
 
 Assert::error(function () use ($latte) {
 	$latte->renderToString('context1b');
@@ -369,7 +369,7 @@ Assert::same('<p><hr> " &lt;</p>', $latte->renderToString('context1'));
 
 Assert::exception(function () use ($latte) {
 	$latte->renderToString('context1a');
-}, 'LogicException', 'Filter |noescape is not defined.');
+}, Latte\CompileException::class, 'Filter |noescape is not expected here.');
 
 Assert::error(function () use ($latte) {
 	$latte->renderToString('context1b');

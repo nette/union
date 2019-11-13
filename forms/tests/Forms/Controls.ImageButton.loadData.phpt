@@ -19,11 +19,11 @@ before(function () {
 });
 
 
-test(function () {
+test('', function () {
 	$_POST = [
-		'image' => [1, 2],
+		'image' => ['1', '2'],
 		'container' => [
-			'image' => [3, 4],
+			'image' => ['3', '4'],
 		],
 	];
 
@@ -37,7 +37,7 @@ test(function () {
 });
 
 
-test(function () { // missing data
+test('missing data', function () {
 	$form = new Form;
 	$input = $form->addImage('missing');
 	Assert::false($input->isFilled());
@@ -45,10 +45,10 @@ test(function () { // missing data
 });
 
 
-test(function () { // malformed data
+test('malformed data', function () {
 	$_POST = [
-		'malformed1' => [1],
-		'malformed2' => [[null]],
+		'malformed1' => ['1'],
+		'malformed2' => [['']],
 	];
 
 	$form = new Form;

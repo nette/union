@@ -13,16 +13,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-class Invokable
-{
-	public function __invoke($page, $id, NetteModule\MicroPresenter $presenter)
-	{
-		$this->log[] = 'Callback id ' . $id . ' page ' . $page;
-	}
-}
-
-
-test(function () {
+test('', function () {
 	$presenter = $p = new NetteModule\MicroPresenter;
 
 	$presenter->run(new Request('Nette:Micro', 'GET', [
@@ -39,22 +30,7 @@ test(function () {
 });
 
 
-test(function () {
-	$presenter = new NetteModule\MicroPresenter;
-
-	$presenter->run(new Request('Nette:Micro', 'GET', [
-		'callback' => $invokable = new Invokable,
-		'id' => 1,
-		'page' => 2,
-	]));
-	Assert::same([
-		'Callback id 1 page 2',
-	], $invokable->log);
-});
-
-
-
-test(function () {
+test('', function () {
 	$container = Mockery::mock(Nette\DI\Container::class)
 		->shouldReceive('getByType')->with('stdClass', false)->once()->andReturn(new stdClass)
 		->mock();

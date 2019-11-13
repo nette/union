@@ -24,7 +24,7 @@ class TestPresenter extends Application\UI\Presenter
 	}
 
 
-	public function sendResponse(Application\IResponse $response): void
+	public function sendResponse(Application\Response $response): void
 	{
 		$this->response = $response;
 	}
@@ -42,7 +42,7 @@ $presenter->injectPrimary(
 );
 
 
-test(function () use ($presenter) {
+test('', function () use ($presenter) {
 	$presenter->redirect('foo');
 	Assert::type(Nette\Application\Responses\RedirectResponse::class, $presenter->response);
 	Assert::same(302, $presenter->response->getCode());
@@ -50,7 +50,7 @@ test(function () use ($presenter) {
 });
 
 
-test(function () use ($presenter) {
+test('', function () use ($presenter) {
 	$presenter->redirect('foo', ['arg' => 1]);
 	Assert::type(Nette\Application\Responses\RedirectResponse::class, $presenter->response);
 	Assert::same(302, $presenter->response->getCode());
@@ -58,7 +58,7 @@ test(function () use ($presenter) {
 });
 
 
-test(function () use ($presenter) {
+test('', function () use ($presenter) {
 	$presenter->redirect('foo', 2);
 	Assert::type(Nette\Application\Responses\RedirectResponse::class, $presenter->response);
 	Assert::same(302, $presenter->response->getCode());
@@ -66,23 +66,7 @@ test(function () use ($presenter) {
 });
 
 
-test(function () use ($presenter) {
-	@$presenter->redirect(301, 'foo', ['arg' => 1]); // @ is deprecated
-	Assert::type(Nette\Application\Responses\RedirectResponse::class, $presenter->response);
-	Assert::same(301, $presenter->response->getCode());
-	Assert::same('http://localhost/?arg=1&action=foo&presenter=test', $presenter->response->getUrl());
-});
-
-
-test(function () use ($presenter) {
-	@$presenter->redirect(301, 'foo', 2); // @ is deprecated
-	Assert::type(Nette\Application\Responses\RedirectResponse::class, $presenter->response);
-	Assert::same(301, $presenter->response->getCode());
-	Assert::same('http://localhost/?val=2&action=foo&presenter=test', $presenter->response->getUrl());
-});
-
-
-test(function () use ($presenter) {
+test('', function () use ($presenter) {
 	$presenter->redirectPermanent('foo', 2);
 	Assert::type(Nette\Application\Responses\RedirectResponse::class, $presenter->response);
 	Assert::same(301, $presenter->response->getCode());
@@ -90,7 +74,7 @@ test(function () use ($presenter) {
 });
 
 
-test(function () use ($presenter) {
+test('', function () use ($presenter) {
 	$presenter->redirectPermanent('foo', ['arg' => 1]);
 	Assert::type(Nette\Application\Responses\RedirectResponse::class, $presenter->response);
 	Assert::same(301, $presenter->response->getCode());

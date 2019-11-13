@@ -11,33 +11,38 @@ namespace Latte\Macros;
 
 use Latte;
 use Latte\CompileException;
-use Latte\MacroNode;
+use Latte\Compiler\MacroNode;
 
 
 /**
- * Base IMacro implementation. Allows add multiple macros.
+ * Base Macro implementation. Allows add multiple macros.
  */
-class MacroSet implements Latte\IMacro
+class MacroSet implements Latte\Compiler\Macro
 {
 	use Latte\Strict;
 
-	/** @var Latte\Compiler */
+	/** @var \Latte\Compiler\Compiler */
 	private $compiler;
 
-	/** @var array */
+	/** @var array<string, array{string|callable|null, string|callable|null, string|callable|null}> */
 	private $macros;
 
 
-	public function __construct(Latte\Compiler $compiler)
+	public function __construct(Latte\Compiler\Compiler $compiler)
 	{
 		$this->compiler = $compiler;
 	}
 
 
-	public function addMacro(string $name, $begin, $end = null, $attr = null, int $flags = null)
+	/**
+	 * @param  string|callable|null  $begin
+	 * @param  string|callable|null  $end
+	 * @param  string|callable|null  $attr
+	 */
+	public function addMacro(string $name, $begin, $end = null, $attr = null, int $flags = null): self
 	{
 		if (!$begin && !$end && !$attr) {
-			throw new \InvalidArgumentException("At least one argument must be specified for macro '$name'.");
+			throw new \InvalidArgumentException("At least one argument must be specified for tag '$name'.");
 		}
 		foreach ([$begin, $end, $attr] as $arg) {
 			if ($arg && !is_string($arg)) {
@@ -62,10 +67,10 @@ class MacroSet implements Latte\IMacro
 
 	/**
 	 * Finishes template parsing.
-	 * @return array|null [prolog, epilog]
 	 */
 	public function finalize()
 	{
+		return null;
 	}
 
 
@@ -84,11 +89,11 @@ class MacroSet implements Latte\IMacro
 			&& (!$end || (is_string($end) && strpos($end, '%modify') === false))
 			&& (!$attr || (is_string($attr) && strpos($attr, '%modify') === false))
 		) {
-			throw new CompileException('Modifiers are not allowed in ' . $node->getNotation());
+			throw new CompileException('Filters are not allowed in ' . $node->getNotation());
 		}
 
 		if (
-			$node->args
+			$node->args !== ''
 			&& (!$begin || (is_string($begin) && strpos($begin, '%node') === false))
 			&& (!$end || (is_string($end) && strpos($end, '%node') === false))
 			&& (!$attr || (is_string($attr) && strpos($attr, '%node') === false))
@@ -98,18 +103,21 @@ class MacroSet implements Latte\IMacro
 
 		if ($attr && $node->prefix === $node::PREFIX_NONE) {
 			$node->empty = true;
-			$node->context[1] = Latte\Compiler::CONTEXT_HTML_ATTRIBUTE;
+			$node->context[1] = Latte\Compiler\Compiler::CONTEXT_HTML_ATTRIBUTE;
 			$res = $this->compile($node, $attr);
 			if ($res === false) {
 				return false;
 			} elseif (!$node->attrCode) {
 				$node->attrCode = "<?php $res ?>";
 			}
-			$node->context[1] = Latte\Compiler::CONTEXT_HTML_TEXT;
+			$node->context[1] = Latte\Compiler\Compiler::CONTEXT_HTML_TEXT;
+
+		} elseif ($node->empty && $node->prefix) {
+			return false;
 
 		} elseif ($begin) {
 			$res = $this->compile($node, $begin);
-			if ($res === false || ($node->empty && $node->prefix)) {
+			if ($res === false) {
 				return false;
 			} elseif (!$node->openingCode && is_string($res) && $res !== '') {
 				$node->openingCode = "<?php $res ?>";
@@ -118,6 +126,7 @@ class MacroSet implements Latte\IMacro
 		} elseif (!$end) {
 			return false;
 		}
+		return null;
 	}
 
 
@@ -138,19 +147,20 @@ class MacroSet implements Latte\IMacro
 
 	/**
 	 * Generates code.
+	 * @param  string|callable  $def
 	 * @return string|bool|null
 	 */
 	private function compile(MacroNode $node, $def)
 	{
 		$node->tokenizer->reset();
-		$writer = Latte\PhpWriter::using($node);
+		$writer = Latte\Compiler\PhpWriter::using($node, $this->compiler);
 		return is_string($def)
 			? $writer->write($def)
 			: $def($node, $writer);
 	}
 
 
-	public function getCompiler(): Latte\Compiler
+	public function getCompiler(): Latte\Compiler\Compiler
 	{
 		return $this->compiler;
 	}

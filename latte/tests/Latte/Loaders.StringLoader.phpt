@@ -13,7 +13,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () {
+test('', function () {
 	$loader = new StringLoader;
 	Assert::same('content', $loader->getContent('content'));
 
@@ -22,10 +22,10 @@ test(function () {
 
 	Assert::exception(function () use ($loader) {
 		$loader->getReferredName('inner', 'referrer');
-	}, 'LogicException', "Missing template 'inner'.");
+	}, LogicException::class, "Missing template 'inner'.");
 });
 
-test(function () {
+test('', function () {
 	$loader = new StringLoader(['main' => 'maincontent', 'other' => 'othercontent']);
 	Assert::same('maincontent', $loader->getContent('main'));
 	Assert::same('othercontent', $loader->getContent('other'));

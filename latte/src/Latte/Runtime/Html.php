@@ -15,7 +15,7 @@ use Latte;
 /**
  * HTML literal.
  */
-class Html implements IHtmlString
+class Html implements HtmlStringable
 {
 	use Latte\Strict;
 
@@ -23,6 +23,9 @@ class Html implements IHtmlString
 	private $value;
 
 
+	/**
+	 * @param scalar  $value
+	 */
 	public function __construct($value)
 	{
 		$this->value = (string) $value;

@@ -14,31 +14,31 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () { // non lazy
+test('non lazy', function () {
 	Assert::exception(function () {
 		$connection = new Nette\Database\Connection('dsn', 'user', 'password');
-	}, Nette\Database\DriverException::class, 'invalid data source name');
+	}, Nette\Database\DriverException::class, '%a%valid data source %a%');
 });
 
 
-test(function () { // lazy
+test('lazy', function () {
 	$connection = new Nette\Database\Connection('dsn', 'user', 'password', ['lazy' => true]);
-	$context = new Nette\Database\Context($connection, new Structure($connection, new DevNullStorage));
-	Assert::exception(function () use ($context) {
-		$context->query('SELECT ?', 10);
-	}, Nette\Database\DriverException::class, 'invalid data source name');
+	$explorer = new Nette\Database\Explorer($connection, new Structure($connection, new DevNullStorage));
+	Assert::exception(function () use ($explorer) {
+		$explorer->query('SELECT ?', 10);
+	}, Nette\Database\DriverException::class, '%a%valid data source %a%');
 });
 
 
-test(function () {
+test('', function () {
 	$connection = new Nette\Database\Connection('dsn', 'user', 'password', ['lazy' => true]);
 	Assert::exception(function () use ($connection) {
 		$connection->quote('x');
-	}, Nette\Database\DriverException::class, 'invalid data source name');
+	}, Nette\Database\DriverException::class, '%a%valid data source %a%');
 });
 
 
-test(function () { // connect & disconnect
+test('connect & disconnect', function () {
 	$options = Tester\Environment::loadData() + ['user' => null, 'password' => null];
 	$connections = 1;
 
@@ -53,19 +53,19 @@ test(function () { // connect & disconnect
 
 	// first connection
 	$pdo = $connection->getPdo();
-	$driver = $connection->getSupplementalDriver();
+	$driver = $connection->getDriver();
 	Assert::same(1, $connections);
 
 	// still first connection
 	$connection->connect();
 	Assert::same($pdo, $connection->getPdo());
-	Assert::same($driver, $connection->getSupplementalDriver());
+	Assert::same($driver, $connection->getDriver());
 	Assert::same(1, $connections);
 
 	// second connection
 	$connection->reconnect();
 	$pdo2 = $connection->getPdo();
-	$driver2 = $connection->getSupplementalDriver();
+	$driver2 = $connection->getDriver();
 
 	Assert::notSame($pdo, $pdo2);
 	Assert::notSame($driver, $driver2);
@@ -74,6 +74,6 @@ test(function () { // connect & disconnect
 	// third connection
 	$connection->disconnect();
 	Assert::notSame($pdo2, $connection->getPdo());
-	Assert::notSame($driver2, $connection->getSupplementalDriver());
+	Assert::notSame($driver2, $connection->getDriver());
 	Assert::same(3, $connections);
 });

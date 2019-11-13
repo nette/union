@@ -1,0 +1,23 @@
+<?php
+%A%
+		$__try[0] = [ob_get_level(), $__it ?? null];
+		ob_start(function () {});
+		try {
+			echo '	a
+';
+			throw new LR\RollbackException;
+			echo '	b
+	';
+			echo ob_get_clean();
+		}
+		catch (\Throwable $__e) {
+			$iterator = $__it = $__try[0][1];
+			while (ob_get_level() > $__try[0][0]) ob_end_clean();
+			if (!($__e instanceof LR\RollbackException) && isset($this->global->coreExceptionHandler)) {
+				($this->global->coreExceptionHandler)($__e, $this);
+			}
+			echo '
+	c
+';
+		}
+%A%

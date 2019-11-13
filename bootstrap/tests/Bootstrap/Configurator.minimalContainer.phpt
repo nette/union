@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-use Nette\Configurator;
+use Nette\Bootstrap\Configurator;
 use Tester\Assert;
 
 
@@ -15,7 +15,7 @@ require __DIR__ . '/../bootstrap.php';
 
 $configurator = new Configurator;
 $configurator->setTempDirectory(getTempDir());
-$configurator->addParameters([
+$configurator->addStaticParameters([
 	'hello' => 'world',
 ]);
 $container = $configurator->createContainer();

@@ -13,9 +13,9 @@ use Nette;
 
 
 /**
- * Trivial implementation of IAuthenticator.
+ * Trivial implementation of Authenticator.
  */
-class SimpleAuthenticator implements IAuthenticator
+class SimpleAuthenticator implements Authenticator
 {
 	use Nette\SmartObject;
 
@@ -25,15 +25,20 @@ class SimpleAuthenticator implements IAuthenticator
 	/** @var array */
 	private $usersRoles;
 
+	/** @var array */
+	private $usersData;
+
 
 	/**
 	 * @param  array  $userlist list of pairs username => password
 	 * @param  array  $usersRoles list of pairs username => role[]
+	 * @param  array  $usersData list of pairs username => mixed[]
 	 */
-	public function __construct(array $userlist, array $usersRoles = [])
+	public function __construct(array $userlist, array $usersRoles = [], array $usersData = [])
 	{
 		$this->userlist = $userlist;
 		$this->usersRoles = $usersRoles;
+		$this->usersData = $usersData;
 	}
 
 
@@ -48,7 +53,7 @@ class SimpleAuthenticator implements IAuthenticator
 		foreach ($this->userlist as $name => $pass) {
 			if (strcasecmp($name, $username) === 0) {
 				if ((string) $pass === (string) $password) {
-					return new Identity($name, $this->usersRoles[$name] ?? null);
+					return new SimpleIdentity($name, $this->usersRoles[$name] ?? null, $this->usersData[$name] ?? []);
 				} else {
 					throw new AuthenticationException('Invalid password.', self::INVALID_CREDENTIAL);
 				}

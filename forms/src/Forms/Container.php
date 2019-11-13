@@ -38,8 +38,8 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	/** @var bool */
 	private $validated;
 
-	/** @var string */
-	private $mappedType = ArrayHash::class;
+	/** @var ?string */
+	private $mappedType;
 
 
 	/********************* data exchange ****************d*g**/
@@ -79,7 +79,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 		}
 
 		foreach ($this->getComponents() as $name => $control) {
-			if ($control instanceof IControl) {
+			if ($control instanceof Control) {
 				if (array_key_exists($name, $values)) {
 					$control->setValue($values[$name]);
 
@@ -109,25 +109,28 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	{
 		$returnType = $returnType
 			? ($returnType === true ? self::ARRAY : $returnType) // back compatibility
-			: $this->mappedType;
+			: ($this->mappedType ?? ArrayHash::class);
 
 		$isArray = $returnType === self::ARRAY;
 		$obj = $isArray ? new \stdClass : new $returnType;
+		$rc = new \ReflectionClass($obj);
 
 		foreach ($this->getComponents() as $name => $control) {
-			if ($control instanceof IControl && !$control->isOmitted()) {
+			$name = (string) $name;
+			if ($control instanceof Control && !$control->isOmitted()) {
 				$obj->$name = $control->getValue();
 			} elseif ($control instanceof self) {
-				$obj->$name = $control->getValues($isArray ? self::ARRAY : null);
+				$type = $isArray && !$control->mappedType
+					? self::ARRAY
+					: ($rc->hasProperty($name) ? Nette\Utils\Reflection::getPropertyType($rc->getProperty($name)) : null);
+				$obj->$name = $control->getValues($type);
 			}
 		}
 		return $isArray ? (array) $obj : $obj;
 	}
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setMappedType(string $type)
 	{
 		$this->mappedType = $type;
@@ -155,12 +158,12 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 	/**
 	 * Performs the server side validation.
-	 * @param  IControl[]  $controls
+	 * @param  Control[]|null  $controls
 	 */
 	public function validate(array $controls = null): void
 	{
 		foreach ($controls === null ? $this->getComponents() : $controls as $control) {
-			if ($control instanceof IControl || $control instanceof self) {
+			if ($control instanceof Control || $control instanceof self) {
 				$control->validate();
 			}
 		}
@@ -170,7 +173,9 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 			}
 			foreach ($this->onValidate as $handler) {
 				$params = Nette\Utils\Callback::toReflection($handler)->getParameters();
-				$values = isset($params[1]) ? $this->getValues($params[1]->getType() ? $params[1]->getType()->getName() : null) : null;
+				$values = isset($params[1])
+					? $this->getValues($params[1]->getType() instanceof \ReflectionNamedType ? $params[1]->getType()->getName() : null)
+					: null;
 				$handler($this, $values);
 			}
 		}
@@ -194,9 +199,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	/********************* form building ****************d*g**/
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setCurrentGroup(ControlGroup $group = null)
 	{
 		$this->currentGroup = $group;
@@ -233,7 +236,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 */
 	public function getControls(): \Iterator
 	{
-		return $this->getComponents(true, IControl::class);
+		return $this->getComponents(true, Control::class);
 	}
 
 
@@ -264,8 +267,12 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 * Adds single-line text input control used for sensitive input such as passwords.
 	 * @param  string|object  $label
 	 */
-	public function addPassword(string $name, $label = null, int $cols = null, int $maxLength = null): Controls\TextInput
-	{
+	public function addPassword(
+		string $name,
+		$label = null,
+		int $cols = null,
+		int $maxLength = null
+	): Controls\TextInput {
 		return $this[$name] = (new Controls\TextInput($label, $maxLength))
 			->setHtmlAttribute('size', $cols)
 			->setHtmlType('password');
@@ -333,7 +340,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	/**
 	 * Adds hidden form control used to store a non-displayed value.
 	 */
-	public function addHidden(string $name, string $default = null): Controls\HiddenField
+	public function addHidden(string $name, $default = null): Controls\HiddenField
 	{
 		return $this[$name] = (new Controls\HiddenField)
 			->setDefaultValue($default);
@@ -385,8 +392,12 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 * Adds select box control that allows multiple item selection.
 	 * @param  string|object  $label
 	 */
-	public function addMultiSelect(string $name, $label = null, array $items = null, int $size = null): Controls\MultiSelectBox
-	{
+	public function addMultiSelect(
+		string $name,
+		$label = null,
+		array $items = null,
+		int $size = null
+	): Controls\MultiSelectBox {
 		return $this[$name] = (new Controls\MultiSelectBox($label, $items))
 			->setHtmlAttribute('size', $size > 1 ? $size : null);
 	}

@@ -24,13 +24,12 @@ function export($iterator)
 }
 
 
-test(function () { // recursive
+test('recursive', function () {
 	$finder = Finder::find('*')->from('files/subdir/subdir2', 'files/images');
 	Assert::same([
 		'files/images/logo.gif',
 		'files/subdir/subdir2/file.txt',
 	], export($finder));
-
 
 	$finder = Finder::find('*')->from(['files/subdir/subdir2', 'files/images']);
 	Assert::same([
@@ -44,13 +43,12 @@ test(function () { // recursive
 });
 
 
-test(function () { // non-recursive
+test('non-recursive', function () {
 	$finder = Finder::find('*')->in('files/subdir/subdir2', 'files/images');
 	Assert::same([
 		'files/images/logo.gif',
 		'files/subdir/subdir2/file.txt',
 	], export($finder));
-
 
 	$finder = Finder::find('*')->in(['files/subdir/subdir2', 'files/images']);
 	Assert::same([

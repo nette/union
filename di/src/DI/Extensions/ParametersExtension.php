@@ -38,10 +38,12 @@ final class ParametersExtension extends Nette\DI\CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 		$params = $this->config;
+		$resolver = new Nette\DI\Resolver($builder);
+		$generator = new Nette\DI\PhpGenerator($builder);
 
 		foreach ($this->dynamicParams as $key) {
 			$params[$key] = array_key_exists($key, $params)
-				? new DynamicParameter(Nette\PhpGenerator\Helpers::format('($this->parameters[?] \?\? ?)', $key, $params[$key]))
+				? new DynamicParameter($generator->formatPhp('($this->parameters[?] \?\? ?)', $resolver->completeArguments(Nette\DI\Helpers::filterArguments([$key, $params[$key]]))))
 				: new DynamicParameter(Nette\PhpGenerator\Helpers::format('$this->parameters[?]', $key));
 		}
 
@@ -49,15 +51,26 @@ final class ParametersExtension extends Nette\DI\CompilerExtension
 
 		// expand all except 'services'
 		$slice = array_diff_key($this->compilerConfig, ['services' => 1]);
-		$this->compilerConfig = Nette\DI\Helpers::expand($slice, $builder->parameters) + $this->compilerConfig;
+		$slice = Nette\DI\Helpers::expand($slice, $builder->parameters);
+		$this->compilerConfig = $slice + $this->compilerConfig;
 	}
 
 
 	public function afterCompile(Nette\PhpGenerator\ClassType $class)
 	{
-		$builder = $this->getContainerBuilder();
+		$parameters = $this->getContainerBuilder()->parameters;
+		array_walk_recursive($parameters, function (&$val): void {
+			if ($val instanceof Nette\DI\Definitions\Statement || $val instanceof DynamicParameter) {
+				$val = null;
+			}
+		});
+
 		$cnstr = $class->getMethod('__construct');
+		$cnstr->addBody('$this->parameters += ?;', [$parameters]);
 		foreach ($this->dynamicValidators as [$param, $expected]) {
+			if ($param instanceof Nette\DI\Definitions\Statement) {
+				continue;
+			}
 			$cnstr->addBody('Nette\Utils\Validators::assert(?, ?, ?);', [$param, $expected, 'dynamic parameter']);
 		}
 	}

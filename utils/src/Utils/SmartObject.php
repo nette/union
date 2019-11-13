@@ -21,21 +21,21 @@ use Nette\Utils\ObjectHelpers;
  */
 trait SmartObject
 {
-
 	/**
 	 * @throws MemberAccessException
 	 */
 	public function __call(string $name, array $args)
 	{
-		$class = get_class($this);
+		$class = static::class;
 
 		if (ObjectHelpers::hasProperty($class, $name) === 'event') { // calling event handlers
-			if (is_iterable($this->$name)) {
-				foreach ($this->$name as $handler) {
+			$handlers = $this->$name ?? null;
+			if (is_iterable($handlers)) {
+				foreach ($handlers as $handler) {
 					$handler(...$args);
 				}
-			} elseif ($this->$name !== null) {
-				throw new UnexpectedValueException("Property $class::$$name must be iterable or null, " . gettype($this->$name) . ' given.');
+			} elseif ($handlers !== null) {
+				throw new UnexpectedValueException("Property $class::$$name must be iterable or null, " . gettype($handlers) . ' given.');
 			}
 
 		} else {
@@ -59,7 +59,7 @@ trait SmartObject
 	 */
 	public function &__get(string $name)
 	{
-		$class = get_class($this);
+		$class = static::class;
 
 		if ($prop = ObjectHelpers::getMagicProperties($class)[$name] ?? null) { // property getter
 			if (!($prop & 0b0001)) {
@@ -79,12 +79,13 @@ trait SmartObject
 
 
 	/**
+	 * @param  mixed  $value
 	 * @return void
 	 * @throws MemberAccessException if the property is not defined or is read-only
 	 */
 	public function __set(string $name, $value)
 	{
-		$class = get_class($this);
+		$class = static::class;
 
 		if (ObjectHelpers::hasProperty($class, $name)) { // unsetted property
 			$this->$name = $value;
@@ -107,7 +108,7 @@ trait SmartObject
 	 */
 	public function __unset(string $name)
 	{
-		$class = get_class($this);
+		$class = static::class;
 		if (!ObjectHelpers::hasProperty($class, $name)) {
 			throw new MemberAccessException("Cannot unset the property $class::\$$name.");
 		}
@@ -116,6 +117,6 @@ trait SmartObject
 
 	public function __isset(string $name): bool
 	{
-		return isset(ObjectHelpers::getMagicProperties(get_class($this))[$name]);
+		return isset(ObjectHelpers::getMagicProperties(static::class)[$name]);
 	}
 }

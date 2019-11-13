@@ -10,14 +10,14 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () { // without items
+test('without items', function () {
 	$schema = Expect::structure([]);
 
 	Assert::equal((object) [], (new Processor)->process($schema, []));
 
 	checkValidationErrors(function () use ($schema) {
 		(new Processor)->process($schema, [1, 2, 3]);
-	}, ["Unexpected option '0', '1', '2'."]);
+	}, ["Unexpected option '0'.", "Unexpected option '1'.", "Unexpected option '2'."]);
 
 	checkValidationErrors(function () use ($schema) {
 		(new Processor)->process($schema, ['key' => 'val']);
@@ -39,7 +39,7 @@ test(function () { // without items
 });
 
 
-test(function () { // accepts object
+test('accepts object', function () {
 	$schema = Expect::structure(['a' => Expect::string()]);
 
 	Assert::equal((object) ['a' => null], (new Processor)->process($schema, (object) []));
@@ -61,7 +61,7 @@ test(function () { // accepts object
 });
 
 
-test(function () { // scalar items
+test('scalar items', function () {
 	$schema = Expect::structure([
 		'a' => Expect::string(),
 		'b' => Expect::int(),
@@ -82,7 +82,7 @@ test(function () { // scalar items
 });
 
 
-test(function () { // array items
+test('array items', function () {
 	$schema = Expect::structure([
 		'a' => Expect::array(),
 		'b' => Expect::array([]),
@@ -101,14 +101,14 @@ test(function () { // array items
 });
 
 
-test(function () { // default value must be readonly
+test('default value must be readonly', function () {
 	Assert::exception(function () {
 		$schema = Expect::structure([])->default([]);
 	}, Nette\InvalidStateException::class);
 });
 
 
-test(function () { // with indexed item
+test('with indexed item', function () {
 	$schema = Expect::structure([
 		'key1' => Expect::string(),
 		'key2' => Expect::string(),
@@ -141,7 +141,8 @@ test(function () { // with indexed item
 	checkValidationErrors(function () use ($processor, $schema) {
 		$processor->process($schema, [1, 2, 3]);
 	}, [
-		"Unexpected option '1', '2'.",
+		"Unexpected option '1'.",
+		"Unexpected option '2'.",
 		"The option '0' expects to be string, int 1 given.",
 	]);
 
@@ -161,7 +162,7 @@ test(function () { // with indexed item
 });
 
 
-test(function () { // with indexed item & otherItems
+test('with indexed item & otherItems', function () {
 	$schema = Expect::structure([
 		'key1' => Expect::string(),
 		'key2' => Expect::string(),
@@ -218,7 +219,7 @@ test(function () { // with indexed item & otherItems
 });
 
 
-test(function () { // item with default value
+test('item with default value', function () {
 	$schema = Expect::structure([
 		'b' => Expect::string(123),
 	]);
@@ -227,7 +228,11 @@ test(function () { // item with default value
 
 	checkValidationErrors(function () use ($schema) {
 		(new Processor)->process($schema, [1, 2, 3]);
-	}, ["Unexpected option '0', did you mean 'b'?"]);
+	}, [
+		"Unexpected option '0', did you mean 'b'?",
+		"Unexpected option '1', did you mean 'b'?",
+		"Unexpected option '2', did you mean 'b'?",
+	]);
 
 	Assert::equal((object) ['b' => 123], (new Processor)->process($schema, []));
 
@@ -243,7 +248,7 @@ test(function () { // item with default value
 });
 
 
-test(function () { // item without default value
+test('item without default value', function () {
 	$schema = Expect::structure([
 		'b' => Expect::string(),
 	]);
@@ -262,7 +267,7 @@ test(function () { // item without default value
 });
 
 
-test(function () { // required item
+test('required item', function () {
 	$schema = Expect::structure([
 		'b' => Expect::string()->required(),
 		'c' => Expect::array()->required(),
@@ -286,7 +291,7 @@ test(function () { // required item
 });
 
 
-test(function () { // other items
+test('other items', function () {
 	$schema = Expect::structure([
 		'key' => Expect::string(),
 	])->otherItems(Expect::string());
@@ -300,7 +305,7 @@ test(function () { // other items
 });
 
 
-test(function () { // structure items
+test('structure items', function () {
 	$schema = Expect::structure([
 		'a' => Expect::structure([
 			'x' => Expect::string('defval'),
@@ -318,6 +323,8 @@ test(function () { // structure items
 		(new Processor)->process($schema, [1, 2, 3]);
 	}, [
 		"Unexpected option '0', did you mean 'a'?",
+		"Unexpected option '1', did you mean 'a'?",
+		"Unexpected option '2', did you mean 'a'?",
 		"The mandatory option 'b › y' is missing.",
 	]);
 
@@ -354,7 +361,8 @@ test(function () { // structure items
 	checkValidationErrors(function () use ($schema) {
 		(new Processor)->process($schema, ['b' => ['x1' => 'val', 'x2' => 'val']]);
 	}, [
-		"Unexpected option 'b › x1', 'b › x2'.",
+		"Unexpected option 'b › x1'.",
+		"Unexpected option 'b › x2'.",
 		"The mandatory option 'b › y' is missing.",
 	]);
 
@@ -369,7 +377,7 @@ test(function () { // structure items
 });
 
 
-test(function () { // processing
+test('processing', function () {
 	$schema = Expect::structure([
 		'a' => Expect::structure([
 			'x' => Expect::string('defval'),
@@ -398,7 +406,7 @@ test(function () { // processing
 });
 
 
-test(function () { // processing without default values
+test('processing without default values', function () {
 	$schema = Expect::structure([
 		'a' => Expect::string(), // implicit default
 		'b' => Expect::string('hello'), // explicit default
@@ -417,4 +425,32 @@ test(function () { // processing without default values
 		(object) ['d' => 'newval'],
 		$processor->process($schema, ['d' => 'newval'])
 	);
+});
+
+
+test('deprecated item', function () {
+	$schema = Expect::structure([
+		'b' => Expect::string()->deprecated('depr %path%'),
+	]);
+
+	$processor = new Processor;
+	Assert::equal(
+		(object) ['b' => 'val'],
+		$processor->process($schema, ['b' => 'val'])
+	);
+	Assert::same(["depr 'b'"], $processor->getWarnings());
+});
+
+
+test('deprecated other items', function () {
+	$schema = Expect::structure([
+		'key' => Expect::string(),
+	])->otherItems(Expect::string()->deprecated());
+
+	$processor = new Processor;
+	Assert::equal((object) ['key' => null], $processor->process($schema, []));
+	Assert::same([], $processor->getWarnings());
+
+	Assert::equal((object) ['key' => null, 'other' => 'foo'], $processor->process($schema, ['other' => 'foo']));
+	Assert::same(["Option 'other' is deprecated."], $processor->getWarnings());
 });

@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-use Nette\Bridges\ApplicationLatte\ILatteFactory;
+use Nette\Bridges\ApplicationLatte\LatteFactory;
 use Nette\Bridges\ApplicationLatte\TemplateFactory;
 use Nette\Http;
 use Tester\Assert;
@@ -15,9 +15,9 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test(function () {
+test('', function () {
 	$engine = new Latte\Engine;
-	$latteFactory = Mockery::mock(ILatteFactory::class);
+	$latteFactory = Mockery::mock(LatteFactory::class);
 	$latteFactory->shouldReceive('create')->andReturn($engine);
 	$factory = new TemplateFactory($latteFactory, new Http\Request(new Http\UrlScript('http://nette.org')));
 	$engine->onCompile[] = $callback = function () {};
@@ -30,9 +30,9 @@ test(function () {
 });
 
 
-test(function () {
+test('', function () {
 	$engine = new Latte\Engine;
-	$latteFactory = Mockery::mock(ILatteFactory::class);
+	$latteFactory = Mockery::mock(LatteFactory::class);
 	$latteFactory->shouldReceive('create')->andReturn($engine);
 	$factory = new TemplateFactory($latteFactory, new Http\Request(new Http\UrlScript('http://nette.org')));
 	$engine->onCompile = new ArrayIterator([$callback = function () {}]);
@@ -45,7 +45,7 @@ test(function () {
 });
 
 
-test(function () {
+test('', function () {
 	class Event implements IteratorAggregate
 	{
 		public $events;
@@ -64,7 +64,7 @@ test(function () {
 	}
 
 	$engine = new Latte\Engine;
-	$latteFactory = Mockery::mock(ILatteFactory::class);
+	$latteFactory = Mockery::mock(LatteFactory::class);
 	$latteFactory->shouldReceive('create')->andReturn($engine);
 	$factory = new TemplateFactory($latteFactory, new Http\Request(new Http\UrlScript('http://nette.org')));
 	$engine->onCompile = new Event([$callback = function () {}]);

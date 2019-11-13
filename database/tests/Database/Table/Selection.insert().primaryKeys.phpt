@@ -13,9 +13,8 @@ require __DIR__ . '/../connect.inc.php'; // create $connection
 
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverName}-nette_test4.sql");
 
-// Insert into table with simple primary index (autoincrement)
-test(function () use ($context) {
-	$simplePkAutoincrementResult = $context->table('simple_pk_autoincrement')->insert([
+test('Insert into table with simple primary index (autoincrement)', function () use ($explorer) {
+	$simplePkAutoincrementResult = $explorer->table('simple_pk_autoincrement')->insert([
 		'note' => 'Some note here',
 	]);
 
@@ -23,7 +22,7 @@ test(function () use ($context) {
 	Assert::equal(1, $simplePkAutoincrementResult->identifier1);
 	Assert::equal('Some note here', $simplePkAutoincrementResult->note);
 
-	$simplePkAutoincrementResult2 = $context->table('simple_pk_autoincrement')->insert([
+	$simplePkAutoincrementResult2 = $explorer->table('simple_pk_autoincrement')->insert([
 		'note' => 'Some note here 2',
 	]);
 
@@ -32,9 +31,8 @@ test(function () use ($context) {
 	Assert::equal('Some note here 2', $simplePkAutoincrementResult2->note);
 });
 
-// Insert into table with simple primary index (no autoincrement)
-test(function () use ($context) {
-	$simplePkNoAutoincrementResult = $context->table('simple_pk_no_autoincrement')->insert([
+test('Insert into table with simple primary index (no autoincrement)', function () use ($explorer) {
+	$simplePkNoAutoincrementResult = $explorer->table('simple_pk_no_autoincrement')->insert([
 		'identifier1' => 100,
 		'note' => 'Some note here',
 	]);
@@ -43,7 +41,7 @@ test(function () use ($context) {
 	Assert::equal(100, $simplePkNoAutoincrementResult->identifier1);
 	Assert::equal('Some note here', $simplePkNoAutoincrementResult->note);
 
-	$simplePkNoAutoincrementResult2 = $context->table('simple_pk_no_autoincrement')->insert([
+	$simplePkNoAutoincrementResult2 = $explorer->table('simple_pk_no_autoincrement')->insert([
 		'identifier1' => 200,
 		'note' => 'Some note here 2',
 	]);
@@ -53,9 +51,8 @@ test(function () use ($context) {
 	Assert::equal('Some note here 2', $simplePkNoAutoincrementResult2->note);
 });
 
-// Insert into table with multi column primary index (no autoincrement)
-test(function () use ($context) {
-	$multiPkNoAutoincrementResult = $context->table('multi_pk_no_autoincrement')->insert([
+test('Insert into table with multi column primary index (no autoincrement)', function () use ($explorer) {
+	$multiPkNoAutoincrementResult = $explorer->table('multi_pk_no_autoincrement')->insert([
 		'identifier1' => 5,
 		'identifier2' => 10,
 		'note' => 'Some note here',
@@ -66,7 +63,7 @@ test(function () use ($context) {
 	Assert::equal(10, $multiPkNoAutoincrementResult->identifier2);
 	Assert::equal('Some note here', $multiPkNoAutoincrementResult->note);
 
-	$multiPkNoAutoincrementResult2 = $context->table('multi_pk_no_autoincrement')->insert([
+	$multiPkNoAutoincrementResult2 = $explorer->table('multi_pk_no_autoincrement')->insert([
 		'identifier1' => 5,
 		'identifier2' => 100,
 		'note' => 'Some note here 2',
@@ -78,10 +75,9 @@ test(function () use ($context) {
 	Assert::equal('Some note here 2', $multiPkNoAutoincrementResult2->note);
 });
 
-// Insert into table with multi column primary index (autoincrement)
-test(function () use ($driverName, $context) {
+test('Insert into table with multi column primary index (autoincrement)', function () use ($driverName, $explorer) {
 	if (in_array($driverName, ['mysql', 'pgsql'], true)) {
-		$multiPkAutoincrementResult = $context->table('multi_pk_autoincrement')->insert([
+		$multiPkAutoincrementResult = $explorer->table('multi_pk_autoincrement')->insert([
 			'identifier2' => 999,
 			'note' => 'Some note here',
 		]);
@@ -91,7 +87,7 @@ test(function () use ($driverName, $context) {
 		Assert::equal(999, $multiPkAutoincrementResult->identifier2);
 		Assert::equal('Some note here', $multiPkAutoincrementResult->note);
 
-		$multiPkAutoincrementResult2 = $context->table('multi_pk_autoincrement')->insert([
+		$multiPkAutoincrementResult2 = $explorer->table('multi_pk_autoincrement')->insert([
 			'identifier2' => 999,
 			'note' => 'Some note here 2',
 		]);
@@ -103,9 +99,8 @@ test(function () use ($driverName, $context) {
 	}
 });
 
-// Insert into table without primary key
-test(function () use ($context) {
-	$noPkResult1 = $context->table('no_pk')->insert([
+test('Insert into table without primary key', function () use ($explorer) {
+	$noPkResult1 = $explorer->table('no_pk')->insert([
 		'note' => 'Some note here',
 	]);
 	Assert::equal(1, $noPkResult1);

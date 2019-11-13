@@ -33,17 +33,26 @@ class Cache
 		NAMESPACES = 'namespaces',
 		ALL = 'all';
 
+	public const
+		EVENT_HIT = 'hit',
+		EVENT_MISS = 'miss',
+		EVENT_SAVE = 'save',
+		EVENT_REMOVE = 'remove';
+
 	/** @internal */
 	public const NAMESPACE_SEPARATOR = "\x00";
 
-	/** @var IStorage */
+	/** @var array */
+	public $onEvent;
+
+	/** @var Storage */
 	private $storage;
 
 	/** @var string */
 	private $namespace;
 
 
-	public function __construct(IStorage $storage, string $namespace = null)
+	public function __construct(Storage $storage, string $namespace = null)
 	{
 		$this->storage = $storage;
 		$this->namespace = $namespace . self::NAMESPACE_SEPARATOR;
@@ -53,7 +62,7 @@ class Cache
 	/**
 	 * Returns cache storage.
 	 */
-	final public function getStorage(): IStorage
+	final public function getStorage(): Storage
 	{
 		return $this->storage;
 	}
@@ -74,8 +83,7 @@ class Cache
 	 */
 	public function derive(string $namespace)
 	{
-		$derived = new static($this->storage, $this->namespace . $namespace);
-		return $derived;
+		return new static($this->storage, $this->namespace . $namespace);
 	}
 
 
@@ -84,13 +92,20 @@ class Cache
 	 * @param  mixed  $key
 	 * @return mixed
 	 */
-	public function load($key, callable $fallback = null)
+	public function load($key, callable $generator = null)
 	{
-		$data = $this->storage->read($this->generateKey($key));
-		if ($data === null && $fallback) {
-			return $this->save($key, function (&$dependencies) use ($fallback) {
-				return $fallback(...[&$dependencies]);
-			});
+		$storageKey = $this->generateKey($key);
+		$data = $this->storage->read($storageKey);
+		$this->onEvent($this, $data === null ? self::EVENT_MISS : self::EVENT_HIT, $key);
+		if ($data === null && $generator) {
+			$this->storage->lock($storageKey);
+			try {
+				$data = $generator(...[&$dependencies]);
+			} catch (\Throwable $e) {
+				$this->storage->remove($storageKey);
+				throw $e;
+			}
+			$this->save($key, $data, $dependencies);
 		}
 		return $data;
 	}
@@ -99,7 +114,7 @@ class Cache
 	/**
 	 * Reads multiple items from the cache.
 	 */
-	public function bulkLoad(array $keys, callable $fallback = null): array
+	public function bulkLoad(array $keys, callable $generator = null): array
 	{
 		if (count($keys) === 0) {
 			return [];
@@ -109,32 +124,35 @@ class Cache
 				throw new Nette\InvalidArgumentException('Only scalar keys are allowed in bulkLoad()');
 			}
 		}
-		$storageKeys = array_map([$this, 'generateKey'], $keys);
-		if (!$this->storage instanceof IBulkReader) {
-			$result = array_combine($keys, array_map([$this->storage, 'read'], $storageKeys));
-			if ($fallback !== null) {
-				foreach ($result as $key => $value) {
-					if ($value === null) {
-						$result[$key] = $this->save($key, function (&$dependencies) use ($key, $fallback) {
-							return $fallback(...[$key, &$dependencies]);
-						});
-					}
-				}
+
+		$result = [];
+		if (!$this->storage instanceof BulkReader) {
+			foreach ($keys as $key) {
+				$result[$key] = $this->load(
+					$key,
+					$generator
+						? function (&$dependencies) use ($key, $generator) {
+							return $generator(...[$key, &$dependencies]);
+						}
+						: null
+				);
 			}
 			return $result;
 		}
 
+		$storageKeys = array_map([$this, 'generateKey'], $keys);
 		$cacheData = $this->storage->bulkRead($storageKeys);
-		$result = [];
 		foreach ($keys as $i => $key) {
 			$storageKey = $storageKeys[$i];
 			if (isset($cacheData[$storageKey])) {
+				$this->onEvent($this, self::EVENT_HIT, $key);
 				$result[$key] = $cacheData[$storageKey];
-			} elseif ($fallback) {
-				$result[$key] = $this->save($key, function (&$dependencies) use ($key, $fallback) {
-					return $fallback(...[$key, &$dependencies]);
+			} elseif ($generator) {
+				$result[$key] = $this->load($key, function (&$dependencies) use ($key, $generator) {
+					return $generator(...[$key, &$dependencies]);
 				});
 			} else {
+				$this->onEvent($this, self::EVENT_MISS, $key);
 				$result[$key] = null;
 			}
 		}
@@ -160,26 +178,30 @@ class Cache
 	 */
 	public function save($key, $data, array $dependencies = null)
 	{
-		$key = $this->generateKey($key);
+		$storageKey = $this->generateKey($key);
 
 		if ($data instanceof \Closure) {
-			$this->storage->lock($key);
+			trigger_error(__METHOD__ . '() closure argument is deprecated.', E_USER_WARNING);
+			$this->storage->lock($storageKey);
 			try {
 				$data = $data(...[&$dependencies]);
 			} catch (\Throwable $e) {
-				$this->storage->remove($key);
+				$this->storage->remove($storageKey);
 				throw $e;
 			}
 		}
 
 		if ($data === null) {
-			$this->storage->remove($key);
+			$this->storage->remove($storageKey);
+			$this->onEvent($this, self::EVENT_REMOVE, $key);
 		} else {
 			$dependencies = $this->completeDependencies($dependencies);
 			if (isset($dependencies[self::EXPIRATION]) && $dependencies[self::EXPIRATION] <= 0) {
-				$this->storage->remove($key);
+				$this->storage->remove($storageKey);
+				$this->onEvent($this, self::EVENT_REMOVE, $key);
 			} else {
-				$this->storage->write($key, $data, $dependencies);
+				$this->storage->write($storageKey, $data, $dependencies);
+				$this->onEvent($this, self::EVENT_SAVE, $key);
 			}
 			return $data;
 		}
@@ -206,7 +228,7 @@ class Cache
 		// convert FILES into CALLBACKS
 		if (isset($dp[self::FILES])) {
 			foreach (array_unique((array) $dp[self::FILES]) as $item) {
-				$dp[self::CALLBACKS][] = [[__CLASS__, 'checkFile'], $item, @filemtime($item) ?: null]; // @ - stat may fail
+				$dp[self::CALLBACKS][] = [[self::class, 'checkFile'], $item, @filemtime($item) ?: null]; // @ - stat may fail
 			}
 			unset($dp[self::FILES]);
 		}
@@ -219,7 +241,7 @@ class Cache
 		// convert CONSTS into CALLBACKS
 		if (isset($dp[self::CONSTS])) {
 			foreach (array_unique((array) $dp[self::CONSTS]) as $item) {
-				$dp[self::CALLBACKS][] = [[__CLASS__, 'checkConst'], $item, constant($item)];
+				$dp[self::CALLBACKS][] = [[self::class, 'checkConst'], $item, constant($item)];
 			}
 			unset($dp[self::CONSTS]);
 		}
@@ -280,15 +302,14 @@ class Cache
 	public function wrap(callable $function, array $dependencies = null): \Closure
 	{
 		return function () use ($function, $dependencies) {
-			$key = [$function, func_get_args()];
+			$key = [$function, $args = func_get_args()];
 			if (is_array($function) && is_object($function[0])) {
 				$key[0][0] = get_class($function[0]);
 			}
-			$data = $this->load($key);
-			if ($data === null) {
-				$data = $this->save($key, $function(...$key[1]), $dependencies);
-			}
-			return $data;
+			return $this->load($key, function (&$deps) use ($function, $args, $dependencies) {
+				$deps = $dependencies;
+				return $function(...$args);
+			});
 		};
 	}
 

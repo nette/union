@@ -8,7 +8,7 @@
 declare(strict_types=1);
 
 use Nette\Database\Conventions\DiscoveredConventions;
-use Nette\Database\ISupplementalDriver;
+use Nette\Database\Driver;
 use Nette\Database\Table\SqlBuilder;
 use Tester\Assert;
 
@@ -32,8 +32,8 @@ class SqlBuilderMock extends SqlBuilder
 }
 
 $conventions = new DiscoveredConventions($structure);
-$sqlBuilder = new SqlBuilderMock('nUsers', $context);
-$driver = $connection->getSupplementalDriver();
+$sqlBuilder = new SqlBuilderMock('nUsers', $explorer);
+$driver = $connection->getDriver();
 
 
 $joins = [];
@@ -42,9 +42,9 @@ $sqlBuilder->parseJoins($joins, $query);
 $join = $sqlBuilder->buildQueryJoins($joins);
 Assert::same('WHERE priorit.id IS NULL', $query);
 
-$tables = $connection->getSupplementalDriver()->getTables();
+$tables = $connection->getDriver()->getTables();
 if (!in_array($tables[0]['name'], ['npriorities', 'ntopics', 'nusers', 'nusers_ntopics', 'nusers_ntopics_alt'], true)) {
-	if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+	if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
 		Assert::same(
 			'LEFT JOIN public.nUsers_nTopics nusers_ntopics ON nUsers.nUserId = nusers_ntopics.nUserId ' .
 			'LEFT JOIN public.nTopics topic ON nusers_ntopics.nTopicId = topic.nTopicId ' .
@@ -74,7 +74,7 @@ if (!in_array($tables[0]['name'], ['npriorities', 'ntopics', 'nusers', 'nusers_n
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverName}-nette_test1.sql");
 $structure->rebuild();
 
-$sqlBuilder = new SqlBuilderMock('author', $context);
+$sqlBuilder = new SqlBuilderMock('author', $explorer);
 
 $joins = [];
 $query = 'WHERE :book(translator).next_volume IS NULL';
@@ -87,11 +87,9 @@ Assert::same(
 );
 
 
-if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
-	$sqlBuilder = new SqlBuilderMock('public.book', $context);
-} else {
-	$sqlBuilder = new SqlBuilderMock('book', $context);
-}
+$sqlBuilder = $driver->isSupported(Driver::SUPPORT_SCHEMA)
+	? new SqlBuilderMock('public.book', $explorer)
+	: new SqlBuilderMock('book', $explorer);
 
 $joins = [];
 $query = 'WHERE :book.translator_id IS NULL AND :book:book.translator_id IS NULL';
@@ -99,7 +97,7 @@ $sqlBuilder->parseJoins($joins, $query);
 $join = $sqlBuilder->buildQueryJoins($joins);
 Assert::same('WHERE book_ref.translator_id IS NULL AND book_ref_ref.translator_id IS NULL', $query);
 
-if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
 	Assert::same(
 		'LEFT JOIN public.book book_ref ON book.id = book_ref.next_volume ' .
 		'LEFT JOIN public.book book_ref_ref ON book_ref.id = book_ref_ref.next_volume',

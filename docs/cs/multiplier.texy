@@ -1,5 +1,5 @@
-Multiplier
-**********
+Multiplier: dynamické komponenty
+********************************
 
 Nástroj na dynamickou tvorbu komponent .[perex]
 
@@ -7,7 +7,7 @@ Vyjděme od typického příkladu: mějme seznam zboží v eshopu, přičemž u 
 
 Multiplier umožňuje pohodlně definovat továrničku pro více komponent. Funguje na principu vnořených komponent - každá komponenta dědící od [api:Nette\ComponentModel\Container] může obsahovat další komponenty.
 
-Viz kapitola o [komponentovém modelu|components#toc-komponenty-do-hloubky] v dokumentaci či [přednáška od Honzy Tvrdíka|https://www.youtube.com/watch?v=8y3LLexWu-I]. .[tip]
+Viz kapitola o [komponentovém modelu|components#komponenty-do-hloubky] v dokumentaci či [přednáška od Honzy Tvrdíka|https://www.youtube.com/watch?v=8y3LLexWu-I]. .[tip]
 
 Podstatou Multiplieru je, že vystupuje v pozici rodiče, který si své potomky dokáže vytvářet dynamicky pomocí callbacku předaného v konstruktoru. Viz příklad:
 
@@ -16,9 +16,8 @@ protected function createComponentShopForm(): Multiplier
 {
 	return new Multiplier(function () {
 		$form = new Nette\Application\UI\Form;
-		$form->addText('count', 'Počet zboží:')
-			->addRule($form::FILLED)
-			->addRule($form::INTEGER);
+		$form->addInteger('count', 'Počet zboží:')
+			->setRequired();
 		$form->addSubmit('send', 'Přidat do košíku');
 		return $form;
 	});
@@ -32,7 +31,7 @@ Nyní můžeme v šabloně jednoduše u každého zboží nechat vykreslit formu
 	<h2>{$item->title}</h2>
 	{$item->description}
 
-	{control shopForm-$item->id}
+	{control "shopForm-$item->id"}
 {/foreach}
 ```
 
@@ -52,9 +51,8 @@ protected function createComponentShopForm(): Multiplier
 {
 	return new Multiplier(function ($itemId) {
 		$form = new Nette\Application\UI\Form;
-		$form->addText('count', 'Počet zboží:')
-			->addRule($form::FILLED)
-			->addRule($form::INTEGER);
+		$form->addInteger('count', 'Počet zboží:')
+			->setRequired();
 		$form->addHidden('itemId', $itemId);
 		$form->addSubmit('send', 'Přidat do košíku');
 		return $form;

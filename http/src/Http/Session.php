@@ -22,7 +22,6 @@ class Session
 	/** Default file lifetime */
 	private const DEFAULT_FILE_LIFETIME = 3 * Nette\Utils\DateTime::HOUR;
 
-	/** @var array default configuration */
 	private const SECURITY_OPTIONS = [
 		'referer_check' => '',    // must be disabled because PHP implementation is invalid
 		'use_cookies' => 1,       // must be enabled to prevent Session Hijacking and Fixation
@@ -96,7 +95,7 @@ class Session
 			Nette\Utils\Callback::invokeSafe('session_start', [['read_and_close' => $this->readAndClose]], function (string $message) use (&$e): void {
 				$e = new Nette\InvalidStateException($message);
 			});
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
 		}
 
 		if ($e) {
@@ -370,7 +369,7 @@ class Session
 
 		foreach ($config as $key => $value) {
 			if (!isset($allowed["session.$key"])) {
-				$hint = substr((string) Nette\Utils\ObjectHelpers::getSuggestion(array_keys($allowed), "session.$key"), 8);
+				$hint = substr((string) Nette\Utils\Helpers::getSuggestion(array_keys($allowed), "session.$key"), 8);
 				[$altKey, $altHint] = array_map(function ($s) {
 					return preg_replace_callback('#_(.)#', function ($m) { return strtoupper($m[1]); }, $s); // snake_case -> camelCase
 				}, [$key, (string) $hint]);
@@ -449,8 +448,12 @@ class Session
 	 * Sets the session cookie parameters.
 	 * @return static
 	 */
-	public function setCookieParameters(string $path, string $domain = null, bool $secure = null, string $samesite = null)
-	{
+	public function setCookieParameters(
+		string $path,
+		string $domain = null,
+		bool $secure = null,
+		string $samesite = null
+	) {
 		return $this->setOptions([
 			'cookie_path' => $path,
 			'cookie_domain' => $domain,
@@ -460,11 +463,10 @@ class Session
 	}
 
 
-	/**
-	 * @deprecated
-	 */
+	/** @deprecated */
 	public function getCookieParameters(): array
 	{
+		trigger_error(__METHOD__ . '() is deprecated.', E_USER_DEPRECATED);
 		return session_get_cookie_params();
 	}
 
@@ -502,9 +504,14 @@ class Session
 	{
 		$cookie = session_get_cookie_params();
 		$this->response->setCookie(
-			session_name(), session_id(),
+			session_name(),
+			session_id(),
 			$cookie['lifetime'] ? $cookie['lifetime'] + time() : 0,
-			$cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httponly'], $cookie['samesite'] ?? null
+			$cookie['path'],
+			$cookie['domain'],
+			$cookie['secure'],
+			$cookie['httponly'],
+			$cookie['samesite'] ?? null
 		);
 	}
 }

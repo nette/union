@@ -13,7 +13,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-class Test implements Latte\Runtime\IHtmlString
+class Test implements Latte\Runtime\HtmlStringable
 {
 	public function __toString(): string
 	{
@@ -31,3 +31,7 @@ Assert::same('&amp;quot;', Filters::escapeHtmlText('&quot;'));
 Assert::same('<br>', Filters::escapeHtmlText(new Test));
 Assert::same('<br>', Filters::escapeHtmlText(new Latte\Runtime\Html('<br>')));
 Assert::same('`hello', Filters::escapeHtmlText('`hello'));
+
+// invalid UTF-8
+Assert::same("foo \u{FFFD} bar", Filters::escapeHtmlText("foo \u{D800} bar")); // invalid codepoint high surrogates
+Assert::same("foo \u{FFFD}\" bar", Filters::escapeHtmlText("foo \xE3\x80\x22 bar")); // stripped UTF

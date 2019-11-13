@@ -12,6 +12,7 @@ namespace Tester;
 
 /**
  * Dumps PHP variables.
+ * @internal
  */
 class Dumper
 {
@@ -22,6 +23,8 @@ class Dumper
 	public static $dumpDir = 'output';
 
 	public static $maxPathSegments = 3;
+
+	public static $pathSeparator;
 
 
 	/**
@@ -59,7 +62,9 @@ class Dumper
 			} elseif (strlen($var) > self::$maxLength) {
 				$var = substr($var, 0, self::$maxLength) . '...';
 			}
-			return preg_match('#[^\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}]#u', $var) || preg_last_error() ? '"' . strtr($var, $table) . '"' : "'$var'";
+			return preg_match('#[^\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}]#u', $var) || preg_last_error()
+				? '"' . strtr($var, $table) . '"'
+				: "'$var'";
 
 		} elseif (is_array($var)) {
 			$out = '';
@@ -244,9 +249,6 @@ class Dumper
 	}
 
 
-	/**
-	 * @internal
-	 */
 	public static function dumpException(\Throwable $e): string
 	{
 		$trace = $e->getTrace();
@@ -265,10 +267,10 @@ class Dumper
 			$actual = $e->actual;
 
 			if (is_object($expected) || is_array($expected) || (is_string($expected) && strlen($expected) > self::$maxLength)
-				|| is_object($actual) || is_array($actual) || (is_string($actual) && strlen($actual) > self::$maxLength)
+				|| is_object($actual) || is_array($actual) || (is_string($actual) && (strlen($actual) > self::$maxLength || preg_match('#[\x00-\x1F]#', $actual)))
 			) {
 				$args = isset($_SERVER['argv'][1])
-					? '.[' . implode(' ', preg_replace(['#^-*(.{1,20}).*#i', '#[^=a-z0-9. -]+#i'], ['$1', '-'], array_slice($_SERVER['argv'], 1))) . ']'
+					? '.[' . implode(' ', preg_replace(['#^-*([^|]+).*#i', '#[^=a-z0-9. -]+#i'], ['$1', '-'], array_slice($_SERVER['argv'], 1))) . ']'
 					: '';
 				$stored[] = self::saveOutput($testFile, $expected, $args . '.expected');
 				$stored[] = self::saveOutput($testFile, $actual, $args . '.actual');
@@ -291,11 +293,9 @@ class Dumper
 			if (((is_string($actual) && is_string($expected)) || (is_array($actual) && is_array($expected)))
 				&& preg_match('#^(.*)(%\d)(.*)(%\d.*)$#Ds', $message, $m)
 			) {
-				if (($delta = strlen($m[1]) - strlen($m[3])) >= 3) {
-					$message = "$m[1]$m[2]\n" . str_repeat(' ', $delta - 3) . "...$m[3]$m[4]";
-				} else {
-					$message = "$m[1]$m[2]$m[3]\n" . str_repeat(' ', strlen($m[1]) - 4) . "... $m[4]";
-				}
+				$message = ($delta = strlen($m[1]) - strlen($m[3])) >= 3
+					? "$m[1]$m[2]\n" . str_repeat(' ', $delta - 3) . "...$m[3]$m[4]"
+					: "$m[1]$m[2]$m[3]\n" . str_repeat(' ', strlen($m[1]) - 4) . "... $m[4]";
 			}
 			$message = strtr($message, [
 				'%1' => self::color('yellow') . self::toLine($actual) . self::color('white'),
@@ -321,7 +321,10 @@ class Dumper
 				. ($item['file']
 					? (
 						($item['file'] === $testFile ? self::color('white') : '')
-						. implode(DIRECTORY_SEPARATOR, array_slice(explode(DIRECTORY_SEPARATOR, $item['file']), -self::$maxPathSegments))
+						. implode(
+							self::$pathSeparator ?? DIRECTORY_SEPARATOR,
+							array_slice(explode(DIRECTORY_SEPARATOR, $item['file']), -self::$maxPathSegments)
+						)
 						. "($item[line])" . self::color('gray') . ' '
 					)
 					: '[internal function]'
@@ -342,7 +345,6 @@ class Dumper
 
 	/**
 	 * Dumps data to folder 'output'.
-	 * @internal
 	 */
 	public static function saveOutput(string $testFile, $content, string $suffix = ''): string
 	{

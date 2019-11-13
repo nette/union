@@ -13,14 +13,14 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$compiler = new Latte\Compiler;
+$compiler = new \Latte\Compiler\Compiler;
 CoreMacros::install($compiler);
 
 $prefix = '<?php $iterations = 0; '
-	. 'foreach ($iterator = $this->global->its[] = new LR\CachingIterator(';
+	. 'foreach ($iterator = $__it = new LR\CachingIterator(';
 
 
-function expandMacro($compiler, $args, $modifiers = null)
+function expandMacro($compiler, $args, $modifiers = '')
 {
 	$node = $compiler->expandMacro('foreach', $args, $modifiers);
 	$node->content = ' $iterator ';
@@ -30,22 +30,22 @@ function expandMacro($compiler, $args, $modifiers = null)
 }
 
 
-Assert::same($prefix . '$array) as $value) { ?>', expandMacro($compiler, '$array as $value')->openingCode);
+Assert::same($prefix . '$array, $__it ?? null) as $value) { ?>', expandMacro($compiler, '$array as $value')->openingCode);
 Assert::same(
 	'<?php $iterations = 0; '
-	. 'foreach ($iterator = $this->global->its[] = new LR\CachingIterator($array) as $key => $value) { ?>',
+	. 'foreach ($iterator = $__it = new LR\CachingIterator($array, $__it ?? null) as $key => $value) { ?>',
 	expandMacro($compiler, '$array as $key => $value')->openingCode
 );
 
 Assert::same(
 	'<?php $iterations = 0; '
-	. 'foreach ($iterator = $this->global->its[] = new LR\CachingIterator($array) as $key => $value) { ?>',
+	. 'foreach ($iterator = $__it = new LR\CachingIterator($array, $__it ?? null) as $key => $value) { ?>',
 	expandMacro($compiler, '$array as $key => $value', '|nocheck')->openingCode
 );
 
-Assert::same($prefix . '$obj->data("A as B")) as $value) { ?>', expandMacro($compiler, '$obj->data("A as B") as $value')->openingCode);
-Assert::same($prefix . '$obj->data(\'A as B\')) as $value) { ?>', expandMacro($compiler, '$obj->data(\'A as B\') as $value')->openingCode);
-Assert::same($prefix . '$obj->data("X as Y, Z as W")) as $value) { ?>', expandMacro($compiler, '$obj->data("X as Y, Z as W") as $value')->openingCode);
+Assert::same($prefix . '$obj->data("A as B"), $__it ?? null) as $value) { ?>', expandMacro($compiler, '$obj->data("A as B") as $value')->openingCode);
+Assert::same($prefix . '$obj->data(\'A as B\'), $__it ?? null) as $value) { ?>', expandMacro($compiler, '$obj->data(\'A as B\') as $value')->openingCode);
+Assert::same($prefix . '$obj->data("X as Y, Z as W"), $__it ?? null) as $value) { ?>', expandMacro($compiler, '$obj->data("X as Y, Z as W") as $value')->openingCode);
 
 Assert::same(
 	'<?php $iterations = 0; '
@@ -56,3 +56,11 @@ Assert::same(
 Assert::exception(function () use ($compiler) {
 	expandMacro($compiler, '$array as $value', '|filter');
 }, Latte\CompileException::class, 'Only modifiers |noiterator and |nocheck are allowed here.');
+
+
+$latte = new Latte\Engine;
+$latte->setLoader(new Latte\Loaders\StringLoader);
+
+Assert::exception(function () use ($latte) {
+	$latte->compile('{foreach}{/foreach}');
+}, Latte\CompileException::class, 'Missing arguments in {foreach}');

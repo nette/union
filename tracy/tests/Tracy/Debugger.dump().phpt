@@ -12,35 +12,39 @@ use Tracy\Debugger;
 
 require __DIR__ . '/../bootstrap.php';
 
+if (PHP_SAPI === 'cli') {
+	Tester\Environment::skip('Requires CGI mode');
+}
+
 
 header('Content-Type: text/plain');
-Tracy\Dumper::$terminalColors = null;
+Tracy\Dumper::$useColors = false;
 
 
-test(function () { // production mode
+test('production mode', function () {
 	Debugger::$productionMode = true;
 
 	ob_start();
 	Debugger::dump('sensitive data');
 	Assert::same('', ob_get_clean());
 
-	Assert::match('"forced" (6)', Debugger::dump('forced', true));
+	Assert::match('%a%forced%a%', Debugger::dump('forced', true));
 });
 
 
-test(function () { // development mode
+test('development mode', function () {
 	Debugger::$productionMode = false;
 
 	ob_start();
 	Debugger::dump('sensitive data');
-	Assert::match('"sensitive data" (14)
-	', ob_get_clean());
+	Assert::match("'sensitive data'
+	", ob_get_clean());
 
-	Assert::match('"forced" (6)', Debugger::dump('forced', true));
+	Assert::match('%a%forced%a%', Debugger::dump('forced', true));
 });
 
 
-test(function () { // returned value
+test('returned value', function () {
 	$obj = new stdClass;
 	Assert::same(Debugger::dump($obj), $obj);
 });

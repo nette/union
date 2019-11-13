@@ -1,0 +1,19 @@
+<?php
+%A%
+		echo 'consts
+
+';
+		echo LR\Filters::escapeHtmlText(\Name\MyClass::CONST) /* line 3 */;
+		echo "\n";
+		echo LR\Filters::escapeHtmlText($obj::CONST) /* line 4 */;
+		echo "\n";
+		echo LR\Filters::escapeHtmlText($obj::CONST) /* line 5 */;
+		echo "\n";
+		echo LR\Filters::escapeHtmlText($this->call(($obj::CONST))()) /* line 6 */;
+		echo "\n";
+		echo LR\Filters::escapeHtmlText($this->call($obj::CONST[0])()) /* line 7 */;
+		echo "\n";
+		echo LR\Filters::escapeHtmlText($this->call(CONST[0])()) /* line 8 */;
+		echo '
+-';
+%A%

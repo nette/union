@@ -64,7 +64,7 @@ $_FILES = [
 ];
 
 
-test(function () {
+test('', function () {
 	$form = new Form;
 	$input = $form->addUpload('avatar');
 
@@ -81,7 +81,7 @@ test(function () {
 });
 
 
-test(function () { // container
+test('container', function () {
 	$form = new Form;
 	$input = $form->addContainer('container')->addUpload('avatar');
 
@@ -98,7 +98,7 @@ test(function () { // container
 });
 
 
-test(function () { // multiple (in container)
+test('multiple (in container)', function () {
 	$form = new Form;
 	$input = $form->addContainer('multiple')->addMultiUpload('avatar');
 
@@ -121,7 +121,7 @@ test(function () { // multiple (in container)
 });
 
 
-test(function () { // missing data
+test('missing data', function () {
 	$form = new Form;
 	$input = $form->addMultiUpload('empty')
 		->setRequired();
@@ -133,7 +133,7 @@ test(function () { // missing data
 });
 
 
-test(function () { // empty data
+test('empty data', function () {
 	$form = new Form;
 	$input = $form->addUpload('missing')
 		->setRequired();
@@ -145,7 +145,7 @@ test(function () { // empty data
 });
 
 
-test(function () { // malformed data
+test('malformed data', function () {
 	$form = new Form;
 	$input = $form->addUpload('invalid1');
 
@@ -180,7 +180,7 @@ test(function () { // malformed data
 });
 
 
-test(function () { // partial uploaded (error)
+test('partial uploaded (error)', function () {
 	$form = new Form;
 	$input = $form->addUpload('partial')
 		->setRequired();
@@ -198,7 +198,7 @@ test(function () { // partial uploaded (error)
 });
 
 
-test(function () { // validators
+test('validators', function () {
 	$form = new Form;
 	$input = $form->addUpload('avatar')
 		->addRule($form::MAX_FILE_SIZE, null, 3000);
@@ -217,7 +217,7 @@ test(function () { // validators
 });
 
 
-test(function () { // validators on multiple files
+test('validators on multiple files', function () {
 	$form = new Form;
 	$input = $form->addContainer('multiple')->addMultiUpload('avatar')
 		->addRule($form::MAX_FILE_SIZE, null, 3000);
@@ -233,4 +233,14 @@ test(function () { // validators on multiple files
 	Assert::false(Validator::validateMimeType($input, []));
 
 	Assert::true(Validator::validateImage($input));
+});
+
+
+test('validators on multiple files', function () {
+	$form = new Form;
+	$input = $form->addUpload('invalid1');
+
+	$rules = iterator_to_array($input->getRules());
+	Assert::count(2, $rules);
+	Assert::same($form::MAX_FILE_SIZE, $rules[1]->validator);
 });

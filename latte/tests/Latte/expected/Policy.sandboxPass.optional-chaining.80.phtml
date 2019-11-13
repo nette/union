@@ -1,0 +1,11 @@
+<?php
+%A%
+		echo 'optional chaining
+
+';
+		echo LR\Filters::escapeHtmlText($this->prop($obj, 'bar')?->bar) /* line 3 */;
+		echo "\n";
+		echo LR\Filters::escapeHtmlText((($__tmp = $obj ?? null) === null ? null : $this->prop($__tmp, 'bar')->bar)) /* line 4 */;
+		echo '
+-';
+%A%

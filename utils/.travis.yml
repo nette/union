@@ -1,9 +1,9 @@
 language: php
 php:
-    - 7.1
     - 7.2
     - 7.3
-    - 7.4snapshot
+    - 7.4
+    - 8.0snapshot
 
 before_install:
     # turn off XDebug
@@ -22,6 +22,7 @@ after_failure:
 jobs:
     include:
         -   name: Nette Code Checker
+            php: 7.4
             install:
                 - travis_retry composer create-project nette/code-checker temp/code-checker ^3 --no-progress
             script:
@@ -29,22 +30,21 @@ jobs:
 
 
         -   name: Nette Coding Standard
+            php: 8.0snapshot
             install:
-                - travis_retry composer create-project nette/coding-standard temp/coding-standard ^2 --no-progress
+                - travis_retry composer create-project nette/coding-standard temp/coding-standard ^3 --no-progress --ignore-platform-reqs
             script:
-                - php temp/coding-standard/ecs check src tests --config tests/coding-standard.yml
+                - php temp/coding-standard/ecs check
 
 
         -   stage: Static Analysis (informative)
-            install:
-                # Install PHPStan
-                - travis_retry composer create-project phpstan/phpstan-shim temp/phpstan --no-progress
-                - travis_retry composer install --no-progress --prefer-dist
+            php: 7.4
             script:
-                - php temp/phpstan/phpstan.phar analyse --autoload-file vendor/autoload.php --level 5 --configuration tests/phpstan.neon src
+                - composer phpstan -- --no-progress
 
 
         -   stage: Code Coverage
+            php: 7.4
             script:
                 - vendor/bin/tester -p phpdbg tests -s --coverage ./coverage.xml --coverage-src ./src
             after_script:
@@ -55,10 +55,9 @@ jobs:
     allow_failures:
         -   stage: Static Analysis (informative)
         -   stage: Code Coverage
-        -   php: 7.4snapshot
 
 
-sudo: false
+dist: xenial
 
 cache:
     directories:

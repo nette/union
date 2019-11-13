@@ -8,7 +8,7 @@
 	<li>translated: {_$hello|truncate:3}</li>
 	<li>Translated HTML: {_}{$hello}{/_}</li>
 	<li>Translated HTML: {_}ahoj{/_}</li>
-	<li>Translated HTML: {_}ahoj{/}</li>
+	<li>Translated HTML: {_}ahoj{/_}</li>
 	<li>Translated HTML: {_'ahoj|ahojahojahojahoj'}</li>
 	<li>spaces: {$hello |types , '' , ""	,	"$hello"  }</li>
 	<li>dynamic: {$hello |dynamic} {$hello |dynamic2}</li>
@@ -23,7 +23,7 @@
 
 <ul>
 	<li>{(int)$hello*0 |types:0,0.0,"0"}</li>
-	<li>{(int)$hello*1 |types:1:"1"}</li>
+	<li>{(int)$hello*1 |types:1,"1"}</li>
 	<li>{$hello |types:true,null,false}</li>
 	<li>{$hello |types:TRUE,NULL,FALSE}</li>
 	<li>{$hello |types:'',"","$hello"}</li>
@@ -73,5 +73,5 @@ Nested blocks: {block|striphtml|truncate:20} Outer   {block|striphtml|upper} Inn
 
 <ul>
 	<li>padLeft: {$hello |padleft:20}</li>
-	<li>padRight: {$hello |padright:20:'*'}</li>
+	<li>padRight: {$hello |padright:20,'*'}</li>
 </ul>

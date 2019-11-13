@@ -46,12 +46,12 @@ class StructureSchemasTestCase extends TestCase
 	protected function setUp()
 	{
 		parent::setUp();
-		$this->driver = Mockery::mock(Nette\Database\ISupplementalDriver::class);
+		$this->driver = Mockery::mock(Nette\Database\Driver::class);
 		$this->connection = Mockery::mock(Nette\Database\Connection::class);
 		$this->storage = Mockery::mock(Nette\Caching\IStorage::class);
 
 		$this->connection->shouldReceive('getDsn')->once()->andReturn('');
-		$this->connection->shouldReceive('getSupplementalDriver')->once()->andReturn($this->driver);
+		$this->connection->shouldReceive('getDriver')->once()->andReturn($this->driver);
 		$this->driver->shouldReceive('getTables')->once()->andReturn([
 			['name' => 'authors', 'view' => false, 'fullName' => 'authors.authors'],
 			['name' => 'books', 'view' => false, 'fullName' => 'books.books'],
@@ -65,7 +65,7 @@ class StructureSchemasTestCase extends TestCase
 			['name' => 'title', 'primary' => false, 'vendor' => []],
 		]);
 
-		$this->connection->shouldReceive('getSupplementalDriver')->times(2)->andReturn($this->driver);
+		$this->connection->shouldReceive('getDriver')->times(2)->andReturn($this->driver);
 		$this->driver->shouldReceive('getForeignKeys')->with('authors.authors')->once()->andReturn([]);
 		$this->driver->shouldReceive('getForeignKeys')->with('books.books')->once()->andReturn([
 			['local' => 'author_id', 'table' => 'authors.authors', 'foreign' => 'id', 'name' => 'authors_authors_fk1'],

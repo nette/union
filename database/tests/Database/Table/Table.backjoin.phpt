@@ -7,18 +7,18 @@
 
 declare(strict_types=1);
 
-use Nette\Database\ISupplementalDriver;
+use Nette\Database\Driver;
 use Tester\Assert;
 
 require __DIR__ . '/../connect.inc.php'; // create $connection
 
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverName}-nette_test1.sql");
-$driver = $connection->getSupplementalDriver();
+$driver = $connection->getDriver();
 
 
-test(function () use ($context) {
+test('', function () use ($explorer) {
 	$authorTagsCount = [];
-	$authors = $context
+	$authors = $explorer
 		->table('author')
 		->select('author.name, COUNT(DISTINCT :book:book_tag.tag_id) AS tagsCount')
 		->group('author.name')
@@ -36,10 +36,10 @@ test(function () use ($context) {
 });
 
 
-test(function () use ($context, $driver) {
-	$authorsSelection = $context->table('author')->where(':book.translator_id IS NOT NULL')->wherePrimary(12);
+test('', function () use ($explorer, $driver) {
+	$authorsSelection = $explorer->table('author')->where(':book.translator_id IS NOT NULL')->wherePrimary(12);
 
-	if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+	if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
 		Assert::same(
 			reformat('SELECT [author].* FROM [author] LEFT JOIN [public].[book] [book] ON [author].[id] = [book].[author_id] WHERE ([book].[translator_id] IS NOT NULL) AND ([author].[id] = ?)'),
 			$authorsSelection->getSql()
@@ -60,7 +60,7 @@ test(function () use ($context, $driver) {
 });
 
 
-test(function () use ($context) {
-	$count = $context->table('author')->where(':book(translator).title LIKE ?', '%JUSH%')->count('*'); // by translator_id
+test('', function () use ($explorer) {
+	$count = $explorer->table('author')->where(':book(translator).title LIKE ?', '%JUSH%')->count('*'); // by translator_id
 	Assert::same(0, $count);
 });

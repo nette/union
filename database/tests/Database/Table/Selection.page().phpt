@@ -19,43 +19,43 @@ Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverN
 
 //public function page($page, $itemsPerPage, &$numOfPages = null)
 
-test(function () use ($context) { //first page, one item per page
+test('first page, one item per page', function () use ($explorer) {
 	$numberOfPages = 0;
 
-	$tags = $context->table('tag')->page(1, 1, $numOfPages);
+	$tags = $explorer->table('tag')->page(1, 1, $numOfPages);
 	Assert::equal(1, count($tags)); //one item on first page
 	Assert::equal(4, $numOfPages); //four pages total
 
 	//calling the same without the $numOfPages reference
 	unset($tags);
-	$tags = $context->table('tag')->page(1, 1);
+	$tags = $explorer->table('tag')->page(1, 1);
 	Assert::equal(1, count($tags)); //one item on first page
 });
 
-test(function () use ($context) { //second page, three items per page
+test('second page, three items per page', function () use ($explorer) {
 	$numberOfPages = 0;
 
-	$tags = $context->table('tag')->page(2, 3, $numOfPages);
+	$tags = $explorer->table('tag')->page(2, 3, $numOfPages);
 	Assert::equal(1, count($tags)); //one item on second page
 	Assert::equal(2, $numOfPages); //two pages total
 
 	//calling the same without the $numOfPages reference
 	unset($tags);
-	$tags = $context->table('tag')->page(2, 3);
+	$tags = $explorer->table('tag')->page(2, 3);
 	Assert::equal(1, count($tags)); //one item on second page
 });
 
-test(function () use ($context) { //page with no items
-	$tags = $context->table('tag')->page(10, 4);
+test('page with no items', function () use ($explorer) {
+	$tags = $explorer->table('tag')->page(10, 4);
 	Assert::equal(0, count($tags)); //one item on second page
 });
 
-test(function () use ($context) { //page with no items (page not in range)
-	$tags = $context->table('tag')->page(100, 4);
+test('page with no items (page not in range)', function () use ($explorer) {
+	$tags = $explorer->table('tag')->page(100, 4);
 	Assert::equal(0, count($tags)); //one item on second page
 });
 
-test(function () use ($context) { //less items than $itemsPerPage
-	$tags = $context->table('tag')->page(1, 100);
+test('less items than $itemsPerPage', function () use ($explorer) {
+	$tags = $explorer->table('tag')->page(1, 100);
 	Assert::equal(4, count($tags)); //all four items from db
 });

@@ -33,8 +33,10 @@ class MockSession extends Http\Session
 	}
 
 
-	public function getSection(string $section, string $class = Nette\Http\SessionSection::class): Nette\Http\SessionSection
-	{
+	public function getSection(
+		string $section,
+		string $class = Nette\Http\SessionSection::class
+	): Nette\Http\SessionSection {
 		return $this->testSection;
 	}
 }
@@ -113,7 +115,7 @@ class MockUser extends Security\User
 	}
 }
 
-test(function () {
+test('', function () {
 	$presenter = new TestPresenter;
 	$presenter->injectPrimary(
 		null,
@@ -140,7 +142,7 @@ test(function () {
 	Assert::same([$user->getId(), $applicationRequest], $section->storedValue);
 });
 
-test(function () {
+test('', function () {
 	$presenter = new TestPresenter;
 	$presenter->injectPrimary(
 		null,

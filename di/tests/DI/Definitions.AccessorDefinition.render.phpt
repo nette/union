@@ -19,7 +19,7 @@ interface Good2
 }
 
 
-test(function () {
+test('', function () {
 	$def = new AccessorDefinition;
 	$def->setName('abc');
 	$def->setImplement('Good2');
@@ -35,7 +35,8 @@ test(function () {
 	$method = $phpGenerator->generateMethod($def);
 
 	Assert::match(
-'public function createServiceAbc(): Good2
+		<<<'XX'
+public function createServiceAbc(): Good2
 {
 	return new class ($this) implements Good2 {
 		private $container;
@@ -49,8 +50,12 @@ test(function () {
 
 		public function get(): stdClass
 		{
-			return $this->container->getService(\'a\');
+			return $this->container->getService('a');
 		}
 	};
-}', $method->__toString());
+}
+XX
+,
+		$method->__toString()
+	);
 });

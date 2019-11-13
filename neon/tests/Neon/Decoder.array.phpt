@@ -25,8 +25,9 @@ Assert::same([
 	'a' => 1,
 	'b' => 2,
 ], Neon::decode(
-' a: 1
- b: 2'));
+	' a: 1
+ b: 2'
+));
 
 
 Assert::same([
@@ -82,11 +83,12 @@ Assert::same([
 	],
 	'a' => 'x',
 ], Neon::decode(
-'x:
+	'x:
 	y:
 		-
 a: x
-'));
+'
+));
 
 
 Assert::same([
@@ -213,3 +215,23 @@ Assert::same([
 one:
 two:
 '));
+
+
+Assert::same([null, null], Neon::decode('
+-
+-'));
+
+
+Assert::equal(
+	[
+		new DateTimeImmutable('2016-06-03 00:00:00'),
+		'2016-06-03' => 'b',
+	],
+	Neon::decode('
+- 2016-06-03
+2016-06-03: b
+')
+);
+
+
+Assert::same(['a' => "a\u{A0}b"], Neon::decode("a: a\u{A0}b"));

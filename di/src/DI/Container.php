@@ -47,7 +47,10 @@ class Container
 	public function __construct(array $params = [])
 	{
 		$this->parameters = $params;
-		$this->methods = array_flip(get_class_methods($this));
+		$this->methods = array_flip(array_filter(
+			get_class_methods($this),
+			function ($s) { return preg_match('#^createService.#', $s); }
+		));
 	}
 
 
@@ -73,7 +76,7 @@ class Container
 		}
 
 		$type = $service instanceof \Closure
-			? (($tmp = (new \ReflectionFunction($service))->getReturnType()) ? $tmp->getName() : '')
+			? (string) Nette\Utils\Reflection::getReturnType(new \ReflectionFunction($service))
 			: get_class($service);
 
 		if (!isset($this->methods[self::getMethodName($name)])) {
@@ -118,6 +121,17 @@ class Container
 			$this->instances[$name] = $this->createService($name);
 		}
 		return $this->instances[$name];
+	}
+
+
+	/**
+	 * Gets the service object by name.
+	 * @return object
+	 * @throws MissingServiceException
+	 */
+	public function getByName(string $name)
+	{
+		return $this->getService($name);
 	}
 
 
@@ -186,7 +200,9 @@ class Container
 
 		try {
 			$this->creating[$name] = true;
-			$service = $cb instanceof \Closure ? $cb(...$args) : $this->$method(...$args);
+			$service = $cb instanceof \Closure
+				? $cb(...$args)
+				: $this->$method(...$args);
 
 		} finally {
 			unset($this->creating[$name]);
@@ -217,7 +233,16 @@ class Container
 			throw new MissingServiceException("Multiple services of type $type found: " . implode(', ', $names) . '.');
 
 		} elseif ($throw) {
-			throw new MissingServiceException("Service of type $type not found.");
+			if (!class_exists($type) && !interface_exists($type)) {
+				throw new MissingServiceException("Service of type '$type' not found. Check class name because it cannot be found.");
+			}
+			foreach ($this->methods as $method => $foo) {
+				$methodType = (new \ReflectionMethod(static::class, $method))->getReturnType()->getName();
+				if (is_a($methodType, $type, true)) {
+					throw new MissingServiceException("Service of type $type is not autowired or is missing in di › export › types.");
+				}
+			}
+			throw new MissingServiceException("Service of type $type not found. Did you add it to configuration file?");
 		}
 		return null;
 	}
@@ -273,7 +298,7 @@ class Container
 			throw new ServiceCreationException("Class $class is not instantiable.");
 
 		} elseif ($constructor = $rc->getConstructor()) {
-			return $rc->newInstanceArgs(Resolver::autowireArguments($constructor, $args, $this));
+			return $rc->newInstanceArgs($this->autowireArguments($constructor, $args));
 
 		} elseif ($args) {
 			throw new ServiceCreationException("Unable to pass arguments, class $class has no constructor.");
@@ -298,7 +323,17 @@ class Container
 	 */
 	public function callMethod(callable $function, array $args = [])
 	{
-		return $function(...Resolver::autowireArguments(Nette\Utils\Callback::toReflection($function), $args, $this));
+		return $function(...$this->autowireArguments(Nette\Utils\Callback::toReflection($function), $args));
+	}
+
+
+	private function autowireArguments(\ReflectionFunctionAbstract $function, array $args = []): array
+	{
+		return Resolver::autowireArguments($function, $args, function (string $type, bool $single) {
+			return $single
+				? $this->getByType($type)
+				: array_map([$this, 'getService'], $this->findAutowired($type));
+		});
 	}
 
 

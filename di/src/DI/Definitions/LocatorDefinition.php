@@ -25,9 +25,7 @@ final class LocatorDefinition extends Definition
 	private $tagged;
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setImplement(string $type)
 	{
 		if (!interface_exists($type)) {
@@ -40,12 +38,14 @@ final class LocatorDefinition extends Definition
 
 		foreach ($methods as $method) {
 			if ($method->isStatic() || !(
-				(preg_match('#^(get|create)$#', $method->getName()) && $method->getNumberOfParameters() === 1)
-				|| (preg_match('#^(get|create)[A-Z]#', $method->getName()) && $method->getNumberOfParameters() === 0)
+				(preg_match('#^(get|create)$#', $method->name) && $method->getNumberOfParameters() === 1)
+				|| (preg_match('#^(get|create)[A-Z]#', $method->name) && $method->getNumberOfParameters() === 0)
 			)) {
 				throw new Nette\InvalidArgumentException(sprintf(
 					"Service '%s': Method %s::%s() does not meet the requirements: is create(\$name), get(\$name), create*() or get*() and is non-static.",
-					$this->getName(), $type, $method->getName()
+					$this->getName(),
+					$type,
+					$method->name
 				));
 			}
 		}
@@ -59,9 +59,7 @@ final class LocatorDefinition extends Definition
 	}
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setReferences(array $references)
 	{
 		$this->references = [];
@@ -74,18 +72,14 @@ final class LocatorDefinition extends Definition
 	}
 
 
-	/**
-	 * @return Reference[]
-	 */
+	/** @return Reference[] */
 	public function getReferences(): array
 	{
 		return $this->references;
 	}
 
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function setTagged(?string $tagged)
 	{
 		$this->tagged = $tagged;
@@ -128,25 +122,25 @@ final class LocatorDefinition extends Definition
 			->addImplement($this->getType());
 
 		$class->addProperty('container')
-			->setVisibility('private');
+			->setPrivate();
 
 		$class->addMethod('__construct')
 			->addBody('$this->container = $container;')
 			->addParameter('container')
-			->setTypeHint($generator->getClassName());
+			->setType($generator->getClassName());
 
 		foreach ((new \ReflectionClass($this->getType()))->getMethods() as $rm) {
-			preg_match('#^(get|create)(.*)#', $rm->getName(), $m);
+			preg_match('#^(get|create)(.*)#', $rm->name, $m);
 			$name = lcfirst($m[2]);
 			$nullable = $rm->getReturnType()->allowsNull();
 
-			$methodInner = $class->addMethod($rm->getName())
+			$methodInner = $class->addMethod($rm->name)
 				->setReturnType(Reflection::getReturnType($rm))
 				->setReturnNullable($nullable);
 
 			if (!$name) {
 				$class->addProperty('mapping', array_map(function ($item) { return $item->getValue(); }, $this->references))
-					->setVisibility('private');
+					->setPrivate();
 
 				$methodInner->setBody('if (!isset($this->mapping[$name])) {
 	' . ($nullable ? 'return null;' : 'throw new Nette\DI\MissingServiceException("Service \'$name\' is not defined.");') . '
