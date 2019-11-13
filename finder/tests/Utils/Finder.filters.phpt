@@ -24,7 +24,7 @@ function export($iterator)
 }
 
 
-test('size filter', function () {
+test(function () { // size filter
 	$finder = Finder::findFiles('*')->size('>8kB')->from('files');
 	Assert::same([
 		'files/images/logo.gif',
@@ -32,7 +32,7 @@ test('size filter', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$finder = Finder::findFiles('*')->size('> 10')->size('< 100b')->from('files');
 	Assert::same([
 		'files/file.txt',
@@ -42,7 +42,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$finder = Finder::find('*')->size('>', 10)->size('< 100b')->from('files');
 	Assert::same([
 		'files/file.txt',
@@ -55,13 +55,13 @@ test('', function () {
 });
 
 
-test('date filter', function () {
-	$finder = Finder::findFiles('*')->date('> 2050-01-02')->from('files');
+test(function () { // date filter
+	$finder = Finder::findFiles('*')->date('> 2020-01-02')->from('files');
 	Assert::same([], export($finder));
 });
 
 
-test('custom filters', function () {
+test(function () { // custom filters
 	Finder::extensionMethod('length', function ($finder, $length) {
 		return $finder->filter(function ($file) use ($length) {
 			return strlen($file->getFilename()) == $length;
@@ -70,7 +70,7 @@ test('custom filters', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$finder = Finder::findFiles('*')->length(6)->from('files');
 	Assert::same([
 		'files/subdir/readme',

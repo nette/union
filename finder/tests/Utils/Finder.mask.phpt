@@ -24,7 +24,7 @@ function export($iterator)
 }
 
 
-test('multiple mask', function () {
+test(function () { // multiple mask
 	$finder = Finder::findFiles('*.txt', '*.gif')->from('files');
 	Assert::same([
 		'files/file.txt',
@@ -35,7 +35,7 @@ test('multiple mask', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$finder = Finder::findFiles(['*.txt', '*.gif'])->from('files');
 	Assert::same([
 		'files/file.txt',
@@ -46,7 +46,7 @@ test('', function () {
 });
 
 
-test('* mask', function () {
+test(function () { // * mask
 	$finder = Finder::findFiles('*.txt', '*')->in('files/subdir');
 	Assert::same([
 		'files/subdir/file.txt',
@@ -55,7 +55,7 @@ test('* mask', function () {
 });
 
 
-test('*.* mask', function () {
+test(function () { // *.* mask
 	$finder = Finder::findFiles('*.*')->in('files/subdir');
 	Assert::same([
 		'files/subdir/file.txt',
@@ -70,7 +70,7 @@ Assert::same([
 ], export($finder));
 
 
-test('subdir mask', function () {
+test(function () { // subdir mask
 	$finder = Finder::findFiles('*/*2/*')->from('files');
 	Assert::same([
 		'files/subdir/subdir2/file.txt',
@@ -78,7 +78,7 @@ test('subdir mask', function () {
 });
 
 
-test('excluding mask', function () {
+test(function () { // excluding mask
 	$finder = Finder::findFiles('*')->exclude('*i*')->in('files/subdir');
 	Assert::same([
 		'files/subdir/readme',
@@ -86,7 +86,7 @@ test('excluding mask', function () {
 });
 
 
-test('subdir excluding mask', function () {
+test(function () { // subdir excluding mask
 	$finder = Finder::findFiles('*')->exclude('*i*/*')->from('files');
 	Assert::same([
 		'files/file.txt',
@@ -94,7 +94,7 @@ test('subdir excluding mask', function () {
 });
 
 
-test('complex mask', function () {
+test(function () { // complex mask
 	$finder = Finder::findFiles('*[efd][a-z][!a-r]*')->from('files');
 	Assert::same([
 		'files/images/logo.gif',
@@ -102,7 +102,7 @@ test('complex mask', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$finder = Finder::findFiles('*2*/fi??.*')->from('files');
 	Assert::same([
 		'files/subdir/subdir2/file.txt',
@@ -110,7 +110,7 @@ test('', function () {
 });
 
 
-test('anchored', function () {
+test(function () { // anchored
 	$finder = Finder::findFiles('/f*')->from('files');
 	Assert::same([
 		'files/file.txt',
@@ -118,7 +118,7 @@ test('anchored', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$finder = Finder::findFiles('/*/f*')->from('files');
 	Assert::same([
 		'files/subdir/file.txt',
@@ -126,7 +126,7 @@ test('', function () {
 });
 
 
-test('multidirs mask', function () {
+test(function () { // multidirs mask
 	$finder = Finder::findFiles('/**/f*')->from('files');
 	Assert::same([
 		'files/subdir/file.txt',

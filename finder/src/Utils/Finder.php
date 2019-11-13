@@ -161,10 +161,8 @@ class Finder implements \IteratorAggregate, \Countable
 				$mask = ltrim($mask, '/');
 				$prefix = '(?<=^/)';
 			}
-			$pattern[] = $prefix . strtr(
-				preg_quote($mask, '#'),
-				['\*\*' => '.*', '\*' => '[^/]*', '\?' => '[^/]', '\[\!' => '[^', '\[' => '[', '\]' => ']', '\-' => '-']
-			);
+			$pattern[] = $prefix . strtr(preg_quote($mask, '#'),
+				['\*\*' => '.*', '\*' => '[^/]*', '\?' => '[^/]', '\[\!' => '[^', '\[' => '[', '\]' => ']', '\-' => '-']);
 		}
 		return $pattern ? '#/(' . implode('|', $pattern) . ')$#Di' : null;
 	}
@@ -192,13 +190,14 @@ class Finder implements \IteratorAggregate, \Countable
 
 		} elseif (count($this->paths) === 1) {
 			return $this->buildIterator((string) $this->paths[0]);
-		}
 
-		$iterator = new \AppendIterator;
-		foreach ($this->paths as $path) {
-			$iterator->append($this->buildIterator((string) $path));
+		} else {
+			$iterator = new \AppendIterator();
+			foreach ($this->paths as $path) {
+				$iterator->append($this->buildIterator((string) $path));
+			}
+			return $iterator;
 		}
-		return $iterator;
 	}
 
 
@@ -370,7 +369,7 @@ class Finder implements \IteratorAggregate, \Countable
 	{
 		return isset(self::$extMethods[$name])
 			? (self::$extMethods[$name])($this, ...$args)
-			: Nette\Utils\ObjectHelpers::strictCall(static::class, $name, array_keys(self::$extMethods));
+			: Nette\Utils\ObjectHelpers::strictCall(get_class($this), $name, array_keys(self::$extMethods));
 	}
 
 
