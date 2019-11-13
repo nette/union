@@ -15,7 +15,7 @@ use Nette;
 /**
  * String output response.
  */
-final class TextResponse implements Nette\Application\Response
+final class TextResponse implements Nette\Application\IResponse
 {
 	use Nette\SmartObject;
 
@@ -46,7 +46,7 @@ final class TextResponse implements Nette\Application\Response
 	 */
 	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse): void
 	{
-		if ($this->source instanceof Nette\Application\UI\Template) {
+		if ($this->source instanceof Nette\Application\UI\ITemplate) {
 			$this->source->render();
 
 		} else {

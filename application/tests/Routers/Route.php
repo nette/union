@@ -32,9 +32,7 @@ function testRouteIn(Nette\Routing\Router $route, string $url, array $expectedPa
 
 		unset($params['extra']);
 		$result = $route->constructUrl($params, $url);
-		$result = $result && !strncmp($result, 'http://example.com', 18)
-			? substr($result, 18)
-			: $result;
+		$result = $result && !strncmp($result, 'http://example.com', 18) ? substr($result, 18) : $result;
 		Assert::same($expectedUrl, $result);
 	}
 }

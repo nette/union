@@ -11,7 +11,7 @@ require __DIR__ . '/../bootstrap.php';
 require __DIR__ . '/files/MyPresenter.php';
 
 
-test('', function () {
+test(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('application', new ApplicationExtension);
 
@@ -29,7 +29,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('application', new ApplicationExtension);
 
@@ -40,7 +40,6 @@ test('', function () {
 	$code = $compiler->addConfig([
 		'application' => [
 			'scanDirs' => [__DIR__ . '/files'],
-			'scanFilter' => '*Presenter*',
 		],
 	])->setClassName('Container2')->compile();
 	eval($code);
@@ -52,7 +51,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('application', new ApplicationExtension(false, [__DIR__ . '/files']));
 
@@ -62,9 +61,6 @@ test('', function () {
 	$builder->addDefinition('myHttpResponse')->setFactory(Nette\Http\Response::class);
 	$loader = new DI\Config\Loader;
 	$config = $loader->load(Tester\FileMock::create('
-	application:
-		scanFilter: *Presenter*
-
 	services:
 		-
 			factory: Presenter1
@@ -84,7 +80,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$robot = new Nette\Loaders\RobotLoader;
 	$robot->addDirectory(__DIR__ . '/files');
 	$robot->setTempDirectory(getTempDir());

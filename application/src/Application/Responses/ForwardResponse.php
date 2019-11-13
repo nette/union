@@ -15,7 +15,7 @@ use Nette;
 /**
  * Forwards to new request.
  */
-final class ForwardResponse implements Nette\Application\Response
+final class ForwardResponse implements Nette\Application\IResponse
 {
 	use Nette\SmartObject;
 

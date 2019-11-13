@@ -12,7 +12,7 @@ use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-@require __DIR__ . '/fixtures/ParamPresenter.php'; // @ Required parameter $c follows optional parameter $b
+require __DIR__ . '/fixtures/ParamPresenter.php';
 
 
 $presenter = new ParamPresenter;

@@ -6,17 +6,15 @@
 
 <a href="%A%"%A%>href after n:class</a>
 
-';
+<?php
 		if ($this->global->uiPresenter->getLastCreatedRequestFlag("current")) {
-			echo 'empty';
+			?>empty<?php
 		}
-		echo '
+?>
 
-';
+
+<?php
 		if ($this->global->uiPresenter->isLinkCurrent("default")) {
-			echo 'default';
+			?>default<?php
 		}
-		echo '
-
-<a href="%A%"%A%($this->global->fn->isLinkCurrent)('default') ? 'current' : null%A%>custom function</a>
 %A%

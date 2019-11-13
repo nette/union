@@ -42,7 +42,8 @@ function createPresenter()
 }
 
 
-test('signal in GET', function () {
+test(function () {
+	//signal in GET
 	$presenter = createPresenter();
 	$presenter->run(new Application\Request('Foo', 'GET', [
 		'do' => 'foo',
@@ -50,7 +51,8 @@ test('signal in GET', function () {
 	Assert::same(['', 'foo'], $presenter->getSignal());
 });
 
-test('signal for subcomponent in GET', function () {
+test(function () {
+	//signal for subcomponent in GET
 	$presenter = createPresenter();
 	$presenter->run(new Application\Request('Foo', 'GET', [
 		'do' => 'foo-bar',
@@ -58,7 +60,8 @@ test('signal for subcomponent in GET', function () {
 	Assert::same(['foo', 'bar'], $presenter->getSignal());
 });
 
-test('signal in POST', function () {
+test(function () {
+	//signal in POST
 	$presenter = createPresenter();
 	$presenter->run(new Application\Request('Foo', 'POST', [], [
 		'do' => 'foo',
@@ -66,7 +69,8 @@ test('signal in POST', function () {
 	Assert::null($presenter->getSignal());
 });
 
-test('_signal_ in POST', function () {
+test(function () {
+	//_signal_ in POST
 	$presenter = createPresenter();
 	$presenter->run(new Application\Request('Foo', 'POST', [], [
 		'_do' => 'foo',
@@ -74,7 +78,8 @@ test('_signal_ in POST', function () {
 	Assert::same(['', 'foo'], $presenter->getSignal());
 });
 
-test('signal in POST not overwriting GET', function () {
+test(function () {
+	//signal in POST not overwriting GET
 	$presenter = createPresenter();
 	$presenter->run(new Application\Request('Foo', 'POST', ['do' => null], [
 		'do' => 'foo',
@@ -82,7 +87,8 @@ test('signal in POST not overwriting GET', function () {
 	Assert::null($presenter->getSignal());
 });
 
-test('_signal_ in POST overwriting GET', function () {
+test(function () {
+	//_signal_ in POST overwriting GET
 	$presenter = createPresenter();
 	$presenter->run(new Application\Request('Foo', 'POST', ['do' => 'bar'], [
 		'_do' => 'foo',
@@ -90,7 +96,8 @@ test('_signal_ in POST overwriting GET', function () {
 	Assert::same(['', 'foo'], $presenter->getSignal());
 });
 
-test('AJAX: signal in POST', function () {
+test(function () {
+	//AJAX: signal in POST
 	$presenter = createPresenter();
 	$presenter->ajax = true;
 	$presenter->run(new Application\Request('Foo', 'POST', [], [
@@ -99,7 +106,8 @@ test('AJAX: signal in POST', function () {
 	Assert::same(['', 'foo'], $presenter->getSignal());
 });
 
-test('AJAX: signal in POST overwriting GET', function () {
+test(function () {
+	//AJAX: signal in POST overwriting GET
 	$presenter = createPresenter();
 	$presenter->ajax = true;
 	$presenter->run(new Application\Request('Foo', 'POST', ['do' => 'bar'], [
@@ -108,7 +116,8 @@ test('AJAX: signal in POST overwriting GET', function () {
 	Assert::same(['', 'foo'], $presenter->getSignal());
 });
 
-test('AJAX: _signal_ in POST overwriting GET', function () {
+test(function () {
+	//AJAX: _signal_ in POST overwriting GET
 	$presenter = createPresenter();
 	$presenter->ajax = true;
 	$presenter->run(new Application\Request('Foo', 'POST', ['do' => 'bar'], [

@@ -14,7 +14,7 @@ require __DIR__ . '/one/Presenter1.php';
 require __DIR__ . '/two/Presenter2.php';
 
 
-test('with subdir templates', function () {
+test(function () { // with subdir templates
 	$presenter = new Presenter1;
 	$presenter->setParent(null, 'One');
 	$presenter->setLayout('my');
@@ -27,7 +27,7 @@ test('with subdir templates', function () {
 });
 
 
-test('without subdir templates', function () {
+test(function () { // without subdir templates
 	$presenter = new Presenter2;
 	$presenter->setParent(null, 'Two');
 
@@ -39,7 +39,7 @@ test('without subdir templates', function () {
 });
 
 
-test('with module & subdir templates', function () {
+test(function () { // with module & subdir templates
 	$presenter = new Presenter1;
 	$presenter->setParent(null, 'Module:SubModule:One');
 
@@ -53,7 +53,7 @@ test('with module & subdir templates', function () {
 });
 
 
-test('with module & without subdir templates', function () {
+test(function () { // with module & without subdir templates
 	$presenter = new Presenter2;
 	$presenter->setParent(null, 'Module:SubModule:Two');
 
@@ -62,12 +62,12 @@ test('with module & without subdir templates', function () {
 		__DIR__ . '/templates/Two.@layout.latte',
 		__DIR__ . '/templates/@layout.latte',
 		dirname(__DIR__) . '/templates/@layout.latte',
-		dirname(__DIR__, 2) . '/templates/@layout.latte',
+		dirname(dirname(__DIR__)) . '/templates/@layout.latte',
 	], $presenter->formatLayoutTemplateFiles());
 });
 
 
-test('direct file', function () {
+test(function () { // direct file
 	$presenter = new Presenter2;
 	$presenter->setLayout(__DIR__ . '/file.latte');
 

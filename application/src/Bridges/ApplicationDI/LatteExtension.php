@@ -33,13 +33,10 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 		$this->config = new class {
 			/** @var bool */
 			public $xhtml = false;
-
 			/** @var string[] */
 			public $macros = [];
-
 			/** @var ?string */
 			public $templateClass;
-
 			/** @var bool */
 			public $strictTypes = false;
 		};
@@ -56,7 +53,7 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 		$builder = $this->getContainerBuilder();
 
 		$latteFactory = $builder->addFactoryDefinition($this->prefix('latteFactory'))
-			->setImplement(Nette\Bridges\ApplicationLatte\LatteFactory::class)
+			->setImplement(Nette\Bridges\ApplicationLatte\ILatteFactory::class)
 			->getResultDefinition()
 				->setFactory(Latte\Engine::class)
 				->addSetup('setTempDirectory', [$this->tempDir])
@@ -69,7 +66,7 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 		}
 
 		$builder->addDefinition($this->prefix('templateFactory'))
-			->setType(Nette\Application\UI\TemplateFactory::class)
+			->setType(Nette\Application\UI\ITemplateFactory::class)
 			->setFactory(Nette\Bridges\ApplicationLatte\TemplateFactory::class)
 			->setArguments(['templateClass' => $config->templateClass]);
 

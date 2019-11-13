@@ -15,13 +15,11 @@ use Nette;
 /**
  * Any response returned by presenter.
  */
-interface Response
+interface IResponse
 {
+
 	/**
 	 * Sends response to output.
 	 */
 	function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse): void;
 }
-
-
-interface_exists(IResponse::class);

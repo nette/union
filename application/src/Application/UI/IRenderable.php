@@ -13,8 +13,9 @@ namespace Nette\Application\UI;
 /**
  * Component with ability to repaint.
  */
-interface Renderable
+interface IRenderable
 {
+
 	/**
 	 * Forces control to repaint.
 	 */
@@ -25,6 +26,3 @@ interface Renderable
 	 */
 	function isControlInvalid(): bool;
 }
-
-
-interface_exists(IRenderable::class);

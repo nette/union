@@ -18,14 +18,14 @@ class TestPresenter extends UI\Presenter
 }
 
 
-test('', function () {
+test(function () {
 	$presenter = new TestPresenter;
 	$form = new UI\Form($presenter, 'name');
 	$form->setMethod($form::GET); // must not throw exception
 });
 
 
-test('compatibility with 2.0', function () {
+test(function () { // compatibility with 2.0
 	$presenter = new TestPresenter;
 	$form = new UI\Form;
 	$form->setAction('action');

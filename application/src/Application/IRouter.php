@@ -7,12 +7,14 @@
 
 declare(strict_types=1);
 
-namespace Nette\Application\Attributes;
+namespace Nette\Application;
 
-use Attribute;
+use Nette;
 
 
-#[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS)]
-class Persistent
+/**
+ * @deprecated use Nette\Routing\Router
+ */
+interface IRouter extends Nette\Routing\Router
 {
 }

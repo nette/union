@@ -7,12 +7,12 @@
 
 declare(strict_types=1);
 
-namespace Nette\Application\Attributes;
+namespace Nette\Bridges\ApplicationLatte;
 
-use Attribute;
+use Latte;
 
 
-#[Attribute(Attribute::TARGET_METHOD)]
-class CrossOrigin
+interface ILatteFactory
 {
+	function create(): Latte\Engine;
 }

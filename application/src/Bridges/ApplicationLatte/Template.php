@@ -16,13 +16,18 @@ use Nette;
 /**
  * Latte powered template.
  */
-class Template implements Nette\Application\UI\Template
+class Template implements Nette\Application\UI\ITemplate
 {
+	use Nette\SmartObject;
+
 	/** @var Latte\Engine */
 	private $latte;
 
 	/** @var string */
 	private $file;
+
+	/** @var array */
+	private $params = [];
 
 
 	public function __construct(Latte\Engine $latte)
@@ -42,8 +47,7 @@ class Template implements Nette\Application\UI\Template
 	 */
 	public function render(string $file = null, array $params = []): void
 	{
-		Nette\Utils\Arrays::toObject($params, $this);
-		$this->latte->render($file ?: $this->file, $this);
+		$this->latte->render($file ?: $this->file, $params + $this->params);
 	}
 
 
@@ -52,8 +56,7 @@ class Template implements Nette\Application\UI\Template
 	 */
 	public function renderToString(string $file = null, array $params = []): string
 	{
-		Nette\Utils\Arrays::toObject($params, $this);
-		return $this->latte->renderToString($file ?: $this->file, $this);
+		return $this->latte->renderToString($file ?: $this->file, $params + $this->params);
 	}
 
 
@@ -64,13 +67,12 @@ class Template implements Nette\Application\UI\Template
 	public function __toString(): string
 	{
 		try {
-			return $this->latte->renderToString($this->file, $this->getParameters());
+			return $this->latte->renderToString($this->file, $this->params);
 		} catch (\Throwable $e) {
 			if (func_num_args() || PHP_VERSION_ID >= 70400) {
 				throw $e;
 			}
 			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
-			return '';
 		}
 	}
 
@@ -90,26 +92,13 @@ class Template implements Nette\Application\UI\Template
 
 
 	/**
-	 * Registers run-time function.
-	 * @return static
-	 */
-	public function addFunction(string $name, callable $callback)
-	{
-		$this->latte->addFunction($name, $callback);
-		return $this;
-	}
-
-
-	/**
 	 * Sets translate adapter.
 	 * @return static
 	 */
 	public function setTranslator(?Nette\Localization\ITranslator $translator)
 	{
 		$this->latte->addFilter('translate', function (Latte\Runtime\FilterInfo $fi, ...$args) use ($translator): string {
-			return $translator === null
-				? $args[0]
-				: $translator->translate(...$args);
+			return $translator === null ? $args[0] : $translator->translate(...$args);
 		});
 		return $this;
 	}
@@ -136,25 +125,76 @@ class Template implements Nette\Application\UI\Template
 
 
 	/**
-	 * Returns array of all parameters.
+	 * Adds new template parameter.
+	 * @return static
 	 */
-	final public function getParameters(): array
+	public function add(string $name, $value)
 	{
-		$res = [];
-		foreach ((new \ReflectionObject($this))->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-			if (PHP_VERSION_ID < 70400 || $prop->isInitialized($this)) {
-				$res[$prop->getName()] = $prop->getValue($this);
-			}
+		if (array_key_exists($name, $this->params)) {
+			throw new Nette\InvalidStateException("The variable '$name' already exists.");
 		}
-		return $res;
+		$this->params[$name] = $value;
+		return $this;
 	}
 
 
 	/**
-	 * Prevents unserialization.
+	 * Sets all parameters.
+	 * @return static
 	 */
-	final public function __wakeup()
+	public function setParameters(array $params)
 	{
-		throw new Nette\NotImplementedException('Object unserialization is not supported by class ' . static::class);
+		$this->params = $params + $this->params;
+		return $this;
+	}
+
+
+	/**
+	 * Returns array of all parameters.
+	 */
+	final public function getParameters(): array
+	{
+		return $this->params;
+	}
+
+
+	/**
+	 * Sets a template parameter. Do not call directly.
+	 */
+	public function __set($name, $value): void
+	{
+		$this->params[$name] = $value;
+	}
+
+
+	/**
+	 * Returns a template parameter. Do not call directly.
+	 * @return mixed  value
+	 */
+	public function &__get($name)
+	{
+		if (!array_key_exists($name, $this->params)) {
+			trigger_error("The variable '$name' does not exist in template.", E_USER_NOTICE);
+		}
+
+		return $this->params[$name];
+	}
+
+
+	/**
+	 * Determines whether parameter is defined. Do not call directly.
+	 */
+	public function __isset($name)
+	{
+		return isset($this->params[$name]);
+	}
+
+
+	/**
+	 * Removes a template parameter. Do not call directly.
+	 */
+	public function __unset(string $name): void
+	{
+		unset($this->params[$name]);
 	}
 }

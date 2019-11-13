@@ -15,6 +15,7 @@ namespace Nette\Application;
  */
 interface IPresenterFactory
 {
+
 	/**
 	 * Generates and checks presenter class name.
 	 * @throws InvalidPresenterException
