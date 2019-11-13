@@ -25,24 +25,15 @@ final class Context
 	/** @var string[] */
 	public $path = [];
 
-	/** @var Message[] */
+	/** @var \stdClass[] */
 	public $errors = [];
-
-	/** @var Message[] */
-	public $warnings = [];
 
 	/** @var array[] */
 	public $dynamics = [];
 
 
-	public function addError(string $message, string $code, array $variables = []): Message
+	public function addError($message, $hint = null)
 	{
-		return $this->errors[] = new Message($message, $code, $this->path, $variables);
-	}
-
-
-	public function addWarning(string $message, string $code, array $variables = []): Message
-	{
-		return $this->warnings[] = new Message($message, $code, $this->path, $variables);
+		$this->errors[] = (object) ['message' => $message, 'path' => $this->path, 'hint' => $hint];
 	}
 }

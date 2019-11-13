@@ -5,13 +5,12 @@ declare(strict_types=1);
 use Nette\Schema\Context;
 use Nette\Schema\Expect;
 use Nette\Schema\Processor;
-use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-test('', function () {
+test(function () {
 	$schema = Expect::structure([
 		'r' => Expect::string()->required(),
 	]);
@@ -21,18 +20,7 @@ test('', function () {
 		$context->path = ['first'];
 	};
 
-	$e = checkValidationErrors(function () use ($schema, $processor) {
+	checkValidationErrors(function () use ($schema, $processor) {
 		$processor->process($schema, []);
 	}, ["The mandatory option 'first › r' is missing."]);
-
-	Assert::equal(
-		[
-			new Nette\Schema\Message(
-				'The mandatory option %path% is missing.',
-				Nette\Schema\Message::OPTION_MISSING,
-				['first', 'r']
-			),
-		],
-		$e->getMessageObjects()
-	);
 });

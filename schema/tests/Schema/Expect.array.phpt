@@ -10,7 +10,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('without default value', function () {
+test(function () { // without default value
 	$schema = Expect::array();
 
 	Assert::same([], (new Processor)->process($schema, []));
@@ -35,7 +35,7 @@ test('without default value', function () {
 });
 
 
-test('merging', function () {
+test(function () { // merging
 	$schema = Expect::array([
 		'key1' => 'val1',
 		'key2' => 'val2',
@@ -50,8 +50,7 @@ test('merging', function () {
 		'arr' => ['item'],
 	], (new Processor)->process($schema, []));
 
-	Assert::same(
-		[
+	Assert::same([
 			'key1' => 'val1',
 			'key2' => 'val2',
 			'val3',
@@ -61,8 +60,7 @@ test('merging', function () {
 		(new Processor)->process($schema, [1, 2, 3])
 	);
 
-	Assert::same(
-		[
+	Assert::same([
 			'key1' => 'newval',
 			'key2' => 'val2',
 			'val3',
@@ -79,7 +77,7 @@ test('merging', function () {
 });
 
 
-test('merging & other items validation', function () {
+test(function () { // merging & other items validation
 	$schema = Expect::array([
 		'key1' => 'val1',
 		'key2' => 'val2',
@@ -100,8 +98,7 @@ test('merging & other items validation', function () {
 		"The option '2' expects to be string, int 3 given.",
 	]);
 
-	Assert::same(
-		[
+	Assert::same([
 			'key1' => 'newval',
 			'key2' => 'val2',
 			'val3',
@@ -117,7 +114,7 @@ test('merging & other items validation', function () {
 });
 
 
-test('merging & other items validation', function () {
+test(function () { // merging & other items validation
 	$schema = Expect::array()->items('string');
 
 	Assert::same([
@@ -130,8 +127,7 @@ test('merging & other items validation', function () {
 		'val3',
 	], null));
 
-	Assert::same(
-		[
+	Assert::same([
 			'key1' => 'newval',
 			'key2' => 'val2',
 			'val3',
@@ -151,7 +147,7 @@ test('merging & other items validation', function () {
 });
 
 
-test('items() & scalar', function () {
+test(function () { // items() & scalar
 	$schema = Expect::array([
 		'a' => 'defval',
 	])->items('string');
@@ -184,7 +180,7 @@ test('items() & scalar', function () {
 });
 
 
-test('items() & structure', function () {
+test(function () { // items() & structure
 	$schema = Expect::array([
 		'a' => 'defval',
 	])->items(Expect::structure(['k' => Expect::string()]));
@@ -218,7 +214,7 @@ test('items() & structure', function () {
 });
 
 
-test('arrayOf() & scalar', function () {
+test(function () { // arrayOf() & scalar
 	$schema = Expect::arrayOf('string|int');
 
 	Assert::same([], (new Processor)->process($schema, []));
@@ -235,14 +231,14 @@ test('arrayOf() & scalar', function () {
 });
 
 
-test('arrayOf() error', function () {
+test(function () { // arrayOf() error
 	Assert::exception(function () {
 		Expect::arrayOf(['a' => Expect::string()]);
 	}, TypeError::class);
 });
 
 
-test('type[]', function () {
+test(function () { // type[]
 	$schema = Expect::type('int[]');
 
 	Assert::same([], (new Processor)->process($schema, null));

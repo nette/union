@@ -22,9 +22,6 @@ final class Processor
 	/** @var array */
 	public $onNewContext = [];
 
-	/** @var Context|null */
-	private $context;
-
 	/** @var bool */
 	private $skipDefaults;
 
@@ -42,11 +39,11 @@ final class Processor
 	 */
 	public function process(Schema $schema, $data)
 	{
-		$this->createContext();
-		$data = $schema->normalize($data, $this->context);
-		$this->throwsErrors();
-		$data = $schema->complete($data, $this->context);
-		$this->throwsErrors();
+		$context = $this->createContext();
+		$data = $schema->normalize($data, $context);
+		$this->throwsErrors($context);
+		$data = $schema->complete($data, $context);
+		$this->throwsErrors($context);
 		return $data;
 	}
 
@@ -58,46 +55,39 @@ final class Processor
 	 */
 	public function processMultiple(Schema $schema, array $dataset)
 	{
-		$this->createContext();
+		$context = $this->createContext();
 		$flatten = null;
 		$first = true;
 		foreach ($dataset as $data) {
-			$data = $schema->normalize($data, $this->context);
-			$this->throwsErrors();
+			$data = $schema->normalize($data, $context);
+			$this->throwsErrors($context);
 			$flatten = $first ? $data : $schema->merge($data, $flatten);
 			$first = false;
 		}
-		$data = $schema->complete($flatten, $this->context);
-		$this->throwsErrors();
+		$data = $schema->complete($flatten, $context);
+		$this->throwsErrors($context);
 		return $data;
 	}
 
 
-	/**
-	 * @return string[]
-	 */
-	public function getWarnings(): array
+	private function throwsErrors(Context $context): void
 	{
-		$res = [];
-		foreach ($this->context->warnings as $message) {
-			$res[] = $message->toString();
+		$messages = [];
+		foreach ($context->errors as $error) {
+			$pathStr = " '" . implode(' › ', $error->path) . "'";
+			$messages[] = str_replace(' %path%', $error->path ? $pathStr : '', $error->message);
 		}
-		return $res;
-	}
-
-
-	private function throwsErrors(): void
-	{
-		if ($this->context->errors) {
-			throw new ValidationException(null, $this->context->errors);
+		if ($messages) {
+			throw new ValidationException($messages[0], $messages);
 		}
 	}
 
 
-	private function createContext()
+	private function createContext(): Context
 	{
-		$this->context = new Context;
-		$this->context->skipDefaults = $this->skipDefaults;
-		$this->onNewContext($this->context);
+		$context = new Context;
+		$context->skipDefaults = $this->skipDefaults;
+		$this->onNewContext($context);
+		return $context;
 	}
 }

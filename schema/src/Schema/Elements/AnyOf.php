@@ -68,42 +68,35 @@ final class AnyOf implements Schema
 
 	public function complete($value, Nette\Schema\Context $context)
 	{
-		$expecteds = $innerErrors = [];
+		$hints = $innerErrors = [];
 		foreach ($this->set as $item) {
 			if ($item instanceof Schema) {
 				$dolly = new Context;
 				$dolly->path = $context->path;
 				$res = $item->complete($value, $dolly);
 				if (!$dolly->errors) {
-					$context->warnings = array_merge($context->warnings, $dolly->warnings);
 					return $this->doFinalize($res, $context);
 				}
 				foreach ($dolly->errors as $error) {
-					if ($error->path !== $context->path || empty($error->variables['expected'])) {
+					if ($error->path !== $context->path || !$error->hint) {
 						$innerErrors[] = $error;
 					} else {
-						$expecteds[] = $error->variables['expected'];
+						$hints[] = $error->hint;
 					}
 				}
 			} else {
 				if ($item === $value) {
 					return $this->doFinalize($value, $context);
 				}
-				$expecteds[] = Nette\Schema\Message::formatValue($item);
+				$hints[] = static::formatValue($item);
 			}
 		}
 
 		if ($innerErrors) {
 			$context->errors = array_merge($context->errors, $innerErrors);
 		} else {
-			$context->addError(
-				'The option %path% expects to be %expected%, %value% given.',
-				Nette\Schema\Message::UNEXPECTED_VALUE,
-				[
-					'value' => $value,
-					'expected' => implode('|', array_unique($expecteds)),
-				]
-			);
+			$hints = implode('|', array_unique($hints));
+			$context->addError("The option %path% expects to be $hints, " . static::formatValue($value) . ' given.');
 		}
 	}
 
@@ -111,10 +104,7 @@ final class AnyOf implements Schema
 	public function completeDefault(Context $context)
 	{
 		if ($this->required) {
-			$context->addError(
-				'The mandatory option %path% is missing.',
-				Nette\Schema\Message::OPTION_MISSING
-			);
+			$context->addError('The mandatory option %path% is missing.');
 			return null;
 		}
 		if ($this->default instanceof Schema) {

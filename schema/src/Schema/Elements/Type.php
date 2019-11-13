@@ -72,7 +72,6 @@ final class Type implements Schema
 
 	/**
 	 * @param  string|Schema  $type
-	 * @internal  use arrayOf() or listOf()
 	 */
 	public function items($type = 'mixed'): self
 	{
@@ -81,7 +80,7 @@ final class Type implements Schema
 	}
 
 
-	public function pattern(?string $pattern): self
+	public function pattern(string $pattern): self
 	{
 		$this->pattern = $pattern;
 		return $this;
@@ -141,11 +140,7 @@ final class Type implements Schema
 			return;
 		}
 		if ($this->pattern !== null && !preg_match("\x01^(?:$this->pattern)$\x01Du", $value)) {
-			$context->addError(
-				"The option %path% expects to match pattern '%pattern%', %value% given.",
-				Nette\Schema\Message::PATTERN_MISMATCH,
-				['value' => $value, 'pattern' => $this->pattern]
-			);
+			$context->addError("The option %path% expects to match pattern '$this->pattern', '$value' given.");
 			return;
 		}
 

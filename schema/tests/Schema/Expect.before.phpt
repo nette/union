@@ -10,7 +10,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('', function () {
+test(function () {
 	$schema = Expect::array()
 		->before(function ($val) { return explode(',', $val); });
 
@@ -21,7 +21,7 @@ test('', function () {
 });
 
 
-test('structure property', function () {
+test(function () { // structure property
 	$schema = Expect::structure([
 		'key' => Expect::string()->before('strrev'),
 	]);
@@ -33,7 +33,7 @@ test('structure property', function () {
 });
 
 
-test('order in structure', function () {
+test(function () { // order in structure
 	$schema = Expect::structure([
 		'a' => Expect::string()->before(function ($val) use (&$order) { $order[] = 'a'; return $val; }),
 		'b' => Expect::string()->before(function ($val) use (&$order) { $order[] = 'b'; return $val; }),
@@ -63,7 +63,7 @@ test('order in structure', function () {
 });
 
 
-test('order in array', function () {
+test(function () { // order in array
 	$schema = Expect::array()
 		->items(Expect::string()->before(function ($val) use (&$order) { $order[] = 'item'; return $val; }))
 		->before(function ($val) use (&$order) { $order[] = 'array'; return $val; });
