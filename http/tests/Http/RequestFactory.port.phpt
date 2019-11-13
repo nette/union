@@ -11,6 +11,7 @@ require __DIR__ . '/../bootstrap.php';
  */
 class RequestFactoryPortTest extends Tester\TestCase
 {
+
 	/**
 	 * @dataProvider providerCreateHttpRequest
 	 */

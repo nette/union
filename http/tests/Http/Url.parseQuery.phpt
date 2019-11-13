@@ -2,7 +2,6 @@
 
 /**
  * Test: Nette\Http\Url::parseQuery()
- * @phpIni arg_separator.input=&
  */
 
 declare(strict_types=1);
@@ -18,7 +17,6 @@ Assert::same([], Url::parseQuery(''));
 Assert::same(['key' => ''], Url::parseQuery('key'));
 Assert::same(['key' => ''], Url::parseQuery('key='));
 Assert::same(['key' => 'val'], Url::parseQuery('key=val'));
-Assert::same(['key' => 'val;val'], Url::parseQuery('key=val;val'));
 Assert::same(['key' => ''], Url::parseQuery('&key=&'));
 Assert::same(['a' => ['val', 'val']], Url::parseQuery('a[]=val&a[]=val'));
 Assert::same(['a' => ['x' => 'val', 'y' => 'val']], Url::parseQuery('%61[x]=val&%61[y]=val'));

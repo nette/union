@@ -65,7 +65,7 @@ $_FILES = [
 	],
 ];
 
-test('unfiltered data', function () {
+test(function () { // unfiltered data
 	$factory = new Http\RequestFactory;
 	$factory->setBinary();
 	$request = $factory->fromGlobals();
@@ -94,7 +94,7 @@ test('unfiltered data', function () {
 });
 
 
-test('filtered data', function () {
+test(function () { // filtered data
 	$factory = new Http\RequestFactory;
 	$request = $factory->fromGlobals();
 

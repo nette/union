@@ -36,7 +36,9 @@ class RequestFactory
 	private $proxies = [];
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function setBinary(bool $binary = true)
 	{
 		$this->binary = $binary;
@@ -130,9 +132,7 @@ class RequestFactory
 		if ($lpath !== $script) {
 			$max = min(strlen($lpath), strlen($script));
 			for ($i = 0; $i < $max && $lpath[$i] === $script[$i]; $i++);
-			$path = $i
-				? substr($path, 0, strrpos($path, '/', $i - strlen($path) - 1) + 1)
-				: '/';
+			$path = $i ? substr($path, 0, strrpos($path, '/', $i - strlen($path) - 1) + 1) : '/';
 		}
 		return $path;
 	}
@@ -143,12 +143,8 @@ class RequestFactory
 		$useFilter = (!in_array(ini_get('filter.default'), ['', 'unsafe_raw'], true) || ini_get('filter.default_flags'));
 
 		$query = $url->getQueryParameters();
-		$post = $useFilter
-			? filter_input_array(INPUT_POST, FILTER_UNSAFE_RAW)
-			: (empty($_POST) ? [] : $_POST);
-		$cookies = $useFilter
-			? filter_input_array(INPUT_COOKIE, FILTER_UNSAFE_RAW)
-			: (empty($_COOKIE) ? [] : $_COOKIE);
+		$post = $useFilter ? filter_input_array(INPUT_POST, FILTER_UNSAFE_RAW) : (empty($_POST) ? [] : $_POST);
+		$cookies = $useFilter ? filter_input_array(INPUT_COOKIE, FILTER_UNSAFE_RAW) : (empty($_COOKIE) ? [] : $_COOKIE);
 
 		// remove invalid characters
 		$reChars = '#^[' . self::CHARS . ']*+$#Du';
@@ -163,11 +159,8 @@ class RequestFactory
 						$list[$key][$k] = $v;
 						$list[] = &$list[$key][$k];
 
-					} elseif (is_string($v)) {
-						$list[$key][$k] = (string) preg_replace('#[^' . self::CHARS . ']+#u', '', $v);
-
 					} else {
-						throw new Nette\InvalidStateException(sprintf('Invalid value in $_POST/$_COOKIE in key %s, expected string, %s given.', "'$k'", gettype($v)));
+						$list[$key][$k] = (string) preg_replace('#[^' . self::CHARS . ']+#u', '', $v);
 					}
 				}
 			}
@@ -237,7 +230,7 @@ class RequestFactory
 
 		$headers = [];
 		foreach ($_SERVER as $k => $v) {
-			if (strncmp($k, 'HTTP_', 5) === 0) {
+			if (strncmp($k, 'HTTP_', 5) == 0) {
 				$k = substr($k, 5);
 			} elseif (strncmp($k, 'CONTENT_', 8)) {
 				continue;
@@ -263,12 +256,8 @@ class RequestFactory
 
 	private function getClient(Url $url): array
 	{
-		$remoteAddr = !empty($_SERVER['REMOTE_ADDR'])
-			? trim($_SERVER['REMOTE_ADDR'], '[]') // workaround for PHP 7.3.0
-			: null;
-		$remoteHost = !empty($_SERVER['REMOTE_HOST'])
-			? $_SERVER['REMOTE_HOST']
-			: null;
+		$remoteAddr = !empty($_SERVER['REMOTE_ADDR']) ? trim($_SERVER['REMOTE_ADDR'], '[]') : null; // workaround for PHP 7.3
+		$remoteHost = !empty($_SERVER['REMOTE_HOST']) ? $_SERVER['REMOTE_HOST'] : null;
 
 		// use real client address and host if trusted proxy is used
 		$usingTrustedProxy = $remoteAddr && array_filter($this->proxies, function (string $proxy) use ($remoteAddr): bool {
@@ -288,15 +277,17 @@ class RequestFactory
 	{
 		$forwardParams = preg_split('/[,;]/', $_SERVER['HTTP_FORWARDED']);
 		foreach ($forwardParams as $forwardParam) {
-			[$key, $value] = explode('=', $forwardParam, 2) + [1 => ''];
+			[$key, $value] = explode('=', $forwardParam, 2) + [1 => null];
 			$proxyParams[strtolower(trim($key))][] = trim($value, " \t\"");
 		}
 
 		if (isset($proxyParams['for'])) {
 			$address = $proxyParams['for'][0];
-			$remoteAddr = strpos($address, '[') === false
-				? explode(':', $address)[0]  // IPv4
-				: substr($address, 1, strpos($address, ']') - 1); // IPv6
+			if (strpos($address, '[') === false) { //IPv4
+				$remoteAddr = explode(':', $address)[0];
+			} else { //IPv6
+				$remoteAddr = substr($address, 1, strpos($address, ']') - 1);
+			}
 		}
 
 		if (isset($proxyParams['host']) && count($proxyParams['host']) === 1) {
@@ -320,9 +311,7 @@ class RequestFactory
 			}
 		}
 
-		$scheme = (isset($proxyParams['proto']) && count($proxyParams['proto']) === 1)
-			? $proxyParams['proto'][0]
-			: 'http';
+		$scheme = (isset($proxyParams['proto']) && count($proxyParams['proto']) === 1) ? $proxyParams['proto'][0] : 'http';
 		$url->setScheme(strcasecmp($scheme, 'https') === 0 ? 'https' : 'http');
 	}
 
@@ -344,10 +333,8 @@ class RequestFactory
 					return filter_var(trim($ip), FILTER_VALIDATE_IP) !== false && Helpers::ipMatch(trim($ip), $proxy);
 				});
 			});
-			if ($xForwardedForWithoutProxies) {
-				$remoteAddr = trim(end($xForwardedForWithoutProxies));
-				$xForwardedForRealIpKey = key($xForwardedForWithoutProxies);
-			}
+			$remoteAddr = trim(end($xForwardedForWithoutProxies));
+			$xForwardedForRealIpKey = key($xForwardedForWithoutProxies);
 		}
 
 		if (isset($xForwardedForRealIpKey) && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {

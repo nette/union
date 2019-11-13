@@ -61,17 +61,9 @@ class Request implements IRequest
 	private $rawBodyCallback;
 
 
-	public function __construct(
-		UrlScript $url,
-		array $post = null,
-		array $files = null,
-		array $cookies = null,
-		array $headers = null,
-		string $method = null,
-		string $remoteAddress = null,
-		string $remoteHost = null,
-		callable $rawBodyCallback = null
-	) {
+	public function __construct(UrlScript $url, array $post = null, array $files = null, array $cookies = null,
+		array $headers = null, string $method = null, string $remoteAddress = null, string $remoteHost = null, callable $rawBodyCallback = null)
+	{
 		$this->url = $url;
 		$this->post = (array) $post;
 		$this->files = (array) $files;
@@ -85,7 +77,6 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns a clone with a different URL.
 	 * @return static
 	 */
 	public function withUrl(UrlScript $url)
@@ -97,7 +88,7 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns the URL of the request.
+	 * Returns URL object.
 	 */
 	public function getUrl(): UrlScript
 	{
@@ -142,20 +133,16 @@ class Request implements IRequest
 
 	/**
 	 * Returns uploaded file.
-	 * @param  string|string[]  $key
-	 * @return ?FileUpload
+	 * @return FileUpload|array|null
 	 */
-	public function getFile($key)
+	public function getFile(string $key)
 	{
-		$res = Nette\Utils\Arrays::get($this->files, $key, null);
-		return $res instanceof FileUpload
-			? $res
-			: null;
+		return $this->files[$key] ?? null;
 	}
 
 
 	/**
-	 * Returns tree of upload files in a normalized structure, with each leaf an instance of Nette\Http\FileUpload.
+	 * Returns uploaded files.
 	 */
 	public function getFiles(): array
 	{
@@ -164,7 +151,7 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns a cookie or `null` if it does not exist.
+	 * Returns variable provided to the script via HTTP cookies.
 	 * @return mixed
 	 */
 	public function getCookie(string $key)
@@ -177,7 +164,7 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns all cookies.
+	 * Returns variables provided to the script via HTTP cookies.
 	 */
 	public function getCookies(): array
 	{
@@ -189,7 +176,7 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns the HTTP method with which the request was made (GET, POST, HEAD, PUT, ...).
+	 * Returns HTTP request method (GET, POST, HEAD, PUT, ...). The method is case-sensitive.
 	 */
 	public function getMethod(): string
 	{
@@ -198,7 +185,7 @@ class Request implements IRequest
 
 
 	/**
-	 * Checks the HTTP method with which the request was made. The parameter is case-insensitive.
+	 * Checks if the request method is the given one.
 	 */
 	public function isMethod(string $method): bool
 	{
@@ -207,7 +194,8 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns an HTTP header or `null` if it does not exist. The parameter is case-insensitive.
+	 * Return the value of the HTTP header. Pass the header name as the
+	 * plain, HTTP-specified header name (e.g. 'Accept-Encoding').
 	 */
 	public function getHeader(string $header): ?string
 	{
@@ -220,7 +208,7 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns all HTTP headers as associative array.
+	 * Returns all HTTP headers.
 	 */
 	public function getHeaders(): array
 	{
@@ -229,7 +217,7 @@ class Request implements IRequest
 
 
 	/**
-	 * What URL did the user come from? Beware, it is not reliable at all.
+	 * Returns referrer.
 	 */
 	public function getReferer(): ?UrlImmutable
 	{
@@ -249,16 +237,16 @@ class Request implements IRequest
 
 
 	/**
-	 * Is the request coming from the same site and is initiated by clicking on a link?
+	 * Is the request sent from the same origin?
 	 */
 	public function isSameSite(): bool
 	{
-		return isset($this->cookies[Helpers::STRICT_COOKIE_NAME]);
+		return isset($this->cookies['nette-samesite']);
 	}
 
 
 	/**
-	 * Is it an AJAX request?
+	 * Is AJAX request?
 	 */
 	public function isAjax(): bool
 	{
@@ -297,7 +285,7 @@ class Request implements IRequest
 
 
 	/**
-	 * Returns the most preferred language by browser. Uses the `Accept-Language` header. If no match is reached, it returns `null`.
+	 * Parse Accept-Language header and returns preferred language.
 	 * @param  string[]  $langs  supported languages
 	 */
 	public function detectLanguage(array $langs): ?string
