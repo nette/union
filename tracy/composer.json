@@ -15,34 +15,30 @@
 		}
 	],
 	"require": {
-		"php": ">=7.2 <8.1",
+		"php": ">=7.1",
 		"ext-session": "*",
 		"ext-json": "*"
 	},
 	"require-dev": {
 		"nette/utils": "^3.0",
 		"nette/di": "^3.0",
-		"nette/mail": "^3.0",
 		"nette/tester": "^2.2",
-		"latte/latte": "^2.5",
-		"psr/log": "^1.0",
-		"phpstan/phpstan": "^0.12"
+		"psr/log": "^1.0"
 	},
 	"conflict": {
 		"nette/di": "<3.0"
 	},
+	"suggest": {
+		"https://nette.org/donate": "Please support Tracy via a donation"
+	},
 	"autoload": {
 		"classmap": ["src"],
-		"files": ["src/Tracy/functions.php"]
+		"files": ["src/Tracy/shortcuts.php"]
 	},
 	"minimum-stability": "dev",
-	"scripts": {
-		"phpstan": "phpstan analyse",
-		"tester": "tester tests"
-	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "2.8-dev"
+			"dev-master": "2.7-dev"
 		}
 	}
 }

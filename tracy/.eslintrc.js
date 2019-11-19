@@ -6,6 +6,7 @@ module.exports = {
 		'ecmaVersion': 6
 	},
 	'globals': {
+		'Tracy': true
 	},
 	'extends': 'eslint:recommended',
 	'rules': {

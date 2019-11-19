@@ -13,7 +13,7 @@ namespace Tracy;
 /**
  * Debugger for outputs.
  */
-final class OutputDebugger
+class OutputDebugger
 {
 	private const BOM = "\xEF\xBB\xBF";
 

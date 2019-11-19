@@ -17,7 +17,7 @@ require __DIR__ . '/../bootstrap.php';
 Debugger::enable(Debugger::DEVELOPMENT, getTempDir());
 Debugger::$logSeverity = E_NOTICE;
 
-$variable = &pi();
+$variable = $missingVariable;
 
 Assert::count(0, glob(getTempDir() . '/exception*.html'));
 Assert::count(0, glob(getTempDir() . '/error.log'));

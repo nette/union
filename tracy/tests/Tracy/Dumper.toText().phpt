@@ -14,52 +14,30 @@ require __DIR__ . '/../bootstrap.php';
 require __DIR__ . '/fixtures/DumpClass.php';
 
 
-// scalars & empty array
-Assert::same('null' . "\n", Dumper::toText(null));
+Assert::match('null', Dumper::toText(null));
 
-Assert::same('true' . "\n", Dumper::toText(true));
+Assert::match('true', Dumper::toText(true));
 
-Assert::same('false' . "\n", Dumper::toText(false));
+Assert::match('false', Dumper::toText(false));
 
-Assert::same('0' . "\n", Dumper::toText(0));
+Assert::match('0', Dumper::toText(0));
 
-Assert::same('1' . "\n", Dumper::toText(1));
+Assert::match('1', Dumper::toText(1));
 
-Assert::same('0.0' . "\n", Dumper::toText(0.0));
+Assert::match('0.0', Dumper::toText(0.0));
 
-Assert::same('0.1' . "\n", Dumper::toText(0.1));
+Assert::match('0.1', Dumper::toText(0.1));
 
-Assert::same('INF' . "\n", Dumper::toText(INF));
+Assert::match('""', Dumper::toText(''));
 
-Assert::same('-INF' . "\n", Dumper::toText(-INF));
+Assert::match('"0"', Dumper::toText('0'));
 
-Assert::same('NAN' . "\n", Dumper::toText(NAN));
+Assert::match('"\\x00"', Dumper::toText("\x00"));
 
-Assert::same("''\n", Dumper::toText(''));
-
-Assert::same("'0'\n", Dumper::toText('0'));
-
-Assert::same("'\\x00'\n", Dumper::toText("\x00"));
-
-Assert::same('array (0)' . "\n", Dumper::toText([]));
-
-
-// array
-Assert::same(str_replace(
-	"\r",
-	'',
-	<<<'XX'
-array (1)
+Assert::match('array (5)
    0 => 1
-
-XX
-), Dumper::toText([1]));
-
-Assert::match(<<<'XX'
-array (5)
-   0 => 1
-   1 => 'hello'
-   2 => array (0)
+   1 => "hello" (5)
+   2 => array ()
    3 => array (2)
    |  0 => 1
    |  1 => 2
@@ -71,48 +49,42 @@ array (5)
    |  5 => 5
    |  6 => 6
    |  7 => 7
-XX
-, Dumper::toText([1, 'hello', [], [1, 2], [1 => 1, 2, 3, 4, 5, 6, 7]]));
+', Dumper::toText([1, 'hello', [], [1, 2], [1 => 1, 2, 3, 4, 5, 6, 7]]));
 
+Assert::match("stream resource #%d%\n   %S%%A%", Dumper::toText(fopen(__FILE__, 'r')));
 
-// object
-Assert::match('stdClass #%d%', Dumper::toText(new stdClass));
+Assert::match('stdClass #%a%', Dumper::toText(new stdClass));
 
-Assert::match(<<<'XX'
-stdClass #%d%
-   '': 'foo'
-XX
-, Dumper::toText((object) ['' => 'foo']));
+Assert::match('stdClass #%a%
+   "" => "foo" (3)
+', Dumper::toText((object) ['' => 'foo']));
 
-Assert::match(<<<'XX'
-Test #%d%
-   x: array (2)
+Assert::match('Test #%a%
+   x => array (2)
    |  0 => 10
    |  1 => null
-   y: 'hello'
-   z: 30.0
-XX
-, Dumper::toText(new Test));
+   y private => "hello" (5)
+   z protected => 30.0
+', Dumper::toText(new Test));
 
 
-$obj = new Child;
-$obj->new = 7;
-$obj->{0} = 8;
-$obj->{1} = 9;
-$obj->{''} = 10;
+$objStorage = new SplObjectStorage();
+$objStorage->attach($o1 = new stdClass);
+$objStorage[$o1] = 'o1';
+$objStorage->attach($o2 = (object) ['foo' => 'bar']);
+$objStorage[$o2] = 'o2';
 
-Assert::match(<<<'XX'
-Child #%d%
-   x: 1
-   y: 2
-   z: 3
-   x2: 4
-   y2: 5
-   z2: 6
-   y: 'hello'
-   new: 7
-   0: 8
-   1: 9
-   '': 10
-XX
-, Dumper::toText($obj));
+$objStorage->next();
+$key = $objStorage->key();
+
+Assert::match('SplObjectStorage #%a%
+   0 => array (2)
+   |  object => stdClass #%a%
+   |  data => "o1" (2)
+   1 => array (2)
+   |  object => stdClass #%a%
+   |  |  foo => "bar" (3)
+   |  data => "o2" (2)
+', Dumper::toText($objStorage));
+
+Assert::same($key, $objStorage->key());

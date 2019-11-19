@@ -40,7 +40,7 @@ dump($obj);
 
 echo "<h2>With location</h2>\n";
 
-Tracy\Dumper::$showLocation = true;
+Debugger::$showLocation = true;
 
 dump($arr);
 

@@ -21,10 +21,6 @@
 	margin: -2px -4px;
 }
 
-#tracy-bs a + a {
-	margin-left: 0;
-}
-
 #tracy-bs a:hover,
 #tracy-bs a:focus {
 	color: #085AA3;
@@ -61,27 +57,17 @@
 }
 
 #tracy-bs-error a {
-	color: #ffefa1 !important;
-}
-
-#tracy-bs-error span span {
-	font-size: 80%;
-	color: rgba(255, 255, 255, 0.5);
-	text-shadow: none;
-}
-
-#tracy-bs-error a.action {
 	color: white !important;
 	opacity: 0;
 	font-size: .7em;
 	border-bottom: none !important;
 }
 
-#tracy-bs-error:hover a.action {
+#tracy-bs-error:hover a {
 	opacity: .6;
 }
 
-#tracy-bs-error a.action:hover {
+#tracy-bs-error a:hover {
 	opacity: 1;
 }
 
@@ -242,14 +228,13 @@
 	font-style: normal;
 }
 
-#tracy-bs a.tracy-editor {
-	color: inherit;
-	border-bottom: 1px dotted rgba(0, 0, 0, .3);
-	border-radius: 3px;
+#tracy-bs pre:hover span[title] {
+	border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-#tracy-bs a.tracy-editor:hover {
-	background: #0001;
+#tracy-bs a[href^=editor\:] {
+	color: inherit;
+	border-bottom: 1px dotted rgba(0, 0, 0, .3);
 }
 
 #tracy-bs span[data-tracy-href] {

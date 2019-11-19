@@ -17,9 +17,7 @@ require __DIR__ . '/../bootstrap.php';
 Debugger::enable(Debugger::PRODUCTION, getTempDir());
 Debugger::$logSeverity = E_NOTICE;
 
-$variable = &pi();
-
-Assert::same('Only variables should be assigned by reference', error_get_last()['message']);
+$variable = $missingVariable;
 
 Assert::count(1, glob(getTempDir() . '/error*.html'));
 Assert::count(1, glob(getTempDir() . '/error.log'));

@@ -51,7 +51,8 @@ function myFunction()
 $obj = new TestClass;
 
 
-test('calling', function () {
+// calling
+test(function () {
 	try {
 		trimx();
 	} catch (\Error $e) {
@@ -62,7 +63,7 @@ test('calling', function () {
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('', function () {
+test(function () {
 	try {
 		abc\trimx();
 	} catch (\Error $e) {
@@ -73,7 +74,7 @@ test('', function () {
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('', function () {
+test(function () {
 	try {
 		myFunctionx();
 	} catch (\Error $e) {
@@ -84,7 +85,7 @@ test('', function () {
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('', function () {
+test(function () {
 	try {
 		TestClass::publicMethodX();
 	} catch (\Error $e) {
@@ -95,7 +96,7 @@ test('', function () {
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('', function () use ($obj) {
+test(function () use ($obj) {
 	try {
 		$obj->publicMethodX();
 	} catch (\Error $e) {
@@ -106,7 +107,7 @@ test('', function () use ($obj) {
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('suggest static method', function () use ($obj) {
+test(function () use ($obj) { // suggest static method
 	try {
 		$obj->publicMethodStaticX();
 	} catch (\Error $e) {
@@ -117,7 +118,7 @@ test('suggest static method', function () use ($obj) {
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('suggest only public method', function () use ($obj) {
+test(function () use ($obj) { // suggest only public method
 	try {
 		$obj->protectedMethodX();
 	} catch (\Error $e) {
@@ -127,7 +128,7 @@ test('suggest only public method', function () use ($obj) {
 	Assert::false(isset($e->tracyAction));
 });
 
-test('do not suggest anything when accessing anonymous class', function () {
+test(function () { // do not suggest anything when accessing anonymous class
 	try {
 		$obj = new class {
 		};
@@ -140,7 +141,8 @@ test('do not suggest anything when accessing anonymous class', function () {
 });
 
 
-test('reading', function () use ($obj) {
+// reading
+test(function () use ($obj) {
 	@$val = $obj->publicX;
 	$e = new ErrorException(error_get_last()['message'], 0, error_get_last()['type']);
 	Helpers::improveException($e);
@@ -149,7 +151,7 @@ test('reading', function () use ($obj) {
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('suggest only non-static property', function () use ($obj) {
+test(function () use ($obj) { // suggest only non-static property
 	@$val = $obj->publicStaticX;
 	$e = new ErrorException(error_get_last()['message'], 0, error_get_last()['type']);
 	Helpers::improveException($e);
@@ -157,7 +159,7 @@ test('suggest only non-static property', function () use ($obj) {
 	Assert::false(isset($e->tracyAction));
 });
 
-test('suggest only public property', function () use ($obj) {
+test(function () use ($obj) { // suggest only public property
 	@$val = $obj->protectedX;
 	$e = new ErrorException(error_get_last()['message'], 0, error_get_last()['type']);
 	Helpers::improveException($e);
@@ -165,28 +167,28 @@ test('suggest only public property', function () use ($obj) {
 	Assert::false(isset($e->tracyAction));
 });
 
-test('suggest only static property', function () use ($obj) {
+test(function () use ($obj) { // suggest only static property
 	try {
 		$val = TestClass::$publicStaticX;
 	} catch (\Error $e) {
 	}
 	Helpers::improveException($e);
-	Assert::match('Access to undeclared static property%a?% TestClass::$publicStaticX, did you mean $publicStatic?', $e->getMessage());
+	Assert::same('Access to undeclared static property: TestClass::$publicStaticX, did you mean $publicStatic?', $e->getMessage());
 	Assert::match('editor://fix/?file=%a%Helpers.improveException.phpt&line=%d%&search=%3A%3A%24publicStaticX&replace=%3A%3A%24publicStatic', $e->tracyAction['link']);
 	Assert::same('fix it', $e->tracyAction['label']);
 });
 
-test('suggest only public static property', function () use ($obj) {
+test(function () use ($obj) { // suggest only public static property
 	try {
 		$val = TestClass::$protectedMethodX;
 	} catch (\Error $e) {
 	}
 	Helpers::improveException($e);
-	Assert::match('Access to undeclared static property%a?% TestClass::$protectedMethodX', $e->getMessage());
+	Assert::same('Access to undeclared static property: TestClass::$protectedMethodX', $e->getMessage());
 	Assert::false(isset($e->tracyAction));
 });
 
-test('do not suggest anything when accessing anonymous class', function () {
+test(function () { // do not suggest anything when accessing anonymous class
 	$obj = new class {
 	};
 	@$val = $obj->property;
@@ -196,7 +198,7 @@ test('do not suggest anything when accessing anonymous class', function () {
 	Assert::false(isset($e->tracyAction));
 });
 
-test('do not suggest anything when accessing anonymous class', function () {
+test(function () { // do not suggest anything when accessing anonymous class
 	try {
 		$obj = new class {
 		};
@@ -210,7 +212,8 @@ test('do not suggest anything when accessing anonymous class', function () {
 });
 
 
-test('variables', function () use ($obj) {
+// variables
+test(function () use ($obj) {
 	$abcd = 1;
 	@$val = $abc;
 	$e = new ErrorException(error_get_last()['message'], 0, error_get_last()['type']);

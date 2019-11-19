@@ -46,25 +46,26 @@ class TestClass
 $obj = new TestClass;
 
 
-test('reading', function () use ($obj) {
+// reading
+test(function () use ($obj) {
 	@$val = $obj->publicX;
 	$message = Helpers::improveError(error_get_last()['message']);
 	Assert::same('Undefined property: TestClass::$publicX, did you mean $public?', $message);
 });
 
-test('suggest only non-static property', function () use ($obj) {
+test(function () use ($obj) { // suggest only non-static property
 	@$val = $obj->publicStaticX;
 	$message = Helpers::improveError(error_get_last()['message']);
 	Assert::same('Undefined property: TestClass::$publicStaticX', $message);
 });
 
-test('suggest only public property', function () use ($obj) {
+test(function () use ($obj) { // suggest only public property
 	@$val = $obj->protectedX;
 	$message = Helpers::improveError(error_get_last()['message']);
 	Assert::same('Undefined property: TestClass::$protectedX', $message);
 });
 
-test('do not suggest anything when accessing anonymous class', function () {
+test(function () { // do not suggest anything when accessing anonymous class
 	$obj = new class {
 	};
 	@$val = $obj->property;
@@ -73,7 +74,8 @@ test('do not suggest anything when accessing anonymous class', function () {
 });
 
 
-test('variables', function () use ($obj) {
+// variables
+test(function () use ($obj) {
 	$abcd = 1;
 	@$val = $abc;
 	$message = Helpers::improveError(error_get_last()['message'], get_defined_vars());

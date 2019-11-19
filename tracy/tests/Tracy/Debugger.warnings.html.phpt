@@ -33,24 +33,21 @@ Warning: Unsupported declare \'foo\' in %a% on line %d%%A%', $output);
 	preg_match('#Tracy\.Debug\.init\((".*[^\\\\]")\)#', $output, $m);
 	$rawContent = json_decode($m[1]);
 	$panelContent = (string) DomQuery::fromHtml($rawContent)->find('#tracy-debug-panel-Tracy-errors')[0]['data-tracy-content'];
-	Assert::match(<<<'XX'
-%A%<table class="tracy-sortable">
+	Assert::match('%A%<table class="tracy-sortable">
 <tr>
 	<td class="tracy-right">1%a%</td>
-	<td><pre>PHP Notice: Only variables should be assigned by reference in %a%:%d%</a></pre></td>
+	<td><pre>PHP Deprecated: mktime(): You should be using the time() function instead in %a%:%d%</a></pre></td>
 </tr>
 <tr>
 	<td class="tracy-right">1%a%</td>
-	<td><pre>PHP Warning: hex2bin(): Hexadecimal input string must have an even length in %a%:%d%</a></pre></td>
+	<td><pre>PHP Notice: Undefined variable: x in %a%:%d%</a></pre></td>
 </tr>
 <tr>
 	<td class="tracy-right">1%a%</td>
-	<td><pre>PHP Compile Warning: Unsupported declare &apos;foo&apos; in %a%:%d%</a></pre></td>
+	<td><pre>PHP Warning: %a% in %a%:%d%</a></pre></td>
 </tr>
 </table>
-</div>%A%
-XX
-, $panelContent);
+</div>%A%', $panelContent);
 	echo 'OK!'; // prevents PHP bug #62725
 });
 
@@ -69,8 +66,9 @@ function second($arg1, $arg2)
 
 function third($arg1)
 {
-	$x = &pi(); // E_NOTICE
-	hex2bin('a'); // E_WARNING
+	mktime(); // E_DEPRECATED
+	$x++; // E_NOTICE
+	min(1); // E_WARNING
 	require __DIR__ . '/fixtures/E_COMPILE_WARNING.php'; // E_COMPILE_WARNING
 }
 

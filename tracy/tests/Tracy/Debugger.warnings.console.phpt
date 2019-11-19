@@ -34,19 +34,20 @@ function second($arg1, $arg2)
 
 function third($arg1)
 {
-	$x = &pi(); // E_NOTICE
-	hex2bin('a'); // E_WARNING
+	mktime(); // E_DEPRECATED
+	$x++; // E_NOTICE
+	min(1); // E_WARNING
 	require __DIR__ . '/fixtures/E_COMPILE_WARNING.php'; // E_COMPILE_WARNING
 }
 
 
 first(10, 'any string');
-Assert::match(<<<'XX'
+Assert::match("
+Deprecated: mktime(): You should be using the time() function instead in %a% on line %d%
 
-Notice: Only variables should be assigned by reference in %a% on line %d%
+Notice: Undefined variable: x in %a% on line %d%
 
-Warning: hex2bin(): Hexadecimal input string must have an even length in %a% on line %d%
+Warning: %a% in %a% on line %d%
 
 Warning: Unsupported declare 'foo' in %a% on line %d%
-XX
-, ob_get_clean());
+", ob_get_clean());

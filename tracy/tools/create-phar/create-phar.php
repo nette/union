@@ -73,9 +73,6 @@ foreach ($iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterato
 
 			return $begin . $s . $end;
 		}, $s);
-
-	} elseif ($file->getExtension() !== 'php') {
-		continue;
 	}
 
 	$phar[$iterator->getSubPathname()] = $s;

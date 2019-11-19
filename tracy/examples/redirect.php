@@ -15,13 +15,13 @@ Debugger::enable(Debugger::DETECT, __DIR__ . '/log');
 
 
 if (empty($_GET['redirect'])) {
-	bdump('before redirect ' . date('H:i:s'));
+	Debugger::barDump('before redirect ' . date('H:i:s'));
 
 	header('Location: ' . (isset($_GET['ajax']) ? 'ajax.php' : 'redirect.php?&redirect=1'));
 	exit;
 }
 
-bdump('after redirect ' . date('H:i:s'));
+Debugger::barDump('after redirect ' . date('H:i:s'));
 
 ?>
 <!DOCTYPE html><html class=arrow><link rel="stylesheet" href="assets/style.css">
