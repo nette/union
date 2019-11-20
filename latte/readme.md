@@ -20,13 +20,7 @@ ensures the output is protected against vulnerabilities, such as XSS.
 
 Documentation can be found on the [website](https://latte.nette.org).
 
-
-Support Project
----------------
-
-Do you like Latte? Are you looking forward to the new features?
-
-[![Donate](https://files.nette.org/icons/donation-1.svg?)](https://nette.org/make-donation?to=latte)
+If you like Latte, **[please make a donation now](https://nette.org/make-donation?to=latte)**. Thank you!
 
 
 Getting Started
@@ -83,7 +77,7 @@ The recommended way to install Latte is via Composer (alternatively you can [dow
 composer require latte/latte
 ```
 
-Latte requires PHP version 7.1 and supports PHP up to 8.0.
+Latte requires PHP version 7.1 and supports PHP up to 7.4.
 
 
 Usage

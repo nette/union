@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Macro;
-use Latte\Compiler\MacroNode;
+use Latte\IMacro;
+use Latte\MacroNode;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-class TestMacro implements Macro
+class TestMacro implements IMacro
 {
 	public function initialize()
 	{
@@ -49,7 +49,7 @@ $latte->addMacro('one', new TestMacro);
 
 
 Assert::match(
-	'%A%opening[]closing%A%',
+	'%A%opening[]closing<?%A%',
 	$latte->compile('{one/}')
 );
 

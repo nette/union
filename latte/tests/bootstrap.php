@@ -43,7 +43,7 @@ register_shutdown_function(function ($level): void {
 }, ob_get_level());
 
 
-function test(string $title, Closure $function): void
+function test(\Closure $function): void
 {
 	$function();
 }

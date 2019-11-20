@@ -1,0 +1,392 @@
+<?php
+%A%
+
+class Template%a% extends Latte\Runtime\Template
+{
+	public $blocks = [
+		'bl' => 'blockBl',
+	];
+
+	public $blockTypes = [
+		'bl' => 'html',
+	];
+
+
+	function main()
+	{
+%A%
+
+<p<?php
+		$_tmp = ['title' => 'hello', 'lang' => isset($lang) ? $lang : null];
+		echo LR\Filters::htmlAttributes(isset($_tmp[0]) && is_array($_tmp[0]) ? $_tmp[0] : $_tmp);
+?>> </p>
+
+<p<?php
+		$_tmp = [['title' => 'hello']];
+		echo LR\Filters::htmlAttributes(isset($_tmp[0]) && is_array($_tmp[0]) ? $_tmp[0] : $_tmp);
+?>> </p>
+
+<?php
+		$iterations = 0;
+		foreach ($iterator = $this->global->its[] = new LR\CachingIterator([1,2,3]) as $foo) {
+			?>	<b<?php if ($_tmp = array_filter([$iterator->even ? 'even' : null])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"' ?>>item</b>
+<?php
+			$iterations++;
+		}
+		array_pop($this->global->its);
+		$iterator = end($this->global->its);
+?>
+
+<?php
+		$iterations = 0;
+		foreach ($iterator = $this->global->its[] = new LR\CachingIterator([1, 2, 3]) as $foo) {
+			?><p<?php if ($_tmp = array_filter([$iterator->even ? 'even' : null])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"' ?>><?php
+			echo LR\Filters::escapeHtmlText($foo) /* line 10 */ ?></p>
+<?php
+			$iterations++;
+		}
+		array_pop($this->global->its);
+		$iterator = end($this->global->its);
+?>
+
+<p<?php if ($_tmp = array_filter(['foo', (false ? 'first' : null), 'odd', (true ? 'foo' : 'bar')])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"' ?>>n:class</p>
+
+<p<?php if ($_tmp = array_filter([false ? 'first' : null])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"' ?>>n:class empty</p>
+<p<?php if ($_tmp = array_filter([true ? 'bem--modifier' : null])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"' ?>>n:class with BEM</p>
+
+
+<?php
+		if ($this->getParentName()) return get_defined_vars();
+		$this->renderBlock('bl', get_defined_vars());
+?>
+
+
+
+
+
+<ul title="foreach">
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			?>	<li><?php echo LR\Filters::escapeHtmlText($person) /* line 27 */ ?></li>
+<?php
+			$iterations++;
+		}
+?>
+</ul>
+
+<ul title="foreach">
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+?>	<li>
+		<?php echo LR\Filters::escapeHtmlText($person) /* line 32 */ ?>
+
+	</li>
+<?php
+			$iterations++;
+		}
+?>
+</ul>
+
+<ul title="inner foreach">
+	<li>
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			?>		<?php echo LR\Filters::escapeHtmlText($person) /* line 38 */ ?>
+
+<?php
+			$iterations++;
+		}
+?>	</li>
+</ul>
+
+<ul title="tag if">
+<?php
+		if ($this->global->ifs[] = (true)) {
+?>	<li>
+<?php
+		}
+		?>		<?php echo LR\Filters::escapeHtmlText($person) /* line 44 */ ?>
+
+<?php
+		if (array_pop($this->global->ifs)) {
+?>	</li>
+<?php
+		}
+?>
+</ul>
+
+<ul title="for">
+<?php
+		for ($i=0;
+		$i<3;
+		$i++) {
+			?>	<li><?php echo LR\Filters::escapeHtmlText($i) /* line 49 */ ?></li>
+<?php
+		}
+?>
+</ul>
+
+<ul title="white">
+<?php
+		while (--$i>0) {
+			?>	<li><?php echo LR\Filters::escapeHtmlText($i) /* line 53 */ ?></li>
+<?php
+		}
+?>
+</ul>
+
+<?php
+		if (true) {
+?><p>
+	<div><p>true</div>
+</p>
+<?php
+		}
+?>
+
+<?php
+		if (true) {
+?><p>
+	<div><p>true</p></div>
+</p>
+<?php
+		}
+?>
+
+<?php
+		if (false) {
+?><p>
+	<div><p>false</div>
+</p>
+<?php
+		}
+?>
+
+<?php
+		if (false) {
+?><p>
+	<div><p>false</p></div>
+</p>
+<?php
+		}
+?>
+
+<?php
+		if (strlen('{$name}') > 5) {
+?><p>noLatte</p>
+<?php
+		}
+?>
+
+<ul title="if + foreach">
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			if (strlen($person)===4) {
+				?>	<li><?php echo LR\Filters::escapeHtmlText($person) /* line 75 */ ?></li>
+<?php
+			}
+			$iterations++;
+		}
+?>
+</ul>
+
+<ul title="if + inner-if + inner-foreach">
+<?php
+		if (empty($iterator)) {
+			?>	<li><?php
+			$iterations = 0;
+			foreach ($people as $person) {
+				if (strlen($person)===4) {
+					echo LR\Filters::escapeHtmlText($person) /* line 79 */;
+				}
+				$iterations++;
+			}
+?></li>
+<?php
+		}
+?>
+</ul>
+
+<ul title="inner-if + inner-foreach">
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			if (strlen($person)===4) {
+				?>	<li><?php echo LR\Filters::escapeHtmlText(($this->filters->lower)($person)) /* line 83 */ ?></li>
+<?php
+			}
+			$iterations++;
+		}
+?></ul>
+
+<?php
+		if ($this->global->ifs[] = (true)) {
+			?><b><?php
+		}
+		?>bold<?php
+		if (array_pop($this->global->ifs)) {
+			?></b><?php
+		}
+		?> <?php
+		if ($this->global->ifs[] = (false)) {
+			?><b><?php
+		}
+		?>normal<?php
+		if (array_pop($this->global->ifs)) {
+?></b>
+<?php
+		}
+?>
+
+<?php
+		if ($this->global->ifs[] = (true)) {
+			?><b<?php if ($_tmp = array_filter(['first'])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"' ?>><?php
+		}
+		?>bold<?php
+		if (array_pop($this->global->ifs)) {
+?></b>
+<?php
+		}
+?>
+
+<meta>
+<?php
+		if (true) {
+?><meta>
+<?php
+		}
+		if ($this->global->ifs[] = (true)) {
+?><meta>
+<?php
+		}
+		if (array_pop($this->global->ifs)) {
+		}
+?>
+<meta>
+<?php
+		if (true) {
+		}
+?><meta>
+
+<?php
+		$iterations = 0;
+		foreach ([0] as $foo) {
+			if (1) {
+				$iterations = 0;
+				foreach ([1] as $foo) {
+					if ($this->global->ifs[] = (0)) {
+						?><span><?php
+					}
+					$iterations++;
+				}
+				$iterations = 0;
+				foreach ([2] as $foo) {
+					if (2) {
+						?>Hello<?php
+					}
+					$iterations++;
+				}
+				$iterations = 0;
+				foreach ([1] as $foo) {
+					if (array_pop($this->global->ifs)) {
+?></span>
+<?php
+					}
+					$iterations++;
+				}
+			}
+			$iterations++;
+		}
+?>
+
+
+<ul title="foreach break">
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			?>	<li><?php
+			echo LR\Filters::escapeHtmlText($person) /* line 100 */;
+			if (true) {
+				echo "</li>\n";
+				break;
+			}
+?></li>
+<?php
+			$iterations++;
+		}
+?>
+</ul>
+
+<ul title="foreach continue">
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			?>	<li><?php
+			echo LR\Filters::escapeHtmlText($person) /* line 104 */;
+			if (true) {
+				echo "</li>\n";
+				continue;
+			}
+?></li>
+<?php
+			$iterations++;
+		}
+?>
+</ul>
+
+
+<ul title="inner foreach break">
+	<li><?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			echo LR\Filters::escapeHtmlText($person) /* line 109 */;
+			if (true) break;
+			$iterations++;
+		}
+?></li>
+</ul>
+
+<ul title="inner foreach continue">
+	<li><?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			echo LR\Filters::escapeHtmlText($person) /* line 113 */;
+			if (true) continue;
+			$iterations++;
+		}
+?></li>
+</ul>
+<?php
+%A%
+	}
+
+
+	function prepare()
+	{
+%A%
+	}
+
+
+	function blockBl($_args)
+	{
+		extract($_args);
+?><ul title="block + if + foreach">
+<?php
+		$iterations = 0;
+		foreach ($people as $person) {
+			if (strlen($person)===4) {
+				?>	<li><?php echo LR\Filters::escapeHtmlText($person) /* line 19 */ ?></li>
+<?php
+			}
+			$iterations++;
+		}
+?>
+</ul>
+<?php
+	}
+
+}

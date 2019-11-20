@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Tokenizer;
+use Latte\Tokenizer;
 use Tester\Assert;
 
 

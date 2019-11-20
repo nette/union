@@ -1,69 +1,75 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const BLOCKS = [
-		['title' => 'blockTitle', 'sidebar' => 'blockSidebar'],
+	public $blocks = [
+		'title' => 'blockTitle',
+		'sidebar' => 'blockSidebar',
+	];
+
+	public $blockTypes = [
+		'title' => 'html',
+		'sidebar' => 'html',
 	];
 
 
-	public function main(): array
+	function main()
 	{
 		extract($this->params);
-		extract(['class' => NULL, 'namespace' => NULL, 'top' => TRUE], EXTR_SKIP);
-		echo '<!DOCTYPE html>
+		extract(['class' => NULL, 'namespace' => NULL, 'top' => TRUE], EXTR_SKIP) ?>
+<!DOCTYPE html>
 <head>
-	<title>';
-		if ($this->getParentName()) {
-			return get_defined_vars();
-		}
+	<title><?php
+		if ($this->getParentName()) return get_defined_vars();
 		$this->renderBlock('title', get_defined_vars(), function ($s, $type) {
-			$__fi = new LR\FilterInfo($type);
-			return LR\Filters::convertTo($__fi, 'html', $this->filters->filterContent('upper', $__fi, $this->filters->filterContent('striphtml', $__fi, $s)));
+			$_fi = new LR\FilterInfo($type);
+			return LR\Filters::convertTo($_fi, 'html', $this->filters->filterContent('upper', $_fi, $this->filters->filterContent('striphtml', $_fi, $s)));
 		});
-		echo '</title>
+?></title>
 </head>
 
 <body>
 	<div id="sidebar">
-';
+<?php
 		$this->renderBlock('sidebar', get_defined_vars());
-		echo '
+?>
 	</div>
 
 	<div id="content">
-';
-		$this->renderBlock($__nm = 'content', [], 'html');
-		echo "\n";
-		$this->renderBlock($__nm = 'content', [], function ($s, $type) {
-			$__fi = new LR\FilterInfo($type);
-			return LR\Filters::convertTo($__fi, 'html', $this->filters->filterContent('upper', $__fi, $this->filters->filterContent('striphtml', $__fi, $s)));
+<?php
+		$this->renderBlock('content', $this->params, 'html');
+?>
+
+<?php
+		$this->renderBlock('content', $this->params, function ($s, $type) {
+			$_fi = new LR\FilterInfo($type);
+			return LR\Filters::convertTo($_fi, 'html', $this->filters->filterContent('upper', $_fi, $this->filters->filterContent('striphtml', $_fi, $s)));
 		});
-		echo '	</div>
+?>
+	</div>
 </body>
 </html>
-Parent: ';
-		echo LR\Filters::escapeHtmlText(basename($this->getReferringTemplate()->getName())) /* line 23 */;
-		echo '/';
-		echo LR\Filters::escapeHtmlText($this->getReferenceType()) /* line 23 */;
-		echo "\n";
+Parent: <?php echo LR\Filters::escapeHtmlText(basename($this->getReferringTemplate()->getName())) /* line 23 */ ?>/<?php
+		echo LR\Filters::escapeHtmlText($this->getReferenceType()) /* line 23 */ ?>
+
+<?php
 		return get_defined_vars();
 	}
 
 
-	public function blockTitle(array $__args): void
+	function blockTitle($_args)
 	{
-		echo 'My website';
+		?>My website<?php
 	}
 
 
-	public function blockSidebar(array $__args): void
+	function blockSidebar($_args)
 	{
-		echo '		<ul>
+?>		<ul>
 			<li><a href="/">Homepage</a></li>
 		</ul>
-';
+<?php
 	}
 
 }

@@ -16,15 +16,15 @@ $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader);
 
 Assert::match(
-	'%A%$a = \'test\' ? ([]) : null%A%',
+	'%A%$a = \'test\' ? [] : null%A%',
 	$latte->compile('
-{php $a = test ? ([])}
-')
-);
+{php}
+{php $a = test ? []}
+'));
 
 Assert::match(
-	'%A%$a = \'test\' ? ([]) : null%A%',
+	'%A%$a = \'test\' ? [] : null%A%',
 	$latte->compile('
-{php $a = test ? ([])}
-')
-);
+{php}
+{php $a = test ? []}
+'));

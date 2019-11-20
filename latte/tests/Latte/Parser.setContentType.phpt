@@ -6,8 +6,8 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Token;
 use Latte\Engine;
+use Latte\Token;
 use Tester\Assert;
 
 
@@ -16,7 +16,7 @@ require __DIR__ . '/../bootstrap.php';
 
 function parse($s, $contentType = null)
 {
-	$parser = new \Latte\Compiler\Parser;
+	$parser = new Latte\Parser;
 	$parser->setContentType($contentType ?: Engine::CONTENT_HTML);
 	return array_map(function (Token $token) {
 		return [$token->type, $token->text];
@@ -25,84 +25,84 @@ function parse($s, $contentType = null)
 
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<script'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, ' <div /> '],
-	[Token::HTML_TAG_BEGIN, '</script'],
-	[Token::HTML_TAG_END, '>'],
+	['htmlTagBegin', '<script'],
+	['htmlTagEnd', '>'],
+	['text', ' <div /> '],
+	['htmlTagBegin', '</script'],
+	['htmlTagEnd', '>'],
 ], parse('<script> <div /> </script>', Engine::CONTENT_HTML));
 
 Assert::same([
-	[Token::MACRO_TAG, '{contentType html}'],
-	[Token::HTML_TAG_BEGIN, '<script'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, ' <div /> '],
-	[Token::HTML_TAG_BEGIN, '</script'],
-	[Token::HTML_TAG_END, '>'],
+	['macroTag', '{contentType html}'],
+	['htmlTagBegin', '<script'],
+	['htmlTagEnd', '>'],
+	['text', ' <div /> '],
+	['htmlTagBegin', '</script'],
+	['htmlTagEnd', '>'],
 ], parse('{contentType html}<script> <div /> </script>'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<script'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, ' <div /> '],
-	[Token::HTML_TAG_BEGIN, '</script'],
-	[Token::HTML_TAG_END, '>'],
+	['htmlTagBegin', '<script'],
+	['htmlTagEnd', '>'],
+	['text', ' <div /> '],
+	['htmlTagBegin', '</script'],
+	['htmlTagEnd', '>'],
 ], parse('<script> <div /> </script>', Engine::CONTENT_XHTML));
 
 Assert::same([
-	[Token::MACRO_TAG, '{contentType xhtml}'],
-	[Token::HTML_TAG_BEGIN, '<script'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, ' <div /> '],
-	[Token::HTML_TAG_BEGIN, '</script'],
-	[Token::HTML_TAG_END, '>'],
+	['macroTag', '{contentType xhtml}'],
+	['htmlTagBegin', '<script'],
+	['htmlTagEnd', '>'],
+	['text', ' <div /> '],
+	['htmlTagBegin', '</script'],
+	['htmlTagEnd', '>'],
 ], parse('{contentType xhtml}<script> <div /> </script>'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<script'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, ' '],
-	[Token::HTML_TAG_BEGIN, '<div'],
-	[Token::HTML_TAG_END, ' />'],
-	[Token::TEXT, ' '],
-	[Token::HTML_TAG_BEGIN, '</script'],
-	[Token::HTML_TAG_END, '>'],
+	['htmlTagBegin', '<script'],
+	['htmlTagEnd', '>'],
+	['text', ' '],
+	['htmlTagBegin', '<div'],
+	['htmlTagEnd', ' />'],
+	['text', ' '],
+	['htmlTagBegin', '</script'],
+	['htmlTagEnd', '>'],
 ], parse('<script> <div /> </script>', Engine::CONTENT_XML));
 
 Assert::same([
-	[Token::MACRO_TAG, '{contentType xml}'],
-	[Token::HTML_TAG_BEGIN, '<script'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, ' '],
-	[Token::HTML_TAG_BEGIN, '<div'],
-	[Token::HTML_TAG_END, ' />'],
-	[Token::TEXT, ' '],
-	[Token::HTML_TAG_BEGIN, '</script'],
-	[Token::HTML_TAG_END, '>'],
+	['macroTag', '{contentType xml}'],
+	['htmlTagBegin', '<script'],
+	['htmlTagEnd', '>'],
+	['text', ' '],
+	['htmlTagBegin', '<div'],
+	['htmlTagEnd', ' />'],
+	['text', ' '],
+	['htmlTagBegin', '</script'],
+	['htmlTagEnd', '>'],
 ], parse('{contentType xml}<script> <div /> </script>'));
 
 Assert::same([
-	[Token::TEXT, '<script> <div /> </script>'],
+	['text', '<script> <div /> </script>'],
 ], parse('<script> <div /> </script>', Engine::CONTENT_TEXT));
 
 Assert::same([
-	[Token::MACRO_TAG, '{contentType text}'],
-	[Token::TEXT, '<script> <div /> </script>'],
+	['macroTag', '{contentType text}'],
+	['text', '<script> <div /> </script>'],
 ], parse('{contentType text}<script> <div /> </script>'));
 
 Assert::same([
-	[Token::TEXT, '<script> <div /> </script>'],
+	['text', '<script> <div /> </script>'],
 ], parse('<script> <div /> </script>', Engine::CONTENT_ICAL));
 
 Assert::same([
-	[Token::MACRO_TAG, '{contentType ical}'],
-	[Token::TEXT, '<script> <div /> </script>'],
+	['macroTag', '{contentType ical}'],
+	['text', '<script> <div /> </script>'],
 ], parse('{contentType ical}<script> <div /> </script>'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<script'],
-	[Token::HTML_TAG_END, ' />'],
-	[Token::TEXT, ' '],
-	[Token::HTML_TAG_BEGIN, '<div'],
-	[Token::HTML_TAG_END, ' />'],
+	['htmlTagBegin', '<script'],
+	['htmlTagEnd', ' />'],
+	['text', ' '],
+	['htmlTagBegin', '<div'],
+	['htmlTagEnd', ' />'],
 ], parse('<script /> <div />', Engine::CONTENT_HTML));

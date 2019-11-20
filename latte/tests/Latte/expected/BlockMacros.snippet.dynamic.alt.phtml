@@ -1,100 +1,75 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const BLOCKS = [
-		'snippet' => ['outer1' => 'blockOuter1', 'outer2' => 'blockOuter2'],
+	public $blocks = [
+		'_outer1' => 'blockOuter1',
+		'_outer2' => 'blockOuter2',
+	];
+
+	public $blockTypes = [
+		'_outer1' => 'html',
+		'_outer2' => 'html',
 	];
 
 
-	public function main(): array
+	function main()
 	{
 %A%
-		echo '<div id="';
-		echo htmlspecialchars($this->global->snippetDriver->getHtmlId('outer1'));
-		echo '">';
-		$this->renderBlock('outer1', [], null, 'snippet');
-		echo '</div>
+		?><div id="<?php echo htmlSpecialChars($this->global->snippetDriver->getHtmlId('outer1')) ?>"><?php $this->renderBlock('_outer1', $this->params) ?></div>
 
-
-<div id="';
-		echo htmlspecialchars($this->global->snippetDriver->getHtmlId('outer2'));
-		echo '">';
-		$this->renderBlock('outer2', [], null, 'snippet');
-		echo '</div>';
+<div id="<?php echo htmlSpecialChars($this->global->snippetDriver->getHtmlId('outer2')) ?>"><?php $this->renderBlock('_outer2', $this->params) ?></div><?php
 %A%
 	}
 
 
-	public function prepare(): void
+	function prepare()
 	{
 %A%
 	}
 
 
-	public function blockOuter1(array $__args): void
+	function blockOuter1($_args)
 	{
-		extract($this->params);
-		extract($__args);
-		$this->global->snippetDriver->enter("outer1", 'static');
-		try {
-			$iterations = 0;
-			foreach (array(1,2,3) as $id) {
-				echo '		<div';
-				echo ' id="' . htmlspecialchars($this->global->snippetDriver->getHtmlId($__nm = "inner-$id")) . '"';
-				echo '>
-';
-				$this->global->snippetDriver->enter($__nm, 'dynamic');
-				try {
-					echo '				#';
-					echo LR\Filters::escapeHtmlText($id) /* line 4 */;
-					echo "\n";
-				}
-				finally {
-					$this->global->snippetDriver->leave();
-				}
-				echo '		</div>
-';
-				$iterations++;
-			}
-		}
-		finally {
+		extract($_args);
+		$this->global->snippetDriver->enter("outer1", "static");
+		$iterations = 0;
+		foreach (array(1,2,3) as $id) {
+			?>		<div<?php echo ' id="' . htmlSpecialChars($this->global->snippetDriver->getHtmlId("inner-$id")) . '"' ?>>
+<?php
+			$this->global->snippetDriver->enter("inner-$id", "dynamic");
+			?>				#<?php echo LR\Filters::escapeHtmlText($id) /* line 4 */ ?>
+
+<?php
 			$this->global->snippetDriver->leave();
+?>		</div>
+<?php
+			$iterations++;
 		}
+		$this->global->snippetDriver->leave();
 
 	}
 
 
-	public function blockOuter2(array $__args): void
+	function blockOuter2($_args)
 	{
-		extract($this->params);
-		extract($__args);
-		$this->global->snippetDriver->enter("outer2", 'static');
-		try {
-			$iterations = 0;
-			foreach (array(1,2,3) as $id) {
-				echo '		<div';
-				echo ' id="' . htmlspecialchars($this->global->snippetDriver->getHtmlId($__nm = "inner-$id")) . '"';
-				echo '>
-';
-				$this->global->snippetDriver->enter($__nm, 'dynamic');
-				try {
-					echo '				#';
-					echo LR\Filters::escapeHtmlText($id) /* line 13 */;
-					echo "\n";
-				}
-				finally {
-					$this->global->snippetDriver->leave();
-				}
-				echo '		</div>
-';
-				$iterations++;
-			}
-		}
-		finally {
+		extract($_args);
+		$this->global->snippetDriver->enter("outer2", "static");
+		$iterations = 0;
+		foreach (array(1,2,3) as $id) {
+			?>		<div<?php echo ' id="' . htmlSpecialChars($this->global->snippetDriver->getHtmlId("inner-$id")) . '"' ?>>
+<?php
+			$this->global->snippetDriver->enter("inner-$id", "dynamic");
+			?>				#<?php echo LR\Filters::escapeHtmlText($id) /* line 13 */ ?>
+
+<?php
 			$this->global->snippetDriver->leave();
+?>		</div>
+<?php
+			$iterations++;
 		}
+		$this->global->snippetDriver->leave();
 
 	}
 

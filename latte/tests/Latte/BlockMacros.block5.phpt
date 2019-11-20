@@ -15,6 +15,12 @@ require __DIR__ . '/../bootstrap.php';
 $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader);
 
+Assert::match('', $latte->renderToString('{define foobar}Hello{/define}'));
+
+Assert::match('', $latte->renderToString('{define foo-bar}Hello{/define}'));
+
+Assert::match('', $latte->renderToString('{define $foo}Hello{/define}', ['foo' => 'bar']));
+
 // code optimization in BlockMacros vs. variables in placeholders
 Assert::match(
 	'<br class="123">',
@@ -22,9 +28,5 @@ Assert::match(
 );
 
 Assert::exception(function () use ($latte) {
-	$latte->renderToString('{block _foobar}Hello{/block}');
-}, Latte\CompileException::class, "Block name must start with letter a-z, '_foobar' given.");
-
-Assert::exception(function () use ($latte) {
-	$latte->renderToString('{block 123}Hello{/block}');
-}, Latte\CompileException::class, "Block name must start with letter a-z, '123' given.");
+	$latte->renderToString('{define _foobar}Hello{/define}');
+}, Latte\CompileException::class, "Block name '_foobar' must not start with an underscore.");

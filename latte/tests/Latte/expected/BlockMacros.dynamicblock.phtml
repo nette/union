@@ -1,112 +1,119 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const BLOCKS = [
-		['static' => 'blockStatic'],
+	public $blocks = [
+		'static' => 'blockStatic',
+	];
+
+	public $blockTypes = [
+		'static' => 'html',
 	];
 
 
-	public function main(): array
+	function main()
 	{
 		extract($this->params);
 		$var = 10;
-		echo "\n";
-		if ($this->getParentName()) {
-			return get_defined_vars();
-		}
+?>
+
+<?php
+		if ($this->getParentName()) return get_defined_vars();
 		$this->renderBlock('static', get_defined_vars());
-		echo '
+?>
 
 
-';
+<?php
 		$iterations = 0;
-		foreach ($iterator = $__it = new LR\CachingIterator(['dynamic', 'static'], $__it ?? null) as $name) {
-			$this->addBlock($__nm = $name, 'html', [[$this, 'blockName']], null);
-			$this->renderBlock($__nm, get_defined_vars());
-			echo "\n";
+		foreach ($iterator = $this->global->its[] = new LR\CachingIterator(['dynamic', 'static']) as $name) {
+			$this->checkBlockContentType('html', $name);
+			$this->blockQueue[$name][] = [$this, 'blockName'];
+			$this->renderBlock($name, get_defined_vars());
+?>
+
+<?php
 			$iterations++;
 		}
-		$iterator = $__it = $__it->getParent();
-		echo "\n";
-		$this->renderBlock($__nm = 'dynamic', ['var' => 20] + [], 'html');
-		echo "\n";
-		$this->renderBlock($__nm = 'static', ['var' => 30] + [], 'html');
-		echo "\n";
-		$this->renderBlock($__nm = ($name . ''), ['var' => 40] + [], 'html');
-		echo "\n";
-		$this->addBlock($__nm = "word$name", 'html', [[$this, 'blockWord_name']], null);
-		$this->renderBlock($__nm, get_defined_vars());
-		echo '
+		array_pop($this->global->its);
+		$iterator = end($this->global->its);
+?>
 
-';
-		$this->addBlock($__nm = "strip$name", 'html', [[$this, 'blockStrip_name']], null);
-		$this->renderBlock($__nm, get_defined_vars(), function ($s, $type) {
-			$__fi = new LR\FilterInfo($type);
-			return LR\Filters::convertTo($__fi, 'html', $this->filters->filterContent('striptags', $__fi, $s));
+<?php
+		$this->renderBlock('dynamic', ['var' => 20] + $this->params, 'html');
+?>
+
+<?php
+		$this->renderBlock('static', ['var' => 30] + get_defined_vars(), 'html');
+?>
+
+<?php
+		$this->renderBlock($name . '', ['var' => 40] + $this->params, 'html');
+?>
+
+<?php
+		$this->checkBlockContentType('html', "word$name");
+		$this->blockQueue["word$name"][] = [$this, 'blockWord_name'];
+		$this->renderBlock("word$name", get_defined_vars());
+?>
+
+
+<?php
+		$this->checkBlockContentType('html', "strip$name");
+		$this->blockQueue["strip$name"][] = [$this, 'blockStrip_name'];
+		$this->renderBlock("strip$name", get_defined_vars(), function ($s, $type) {
+			$_fi = new LR\FilterInfo($type);
+			return LR\Filters::convertTo($_fi, 'html', $this->filters->filterContent('striptags', $_fi, $s));
 		});
-		echo '
+?>
 
-';
-		$this->addBlock($__nm = (rand() < 5 ? 'a' : 'b'), 'html', [[$this, 'blockRand_5_a_b']], null);
-		$this->renderBlock($__nm, get_defined_vars());
+<?php
 		return get_defined_vars();
 	}
 
 
-	public function prepare(): void
+	function prepare()
 	{
 		extract($this->params);
 		if (!$this->getReferringTemplate() || $this->getReferenceType() === "extends") {
-			foreach (array_intersect_key(['name' => '8'], $this->params) as $__v => $__l) {
-				trigger_error("Variable \$$__v overwritten in foreach on line $__l");
-			}
+			if (isset($this->params['name'])) trigger_error('Variable $name overwritten in foreach on line 8');
 		}
 
 	}
 
 
-	public function blockName(array $__args): void
+	function blockName($_args)
 	{
-		extract($__args);
-		echo '		Dynamic block #';
-		echo LR\Filters::escapeHtmlText($var) /* line 10 */;
-		echo "\n";
+		extract($_args);
+		?>		Dynamic block #<?php echo LR\Filters::escapeHtmlText($var) /* line 10 */ ?>
+
+<?php
 	}
 
 
-	public function blockWord_name(array $__args): void
+	function blockWord_name($_args)
 	{
-		extract($__args);
+		extract($_args);
 		if (false) {
-			echo '<div></div>';
+			?><div></div><?php
 		}
 
 	}
 
 
-	public function blockStrip_name(array $__args): void
+	function blockStrip_name($_args)
 	{
-		extract($__args);
-		echo '<span>hello</span>';
+		extract($_args);
+		?><span>hello</span><?php
 	}
 
 
-	public function blockRand_5_a_b(array $__args): void
+	function blockStatic($_args)
 	{
-		extract($__args);
-		echo ' expression';
-	}
+		extract($_args);
+		?>	Static block #<?php echo LR\Filters::escapeHtmlText($var) /* line 4 */ ?>
 
-
-	public function blockStatic(array $__args): void
-	{
-		extract($this->params);
-		extract($__args);
-		echo '	Static block #';
-		echo LR\Filters::escapeHtmlText($var) /* line 4 */;
-		echo "\n";
+<?php
 	}
 
 }

@@ -1,102 +1,117 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
 
-	public function main(): array
+	function main()
 	{
 %A%
-		echo "\n";
+?>
+
+<?php
 		$iterations = 0;
-		foreach ($iterator = $__it = new LR\CachingIterator($people, $__it ?? null) as $person) {
-			echo '	';
+		foreach ($iterator = $this->global->its[] = new LR\CachingIterator($people) as $person) {
+			?>	<?php
 			if ($iterator->isFirst()) {
-				echo '(';
+				?>(<?php
 			}
-			echo ' ';
+			?> <?php
 			echo LR\Filters::escapeHtmlText($person) /* line 3 */;
 			if (!$iterator->isLast()) {
-				echo ', ';
+				?>, <?php
 			}
-			echo ' ';
+			?> <?php
 			if ($iterator->isLast()) {
-				echo ')';
+				?>)<?php
 			}
-			echo "\n";
+?>
+
+<?php
 			$iterations++;
 		}
-		$iterator = $__it = $__it->getParent();
-		echo '
+		array_pop($this->global->its);
+		$iterator = end($this->global->its);
+?>
 
-';
+
+<?php
 		$iterations = 0;
-		foreach ($iterator = $__it = new LR\CachingIterator($people, $__it ?? null) as $person) {
-			echo '	';
+		foreach ($iterator = $this->global->its[] = new LR\CachingIterator($people) as $person) {
+			?>	<?php
 			if ($iterator->isFirst(2)) {
-				echo '(';
+				?>(<?php
 			}
-			echo ' ';
+			?> <?php
 			echo LR\Filters::escapeHtmlText($person) /* line 8 */;
 			if (!$iterator->isLast(2)) {
-				echo ', ';
+				?>, <?php
 			}
-			echo ' ';
+			?> <?php
 			if ($iterator->isLast(2)) {
-				echo ')';
+				?>)<?php
 			}
-			echo "\n";
+?>
+
+<?php
 			$iterations++;
 		}
-		$iterator = $__it = $__it->getParent();
-		echo '
+		array_pop($this->global->its);
+		$iterator = end($this->global->its);
+?>
 
-';
+
+<?php
 		$iterations = 0;
-		foreach ($iterator = $__it = new LR\CachingIterator($people, $__it ?? null) as $person) {
-			echo '	';
+		foreach ($iterator = $this->global->its[] = new LR\CachingIterator($people) as $person) {
+			?>	<?php
 			if ($iterator->isFirst(1)) {
-				echo '(';
+				?>(<?php
 			}
-			echo ' ';
+			?> <?php
 			echo LR\Filters::escapeHtmlText($person) /* line 13 */;
 			if (!$iterator->isLast(1)) {
-				echo ', ';
+				?>, <?php
 			}
-			echo ' ';
+			?> <?php
 			if ($iterator->isLast(1)) {
-				echo ')';
+				?>)<?php
 			}
-			echo "\n";
+?>
+
+<?php
 			$iterations++;
 		}
-		$iterator = $__it = $__it->getParent();
-		echo '
+		array_pop($this->global->its);
+		$iterator = end($this->global->its);
+?>
 
-';
+
+<?php
 		$iterations = 0;
-		foreach ($iterator = $__it = new LR\CachingIterator($people, $__it ?? null) as $person) {
+		foreach ($iterator = $this->global->its[] = new LR\CachingIterator($people) as $person) {
 			if ($iterator->isFirst(0)) {
-				echo '	<span>(</span>';
+				?>	<span>(</span><?php
 			}
-			echo ' ';
+			?> <?php
 			echo LR\Filters::escapeHtmlText($person) /* line 18 */;
 			if (!$iterator->isLast()) {
-				echo '<span>, </span>';
+				?><span>, </span><?php
 			}
-			echo ' ';
+			?> <?php
 			if ($iterator->isLast()) {
-				echo '<span>)</span>
-';
+?><span>)</span>
+<?php
 			}
 			$iterations++;
 		}
-		$iterator = $__it = $__it->getParent();
+		array_pop($this->global->its);
+		$iterator = end($this->global->its);
 %A%
 	}
 
 
-	public function prepare(): void
+	function prepare()
 	{
 %A%
 	}

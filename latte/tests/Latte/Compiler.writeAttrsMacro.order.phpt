@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Macro;
-use Latte\Compiler\MacroNode;
+use Latte\IMacro;
+use Latte\MacroNode;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-class TestMacro implements Macro
+class TestMacro implements IMacro
 {
 	private $name;
 
@@ -46,7 +46,7 @@ class TestMacro implements Macro
 }
 
 
-class SkipMacro implements Macro
+class SkipMacro implements IMacro
 {
 	public function initialize()
 	{
@@ -80,102 +80,44 @@ $latte->addMacro('three', new SkipMacro);
 
 
 Assert::match(<<<'DOC'
-%A%
-		'one open';
-		echo '[<div';
-		'one attr';
-		echo '></div>]';
-		'one close';
-		echo ' ';
-%A%
+%A%'one open' ?>[<div<?php 'one attr' ?>></div>]<?php 'one close' %A%
 DOC
 , $latte->compile('<div n:one></div> '));
 
 
 Assert::match(<<<'DOC'
 %A%
-		'three open';
-		echo '[';
-		'two open';
-		echo '[';
-		'one open';
-		echo '[<div';
+		'three open' ?>[<?php 'two open' ?>[<?php 'one open' ?>[<div<?php
 		'one attr';
 		'two attr';
-		'three attr';
-		echo '>@</div>]';
-		'one close';
-		echo ']';
-		'two close';
-		echo ']';
-		'three close';
-		echo ' ';
-%A%
+		'three attr' ?>>@</div>]<?php 'one close' ?>]<?php 'two close' ?>]<?php 'three close' %A%
 DOC
 , $latte->compile('<div n:two n:three n:one>@</div> '));
 
 
 Assert::match(<<<'DOC'
-%A%
-		'two open';
-		echo '[';
-		'one open';
-		echo '[<div>]';
-		'one close';
-		echo ']';
-		'two close';
-		echo '@';
-		'two open';
-		echo '[';
-		'one open';
-		echo '[</div>]';
-		'one close';
-		echo ']';
-		'two close';
-		echo ' ';
-%A%
+%A%'two open' ?>[<?php 'one open' ?>[<div>]<?php 'one close' ?>]<?php 'two close' ?>@<?php 'two open' ?>[<?php
+		'one open' ?>[</div>]<?php 'one close' ?>]<?php 'two close' %A%
 DOC
 , $latte->compile('<div n:tag-two n:tag-one>@</div> '));
 
 
 Assert::match(<<<'DOC'
 %A%
-		echo '<div';
 		'one attr';
-		'two attr';
-		echo '>';
-		'two open';
-		echo '[';
-		'one open';
-		echo '[@]';
-		'one close';
-		echo ']';
-		'two close';
-		echo '</div> ';
-%A%
+		'two attr' ?>><?php 'two open' ?>[<?php 'one open' ?>[@]<?php 'one close' ?>]<?php 'two close' ?></div>%A%
 DOC
 , $latte->compile('<div n:inner-two n:inner-one>@</div> '));
 
 
 Assert::match(<<<'DOC'
 %A%
-		'one open';
-		echo '[';
-		'two open';
-		echo '[<div';
+		'one open' ?>[<?php 'two open' ?>[<div<?php
 		'three attr';
-		'one attr';
-		echo '>]';
+		'one attr' ?>>]<?php
 		'two close';
-		'three open';
-		echo '[@]';
+		'three open' ?>[@]<?php
 		'three close';
-		'two open';
-		echo '[</div>]';
-		'two close';
-		echo ']';
-		'one close';
-		echo ' ';
-%A%
+		'two open' ?>[</div>]<?php 'two close' ?>]<?php 'one close' %A%
 DOC
 , $latte->compile('<div n:one n:tag-two n:inner-three>@</div> '));

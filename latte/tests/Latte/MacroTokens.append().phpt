@@ -6,14 +6,14 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\MacroTokens;
+use Latte\MacroTokens;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-test('constructor', function () {
+test(function () { // constructor
 	$tokenizer = new MacroTokens('hello world');
 	Assert::count(3, $tokenizer->tokens);
 
@@ -25,7 +25,7 @@ test('constructor', function () {
 });
 
 
-test('append', function () {
+test(function () { // append
 	$tokenizer = new MacroTokens('hello ');
 
 	$res = $tokenizer->append('world!');
@@ -51,7 +51,7 @@ test('append', function () {
 });
 
 
-test('append with position', function () {
+test(function () { // append with position
 	$tokenizer = new MacroTokens('world');
 
 	$res = $tokenizer->append('!', null);
@@ -68,7 +68,7 @@ test('append with position', function () {
 });
 
 
-test('prepend', function () {
+test(function () { // prepend
 	$tokenizer = new MacroTokens('world!');
 
 	$res = $tokenizer->prepend('hello ');

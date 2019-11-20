@@ -1,30 +1,32 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
 
-	public function main(): array
+	function main()
 	{
-%A%
-		echo '<p>Included file #1</p>
+%A%?>
+<p>Included file #1</p>
 
-';
+<?php
 		/* line 3 */
-		$this->createTemplate("include2.latte", ['localvar' => 20] + $this->params, 'include')->renderToContentType('html');
-		echo "\n";
+		$this->createTemplate("include2.latte", ['localvar' => 20] + $this->params, "include")->renderToContentType('html');
+?>
+
+<?php
 		/* line 5 */
-		$this->createTemplate("../include3.latte", $this->params, 'include')->renderToContentType('html');
-		echo '
+		$this->createTemplate("../include3.latte", $this->params, "include")->renderToContentType('html');
+?>
+
 <textarea>
 pre
 </textarea>
 
-Parent: ';
-		echo LR\Filters::escapeHtmlText(basename($this->getReferringTemplate()->getName())) /* line 11 */;
-		echo '/';
-		echo LR\Filters::escapeHtmlText($this->getReferenceType()) /* line 11 */;
-		echo "\n";
+Parent: <?php echo LR\Filters::escapeHtmlText(basename($this->getReferringTemplate()->getName())) /* line 11 */ ?>/<?php
+		echo LR\Filters::escapeHtmlText($this->getReferenceType()) /* line 11 */ ?>
+
+<?php
 %A%
 	}
 

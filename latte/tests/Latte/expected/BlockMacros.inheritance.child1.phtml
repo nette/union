@@ -1,37 +1,44 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const BLOCKS = [
-		['title' => 'blockTitle', 'content' => 'blockContent'],
+	public $blocks = [
+		'title' => 'blockTitle',
+		'content' => 'blockContent',
+	];
+
+	public $blockTypes = [
+		'title' => 'html',
+		'content' => 'html',
 	];
 
 
-	public function main(): array
+	function main()
 	{
 %A%
-		$this->createTemplate("inc", $this->params, 'includeblock')->renderToContentType('html');
-		echo "\n";
-		if ($this->getParentName()) {
-			return get_defined_vars();
-		}
-		$this->renderBlock('title', get_defined_vars());
-		echo '
+		ob_start(function () {});
+		$this->createTemplate("inc", get_defined_vars(), "includeblock")->renderToContentType('html');
+		echo rtrim(ob_get_clean());
+?>
 
-';
+<?php
+		if ($this->getParentName()) return get_defined_vars();
+		$this->renderBlock('title', get_defined_vars());
+?>
+
+<?php
 		$this->renderBlock('content', get_defined_vars());
+		?>	<?php
 %A%
 	}
 
 
-	public function prepare(): void
+	function prepare()
 	{
 		extract($this->params);
 		if (!$this->getReferringTemplate() || $this->getReferenceType() === "extends") {
-			foreach (array_intersect_key(['person' => '11'], $this->params) as $__v => $__l) {
-				trigger_error("Variable \$$__v overwritten in foreach on line $__l");
-			}
+			if (isset($this->params['person'])) trigger_error('Variable $person overwritten in foreach on line 11');
 		}
 		$this->parentName = "parent";
 		$this->createTemplate("inc", $this->params, "import")->render();
@@ -39,35 +46,33 @@ final class Template%a% extends Latte\Runtime\Template
 	}
 
 
-	public function blockTitle(array $__args): void
+	function blockTitle($_args)
 	{
-		extract($this->params);
-		extract($__args);
-		echo 'Homepage | ';
-		$this->renderBlockParent($__nm = 'title', get_defined_vars());
-		$this->renderBlockParent($__nm = 'title', get_defined_vars());
+		extract($_args);
+		?>Homepage | <?php
+		$this->renderBlockParent('title', get_defined_vars());
+		$this->renderBlockParent('title', get_defined_vars());
 
 	}
 
 
-	public function blockContent(array $__args): void
+	function blockContent($_args)
 	{
-		extract($this->params);
-		extract($__args);
-		echo '	<ul>
-';
+		extract($_args);
+?>
+	<ul>
+<?php
 		$iterations = 0;
 		foreach ($people as $person) {
-			echo '		<li>';
-			echo LR\Filters::escapeHtmlText($person) /* line 12 */;
-			echo '</li>
-';
+			?>		<li><?php echo LR\Filters::escapeHtmlText($person) /* line 12 */ ?></li>
+<?php
 			$iterations++;
 		}
-		echo '	</ul>
-	Parent: ';
-		echo LR\Filters::escapeHtmlText(gettype($this->getReferringTemplate())) /* line 15 */;
-		echo "\n";
+?>
+	</ul>
+	Parent: <?php echo LR\Filters::escapeHtmlText(gettype($this->getReferringTemplate())) /* line 15 */ ?>
+
+<?php
 	}
 
 }

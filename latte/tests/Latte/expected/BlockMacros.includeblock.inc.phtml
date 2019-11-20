@@ -1,35 +1,36 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const BLOCKS = [
-		['test' => 'blockTest'],
+	public $blocks = [
+		'test' => 'blockTest',
+	];
+
+	public $blockTypes = [
+		'test' => 'html',
 	];
 
 
-	public function main(): array
+	function main()
 	{
 		extract($this->params);
-		echo "\n";
-		if ($this->getParentName()) {
-			return get_defined_vars();
-		}
-		echo '
-	';
+?>
+
+<?php
+		if ($this->getParentName()) return get_defined_vars();
+		?>	<?php
 		return get_defined_vars();
 	}
 
 
-	public function blockTest(array $__args): void
+	function blockTest($_args)
 	{
-		extract($this->params);
-		extract($__args);
-		echo '	Parent: ';
-		echo LR\Filters::escapeHtmlText(basename($this->getReferringTemplate()->getName())) /* line 3 */;
-		echo '/';
-		echo LR\Filters::escapeHtmlText($this->getReferenceType()) /* line 3 */;
-		echo "\n";
+		extract($_args);
+		?>	Parent: <?php echo LR\Filters::escapeHtmlText(basename($this->getReferringTemplate()->getName())) /* line 3 */ ?>/<?php
+		echo LR\Filters::escapeHtmlText($this->getReferenceType()) /* line 3 */ ?>
+
+<?php
 	}
 
 }

@@ -1,42 +1,37 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const CONTENT_TYPE = 'ical';
+	public $contentType = 'ical';
 
 
-	public function main(): array
+	function main()
 	{
 		extract($this->params);
-		if (empty($this->global->coreCaptured) && in_array($this->getReferenceType(), ["extends", null], true)) {
-			header('Content-Type: text/calendar; charset=utf-8');
-		}
+		if (empty($this->global->coreCaptured) && in_array($this->getReferenceType(), ["extends", null], true)) header('Content-Type: text/calendar; charset=utf-8');
 		$start = '2011-06-06';
 		$end = '2011-06-07';
 		$info = "Hello \"hello\", \nWorld";
-		echo 'BEGIN:VCALENDAR
+?>
+BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//example.org//iCal 4.0.3//CS
 METHOD:PUBLISH
 BEGIN:VEVENT
-DTSTAMP:';
-		echo LR\Filters::escapeIcal(($this->filters->date)($start, 'Ymd\THis')) /* line 8 */;
-		echo '
-DTSTART;TZID=Europe/Prague:';
-		echo LR\Filters::escapeIcal(($this->filters->date)($start, 'Ymd\THis')) /* line 9 */;
-		echo '
-DTEND;TZID=Europe/Prague:';
-		echo LR\Filters::escapeIcal(($this->filters->date)($end, 'Ymd\THis')) /* line 10 */;
-		echo '
-SUMMARY;LANGUAGE=cs:';
-		echo LR\Filters::escapeIcal($info) /* line 11 */;
-		echo '
+DTSTAMP:<?php echo LR\Filters::escapeIcal(($this->filters->date)($start, 'Ymd\THis')) /* line 8 */ ?>
+
+DTSTART;TZID=Europe/Prague:<?php echo LR\Filters::escapeIcal(($this->filters->date)($start, 'Ymd\THis')) /* line 9 */ ?>
+
+DTEND;TZID=Europe/Prague:<?php echo LR\Filters::escapeIcal(($this->filters->date)($end, 'Ymd\THis')) /* line 10 */ ?>
+
+SUMMARY;LANGUAGE=cs:<?php echo LR\Filters::escapeIcal($info) /* line 11 */ ?>
+
 DESCRIPTION:
 CLASS:PUBLIC
 END:VEVENT
 END:VCALENDAR
-';
+<?php
 		return get_defined_vars();
 	}
 

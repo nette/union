@@ -21,7 +21,7 @@ Assert::match(
 );
 
 Assert::match(
-	'<script>"<\/" "]]\u003E" "\u003C!"',
+	'<script>"<\/" "]]\x3E" "\x3C!"',
 	$latte->renderToString('<script>{="</"} {="]]>"} {="<!"}')
 );
 
@@ -64,11 +64,6 @@ Assert::match(
 );
 
 Assert::match(
-	'<script type="module">"<>"',
-	$latte->renderToString('<script type="module">{="<>"}')
-);
-
-Assert::match(
 	'<script type="application/json">{ foo:"<>" }',
 	$latte->renderToString('<script type="application/json">{ foo:{="<>"} }')
 );
@@ -79,8 +74,7 @@ Assert::match(
 );
 
 // content of <script> is RAWTEXT
-Assert::match(
-	'
+Assert::match('
 	<script type="text/html">
 	<div n:foreach="[a, b] as $i">def</div>
 	</script>
@@ -97,8 +91,7 @@ Assert::match(
 );
 
 // content of <script> changed to html
-Assert::match(
-	'
+Assert::match('
 	<script type="text/html">
 	<div>a</div>
 	<div>b</div>

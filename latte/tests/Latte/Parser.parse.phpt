@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Token;
+use Latte\Token;
 use Tester\Assert;
 
 
@@ -15,7 +15,7 @@ require __DIR__ . '/../bootstrap.php';
 
 function parse($s)
 {
-	$parser = new \Latte\Compiler\Parser;
+	$parser = new Latte\Parser;
 	return array_map(function (Token $token) {
 		return array_filter([$token->type, $token->text, $token->name, $token->value]);
 	}, $parser->parse($s));
@@ -23,138 +23,138 @@ function parse($s)
 
 
 Assert::same([
-	[Token::TEXT, '<0>'],
+	['text', '<0>'],
 ], parse('<0>'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<x:-._', 'x:-._'],
-	[Token::HTML_TAG_END, '>'],
+	['htmlTagBegin', '<x:-._', 'x:-._'],
+	['htmlTagEnd', '>'],
 ], parse('<x:-._>'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<?'],
-	[Token::TEXT, 'xml encoding="'],
-	[Token::MACRO_TAG, '{$enc}', '=', '$enc'],
-	[Token::TEXT, '" ?'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, 'text'],
+	['htmlTagBegin', '<?'],
+	['text', 'xml encoding="'],
+	['macroTag', '{$enc}', '=', '$enc'],
+	['text', '" ?'],
+	['htmlTagEnd', '>'],
+	['text', 'text'],
 ], parse('<?xml encoding="{$enc}" ?>text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<?'],
-	[Token::TEXT, 'php $abc ?'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, 'text'],
+	['htmlTagBegin', '<?'],
+	['text', 'php $abc ?'],
+	['htmlTagEnd', '>'],
+	['text', 'text'],
 ], parse('<?php $abc ?>text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<?'],
-	[Token::TEXT, '= $abc ?'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, 'text'],
+	['htmlTagBegin', '<?'],
+	['text', '= $abc ?'],
+	['htmlTagEnd', '>'],
+	['text', 'text'],
 ], parse('<?= $abc ?>text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<?'],
-	[Token::TEXT, 'bogus'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, 'text'],
+	['htmlTagBegin', '<?'],
+	['text', 'bogus'],
+	['htmlTagEnd', '>'],
+	['text', 'text'],
 ], parse('<?bogus>text'));
 
 Assert::same([
-	[Token::MACRO_TAG, '{contentType xml}', 'contentType', 'xml'],
-	[Token::HTML_TAG_BEGIN, '<?'],
-	[Token::TEXT, 'bogus>text'],
+	['macroTag', '{contentType xml}', 'contentType', 'xml'],
+	['htmlTagBegin', '<?'],
+	['text', 'bogus>text'],
 ], parse('{contentType xml}<?bogus>text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<!'],
-	[Token::TEXT, 'doctype html'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, 'text'],
+	['htmlTagBegin', '<!'],
+	['text', 'doctype html'],
+	['htmlTagEnd', '>'],
+	['text', 'text'],
 ], parse('<!doctype html>text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<!'],
-	[Token::TEXT, '--'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, ' text> --> text'],
+	['htmlTagBegin', '<!'],
+	['text', '--'],
+	['htmlTagEnd', '>'],
+	['text', ' text> --> text'],
 ], parse('<!--> text> --> text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<!--'],
-	[Token::TEXT, ' text> '],
-	[Token::HTML_TAG_END, '-->'],
-	[Token::TEXT, ' text'],
+	['htmlTagBegin', '<!--'],
+	['text', ' text> '],
+	['htmlTagEnd', '-->'],
+	['text', ' text'],
 ], parse('<!-- text> --> text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<!'],
-	[Token::TEXT, 'bogus'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, 'text'],
+	['htmlTagBegin', '<!'],
+	['text', 'bogus'],
+	['htmlTagEnd', '>'],
+	['text', 'text'],
 ], parse('<!bogus>text'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<div', 'div'],
-	[Token::COMMENT, ' n:syntax="off"', 'n:syntax', 'off'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::HTML_TAG_BEGIN, '<div', 'div'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, '{foo}'],
-	[Token::HTML_TAG_BEGIN, '</div', 'div'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::TEXT, '{bar}'],
-	[Token::HTML_TAG_BEGIN, '</div', 'div'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::MACRO_TAG, '{lorem}', 'lorem'],
+	['htmlTagBegin', '<div', 'div'],
+	['comment', ' n:syntax="off"', 'n:syntax', 'off'],
+	['htmlTagEnd', '>'],
+	['htmlTagBegin', '<div', 'div'],
+	['htmlTagEnd', '>'],
+	['text', '{foo}'],
+	['htmlTagBegin', '</div', 'div'],
+	['htmlTagEnd', '>'],
+	['text', '{bar}'],
+	['htmlTagBegin', '</div', 'div'],
+	['htmlTagEnd', '>'],
+	['macroTag', '{lorem}', 'lorem'],
 ], parse('<div n:syntax="off"><div>{foo}</div>{bar}</div>{lorem}'));
 
 // html attributes
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<div', 'div'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' a', 'a'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' b', 'b'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' c = d', 'c', 'd'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' e = "', 'e', '"'],
-	[Token::TEXT, 'f'],
-	[Token::HTML_ATTRIBUTE_END, '"'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' g', 'g'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::HTML_TAG_BEGIN, '</div', 'div'],
-	[Token::HTML_TAG_END, '>'],
+	['htmlTagBegin', '<div', 'div'],
+	['htmlAttributeBegin', ' a', 'a'],
+	['htmlAttributeBegin', ' b', 'b'],
+	['htmlAttributeBegin', ' c = d', 'c', 'd'],
+	['htmlAttributeBegin', ' e = "', 'e', '"'],
+	['text', 'f'],
+	['htmlAttributeEnd', '"'],
+	['htmlAttributeBegin', ' g', 'g'],
+	['htmlTagEnd', '>'],
+	['htmlTagBegin', '</div', 'div'],
+	['htmlTagEnd', '>'],
 ], parse('<div a b c = d e = "f" g></div>'));
 
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<div', 'div'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' a', 'a'],
-	[Token::TEXT, ' '],
-	[Token::MACRO_TAG, '{b}', 'b'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' c', 'c'],
-	[Token::TEXT, ' = '],
-	[Token::MACRO_TAG, '{d}', 'd'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' e = a', 'e', 'a'],
-	[Token::MACRO_TAG, '{b}', 'b'],
-	[Token::HTML_ATTRIBUTE_BEGIN, 'c', 'c'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' f = "', 'f', '"'],
-	[Token::TEXT, 'a'],
-	[Token::MACRO_TAG, '{b}', 'b'],
-	[Token::TEXT, 'c'],
-	[Token::HTML_ATTRIBUTE_END, '"'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::HTML_TAG_BEGIN, '</div', 'div'],
-	[Token::HTML_TAG_END, '>'],
+	['htmlTagBegin', '<div', 'div'],
+	['htmlAttributeBegin', ' a', 'a'],
+	['text', ' '],
+	['macroTag', '{b}', 'b'],
+	['htmlAttributeBegin', ' c', 'c'],
+	['text', ' = '],
+	['macroTag', '{d}', 'd'],
+	['htmlAttributeBegin', ' e = a', 'e', 'a'],
+	['macroTag', '{b}', 'b'],
+	['htmlAttributeBegin', 'c', 'c'],
+	['htmlAttributeBegin', ' f = "', 'f', '"'],
+	['text', 'a'],
+	['macroTag', '{b}', 'b'],
+	['text', 'c'],
+	['htmlAttributeEnd', '"'],
+	['htmlTagEnd', '>'],
+	['htmlTagBegin', '</div', 'div'],
+	['htmlTagEnd', '>'],
 ], parse('<div a {b} c = {d} e = a{b}c f = "a{b}c"></div>'));
 
 // macro attributes
 Assert::same([
-	[Token::HTML_TAG_BEGIN, '<div', 'div'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' n:a', 'n:a'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' n:b', 'n:b'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' n:c = d', 'n:c', 'd'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' n:e = "f"', 'n:e', 'f'],
-	[Token::HTML_ATTRIBUTE_BEGIN, ' n:g', 'n:g'],
-	[Token::HTML_TAG_END, '>'],
-	[Token::HTML_TAG_BEGIN, '</div', 'div'],
-	[Token::HTML_TAG_END, '>'],
+	['htmlTagBegin', '<div', 'div'],
+	['htmlAttributeBegin', ' n:a', 'n:a'],
+	['htmlAttributeBegin', ' n:b', 'n:b'],
+	['htmlAttributeBegin', ' n:c = d', 'n:c', 'd'],
+	['htmlAttributeBegin', ' n:e = "f"', 'n:e', 'f'],
+	['htmlAttributeBegin', ' n:g', 'n:g'],
+	['htmlTagEnd', '>'],
+	['htmlTagBegin', '</div', 'div'],
+	['htmlTagEnd', '>'],
 ], parse('<div n:a n:b n:c = d n:e = "f" n:g></div>'));

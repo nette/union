@@ -1,55 +1,38 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const CONTENT_TYPE = 'xml';
+	public $contentType = 'xml';
 
 
-	public function main(): array
+	function main()
 	{
 		extract($this->params);
-		if (empty($this->global->coreCaptured) && in_array($this->getReferenceType(), ["extends", null], true)) {
-			header('Content-Type: application/xml; charset=utf-8');
-		}
-		echo '<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/css" href="';
-		echo LR\Filters::escapeXml($id) /* line 3 */;
-		echo '"?>
+		if (empty($this->global->coreCaptured) && in_array($this->getReferenceType(), ["extends", null], true)) header('Content-Type: application/xml; charset=utf-8');
+		?><<?php ?>?xml version="1.0" encoding="utf-8"?>
+<<?php ?>?xml-stylesheet type="text/css" href="<?php echo LR\Filters::escapeXml($id) /* line 3 */ ?>"?>
 
-<script>';
+<script><?php
 		if (1) {
-			echo '<meta />';
+			?><meta /><?php
 		}
-		echo '</script>
+?>
+</script>
 
 
 <ul>
-	<li>Escaped: ';
-		echo LR\Filters::escapeXml($hello) /* line 9 */;
-		echo '</li>
-	<li>Non-escaped: ';
-		echo $hello /* line 10 */;
-		echo '</li>
-	<li>Escaped expression: ';
-		echo LR\Filters::escapeXml('<' . 'b' . '>hello' . '</b>') /* line 11 */;
-		echo '</li>
-	<li>Non-escaped expression: ';
-		echo '<' . 'b' . '>hello' . '</b>' /* line 12 */;
-		echo '</li>
-	<li>Array access: ';
-		echo LR\Filters::escapeXml($people[1]) /* line 13 */;
-		echo '</li>
-	<li>Html: ';
-		echo LR\Filters::escapeXml($el) /* line 14 */;
-		echo '</li>
+	<li>Escaped: <?php echo LR\Filters::escapeXml($hello) /* line 9 */ ?></li>
+	<li>Non-escaped: <?php echo $hello /* line 10 */ ?></li>
+	<li>Escaped expression: <?php echo LR\Filters::escapeXml('<' . 'b' . '>hello' . '</b>') /* line 11 */ ?></li>
+	<li>Non-escaped expression: <?php echo '<' . 'b' . '>hello' . '</b>' /* line 12 */ ?></li>
+	<li>Array access: <?php echo LR\Filters::escapeXml($people[1]) /* line 13 */ ?></li>
+	<li>Html: <?php echo LR\Filters::escapeXml($el) /* line 14 */ ?></li>
 </ul>
 
 <style type="text/css">
 <!--
-#';
-		echo LR\Filters::escapeHtmlComment($id) /* line 19 */;
-		echo ' {
+#<?php echo LR\Filters::escapeHtmlComment($id) /* line 19 */ ?> {
 	background: blue;
 }
 -->
@@ -58,97 +41,73 @@ final class Template%a% extends Latte\Runtime\Template
 
 <script>
 <!--
-var html = ';
-		echo LR\Filters::escapeHtmlComment($el) /* line 28 */;
-		echo ';
+var html = <?php echo LR\Filters::escapeHtmlComment($el) /* line 28 */ ?>;
 -->
 </script>
 
 
 <p onclick =
-\'alert(';
-		echo LR\Filters::escapeXml($id) /* line 34 */;
-		echo ');alert("hello");\'
- title=\'';
-		echo LR\Filters::escapeXml($id) /* line 35 */;
-		echo '"\'
+'alert(<?php echo LR\Filters::escapeXml($id) /* line 34 */ ?>);alert("hello");'
+ title='<?php echo LR\Filters::escapeXml($id) /* line 35 */ ?>"'
  style =
- "color:';
-		echo LR\Filters::escapeXml($id) /* line 37 */;
-		echo ';\'"
- alt=\'';
-		echo LR\Filters::escapeXml($el) /* line 38 */;
-		echo '\'
- onfocus="alert(';
-		echo LR\Filters::escapeXml($el) /* line 39 */;
-		echo ')"
+ "color:<?php echo LR\Filters::escapeXml($id) /* line 37 */ ?>;'"
+ alt='<?php echo LR\Filters::escapeXml($el) /* line 38 */ ?>'
+ onfocus="alert(<?php echo LR\Filters::escapeXml($el) /* line 39 */ ?>)"
 >click on me</p>
 
 
-<!-- ';
-		echo LR\Filters::escapeHtmlComment($comment) /* line 43 */;
-		echo ' -->
+<!-- <?php echo LR\Filters::escapeHtmlComment($comment) /* line 43 */ ?> -->
 
 
 </ul>
 
 
 <ul>
-';
+<?php
 		$iterations = 0;
 		foreach ($people as $person) {
-			echo '	<li>';
-			echo LR\Filters::escapeXml($person) /* line 50 */;
-			echo '</li>
-';
+			?>	<li><?php echo LR\Filters::escapeXml($person) /* line 50 */ ?></li>
+<?php
 			$iterations++;
 		}
-		echo '</ul>
+?>
+</ul>
 
-';
+<?php
 		if (true) {
-			echo '<p>
+?><p>
 	<div><p>true</div>
 </p>
-';
+<?php
 		}
-		echo '
+?>
+
 <input/> <input />
 
-<p val = ';
+<p val = <?php
 		if (true) {
-			echo '"a"';
+			?>"a"<?php
 		}
 		else {
-			echo '"b"';
+			?>"b"<?php
 		}
-		echo '> </p>
+?>> </p>
 
-<p val = ';
-		echo LR\Filters::escapeXmlAttrUnquoted($xss) /* line 61 */;
-		echo ' val2=';
-		echo LR\Filters::escapeXmlAttrUnquoted($mxss) /* line 61 */;
-		echo '> </p>
+<p val = <?php echo LR\Filters::escapeXmlAttrUnquoted($xss) /* line 61 */ ?> val2=<?php echo LR\Filters::escapeXmlAttrUnquoted($mxss) /* line 61 */ ?>> </p>
 
-<p onclick = ';
-		echo LR\Filters::escapeXmlAttrUnquoted($xss) /* line 63 */;
-		echo '> </p>
+<p onclick = <?php echo LR\Filters::escapeXmlAttrUnquoted($xss) /* line 63 */ ?>> </p>
 
-<p val = />';
-		echo LR\Filters::escapeXml($xss) /* line 65 */;
-		echo '</p>
-';
+<p val = /><?php echo LR\Filters::escapeXml($xss) /* line 65 */ ?></p>
+<?php
 		return get_defined_vars();
 	}
 
 
-	public function prepare(): void
+	function prepare()
 	{
 		extract($this->params);
 		if (!$this->getReferringTemplate() || $this->getReferenceType() === "extends") {
-			foreach (array_intersect_key(['person' => '50'], $this->params) as $__v => $__l) {
-				trigger_error("Variable \$$__v overwritten in foreach on line $__l");
-			}
+			if (isset($this->params['person'])) trigger_error('Variable $person overwritten in foreach on line 50');
 		}
 
 	}

@@ -12,7 +12,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$parser = new \Latte\Compiler\Parser;
+$parser = new Latte\Parser;
 
 
 Assert::same(['?', 'echo', '', false, false], $parser->parseMacroTag('? echo'));
@@ -27,7 +27,6 @@ Assert::same(['=', '$var', '|noescape', false, false], $parser->parseMacroTag('$
 Assert::same(['=', '$var', '|noescape', true, false], $parser->parseMacroTag('$var|noescape/'));
 Assert::same(['=', '$var||false', '', false, false], $parser->parseMacroTag('$var||false'));
 Assert::same(['_', '"I love Nette"', '|noescape', false, false], $parser->parseMacroTag('_"I love Nette"|noescape'));
-Assert::same(['=', '__("I love Nette")', '|noescape', false, false], $parser->parseMacroTag('__("I love Nette")|noescape'));
 Assert::same(['_', '$var', '', false, false], $parser->parseMacroTag('_$var'));
 Assert::same(['_', '$var', '', false, false], $parser->parseMacroTag('_ $var'));
 Assert::same(['_', '', '', false, false], $parser->parseMacroTag('_'));
@@ -38,13 +37,7 @@ Assert::same(['=', '$var', '', false, false], $parser->parseMacroTag('= $var'));
 Assert::same(['=', 'function()', '', false, false], $parser->parseMacroTag('function()'));
 Assert::same(['=', 'md5()', '', false, false], $parser->parseMacroTag('md5()'));
 Assert::same(['foo:bar', '', '', false, false], $parser->parseMacroTag('foo:bar'));
-Assert::same(['foo-bar', '', '', false, false], $parser->parseMacroTag('foo-bar'));
-Assert::same(['foo.bar', '', '', false, false], $parser->parseMacroTag('foo.bar'));
 Assert::same(['=', ':bar', '', false, false], $parser->parseMacroTag(':bar'));
-Assert::same(['=', '-bar', '', false, false], $parser->parseMacroTag('-bar'));
-Assert::same(['=', '.bar', '', false, false], $parser->parseMacroTag('.bar'));
-Assert::same(['foo', '..bar', '', false, false], $parser->parseMacroTag('foo..bar'));
-Assert::same(['foo', '--bar', '', false, false], $parser->parseMacroTag('foo--bar'));
 Assert::same(['=', 'class::member', '', false, false], $parser->parseMacroTag('class::member'));
 Assert::same(['=', 'Namespace\Class::member()', '', false, false], $parser->parseMacroTag('Namespace\Class::member()'));
 Assert::same(['Link', '$var', '', false, false], $parser->parseMacroTag('Link $var'));

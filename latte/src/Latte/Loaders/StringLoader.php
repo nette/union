@@ -15,17 +15,14 @@ use Latte;
 /**
  * Template loader.
  */
-class StringLoader implements Latte\Loader
+class StringLoader implements Latte\ILoader
 {
 	use Latte\Strict;
 
-	/** @var string[]|null  [name => content] */
+	/** @var array|null [name => content] */
 	private $templates;
 
 
-	/**
-	 * @param  string[]  $templates
-	 */
 	public function __construct(array $templates = null)
 	{
 		$this->templates = $templates;
@@ -42,7 +39,7 @@ class StringLoader implements Latte\Loader
 		} elseif (isset($this->templates[$name])) {
 			return $this->templates[$name];
 		} else {
-			throw new Latte\RuntimeException("Missing template '$name'.");
+			throw new \RuntimeException("Missing template '$name'.");
 		}
 	}
 

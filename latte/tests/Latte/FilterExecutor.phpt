@@ -30,8 +30,11 @@ class MyFilter
 }
 
 
-test('', function () {
+test(function () {
 	$filters = new FilterExecutor;
+
+	Assert::true(count($filters->getAll()) > 28);
+	Assert::same('upper', $filters->getAll()['upper']);
 
 	$filters->add('f1', 'strtoupper');
 	Assert::same('strtoupper', $filters->f1);
@@ -53,11 +56,11 @@ test('', function () {
 
 	Assert::exception(function () use ($filters) {
 		($filters->h3)('');
-	}, LogicException::class, "Filter 'h3' is not defined, did you mean 'f3'?");
+	}, 'LogicException', "Filter 'h3' is not defined, did you mean 'f3'?");
 });
 
 
-test('', function () {
+test(function () {
 	$filters = new FilterExecutor;
 	$filters->add(null, function ($name, $val) {
 		return implode(',', func_get_args());
@@ -75,7 +78,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$filters = new FilterExecutor;
 	$filters->add(null, function ($name, $val) use ($filters) {
 		if ($name === 'dynamic') {
@@ -89,11 +92,11 @@ test('', function () {
 
 	Assert::exception(function () use ($filters) {
 		($filters->unknown)('');
-	}, LogicException::class, "Filter 'unknown' is not defined.");
+	}, 'LogicException', "Filter 'unknown' is not defined.");
 });
 
 
-test('', function () {
+test(function () {
 	$filters = new FilterExecutor;
 
 	// FilterInfo aware called as classic
@@ -127,7 +130,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$filters = new FilterExecutor;
 
 	// FilterInfo aware called as classic with Latte\Runtime\Html

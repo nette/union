@@ -39,7 +39,6 @@ $template = <<<'EOD'
 
 {block "strip$name"|striptags}<span>hello</span>{/block}
 
-{block rand() < 5 ? a : b} expression {/block}
 EOD;
 
 Assert::matchFile(

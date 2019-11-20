@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Macro;
-use Latte\Compiler\MacroNode;
+use Latte\IMacro;
+use Latte\MacroNode;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-class TestMacro implements Macro
+class TestMacro implements IMacro
 {
 	public function initialize()
 	{
@@ -49,7 +49,7 @@ $latte->addMacro('one', new TestMacro);
 
 
 Assert::match(
-	'%A%opening%A%',
+	'%A%opening<?%A%',
 	$latte->compile('{one}')
 );
 
@@ -59,14 +59,14 @@ Assert::match(
 );
 
 Assert::match(
-	'%A%opening<div attr>@</div>%A%',
+	'%A%opening<div attr>@</div><?%A%',
 	$latte->compile('<div n:one>@</div>')
 );
 
 Assert::exception(function () use ($latte) {
 	$latte->compile('<div n:inner-one>@</div>');
-}, Latte\CompileException::class, 'Unexpected prefix in n:inner-one.');
+}, Latte\CompileException::class, 'Unable to use empty macro as n:inner-one.');
 
 Assert::exception(function () use ($latte) {
 	$latte->compile('<div n:tag-one>@</div>');
-}, Latte\CompileException::class, 'Unexpected prefix in n:tag-one.');
+}, Latte\CompileException::class, 'Unable to use empty macro as n:tag-one.');

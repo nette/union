@@ -62,25 +62,11 @@ Assert::exception(function () use ($latte) {
 
 
 Assert::match(
-	<<<'XX'
-%A%
-		ob_start(function () {});
-		echo '<div class="bar" ';
-		if (isset($id)) {
-			echo 'id="content"';
-		}
-		echo '>';
+	'%A%
 		ob_start();
-		$__ifc = ob_get_flush();
-		echo '</div>';
-		if (rtrim($__ifc) === "") {
-			ob_end_clean();
-		}
-		else {
-			echo ob_get_clean();
-		}
-%A%
-XX
-,
+		$this->global->ifcontent = ob_get_flush();
+		?></div><?php
+		if (rtrim($this->global->ifcontent) === "") ob_end_clean();
+		else echo ob_get_clean();%A%',
 	$latte->compile('<div class="bar" {ifset $id}id="content"{/ifset} n:ifcontent></div>')
 );

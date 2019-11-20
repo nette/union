@@ -1,18 +1,14 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
 
-	public function main(): array
+	function main()
 	{
 %A%
-		echo '<p>Included file #3 (';
-		echo LR\Filters::escapeHtmlText($localvar) /* line 1 */;
-		echo ', ';
-		echo LR\Filters::escapeHtmlText($hello) /* line 1 */;
-		echo ')</p>
-';
+		?><p>Included file #3 (<?php echo LR\Filters::escapeHtmlText($localvar) /* line 1 */ ?>, <?php echo LR\Filters::escapeHtmlText($hello) /* line 1 */ ?>)</p>
+<?php
 %A%
 	}
 

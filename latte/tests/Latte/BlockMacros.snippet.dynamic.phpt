@@ -29,19 +29,3 @@ Assert::matchFile(
 	__DIR__ . '/expected/BlockMacros.snippet.dynamic.phtml',
 	$latte->compile($template)
 );
-
-
-$template = <<<'EOD'
-	{snippet outer}
-	{foreach array(1,2,3) as $id}
-		{snippet 'inner-' . $id}
-				#{$id}
-		{/snippet}
-	{/foreach}
-	{/snippet outer}
-EOD;
-
-Assert::matchFile(
-	__DIR__ . '/expected/BlockMacros.snippet.dynamic2.phtml',
-	$latte->compile($template)
-);

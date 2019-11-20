@@ -1,71 +1,75 @@
 <?php
 %A%
 
-final class Template%a% extends Latte\Runtime\Template
+class Template%a% extends Latte\Runtime\Template
 {
-	protected const BLOCKS = [
-		['content' => 'blockContent', 'title' => 'blockTitle', 'sidebar' => 'blockSidebar'],
+	public $blocks = [
+		'content' => 'blockContent',
+		'title' => 'blockTitle',
+		'sidebar' => 'blockSidebar',
+	];
+
+	public $blockTypes = [
+		'content' => 'html',
+		'title' => 'html',
+		'sidebar' => 'html',
 	];
 
 
-	public function main(): array
+	function main()
 	{
 %A%
-		if ($this->getParentName()) {
-			return get_defined_vars();
-		}
+<?php
+		if ($this->getParentName()) return get_defined_vars();
 		$this->renderBlock('content', get_defined_vars());
-		echo '
+?>
 
-';
+<?php
 		$this->renderBlock('sidebar', get_defined_vars());
+		?>	<?php
 %A%
 	}
 
 
-	public function prepare(): void
+	function prepare()
 	{
 		extract($this->params);
 		if (!$this->getReferringTemplate() || $this->getReferenceType() === "extends") {
-			foreach (array_intersect_key(['person' => '8'], $this->params) as $__v => $__l) {
-				trigger_error("Variable \$$__v overwritten in foreach on line $__l");
-			}
+			if (isset($this->params['person'])) trigger_error('Variable $person overwritten in foreach on line 8');
 		}
 		$this->parentName = "parent";
 
 	}
 
 
-	public function blockContent(array $__args): void
+	function blockContent($_args)
 	{
-		extract($this->params);
-		extract($__args);
-		echo '	<h1>';
+		extract($_args);
+		?>	<h1><?php
 		$this->renderBlock('title', get_defined_vars());
-		echo '</h1>
+?></h1>
 
 	<ul>
-';
+<?php
 		$iterations = 0;
 		foreach ($people as $person) {
-			echo '		<li>';
-			echo LR\Filters::escapeHtmlText($person) /* line 9 */;
-			echo '</li>
-';
+			?>		<li><?php echo LR\Filters::escapeHtmlText($person) /* line 9 */ ?></li>
+<?php
 			$iterations++;
 		}
-		echo '	</ul>
-';
+?>
+	</ul>
+<?php
 	}
 
 
-	public function blockTitle(array $__args): void
+	function blockTitle($_args)
 	{
-		echo 'Homepage ';
+		?>Homepage <?php
 	}
 
 
-	public function blockSidebar(array $__args): void
+	function blockSidebar($_args)
 	{
 
 	}

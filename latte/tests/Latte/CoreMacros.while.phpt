@@ -26,13 +26,6 @@ $template = <<<'EOD'
 	{$i}
 {/while $i++ < 10}
 
-
-{while $i++ < 10}
-	{breakIf true}
-	{continueIf true}
-	{$i}
-{/while}
-
 EOD;
 
 Assert::matchFile(

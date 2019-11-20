@@ -7,9 +7,7 @@
 
 declare(strict_types=1);
 
-namespace Latte\Compiler;
-
-use Latte\Strict;
+namespace Latte;
 
 
 /**
@@ -20,15 +18,15 @@ class Token
 	use Strict;
 
 	public const
-		TEXT = 1,
-		MACRO_TAG = 2, // latte macro tag
-		HTML_TAG_BEGIN = 3, // begin of HTML tag or comment
-		HTML_TAG_END = 4, // end of HTML tag or comment
-		HTML_ATTRIBUTE_BEGIN = 5,
-		HTML_ATTRIBUTE_END = 6,
-		COMMENT = 7; // latte comment
+		TEXT = 'text',
+		MACRO_TAG = 'macroTag', // latte macro tag
+		HTML_TAG_BEGIN = 'htmlTagBegin', // begin of HTML tag or comment
+		HTML_TAG_END = 'htmlTagEnd', // end of HTML tag or comment
+		HTML_ATTRIBUTE_BEGIN = 'htmlAttributeBegin',
+		HTML_ATTRIBUTE_END = 'htmlAttributeEnd',
+		COMMENT = 'comment'; // latte comment
 
-	/** @var int  token type [TEXT | MACRO_TAG | HTML_TAG_BEGIN | HTML_TAG_END | HTML_ATTRIBUTE_BEGIN | HTML_ATTRIBUTE_END | COMMENT] */
+	/** @var string  token type [TEXT | MACRO_TAG | HTML_TAG_BEGIN | HTML_TAG_END | HTML_ATTRIBUTE_BEGIN | HTML_ATTRIBUTE_END | COMMENT] */
 	public $type;
 
 	/** @var string  original text content of the token */

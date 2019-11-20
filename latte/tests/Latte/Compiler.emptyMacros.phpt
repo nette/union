@@ -6,12 +6,12 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Compiler;
-use Latte\Compiler\MacroNode;
-use Latte\Compiler\PhpWriter;
+use Latte\Compiler;
 use Latte\Engine;
 use Latte\Loaders\StringLoader;
+use Latte\MacroNode;
 use Latte\Macros\MacroSet;
+use Latte\PhpWriter;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
@@ -24,21 +24,23 @@ class EnhancedEngine extends Engine
 	public function getCompiler(): Compiler
 	{
 		if (!$this->compiler) {
-			$this->compiler = new Compiler;
+			$this->compiler = new Compiler();
 		}
 
 		return $this->compiler;
 	}
 }
 
-test('With no macros', function () {
-	$latte = new EnhancedEngine;
+// With no macros
+test(function () {
+	$latte = new EnhancedEngine();
 	$latte->setLoader(new StringLoader);
 	Assert::equal('foo', $latte->renderToString('foo'));
 });
 
-test('With {=} macro', function () {
-	$latte = new EnhancedEngine;
+// With {=} macro
+test(function () {
+	$latte = new EnhancedEngine();
 	$latte->setLoader(new StringLoader);
 	$set = new MacroSet($latte->getCompiler());
 	$set->addMacro('=', function (MacroNode $node, PhpWriter $writer) {

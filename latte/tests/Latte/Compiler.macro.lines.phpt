@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Latte\Compiler\Macro;
-use Latte\Compiler\MacroNode;
+use Latte\IMacro;
+use Latte\MacroNode;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-class TestMacro implements Macro
+class TestMacro implements IMacro
 {
 	public $empty = true;
 
@@ -80,7 +80,7 @@ Assert::match(
 	$latte->compile('
 		{one}
 
-		{/one
+		{/
 		}')
 );
 
