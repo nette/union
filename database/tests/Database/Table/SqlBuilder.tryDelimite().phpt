@@ -12,7 +12,7 @@ use Tester\Assert;
 require __DIR__ . '/../connect.inc.php'; // create $connection
 
 
-$sqlBuilder = new Nette\Database\Table\SqlBuilder('book', $explorer);
+$sqlBuilder = new Nette\Database\Table\SqlBuilder('book', $context);
 $tryDelimite = (new ReflectionClass($sqlBuilder))->getMethod('tryDelimite');
 $tryDelimite->setAccessible(true);
 

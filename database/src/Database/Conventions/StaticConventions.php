@@ -10,13 +10,13 @@ declare(strict_types=1);
 namespace Nette\Database\Conventions;
 
 use Nette;
-use Nette\Database\Conventions;
+use Nette\Database\IConventions;
 
 
 /**
  * Conventions based on static definition.
  */
-class StaticConventions implements Conventions
+class StaticConventions implements IConventions
 {
 	use Nette\SmartObject;
 
@@ -72,10 +72,7 @@ class StaticConventions implements Conventions
 
 	protected function getColumnFromTable(string $name): string
 	{
-		if (
-			$this->table !== '%s'
-			&& preg_match('(^' . str_replace('%s', '(.*)', preg_quote($this->table)) . '$)D', $name, $match)
-		) {
+		if ($this->table !== '%s' && preg_match('(^' . str_replace('%s', '(.*)', preg_quote($this->table)) . '$)D', $name, $match)) {
 			return $match[1];
 		}
 

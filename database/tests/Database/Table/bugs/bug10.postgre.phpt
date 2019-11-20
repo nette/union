@@ -10,9 +10,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../connect.inc.php';
 
-$explorer->query('DROP SCHEMA IF EXISTS public CASCADE');
-$explorer->query('CREATE SCHEMA public');
-$explorer->query('
+$context->query('DROP SCHEMA IF EXISTS public CASCADE');
+$context->query('CREATE SCHEMA public');
+$context->query('
 	CREATE TABLE "public"."Bug10" (
 		"Bug10CaseProblem" serial,
 		"D1" integer,
@@ -20,7 +20,7 @@ $explorer->query('
 	)
 ');
 
-$result = $explorer->table('Bug10')->insert([
+$result = $context->table('Bug10')->insert([
 	'D1' => 123,
 ]);
 

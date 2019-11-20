@@ -15,7 +15,7 @@ use Nette;
 /**
  * Supplemental ODBC database driver.
  */
-class OdbcDriver implements Nette\Database\Driver
+class OdbcDriver implements Nette\Database\ISupplementalDriver
 {
 	use Nette\SmartObject;
 

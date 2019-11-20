@@ -19,26 +19,18 @@ class SqlPreprocessor
 {
 	use Nette\SmartObject;
 
-	private const
-		MODE_AND = 'and',       // (key [operator] value) AND ...
-		MODE_OR = 'or',         // (key [operator] value) OR ...
-		MODE_SET = 'set',       // key=value, key=value, ...
-		MODE_VALUES = 'values', // (key, key, ...) VALUES (value, value, ...)
-		MODE_ORDER = 'order',   // key, key DESC, ...
-		MODE_LIST = 'list',     // value, value, ...  |  (tuple), (tuple), ...
-		MODE_AUTO = 'auto';     // arrayMode for arrays
-
-	private const MODES = [self::MODE_AND, self::MODE_OR, self::MODE_SET, self::MODE_VALUES, self::MODE_ORDER, self::MODE_LIST];
+	/** @var array */
+	private const MODE_LIST = ['and', 'or', 'set', 'values', 'order'];
 
 	private const ARRAY_MODES = [
-		'INSERT' => self::MODE_VALUES,
-		'REPLACE' => self::MODE_VALUES,
-		'KEY UPDATE' => self::MODE_SET,
-		'SET' => self::MODE_SET,
-		'WHERE' => self::MODE_AND,
-		'HAVING' => self::MODE_AND,
-		'ORDER BY' => self::MODE_ORDER,
-		'GROUP BY' => self::MODE_ORDER,
+		'INSERT' => 'values',
+		'REPLACE' => 'values',
+		'KEY UPDATE' => 'set',
+		'SET' => 'set',
+		'WHERE' => 'and',
+		'HAVING' => 'and',
+		'ORDER BY' => 'order',
+		'GROUP BY' => 'order',
 	];
 
 	private const PARAMETRIC_COMMANDS = [
@@ -53,7 +45,7 @@ class SqlPreprocessor
 	/** @var Connection */
 	private $connection;
 
-	/** @var Driver */
+	/** @var ISupplementalDriver */
 	private $driver;
 
 	/** @var array of input parameters */
@@ -68,14 +60,14 @@ class SqlPreprocessor
 	/** @var bool */
 	private $useParams;
 
-	/** @var string|null values|set|and|order|items */
+	/** @var string values|set|and|order */
 	private $arrayMode;
 
 
 	public function __construct(Connection $connection)
 	{
 		$this->connection = $connection;
-		$this->driver = $connection->getDriver();
+		$this->driver = $connection->getSupplementalDriver();
 	}
 
 
@@ -96,15 +88,16 @@ class SqlPreprocessor
 			$param = $params[$this->counter++];
 
 			if (($this->counter === 2 && count($params) === 2) || !is_scalar($param)) {
-				$res[] = $this->formatValue($param, self::MODE_AUTO);
+				$res[] = $this->formatValue($param, 'auto');
+				$this->arrayMode = null;
 
 			} elseif (is_string($param) && $this->counter > $prev + 1) {
 				$prev = $this->counter;
 				$this->arrayMode = null;
 				$res[] = Nette\Utils\Strings::replace(
 					$param,
-					'~\'[^\']*+\'|"[^"]*+"|\?[a-z]*|^\s*+(?:\(?\s*SELECT|INSERT|UPDATE|DELETE|REPLACE|EXPLAIN)\b|\b(?:SET|WHERE|HAVING|ORDER BY|GROUP BY|KEY UPDATE)(?=\s*$|\s*\?)|\bIN\s+(?:\?|\(\?\))|/\*.*?\*/|--[^\n]*~Dsi',
-					\Closure::fromCallable([$this, 'callback'])
+					'~\'[^\']*+\'|"[^"]*+"|\?[a-z]*|^\s*+(?:SELECT|INSERT|UPDATE|DELETE|REPLACE|EXPLAIN)\b|\b(?:SET|WHERE|HAVING|ORDER BY|GROUP BY|KEY UPDATE)(?=\s*$|\s*\?)|/\*.*?\*/|--[^\n]*~Dsi',
+					[$this, 'callback']
 				);
 			} else {
 				throw new Nette\InvalidArgumentException('There are more parameters than placeholders.');
@@ -115,26 +108,21 @@ class SqlPreprocessor
 	}
 
 
-	private function callback(array $m): string
+	/** @internal */
+	public function callback(array $m): string
 	{
 		$m = $m[0];
 		if ($m[0] === '?') { // placeholder
 			if ($this->counter >= count($this->params)) {
 				throw new Nette\InvalidArgumentException('There are more placeholders than passed parameters.');
 			}
-			return $this->formatValue($this->params[$this->counter++], substr($m, 1) ?: self::MODE_AUTO);
+			return $this->formatValue($this->params[$this->counter++], substr($m, 1) ?: 'auto');
 
 		} elseif ($m[0] === "'" || $m[0] === '"' || $m[0] === '/' || $m[0] === '-') { // string or comment
 			return $m;
 
-		} elseif (preg_match('~^IN\s~i', $m)) { // IN (?)
-			if ($this->counter >= count($this->params)) {
-				throw new Nette\InvalidArgumentException('There are more placeholders than passed parameters.');
-			}
-			return 'IN (' . $this->formatValue($this->params[$this->counter++], self::MODE_LIST) . ')';
-
 		} else { // command
-			$cmd = ltrim(strtoupper($m), "\t\n\r (");
+			$cmd = ltrim(strtoupper($m));
 			$this->arrayMode = self::ARRAY_MODES[$cmd] ?? null;
 			$this->useParams = isset(self::PARAMETRIC_COMMANDS[$cmd]) || $this->useParams;
 			return $m;
@@ -144,29 +132,22 @@ class SqlPreprocessor
 
 	private function formatValue($value, string $mode = null): string
 	{
-		if (!$mode || $mode === self::MODE_AUTO) {
+		if (!$mode || $mode === 'auto') {
 			if (is_scalar($value) || is_resource($value)) {
 				if ($this->useParams) {
 					$this->remaining[] = $value;
 					return '?';
-
-				} elseif (is_int($value) || is_bool($value)) {
-					return (string) (int) $value;
-
-				} elseif (is_float($value)) {
-					return rtrim(rtrim(number_format($value, 10, '.', ''), '0'), '.');
-
-				} elseif (is_resource($value)) {
-					return $this->connection->quote(stream_get_contents($value));
-
 				} else {
+					if (is_resource($value)) {
+						$value = stream_get_contents($value);
+					}
 					return $this->connection->quote((string) $value);
 				}
 
 			} elseif ($value === null) {
 				return 'NULL';
 
-			} elseif ($value instanceof Table\ActiveRow) {
+			} elseif ($value instanceof Table\IRow) {
 				$this->remaining[] = $value->getPrimary();
 				return '?';
 
@@ -195,20 +176,20 @@ class SqlPreprocessor
 			return $this->delimite($value);
 		}
 
-		if ($value instanceof \Traversable && !$value instanceof Table\ActiveRow) {
+		if ($value instanceof \Traversable && !$value instanceof Table\IRow) {
 			$value = iterator_to_array($value);
 		}
 
-		if ($mode && is_array($value)) {
+		if (is_array($value)) {
 			$vx = $kx = [];
-			if ($mode === self::MODE_AUTO) {
-				$mode = $this->arrayMode ?? self::MODE_LIST;
+			if ($mode === 'auto') {
+				$mode = $this->arrayMode;
 			}
 
-			if ($mode === self::MODE_VALUES) { // (key, key, ...) VALUES (value, value, ...)
+			if ($mode === 'values') { // (key, key, ...) VALUES (value, value, ...)
 				if (array_key_exists(0, $value)) { // multi-insert
-					if (!is_array($value[0]) && !$value[0] instanceof Row) {
-						throw new Nette\InvalidArgumentException('Automaticaly detected multi-insert, but values aren\'t array. If you need try to change mode like "?[' . implode('|', self::MODES) . ']". Mode "' . $mode . '" was used.');
+					if (!is_array($value[0])) {
+						throw new Nette\InvalidArgumentException('Automaticaly detected multi-insert, but values aren\'t array. If you need try to change mode like "?[' . implode('|', self::MODE_LIST) . ']". Mode "' . $mode . '" was used.');
 					}
 					foreach ($value[0] as $k => $v) {
 						$kx[] = $this->delimite($k);
@@ -220,7 +201,7 @@ class SqlPreprocessor
 						}
 						$vx[] = implode(', ', $vx2);
 					}
-					$select = $this->driver->isSupported(Driver::SUPPORT_MULTI_INSERT_AS_SELECT);
+					$select = $this->driver->isSupported(ISupplementalDriver::SUPPORT_MULTI_INSERT_AS_SELECT);
 					return '(' . implode(', ', $kx) . ($select ? ') SELECT ' : ') VALUES (')
 						. implode($select ? ' UNION ALL SELECT ' : '), (', $vx) . ($select ? '' : ')');
 				}
@@ -231,10 +212,10 @@ class SqlPreprocessor
 				}
 				return '(' . implode(', ', $kx) . ') VALUES (' . implode(', ', $vx) . ')';
 
-			} elseif ($mode === self::MODE_SET) {
+			} elseif (!$mode || $mode === 'set') {
 				foreach ($value as $k => $v) {
-					if (is_int($k)) { // value, value, ...
-						$vx[] = $this->formatValue($v);
+					if (is_int($k)) { // value, value, ... OR (1, 2), (3, 4)
+						$vx[] = is_array($v) ? '(' . $this->formatValue($v) . ')' : $this->formatValue($v);
 					} elseif (substr($k, -1) === '=') { // key+=value, key-=value, ...
 						$k2 = $this->delimite(substr($k, 0, -2));
 						$vx[] = $k2 . '=' . $k2 . ' ' . substr($k, -2, 1) . ' ' . $this->formatValue($v);
@@ -244,15 +225,7 @@ class SqlPreprocessor
 				}
 				return implode(', ', $vx);
 
-			} elseif ($mode === self::MODE_LIST) { // value, value, ...  |  (tuple), (tuple), ...
-				foreach ($value as $k => $v) {
-					$vx[] = is_array($v)
-						? '(' . $this->formatValue($v, self::MODE_LIST) . ')'
-						: $this->formatValue($v);
-				}
-				return implode(', ', $vx);
-
-			} elseif ($mode === self::MODE_AND || $mode === self::MODE_OR) { // (key [operator] value) AND ...
+			} elseif ($mode === 'and' || $mode === 'or') { // (key [operator] value) AND ...
 				foreach ($value as $k => $v) {
 					if (is_int($k)) {
 						$vx[] = $this->formatValue($v);
@@ -262,7 +235,7 @@ class SqlPreprocessor
 					$k = $this->delimite($k);
 					if (is_array($v)) {
 						if ($v) {
-							$vx[] = $k . ' ' . ($operator ? $operator . ' ' : '') . 'IN (' . $this->formatValue(array_values($v), self::MODE_LIST) . ')';
+							$vx[] = $k . ' ' . ($operator ? $operator . ' ' : '') . 'IN (' . $this->formatValue(array_values($v)) . ')';
 						} elseif ($operator === 'NOT') {
 						} else {
 							$vx[] = '1=0';
@@ -275,11 +248,9 @@ class SqlPreprocessor
 						$vx[] = $k . ' ' . $operator . ' ' . $v;
 					}
 				}
-				return $value
-					? '(' . implode(') ' . strtoupper($mode) . ' (', $vx) . ')'
-					: '1=1';
+				return $value ? '(' . implode(') ' . strtoupper($mode) . ' (', $vx) . ')' : '1=1';
 
-			} elseif ($mode === self::MODE_ORDER) { // key, key DESC, ...
+			} elseif ($mode === 'order') { // key, key DESC, ...
 				foreach ($value as $k => $v) {
 					$vx[] = $this->delimite($k) . ($v > 0 ? '' : ' DESC');
 				}
@@ -289,11 +260,11 @@ class SqlPreprocessor
 				throw new Nette\InvalidArgumentException("Unknown placeholder ?$mode.");
 			}
 
-		} elseif (in_array($mode, self::MODES, true)) {
+		} elseif (in_array($mode, self::MODE_LIST, true)) {
 			$type = gettype($value);
 			throw new Nette\InvalidArgumentException("Placeholder ?$mode expects array or Traversable object, $type given.");
 
-		} elseif ($mode && $mode !== self::MODE_AUTO) {
+		} elseif ($mode && $mode !== 'auto') {
 			throw new Nette\InvalidArgumentException("Unknown placeholder ?$mode.");
 
 		} else {

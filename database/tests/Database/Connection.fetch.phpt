@@ -14,7 +14,7 @@ require __DIR__ . '/connect.inc.php'; // create $connection
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/files/{$driverName}-nette_test1.sql");
 
 
-test('fetch', function () use ($connection) {
+test(function () use ($connection) { // fetch
 	$row = $connection->fetch('SELECT name, id FROM author WHERE id = ?', 11);
 	Assert::type(Nette\Database\Row::class, $row);
 	Assert::equal(Nette\Database\Row::from([
@@ -24,17 +24,17 @@ test('fetch', function () use ($connection) {
 });
 
 
-test('fetchField', function () use ($connection) {
+test(function () use ($connection) { // fetchField
 	Assert::same('Jakub Vrana', $connection->fetchField('SELECT name FROM author ORDER BY id'));
 });
 
 
-test('fetchFields', function () use ($connection) {
+test(function () use ($connection) { // fetchFields
 	Assert::same([11, 'Jakub Vrana'], $connection->fetchFields('SELECT id, name FROM author ORDER BY id'));
 });
 
 
-test('fetchPairs', function () use ($connection) {
+test(function () use ($connection) { // fetchPairs
 	$pairs = $connection->fetchPairs('SELECT name, id FROM author WHERE id > ? ORDER BY id', 11);
 	Assert::same([
 		'David Grudl' => 12,
@@ -43,7 +43,7 @@ test('fetchPairs', function () use ($connection) {
 });
 
 
-test('fetchAll', function () use ($connection) {
+test(function () use ($connection) { // fetchAll
 	$arr = $connection->fetchAll('SELECT name, id FROM author WHERE id < ? ORDER BY id', 13);
 	Assert::equal([
 		Nette\Database\Row::from(['name' => 'Jakub Vrana', 'id' => 11]),

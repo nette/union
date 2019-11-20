@@ -10,7 +10,9 @@ declare(strict_types=1);
 namespace Nette\Database;
 
 
-/** @deprecated use Row */
+/**
+ * Row interface.
+ */
 interface IRow extends \Traversable, \ArrayAccess
 {
 }

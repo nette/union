@@ -11,27 +11,27 @@ use Tester\Assert;
 
 require __DIR__ . '/../../connect.inc.php';
 
-$explorer->query('CREATE DATABASE IF NOT EXISTS nette_test');
-$explorer->query('USE nette_test');
+$context->query('CREATE DATABASE IF NOT EXISTS nette_test');
+$context->query('USE nette_test');
 
-$explorer->query('
+$context->query('
 	CREATE TABLE ships (
 		id INTEGER PRIMARY KEY NOT NULL,
 		name TEXT NOT NULL
 	);
 ');
 
-$explorer->query('
+$context->query('
 	INSERT INTO ships (id, name) VALUES(2, "Enterprise");
 ');
 
-$explorer->query('
+$context->query('
 	INSERT INTO ships (id, name) VALUES(0, "Endeavour");
 ');
 
-Assert::same(2, $explorer->table('ships')->order('id DESC')->count());
+Assert::same(2, $context->table('ships')->order('id DESC')->count());
 
-$result = $explorer->table('ships')->order('id DESC')->fetchAll(); // SELECT * FROM `ships` ORDER BY id DESC
+$result = $context->table('ships')->order('id DESC')->fetchAll(); // SELECT * FROM `ships` ORDER BY id DESC
 
 Assert::same('Enterprise', $result[2]->name);
 

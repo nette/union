@@ -62,7 +62,6 @@ class ActiveRow implements \IteratorAggregate, IRow
 				throw $e;
 			}
 			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
-			return '';
 		}
 	}
 
@@ -123,7 +122,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 	 * Returns referenced row.
 	 * @return self|null if the row does not exist
 	 */
-	public function ref(string $key, string $throughColumn = null): ?self
+	public function ref(string $key, string $throughColumn = null): ?IRow
 	{
 		$row = $this->table->getReferencedTable($this, $key, $throughColumn);
 		if ($row === false) {
@@ -278,7 +277,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 		}
 
 		$this->removeAccessColumn($key);
-		$hint = Nette\Utils\Helpers::getSuggestion(array_keys($this->data), $key);
+		$hint = Nette\Utils\ObjectHelpers::getSuggestion(array_keys($this->data), $key);
 		throw new Nette\MemberAccessException("Cannot read an undeclared column '$key'" . ($hint ? ", did you mean '$hint'?" : '.'));
 	}
 

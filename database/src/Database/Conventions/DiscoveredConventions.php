@@ -9,14 +9,14 @@ declare(strict_types=1);
 
 namespace Nette\Database\Conventions;
 
-use Nette\Database\Conventions;
+use Nette\Database\IConventions;
 use Nette\Database\IStructure;
 
 
 /**
  * Conventions based on database structure.
  */
-class DiscoveredConventions implements Conventions
+class DiscoveredConventions implements IConventions
 {
 	/** @var IStructure */
 	protected $structure;

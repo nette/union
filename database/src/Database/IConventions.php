@@ -12,8 +12,9 @@ namespace Nette\Database;
 use Nette\Database\Conventions\AmbiguousReferenceKeyException;
 
 
-interface Conventions
+interface IConventions
 {
+
 	/**
 	 * Returns primary key for table.
 	 * @return string|string[]|null
@@ -40,6 +41,3 @@ interface Conventions
 	 */
 	function getBelongsToReference(string $table, string $key): ?array;
 }
-
-
-interface_exists(IConventions::class);

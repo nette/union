@@ -15,7 +15,8 @@ require __DIR__ . '/../connect.inc.php'; // create $connection
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverName}-nette_test1.sql");
 
 
-test('Leave literals lower-cased, also not-delimiting them is tested.', function () use ($explorer, $driverName) {
+test(function () use ($context, $driverName) {
+	// Leave literals lower-cased, also not-delimiting them is tested.
 	switch ($driverName) {
 		case 'mysql':
 			$literal = new SqlLiteral('year(now())');
@@ -33,7 +34,7 @@ test('Leave literals lower-cased, also not-delimiting them is tested.', function
 			Assert::fail("Unsupported driver $driverName");
 	}
 
-	$selection = $explorer
+	$selection = $context
 		->table('book')
 		->select($driverName === 'pgsql' ? '?::text AS col1' : '? AS col1', 'hi there!')
 		->select('? AS col2', $literal);
@@ -44,9 +45,9 @@ test('Leave literals lower-cased, also not-delimiting them is tested.', function
 });
 
 
-test('', function () use ($explorer) {
+test(function () use ($context) {
 	$bookTagsCount = [];
-	$books = $explorer
+	$books = $context
 		->table('book')
 		->select('book.title, COUNT(DISTINCT :book_tag.tag_id) AS tagsCount')
 		->group('book.title')
@@ -64,10 +65,10 @@ test('', function () use ($explorer) {
 });
 
 
-test('', function () use ($explorer, $driverName) {
+test(function () use ($context, $driverName) {
 	if ($driverName === 'mysql') {
 		$authors = [];
-		$selection = $explorer->table('author')->order('FIELD(name, ?)', ['Jakub Vrana', 'David Grudl', 'Geek']);
+		$selection = $context->table('author')->order('FIELD(name, ?)', ['Jakub Vrana', 'David Grudl', 'Geek']);
 		foreach ($selection as $author) {
 			$authors[] = $author->name;
 		}
@@ -77,16 +78,16 @@ test('', function () use ($explorer, $driverName) {
 });
 
 
-test('Test placeholder for GroupedSelection', function () use ($explorer, $driverName) {
+test(function () use ($context, $driverName) { // Test placeholder for GroupedSelection
 	if ($driverName === 'sqlsrv') { // This syntax is not supported on SQL Server
 		return;
 	}
 
-	$books = $explorer->table('author')->get(11)->related('book')->order('title = ? DESC', 'Test');
+	$books = $context->table('author')->get(11)->related('book')->order('title = ? DESC', 'Test');
 	foreach ($books as $book) {
 	}
 
-	$books = $explorer->table('author')->get(11)->related('book')->select('SUBSTR(title, ?)', 3);
+	$books = $context->table('author')->get(11)->related('book')->select('SUBSTR(title, ?)', 3);
 	foreach ($books as $book) {
 	}
 });

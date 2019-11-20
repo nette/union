@@ -15,28 +15,14 @@ require __DIR__ . '/connect.inc.php'; // create $connection
 
 $preprocessor = new Nette\Database\SqlPreprocessor($connection);
 
-test('basic', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // basic
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE id = ?', 11]);
 	Assert::same('SELECT id FROM author WHERE id = ?', $sql);
 	Assert::same([11], $params);
 });
 
 
-test('no parameters', function () use ($preprocessor) {
-	[$sql, $params] = $preprocessor->process(['UNKNOWN a = ?, b = ?, c = ?, d = ?, e = ?', 123, 'abc', true, false, null]);
-	Assert::same("UNKNOWN a = 123, b = 'abc', c = 1, d = 0, e = NULL", $sql);
-	Assert::same([], $params);
-});
-
-
-test('recognizes command in braces', function () use ($preprocessor) {
-	[$sql, $params] = $preprocessor->process(['(SELECT ?) UNION (SELECT ?)', 1, 2]);
-	Assert::same('(SELECT ?) UNION (SELECT ?)', $sql);
-	Assert::same([1, 2], $params);
-});
-
-
-test('arg without placeholder', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // arg without placeholder
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE id =', 11]);
 	Assert::same('SELECT id FROM author WHERE id = ?', $sql);
 	Assert::same([11], $params);
@@ -47,21 +33,21 @@ test('arg without placeholder', function () use ($preprocessor) {
 });
 
 
-test('', function () use ($preprocessor) {
+test(function () use ($preprocessor) {
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE id = ? OR id = ?', 11, 12]);
 	Assert::same('SELECT id FROM author WHERE id = ? OR id = ?', $sql);
 	Assert::same([11, 12], $params);
 });
 
 
-test('', function () use ($preprocessor) {
+test(function () use ($preprocessor) {
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE id = ?', 11, 'OR id = ?', 12]);
 	Assert::same('SELECT id FROM author WHERE id = ? OR id = ?', $sql);
 	Assert::same([11, 12], $params);
 });
 
 
-test('IN', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // IN
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE id IN (?)', [10, 11]]);
 	Assert::same('SELECT id FROM author WHERE id IN (?, ?)', $sql);
 	Assert::same([10, 11], $params);
@@ -69,6 +55,7 @@ test('IN', function () use ($preprocessor) {
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE (id, name) IN (?)', [[10, 'a'], [11, 'b']]]);
 	Assert::same('SELECT id FROM author WHERE (id, name) IN ((?, ?), (?, ?))', $sql);
 	Assert::same([10, 'a', 11, 'b'], $params);
+
 
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE', [
 		'a' => [null, 1, 2, 3],
@@ -79,25 +66,17 @@ test('IN', function () use ($preprocessor) {
 
 	Assert::same(reformat('SELECT id FROM author WHERE ([a] IN (NULL, ?, ?, ?)) AND (1=0) AND ([c] NOT IN (NULL, ?, ?, ?))'), $sql);
 	Assert::same([1, 2, 3, 1, 2, 3], $params);
-
-	[$sql, $params] = $preprocessor->process(['SELECT * FROM table WHERE ? AND id IN (?) AND ?', ['a' => 111], [3, 4], ['b' => 222]]);
-	Assert::same(reformat('SELECT * FROM table WHERE ([a] = ?) AND id IN (?, ?) AND ([b] = ?)'), $sql);
-	Assert::same([111, 3, 4, 222], $params);
-
-	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE id IN ?', [10, 11]]); // without ()
-	Assert::same('SELECT id FROM author WHERE id IN (?, ?)', $sql);
-	Assert::same([10, 11], $params);
 });
 
 
-test('?name', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // ?name
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE ?name = ? OR ?name = ?', 'id', 12, 'table.number', 23]);
 	Assert::same(reformat('SELECT id FROM author WHERE [id] = ? OR [table].[number] = ?'), $sql);
 	Assert::same([12, 23], $params);
 });
 
 
-test('comments', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // comments
 	[$sql, $params] = $preprocessor->process(["SELECT id --?\nFROM author WHERE id = ?", 11]);
 	Assert::same("SELECT id --?\nFROM author WHERE id = ?", $sql);
 	Assert::same([11], $params);
@@ -108,7 +87,7 @@ test('comments', function () use ($preprocessor) {
 });
 
 
-test('strings', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // strings
 	[$sql, $params] = $preprocessor->process(["SELECT id, '?' FROM author WHERE id = ?", 11]);
 	Assert::same("SELECT id, '?' FROM author WHERE id = ?", $sql);
 	Assert::same([11], $params);
@@ -119,7 +98,7 @@ test('strings', function () use ($preprocessor) {
 });
 
 
-test('where', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // where
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE', [
 		'id' => null,
 		'x.name <>' => 'a',
@@ -132,7 +111,7 @@ test('where', function () use ($preprocessor) {
 	Assert::same(['a', 1, 2, 3], $params);
 });
 
-test('where is not null', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // where is not null
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE', [
 		'id NOT' => null,
 	]]);
@@ -141,7 +120,7 @@ test('where is not null', function () use ($preprocessor) {
 	Assert::same([], $params);
 });
 
-test('tuples', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // tuples
 	[$sql, $params] = $preprocessor->process(['SELECT * FROM book_tag WHERE (book_id, tag_id) IN (?)', [
 		[1, 2],
 		[3, 4],
@@ -153,7 +132,7 @@ test('tuples', function () use ($preprocessor) {
 });
 
 
-test('order', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // order
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author ORDER BY', [
 		'id' => true,
 		'name' => false,
@@ -164,7 +143,7 @@ test('order', function () use ($preprocessor) {
 });
 
 
-test('?order', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // ?order
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author ORDER BY ?order', [
 		'id' => true,
 		'name' => false,
@@ -175,7 +154,7 @@ test('?order', function () use ($preprocessor) {
 });
 
 
-test('mix of where & order', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // mix of where & order
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE ? ORDER BY ?', [
 		'id' => 1,
 		'web' => 'web',
@@ -188,7 +167,7 @@ test('mix of where & order', function () use ($preprocessor) {
 });
 
 
-test('missing parameters', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // missing parameters
 	Assert::exception(function () use ($preprocessor) {
 		$preprocessor->process(['SELECT id FROM author WHERE id =? OR id = ?', 11]);
 	}, Nette\InvalidArgumentException::class, 'There are more placeholders than passed parameters.');
@@ -199,7 +178,7 @@ test('missing parameters', function () use ($preprocessor) {
 });
 
 
-test('extra parameters', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // extra parameters
 	Assert::exception(function () use ($preprocessor) {
 		$preprocessor->process(['SELECT id FROM author WHERE id =', 11, 12]);
 	}, Nette\InvalidArgumentException::class, 'There are more parameters than placeholders.');
@@ -218,28 +197,28 @@ test('extra parameters', function () use ($preprocessor) {
 });
 
 
-test('unknown placeholder', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // unknown placeholder
 	Assert::exception(function () use ($preprocessor) {
 		$preprocessor->process(['SELECT ?test', 11]);
 	}, Nette\InvalidArgumentException::class, 'Unknown placeholder ?test.');
 });
 
 
-test('SqlLiteral', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // SqlLiteral
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE id =', new SqlLiteral('? OR ?name = ?', [11, 'id', 12])]);
 	Assert::same(reformat('SELECT id FROM author WHERE id = ? OR [id] = ?'), $sql);
 	Assert::same([11, 12], $params);
 });
 
 
-test('', function () use ($preprocessor) {
+test(function () use ($preprocessor) {
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE', new SqlLiteral('id=11'), 'OR', new SqlLiteral('id=?', [12])]);
 	Assert::same('SELECT id FROM author WHERE id=11 OR id=?', $sql);
 	Assert::same([12], $params);
 });
 
 
-test('and', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // and
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE', [
 		'id' => new SqlLiteral('NULL'),
 		'born' => [1, 2, new SqlLiteral('3+1')],
@@ -251,7 +230,7 @@ test('and', function () use ($preprocessor) {
 });
 
 
-test('empty and', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // empty and
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE', []]);
 
 	Assert::same(reformat('SELECT id FROM author WHERE 1=1'), $sql);
@@ -259,7 +238,7 @@ test('empty and', function () use ($preprocessor) {
 });
 
 
-test('?and', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // ?and
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE ?and', [
 		'id' => null,
 		'born' => [1, 2],
@@ -270,7 +249,7 @@ test('?and', function () use ($preprocessor) {
 });
 
 
-test('?or', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // ?or
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE ?or', [
 		'id' => null,
 		'born' => [1, 2],
@@ -281,7 +260,7 @@ test('?or', function () use ($preprocessor) {
 });
 
 
-test('date time', function () use ($preprocessor, $driverName) {
+test(function () use ($preprocessor, $driverName) { // date time
 	[$sql, $params] = $preprocessor->process(['SELECT ?', [new DateTime('2011-11-11')]]);
 	Assert::same(reformat([
 		'sqlite' => 'SELECT 1320966000',
@@ -290,12 +269,14 @@ test('date time', function () use ($preprocessor, $driverName) {
 	]), $sql);
 	Assert::same([], $params);
 
+
 	if ($driverName === 'mysql') {
 		$interval = new DateInterval('PT26H8M10S');
 		$interval->invert = true;
 		[$sql, $params] = $preprocessor->process(['SELECT ?', [$interval]]);
 		Assert::same(reformat("SELECT '-26:08:10'"), $sql);
 	}
+
 
 	Assert::same([], $params);
 	[$sql, $params] = $preprocessor->process(['SELECT ?', [new DateTimeImmutable('2011-11-11')]]);
@@ -307,7 +288,7 @@ test('date time', function () use ($preprocessor, $driverName) {
 });
 
 
-test('insert', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // insert
 	[$sql, $params] = $preprocessor->process(['INSERT INTO author',
 		['name' => 'Catelyn Stark', 'born' => new DateTime('2011-11-11')],
 	]);
@@ -319,11 +300,13 @@ test('insert', function () use ($preprocessor) {
 	]), $sql);
 	Assert::same(['Catelyn Stark'], $params);
 
+
 	[$sql, $params] = $preprocessor->process(["\r\n  INSERT INTO author",
 		['name' => 'Catelyn Stark'],
 	]);
 	Assert::same(reformat("\r\n  INSERT INTO author ([name]) VALUES (?)"), $sql);
 	Assert::same(['Catelyn Stark'], $params);
+
 
 	[$sql, $params] = $preprocessor->process(['REPLACE author ?',
 		['name' => 'Catelyn Stark'],
@@ -331,15 +314,16 @@ test('insert', function () use ($preprocessor) {
 	Assert::same(reformat('REPLACE author ([name]) VALUES (?)'), $sql);
 	Assert::same(['Catelyn Stark'], $params);
 
+
 	[$sql, $params] = $preprocessor->process(['/* comment */  INSERT INTO author',
 		['name' => 'Catelyn Stark'],
 	]);
-	Assert::same(reformat("/* comment */  INSERT INTO author 'Catelyn Stark'"), $sql); // autodetection not used
+	Assert::same(reformat("/* comment */  INSERT INTO author [name]='Catelyn Stark'"), $sql); // autodetection not used
 	Assert::same([], $params);
 });
 
 
-test('?values', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // ?values
 	[$sql, $params] = $preprocessor->process(['INSERT INTO update ?values',
 		['name' => 'Catelyn Stark'],
 	]);
@@ -349,14 +333,14 @@ test('?values', function () use ($preprocessor) {
 });
 
 
-test('automatic detection failed', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // automatic detection faild
 	Assert::exception(function () use ($preprocessor) {
-		dump($preprocessor->process(['INSERT INTO author (name) SELECT name FROM user WHERE id ?', [11, 12]])); // invalid sql
-	}, Nette\InvalidArgumentException::class, 'Automaticaly detected multi-insert, but values aren\'t array. If you need try to change mode like "?[and|or|set|values|order|list]". Mode "values" was used.');
+		$preprocessor->process(['INSERT INTO author (name) SELECT name FROM user WHERE id IN (?)', [11, 12]]);
+	}, Nette\InvalidArgumentException::class, 'Automaticaly detected multi-insert, but values aren\'t array. If you need try to change mode like "?[and|or|set|values|order]". Mode "values" was used.');
 });
 
 
-test('multi insert', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // multi insert
 	[$sql, $params] = $preprocessor->process(['INSERT INTO author', [
 		['name' => 'Catelyn Stark', 'born' => new DateTime('2011-11-11')],
 		['name' => 'Sansa Stark', 'born' => new DateTime('2021-11-11')],
@@ -371,22 +355,7 @@ test('multi insert', function () use ($preprocessor) {
 });
 
 
-test('multi insert & Rows', function () use ($preprocessor) {
-	[$sql, $params] = $preprocessor->process(['INSERT INTO author', [
-		Nette\Database\Row::from(['name' => 'Catelyn Stark', 'born' => new DateTime('2011-11-11')]),
-		Nette\Database\Row::from(['name' => 'Sansa Stark', 'born' => new DateTime('2021-11-11')]),
-	]]);
-
-	Assert::same(reformat([
-		'sqlite' => 'INSERT INTO author ([name], [born]) SELECT ?, 1320966000 UNION ALL SELECT ?, 1636585200',
-		'sqlsrv' => "INSERT INTO author ([name], [born]) VALUES (?, '2011-11-11T00:00:00'), (?, '2021-11-11T00:00:00')",
-		"INSERT INTO author ([name], [born]) VALUES (?, '2011-11-11 00:00:00'), (?, '2021-11-11 00:00:00')",
-	]), $sql);
-	Assert::same(['Catelyn Stark', 'Sansa Stark'], $params);
-});
-
-
-test('multi insert respects keys', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // multi insert respects keys
 	[$sql, $params] = $preprocessor->process(['INSERT INTO author', [
 		['name' => 'Catelyn Stark', 'born' => new DateTime('2011-11-11')],
 		['born' => new DateTime('2021-11-11'), 'name' => 'Sansa Stark'],
@@ -401,7 +370,7 @@ test('multi insert respects keys', function () use ($preprocessor) {
 });
 
 
-test('multi insert ?values', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // multi insert ?values
 	[$sql, $params] = $preprocessor->process(['INSERT INTO author ?values', [
 		['name' => 'Catelyn Stark', 'born' => new DateTime('2011-11-11')],
 		['name' => 'Sansa Stark', 'born' => new DateTime('2021-11-11')],
@@ -417,7 +386,7 @@ test('multi insert ?values', function () use ($preprocessor) {
 });
 
 
-test('update', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // update
 	[$sql, $params] = $preprocessor->process(['UPDATE author SET ?', [
 		'id' => 12,
 		'name' => new SqlLiteral('UPPER(?)', ['John Doe']),
@@ -427,11 +396,13 @@ test('update', function () use ($preprocessor) {
 	Assert::same(reformat('UPDATE author SET [id]=?, [name]=UPPER(?), UPPER(?) = ?'), $sql);
 	Assert::same([12, 'John Doe', 'John', 'DOE'], $params);
 
+
 	[$sql, $params] = $preprocessor->process(["UPDATE author SET \n",
 		['id' => 12, 'name' => 'John Doe'],
 	]);
 	Assert::same(reformat("UPDATE author SET \n [id]=?, [name]=?"), $sql);
 	Assert::same([12, 'John Doe'], $params);
+
 
 	[$sql, $params] = $preprocessor->process(['UPDATE author SET',
 		['id' => 12, 'name' => 'John Doe'],
@@ -439,15 +410,16 @@ test('update', function () use ($preprocessor) {
 	Assert::same(reformat('UPDATE author SET [id]=?, [name]=?'), $sql);
 	Assert::same([12, 'John Doe'], $params);
 
-	[$sql, $params] = $preprocessor->process(['UPDATE author SET a=1,', // autodetection not used
+
+	[$sql, $params] = $preprocessor->process(['UPDATE author SET a=1,',
 		['id' => 12, 'name' => 'John Doe'],
 	]);
-	Assert::same(reformat('UPDATE author SET a=1, ?, ?'), $sql);
+	Assert::same(reformat('UPDATE author SET a=1, [id]=?, [name]=?'), $sql);
 	Assert::same([12, 'John Doe'], $params);
 });
 
 
-test('?set', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // ?set
 	[$sql, $params] = $preprocessor->process(['UPDATE insert SET ?set',
 		['id' => 12, 'name' => 'John Doe'],
 	]);
@@ -457,7 +429,7 @@ test('?set', function () use ($preprocessor) {
 });
 
 
-test('update +=', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // update +=
 	[$sql, $params] = $preprocessor->process(['UPDATE author SET ?',
 		['id+=' => 1, 'id-=' => -1],
 	]);
@@ -467,7 +439,7 @@ test('update +=', function () use ($preprocessor) {
 });
 
 
-test('insert & update', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // insert & update
 	[$sql, $params] = $preprocessor->process(['INSERT INTO author ? ON DUPLICATE KEY UPDATE ?',
 		['id' => 12, 'name' => 'John Doe'],
 		['web' => 'http://nette.org', 'name' => 'Dave Lister'],
@@ -478,7 +450,7 @@ test('insert & update', function () use ($preprocessor) {
 });
 
 
-test('invalid usage of ?and, ...', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // invalid usage of ?and, ...
 	foreach (['?and', '?or', '?set', '?values', '?order'] as $mode) {
 		Assert::exception(function () use ($preprocessor, $mode) {
 			$preprocessor->process([$mode, 'string']);
@@ -491,7 +463,7 @@ test('invalid usage of ?and, ...', function () use ($preprocessor) {
 });
 
 
-test('', function () use ($preprocessor) {
+test(function () use ($preprocessor) {
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE ?or', [
 		new SqlLiteral('max > ?', [10]),
 		new SqlLiteral('min < ?', [20]),
@@ -501,7 +473,7 @@ test('', function () use ($preprocessor) {
 });
 
 
-test('', function () use ($preprocessor) {
+test(function () use ($preprocessor) {
 	[$sql, $params] = $preprocessor->process(['SELECT id FROM author WHERE', new SqlLiteral('?or', [[
 		new SqlLiteral('?and', [['a' => 1, 'b' => 2]]),
 		new SqlLiteral('?and', [['c' => 3, 'd' => 4]]),
@@ -519,7 +491,7 @@ class ToString
 	}
 }
 
-test('object', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // object
 	[$sql, $params] = $preprocessor->process(['SELECT ?', new ToString]);
 	Assert::same('SELECT ?', $sql);
 	Assert::same(['hello'], $params);
@@ -531,7 +503,7 @@ Assert::exception(function () use ($preprocessor) { // object
 }, Nette\InvalidArgumentException::class, 'Unexpected type of parameter: stdClass');
 
 
-test('resource', function () use ($preprocessor) {
+test(function () use ($preprocessor) { // resource
 	[$sql, $params] = $preprocessor->process(['SELECT ?', $res = fopen(__FILE__, 'r')]);
 	Assert::same('SELECT ?', $sql);
 	Assert::same([$res], $params);

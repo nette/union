@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-use Nette\Database\Driver;
+use Nette\Database\ISupplementalDriver;
 use Nette\Database\Table\SqlBuilder;
 use Tester\Assert;
 
@@ -29,12 +29,12 @@ class SqlBuilderMock extends SqlBuilder
 	}
 }
 
-$driver = $connection->getDriver();
+$driver = $connection->getSupplementalDriver();
 
 
-test('test duplicated table names throw exception', function () use ($explorer, $driver) {
-	$authorTable = ($driver->isSupported(Driver::SUPPORT_SCHEMA) ? 'public.' : '') . 'author';
-	$sqlBuilder = new SqlBuilderMock($authorTable, $explorer);
+test(function () use ($context, $driver) { // test duplicated table names throw exception
+	$authorTable = ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA) ? 'public.' : '') . 'author';
+	$sqlBuilder = new SqlBuilderMock($authorTable, $context);
 	$sqlBuilder->addAlias(':book(translator)', 'book1');
 	$sqlBuilder->addAlias(':book:book_tag', 'book2');
 	Assert::exception(function () use ($sqlBuilder) {
@@ -64,8 +64,8 @@ test('test duplicated table names throw exception', function () use ($explorer, 
 });
 
 
-test('test same table chain with another alias', function () use ($explorer, $driver) {
-	$sqlBuilder = new SqlBuilderMock('author', $explorer);
+test(function () use ($context, $driver) { // test same table chain with another alias
+	$sqlBuilder = new SqlBuilderMock('author', $context);
 	$sqlBuilder->addAlias(':book(translator)', 'translated_book');
 	$sqlBuilder->addAlias(':book(translator)', 'translated_book2');
 	$query = 'WHERE translated_book.translator_id IS NULL AND translated_book2.id IS NULL';
@@ -81,17 +81,19 @@ test('test same table chain with another alias', function () use ($explorer, $dr
 });
 
 
-test('test nested alias', function () use ($explorer, $driver) {
-	$sqlBuilder = $driver->isSupported(Driver::SUPPORT_SCHEMA)
-		? new SqlBuilderMock('public.author', $explorer)
-		: new SqlBuilderMock('author', $explorer);
+test(function () use ($context, $driver) { // test nested alias
+	if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
+		$sqlBuilder = new SqlBuilderMock('public.author', $context);
+	} else {
+		$sqlBuilder = new SqlBuilderMock('author', $context);
+	}
 	$sqlBuilder->addAlias(':book(translator)', 'translated_book');
 	$sqlBuilder->addAlias('translated_book.next_volume', 'next');
 	$query = 'WHERE next.translator_id IS NULL';
 	$joins = [];
 	$sqlBuilder->parseJoins($joins, $query);
 	$join = $sqlBuilder->buildQueryJoins($joins);
-	if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
+	if ($driver->isSupported(ISupplementalDriver::SUPPORT_SCHEMA)) {
 		Assert::same(
 			'LEFT JOIN book translated_book ON author.id = translated_book.translator_id ' .
 			'LEFT JOIN public.book next ON translated_book.next_volume = next.id',

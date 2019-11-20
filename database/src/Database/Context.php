@@ -14,9 +14,9 @@ use Nette\Database\Conventions\StaticConventions;
 
 
 /**
- * Database explorer.
+ * Database context.
  */
-class Explorer
+class Context
 {
 	use Nette\SmartObject;
 
@@ -26,19 +26,15 @@ class Explorer
 	/** @var IStructure */
 	private $structure;
 
-	/** @var Conventions */
+	/** @var IConventions */
 	private $conventions;
 
 	/** @var Nette\Caching\IStorage */
 	private $cacheStorage;
 
 
-	public function __construct(
-		Connection $connection,
-		Structure $structure,
-		Conventions $conventions = null,
-		Nette\Caching\IStorage $cacheStorage = null
-	) {
+	public function __construct(Connection $connection, IStructure $structure, IConventions $conventions = null, Nette\Caching\IStorage $cacheStorage = null)
+	{
 		$this->connection = $connection;
 		$this->structure = $structure;
 		$this->conventions = $conventions ?: new StaticConventions;
@@ -61,15 +57,6 @@ class Explorer
 	public function rollBack(): void
 	{
 		$this->connection->rollBack();
-	}
-
-
-	/**
-	 * @return mixed
-	 */
-	public function transaction(callable $callback)
-	{
-		return $this->connection->transaction($callback);
 	}
 
 
@@ -112,7 +99,7 @@ class Explorer
 	}
 
 
-	public function getConventions(): Conventions
+	public function getConventions(): IConventions
 	{
 		return $this->conventions;
 	}
@@ -172,6 +159,3 @@ class Explorer
 		return new SqlLiteral($value, $params);
 	}
 }
-
-
-class_exists(Context::class);

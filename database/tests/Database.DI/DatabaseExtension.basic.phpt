@@ -14,7 +14,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('', function () {
+test(function () {
 	$loader = new DI\Config\Loader;
 	$config = $loader->load(Tester\FileMock::create('
 	database:
@@ -40,14 +40,14 @@ test('', function () {
 	Assert::type(Nette\Database\Connection::class, $connection);
 	Assert::same('sqlite::memory:', $connection->getDsn());
 
-	$explorer = $container->getService('database.default.context');
-	Assert::type(Nette\Database\Explorer::class, $explorer);
-	Assert::same($connection, $explorer->getConnection());
+	$context = $container->getService('database.default.context');
+	Assert::type(Nette\Database\Context::class, $context);
+	Assert::same($connection, $context->getConnection());
 
-	Assert::type(Nette\Database\Structure::class, $explorer->getStructure());
-	Assert::type(Nette\Database\Conventions\DiscoveredConventions::class, $explorer->getConventions());
+	Assert::type(Nette\Database\Structure::class, $context->getStructure());
+	Assert::type(Nette\Database\Conventions\DiscoveredConventions::class, $context->getConventions());
 
 	// aliases
 	Assert::same($connection, $container->getService('nette.database.default'));
-	Assert::same($explorer, $container->getService('nette.database.default.context'));
+	Assert::same($context, $container->getService('nette.database.default.context'));
 });
