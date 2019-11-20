@@ -23,13 +23,6 @@ Assert::exception(function () {
 
 Assert::exception(function () {
 	$builder = new DI\ContainerBuilder;
-	$builder->addDefinition(null)->setFactory('Unknown');
-	$builder->complete();
-}, Nette\DI\ServiceCreationException::class, 'Service (Unknown::__construct()): Class Unknown not found.');
-
-
-Assert::exception(function () {
-	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('one')->setFactory('@two');
 	$builder->addDefinition('two')->setFactory('Unknown');
 	$builder->complete();
@@ -208,7 +201,7 @@ services:
 	b: stdClass
 	bad: ConstructorParam
 ');
-}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of ConstructorParam): Multiple services of type stdClass found: a, b (needed by \$x in __construct%a?%)");
+}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of ConstructorParam): Multiple services of type stdClass found: a, b (needed by \$x in __construct())");
 
 
 // forced autowiring fail
@@ -230,7 +223,7 @@ services:
 	b: stdClass
 	bad: MethodParam()::foo()
 ');
-}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of MethodParam): Multiple services of type stdClass found: a, b (needed by \$x in foo%a?%)");
+}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of MethodParam): Multiple services of type stdClass found: a, b (needed by \$x in foo())");
 
 
 // forced autowiring fail in chain
@@ -252,7 +245,7 @@ services:
 	b: stdClass
 	bad: Good(ConstructorParam())
 ');
-}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of Good): Multiple services of type stdClass found: a, b (needed by \$x in ConstructorParam::__construct%a?%) (used in __construct())");
+}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of Good): Multiple services of type stdClass found: a, b (needed by \$x in ConstructorParam::__construct()) (used in __construct())");
 
 
 // forced autowiring fail in argument
@@ -274,7 +267,7 @@ services:
 	b: stdClass
 	bad: Good(MethodParam()::foo())
 ');
-}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of Good): Multiple services of type stdClass found: a, b (needed by \$x in MethodParam::foo%a?%) (used in __construct())");
+}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of Good): Multiple services of type stdClass found: a, b (needed by \$x in MethodParam::foo()) (used in __construct())");
 
 
 // forced autowiring fail in chain in argument
@@ -327,7 +320,7 @@ services:
 		setup:
 			- foo
 ');
-}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of MethodParam): Multiple services of type stdClass found: a, b (needed by \$x in foo%a?%)");
+}, Nette\DI\ServiceCreationException::class, "Service 'bad' (type of MethodParam): Multiple services of type stdClass found: a, b (needed by \$x in foo())");
 
 
 // forced autowiring fail in method calling

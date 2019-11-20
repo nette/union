@@ -25,7 +25,9 @@ final class AccessorDefinition extends Definition
 	private $reference;
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function setImplement(string $type)
 	{
 		if (!interface_exists($type)) {
@@ -34,12 +36,7 @@ final class AccessorDefinition extends Definition
 		$rc = new \ReflectionClass($type);
 
 		$method = $rc->getMethods()[0] ?? null;
-		if (
-			!$method
-			|| $method->isStatic()
-			|| $method->getName() !== self::METHOD_GET
-			|| count($rc->getMethods()) > 1
-		) {
+		if (!$method || $method->isStatic() || $method->getName() !== self::METHOD_GET || count($rc->getMethods()) > 1) {
 			throw new Nette\InvalidArgumentException("Service '{$this->getName()}': Interface $type must have just one non-static method get().");
 		} elseif ($method->getNumberOfParameters()) {
 			throw new Nette\InvalidArgumentException("Service '{$this->getName()}': Method $type::get() must have no parameters.");
@@ -107,12 +104,12 @@ final class AccessorDefinition extends Definition
 			->addImplement($this->getType());
 
 		$class->addProperty('container')
-			->setPrivate();
+			->setVisibility('private');
 
 		$class->addMethod('__construct')
 			->addBody('$this->container = $container;')
 			->addParameter('container')
-			->setType($generator->getClassName());
+			->setTypeHint($generator->getClassName());
 
 		$rm = new \ReflectionMethod($this->getType(), self::METHOD_GET);
 

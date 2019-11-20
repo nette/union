@@ -21,8 +21,12 @@ interface IService
 
 class Service implements IService
 {
-	public function injectFoo()
+	public $foo;
+
+
+	public function injectFoo(stdClass $foo)
 	{
+		$this->foo = $foo;
 	}
 }
 

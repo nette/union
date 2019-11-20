@@ -89,23 +89,20 @@ final class SearchExtension extends Nette\DI\CompilerExtension
 
 		$found = [];
 		foreach ($classes as $class) {
-			if (!class_exists($class) && !interface_exists($class) && !trait_exists($class)) {
-				throw new Nette\InvalidStateException("Class $class was found, but it cannot be loaded by autoloading.");
-			}
 			$rc = new \ReflectionClass($class);
 			if (
 				($rc->isInstantiable()
 					||
 					($rc->isInterface()
 					&& count($methods = $rc->getMethods()) === 1
-					&& $methods[0]->name === 'create')
+					&& $methods[0]->getName() === 'create')
 				)
-				&& (!$acceptRE || preg_match($acceptRE, $rc->name))
-				&& (!$rejectRE || !preg_match($rejectRE, $rc->name))
+				&& (!$acceptRE || preg_match($acceptRE, $rc->getName()))
+				&& (!$rejectRE || !preg_match($rejectRE, $rc->getName()))
 				&& (!$acceptParent || Arrays::some($acceptParent, function ($nm) use ($rc) { return $rc->isSubclassOf($nm); }))
 				&& (!$rejectParent || Arrays::every($rejectParent, function ($nm) use ($rc) { return !$rc->isSubclassOf($nm); }))
 			) {
-				$found[] = $rc->name;
+				$found[] = $rc->getName();
 			}
 		}
 		return $found;
@@ -123,9 +120,13 @@ final class SearchExtension extends Nette\DI\CompilerExtension
 		}
 
 		foreach ($this->classes as $class => $tags) {
-			$def = class_exists($class)
-				? $builder->addDefinition(null)->setType($class)
-				: $builder->addFactoryDefinition(null)->setImplement($class);
+			if (class_exists($class)) {
+				$def = $builder->addDefinition(null)
+					->setType($class);
+			} else {
+				$def = $builder->addFactoryDefinition(null)
+					->setImplement($class);
+			}
 			$def->setTags(Arrays::normalize($tags, true));
 		}
 	}

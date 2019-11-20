@@ -21,7 +21,7 @@ interface Good
 }
 
 
-test('', function () {
+test(function () {
 	$def = new LocatorDefinition;
 	$def->setName('abc');
 	$def->setImplement('Good');
@@ -38,8 +38,7 @@ test('', function () {
 	$method = $phpGenerator->generateMethod($def);
 
 	Assert::match(
-		<<<'XX'
-public function createServiceAbc(): Good
+'public function createServiceAbc(): Good
 {
 	return new class ($this) implements Good {
 		private $container;
@@ -59,12 +58,8 @@ public function createServiceAbc(): Good
 
 		public function getSecond(): ?stdClass
 		{
-			return $this->container->getService('a');
+			return $this->container->getService(\'a\');
 		}
 	};
-}
-XX
-,
-		$method->__toString()
-	);
+}', $method->__toString());
 });

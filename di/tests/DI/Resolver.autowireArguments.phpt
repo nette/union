@@ -13,6 +13,14 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
+class Container
+{
+	public function getByType($type)
+	{
+		return $type === 'Test' ? new Test : null;
+	}
+}
+
 class Test
 {
 	public function method(self $class, self $self, Undefined $nullable1 = null, int $nullable2 = null)
@@ -25,16 +33,14 @@ class Test
 	}
 }
 
+$container = new Container;
+
 Assert::equal(
 	[new Test, new Test],
-	Resolver::autowireArguments(new ReflectionMethod('Test', 'method'), [], function ($type) {
-		return $type === 'Test' ? new Test : null;
-	})
+	Resolver::autowireArguments(new ReflectionMethod('Test', 'method'), [], $container)
 );
 
 Assert::equal(
-	[new Test, new Test, null, null],
-	Resolver::autowireArguments(new ReflectionMethod('Test', 'methodNullable'), [], function ($type) {
-		return $type === 'Test' ? new Test : null;
-	})
+	[new Test, new Test],
+	Resolver::autowireArguments(new ReflectionMethod('Test', 'methodNullable'), [], $container)
 );

@@ -33,10 +33,10 @@ Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$resolver = new Nette\DI\Resolver(new Nette\DI\ContainerBuilder);
 	$resolver->resolveDefinition($def);
-}, Nette\DI\ServiceCreationException::class, 'Type of service is unknown.');
+}, Nette\DI\ServiceCreationException::class, "Service '': Type of service is unknown.");
 
 
-test('', function () {
+test(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement('Good1');
 	$def->setReferences(['first' => '@a', 'second' => 'stdClass']);
@@ -55,7 +55,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement('Good1');
 	$def->setTagged('tagName');

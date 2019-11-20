@@ -33,9 +33,7 @@ final class InjectExtension extends DI\CompilerExtension
 	{
 		foreach ($this->getContainerBuilder()->getDefinitions() as $def) {
 			if ($def->getTag(self::TAG_INJECT)) {
-				$def = $def instanceof Definitions\FactoryDefinition
-					? $def->getResultDefinition()
-					: $def;
+				$def = $def instanceof Definitions\FactoryDefinition ? $def->getResultDefinition() : $def;
 				if ($def instanceof Definitions\ServiceDefinition) {
 					$this->updateDefinition($def);
 				}
@@ -46,10 +44,8 @@ final class InjectExtension extends DI\CompilerExtension
 
 	private function updateDefinition(Definitions\ServiceDefinition $def): void
 	{
-		$resolvedType = (new DI\Resolver($this->getContainerBuilder()))->resolveEntityType($def->getFactory());
-		$class = is_subclass_of($resolvedType, $def->getType())
-			? $resolvedType
-			: $def->getType();
+		$resolver = new DI\Resolver($this->getContainerBuilder());
+		$class = $resolver->resolveEntityType($def->getFactory()) ?: $def->getType();
 		$setups = $def->getSetup();
 
 		foreach (self::getInjectProperties($class) as $property => $type) {
@@ -87,19 +83,18 @@ final class InjectExtension extends DI\CompilerExtension
 	 */
 	public static function getInjectMethods(string $class): array
 	{
-		$classes = [];
+		$res = [];
 		foreach (get_class_methods($class) as $name) {
 			if (substr($name, 0, 6) === 'inject') {
-				$classes[$name] = (new \ReflectionMethod($class, $name))->getDeclaringClass()->name;
+				$res[$name] = (new \ReflectionMethod($class, $name))->getDeclaringClass()->getName();
 			}
 		}
-		$methods = array_keys($classes);
-		uksort($classes, function (string $a, string $b) use ($classes, $methods): int {
-			return $classes[$a] === $classes[$b]
-				? array_search($a, $methods, true) <=> array_search($b, $methods, true)
-				: (is_a($classes[$a], $classes[$b], true) ? 1 : -1);
+		uksort($res, function (string $a, string $b) use ($res): int {
+			return $res[$a] === $res[$b]
+				? strcmp($a, $b)
+				: (is_a($res[$a], $res[$b], true) ? 1 : -1);
 		});
-		return array_keys($classes);
+		return array_keys($res);
 	}
 
 
@@ -112,13 +107,8 @@ final class InjectExtension extends DI\CompilerExtension
 		$res = [];
 		foreach (get_class_vars($class) as $name => $foo) {
 			$rp = new \ReflectionProperty($class, $name);
-			$hasAttr = PHP_VERSION_ID >= 80000 && $rp->getAttributes(DI\Attributes\Inject::class);
-			if ($hasAttr || DI\Helpers::parseAnnotation($rp, 'inject') !== null) {
-				if ($type = Reflection::getPropertyType($rp)) {
-				} elseif (!$hasAttr && ($type = DI\Helpers::parseAnnotation($rp, 'var'))) {
-					if (strpos($type, '|') !== false) {
-						throw new Nette\InvalidStateException('The ' . Reflection::toString($rp) . ' is not expected to have a union type.');
-					}
+			if (DI\Helpers::parseAnnotation($rp, 'inject') !== null) {
+				if ($type = DI\Helpers::parseAnnotation($rp, 'var')) {
 					$type = Reflection::expandClassName($type, Reflection::getPropertyDeclaringClass($rp));
 				}
 				$res[$name] = $type;
@@ -158,11 +148,11 @@ final class InjectExtension extends DI\CompilerExtension
 	{
 		$propName = Reflection::toString(new \ReflectionProperty($class, $name));
 		if (!$type) {
-			throw new Nette\InvalidStateException("Property $propName has no type hint.");
+			throw new Nette\InvalidStateException("Property $propName has no @var annotation.");
 		} elseif (!class_exists($type) && !interface_exists($type)) {
-			throw new Nette\InvalidStateException("Class or interface '$type' used in type hint at $propName not found. Check type and 'use' statements.");
+			throw new Nette\InvalidStateException("Class or interface '$type' used in @var annotation at $propName not found. Check annotation and 'use' statements.");
 		} elseif ($container && !$container->getByType($type, false)) {
-			throw new Nette\DI\MissingServiceException("Service of type $type used in type hint at $propName not found. Did you add it to configuration file?");
+			throw new Nette\DI\MissingServiceException("Service of type $type used in @var annotation at $propName not found. Did you register it in configuration file?");
 		}
 	}
 }

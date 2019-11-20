@@ -23,10 +23,10 @@ Assert::exception(function () {
 	$def = new ImportedDefinition;
 	$resolver = new Nette\DI\Resolver(new Nette\DI\ContainerBuilder);
 	$resolver->resolveDefinition($def);
-}, Nette\DI\ServiceCreationException::class, 'Type of service is unknown.');
+}, Nette\DI\ServiceCreationException::class, "Service '': Type of service is unknown.");
 
 
-test('', function () {
+test(function () {
 	$def = new ImportedDefinition;
 	$def->setName('abc');
 	$def->setType('stdClass');
@@ -41,13 +41,8 @@ test('', function () {
 	$method = $phpGenerator->generateMethod($def);
 
 	Assert::match(
-		<<<'XX'
-public function createServiceAbc(): void
+'public function createServiceAbc(): void
 {
-	throw new Nette\DI\ServiceCreationException('Unable to create imported service \'abc\', it must be added using addService()');
-}
-XX
-,
-		$method->__toString()
-	);
+	throw new Nette\DI\ServiceCreationException(\'Unable to create imported service \\\'abc\\\', it must be added using addService()\');
+}', $method->__toString());
 });

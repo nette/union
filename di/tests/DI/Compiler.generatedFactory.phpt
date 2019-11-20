@@ -16,6 +16,7 @@ require __DIR__ . '/../bootstrap.php';
 
 interface ILoremFactory
 {
+
 	/**
 	 * @return Lorem
 	 */
@@ -43,6 +44,7 @@ interface IFinderFactory
 
 interface IArticleFactory
 {
+
 	/**
 	 * @param string
 	 * @return Article
@@ -121,6 +123,7 @@ class Dolor
 
 interface DolorFactory
 {
+
 	/** @return Dolor */
 	public function create(Bar $bar = null, $foo);
 }

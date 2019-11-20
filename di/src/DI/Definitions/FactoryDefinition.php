@@ -34,7 +34,9 @@ final class FactoryDefinition extends Definition
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function setImplement(string $type)
 	{
 		if (!interface_exists($type)) {
@@ -42,7 +44,7 @@ final class FactoryDefinition extends Definition
 		}
 		$rc = new \ReflectionClass($type);
 		$method = $rc->getMethods()[0] ?? null;
-		if (!$method || $method->isStatic() || $method->name !== self::METHOD_CREATE || count($rc->getMethods()) > 1) {
+		if (!$method || $method->isStatic() || $method->getName() !== self::METHOD_CREATE || count($rc->getMethods()) > 1) {
 			throw new Nette\InvalidArgumentException("Service '{$this->getName()}': Interface $type must have just one non-static method create().");
 		}
 		return parent::setType($type);
@@ -61,7 +63,9 @@ final class FactoryDefinition extends Definition
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function setResultDefinition(Definition $definition)
 	{
 		$this->resultDefinition = $definition;
@@ -69,7 +73,9 @@ final class FactoryDefinition extends Definition
 	}
 
 
-	/** @return ServiceDefinition */
+	/**
+	 * @return ServiceDefinition
+	 */
 	public function getResultDefinition(): Definition
 	{
 		return $this->resultDefinition;
@@ -88,7 +94,9 @@ final class FactoryDefinition extends Definition
 	}
 
 
-	/** @deprecated use ->getResultDefinition()->getFactory() */
+	/**
+	 * @deprecated use ->getResultDefinition()->getFactory()
+	 */
 	public function getFactory(): ?Statement
 	{
 		trigger_error(sprintf('Service %s: %s() is deprecated, use ->getResultDefinition()->getFactory()', $this->getName(), __METHOD__), E_USER_DEPRECATED);
@@ -131,7 +139,9 @@ final class FactoryDefinition extends Definition
 	}
 
 
-	/** @deprecated use ->getResultDefinition()->getSetup() */
+	/**
+	 * @deprecated use ->getResultDefinition()->getSetup()
+	 */
 	public function getSetup(): array
 	{
 		trigger_error(sprintf('Service %s: %s() is deprecated, use ->getResultDefinition()->getSetup()', $this->getName(), __METHOD__), E_USER_DEPRECATED);
@@ -151,7 +161,9 @@ final class FactoryDefinition extends Definition
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function setParameters(array $params)
 	{
 		$this->parameters = $params;
@@ -225,31 +237,26 @@ final class FactoryDefinition extends Definition
 			&& ($ctor = (new \ReflectionClass($class))->getConstructor())
 		) {
 			foreach ($ctor->getParameters() as $param) {
-				$ctorParams[$param->name] = $param;
+				$ctorParams[$param->getName()] = $param;
 			}
 		}
 
 		foreach ($method->getParameters() as $param) {
-			$methodHint = Reflection::getParameterTypes($param);
-			if (isset($ctorParams[$param->name])) {
-				$ctorParam = $ctorParams[$param->name];
-				$ctorHint = Reflection::getParameterTypes($ctorParam);
-				if ($methodHint !== $ctorHint
-					&& !is_a((string) reset($methodHint), (string) reset($ctorHint), true)
-				) {
-					throw new ServiceCreationException("Type hint for \${$param->name} in $interface::create() doesn't match type hint in $class constructor.");
+			$hint = Reflection::getParameterType($param);
+			if (isset($ctorParams[$param->getName()])) {
+				$arg = $ctorParams[$param->getName()];
+				$argHint = Reflection::getParameterType($arg);
+				if ($hint !== $argHint && !is_a($hint, (string) $argHint, true)) {
+					throw new ServiceCreationException("Type hint for \${$param->getName()} in $interface::create() doesn't match type hint in $class constructor.");
 				}
-				$this->resultDefinition->getFactory()->arguments[$ctorParam->getPosition()] = Nette\DI\ContainerBuilder::literal('$' . $ctorParam->name);
+				$this->resultDefinition->getFactory()->arguments[$arg->getPosition()] = Nette\DI\ContainerBuilder::literal('$' . $arg->getName());
 
 			} elseif (!$this->resultDefinition->getSetup()) {
-				$hint = Nette\Utils\Helpers::getSuggestion(array_keys($ctorParams), $param->name);
-				throw new ServiceCreationException("Unused parameter \${$param->name} when implementing method $interface::create()" . ($hint ? ", did you mean \${$hint}?" : '.'));
+				$hint = Nette\Utils\ObjectHelpers::getSuggestion(array_keys($ctorParams), $param->getName());
+				throw new ServiceCreationException("Unused parameter \${$param->getName()} when implementing method $interface::create()" . ($hint ? ", did you mean \${$hint}?" : '.'));
 			}
-
-			$paramDef = PHP_VERSION_ID < 80000
-				? ($methodHint && $param->allowsNull() ? '?' : '') . reset($methodHint)
-				: implode('|', $methodHint);
-			$paramDef .= ' ' . $param->name;
+			$nullable = $hint && $param->allowsNull() && (!$param->isDefaultValueAvailable() || $param->getDefaultValue() !== null);
+			$paramDef = ($nullable ? '?' : '') . $hint . ' ' . $param->getName();
 			if ($param->isDefaultValueAvailable()) {
 				$this->parameters[$paramDef] = Reflection::getParameterDefaultValue($param);
 			} else {
@@ -265,12 +272,12 @@ final class FactoryDefinition extends Definition
 			->addImplement($this->getType());
 
 		$class->addProperty('container')
-			->setPrivate();
+			->setVisibility('private');
 
 		$class->addMethod('__construct')
 			->addBody('$this->container = $container;')
 			->addParameter('container')
-			->setType($generator->getClassName());
+			->setTypeHint($generator->getClassName());
 
 		$methodCreate = $class->addMethod(self::METHOD_CREATE);
 		$this->resultDefinition->generateMethod($methodCreate, $generator);

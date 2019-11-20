@@ -24,7 +24,7 @@ Assert::exception(function () {
 	$def->setImplement('Foo');
 }, Nette\DeprecatedException::class);
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	$def->setType('stdClass');
 	Assert::same('stdClass', $def->getType());
@@ -35,7 +35,7 @@ test('', function () {
 	Assert::null($def->getEntity());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	Assert::error(function () use ($def) {
 		$def->setClass('stdClass', []);
@@ -44,7 +44,7 @@ test('', function () {
 	Assert::null($def->getEntity());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	Assert::error(function () use ($def) {
 		$def->setClass('stdClass', [1, 2]);
@@ -53,7 +53,7 @@ test('', function () {
 	Assert::equal(new Statement('stdClass', [1, 2]), $def->getFactory());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	$def->setFactory('stdClass');
 	Assert::null($def->getType());
@@ -68,7 +68,8 @@ test('', function () {
 	Assert::equal(new Statement('stdClass', [1 => 200]), $def->getFactory());
 });
 
-test('Test with factory being previously set.', function () {
+test(function () {
+	// Test with factory being previously set.
 	$def1 = new ServiceDefinition;
 	$def1->setFactory('stdClass', ['foo', 'bar']);
 	$def1->setArgument(1, 'new');
@@ -81,28 +82,28 @@ test('Test with factory being previously set.', function () {
 	Assert::equal(new Statement(null, [1 => 'new', 2 => 'bar']), $def2->getFactory());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	$def->setFactory('stdClass', [1, 2]);
 	Assert::null($def->getType());
 	Assert::equal(new Statement('stdClass', [1, 2]), $def->getFactory());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	$def->setFactory(new Statement('stdClass', [1, 2]));
 	Assert::null($def->getType());
 	Assert::equal(new Statement('stdClass', [1, 2]), $def->getFactory());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	$def->setFactory(new Statement('stdClass', [1, 2]), [99]); // 99 is ignored
 	Assert::null($def->getType());
 	Assert::equal(new Statement('stdClass', [1, 2]), $def->getFactory());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	$def->addSetup('stdClass', [1, 2]);
 	$def->addSetup(new Statement('stdClass', [1, 2]));
@@ -114,7 +115,7 @@ test('', function () {
 	], $def->getSetup());
 });
 
-test('', function () {
+test(function () {
 	$def = new ServiceDefinition;
 	$def->addTag('tag1');
 	$def->addTag('tag2', [1, 2]);
@@ -128,7 +129,7 @@ test('', function () {
 	Assert::equal(null, $def->getTag('tag3'));
 });
 
-test('deep clone', function () {
+test(function () { // deep clone
 	$def = new ServiceDefinition;
 	$def->setFactory(new Statement('stdClass', [1, 2]));
 	$def->addSetup(new Statement('stdClass', [1, 2]));

@@ -120,13 +120,13 @@ class Loader
 		if (!isset($this->adapters[$extension])) {
 			throw new Nette\InvalidArgumentException("Unknown file extension '$file'.");
 		}
-		return is_object($this->adapters[$extension])
-			? $this->adapters[$extension]
-			: new $this->adapters[$extension];
+		return is_object($this->adapters[$extension]) ? $this->adapters[$extension] : new $this->adapters[$extension];
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function setParameters(array $params)
 	{
 		$this->parameters = $params;

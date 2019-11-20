@@ -15,6 +15,7 @@ namespace Nette\DI\Config;
  */
 interface Adapter
 {
+
 	/**
 	 * Reads configuration from file.
 	 */
@@ -25,6 +26,3 @@ interface Adapter
 	 */
 	function dump(array $data): string;
 }
-
-
-class_exists(IAdapter::class);

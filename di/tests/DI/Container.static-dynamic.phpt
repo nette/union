@@ -28,7 +28,7 @@ class MyContainer extends Container
 }
 
 
-test('', function () {
+test(function () {
 	$container = new MyContainer;
 
 	Assert::true($container->hasService('one'));
@@ -43,7 +43,7 @@ test('', function () {
 });
 
 
-test('closure', function () {
+test(function () { // closure
 	$container = new MyContainer;
 
 	$container->addService('one', function () { return new stdClass; });
@@ -55,7 +55,7 @@ test('closure', function () {
 });
 
 
-test('closure & typehint', function () {
+test(function () { // closure & typehint
 	$container = new MyContainer;
 
 	$container->addService('one', function (): stdClass { return new stdClass; });
@@ -66,7 +66,7 @@ test('closure & typehint', function () {
 });
 
 
-test('closure & matching typehint', function () {
+test(function () { // closure & matching typehint
 	$container = new MyContainer;
 
 	class MyClass extends stdClass

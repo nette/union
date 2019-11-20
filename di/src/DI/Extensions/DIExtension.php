@@ -36,28 +36,24 @@ final class DIExtension extends Nette\DI\CompilerExtension
 		$this->time = microtime(true);
 
 		$this->config = new class {
-			/** @var ?bool */
+			/** @var bool */
 			public $debugger;
-
 			/** @var string[] */
 			public $excluded = [];
-
 			/** @var ?string */
 			public $parentClass;
-
 			/** @var object */
 			public $export;
 		};
 		$this->config->export = new class {
 			/** @var bool */
 			public $parameters = true;
-
 			/** @var string[]|bool|null */
 			public $tags = true;
-
 			/** @var string[]|bool|null */
 			public $types = true;
 		};
+		$this->config->debugger = interface_exists(\Tracy\IBarPanel::class);
 	}
 
 
@@ -85,14 +81,11 @@ final class DIExtension extends Nette\DI\CompilerExtension
 		$this->restrictTags($class);
 		$this->restrictTypes($class);
 
-		if (
-			$this->debugMode &&
-			($this->config->debugger ?? $this->getContainerBuilder()->getByType(\Tracy\Bar::class))
-		) {
-			$this->enableTracyIntegration();
+		if ($this->debugMode && $this->config->debugger) {
+			$this->enableTracyIntegration($class);
 		}
 
-		$this->initializeTaggedServices();
+		$this->initializeTaggedServices($class);
 	}
 
 
@@ -122,19 +115,19 @@ final class DIExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	private function initializeTaggedServices(): void
+	private function initializeTaggedServices(Nette\PhpGenerator\ClassType $class): void
 	{
 		foreach (array_filter($this->getContainerBuilder()->findByTag('run')) as $name => $on) {
 			trigger_error("Tag 'run' used in service '$name' definition is deprecated.", E_USER_DEPRECATED);
-			$this->initialization->addBody('$this->getService(?);', [$name]);
+			$class->getMethod('initialize')->addBody('$this->getService(?);', [$name]);
 		}
 	}
 
 
-	private function enableTracyIntegration(): void
+	private function enableTracyIntegration(Nette\PhpGenerator\ClassType $class): void
 	{
 		Nette\Bridges\DITracy\ContainerPanel::$compilationTime = $this->time;
-		$this->initialization->addBody($this->getContainerBuilder()->formatPhp('?;', [
+		$class->getMethod('initialize')->addBody($this->getContainerBuilder()->formatPhp('?;', [
 			new Nette\DI\Definitions\Statement('@Tracy\Bar::addPanel', [new Nette\DI\Definitions\Statement(Nette\Bridges\DITracy\ContainerPanel::class)]),
 		]));
 	}

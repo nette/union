@@ -18,7 +18,7 @@ use Nette\Utils\Strings;
  *
  * @property string|array|Definition|Reference|null $entity
  */
-final class Statement implements Nette\Schema\DynamicParameter
+final class Statement
 {
 	use Nette\SmartObject;
 
@@ -70,6 +70,3 @@ final class Statement implements Nette\Schema\DynamicParameter
 		return $this->entity;
 	}
 }
-
-
-class_exists(Nette\DI\Statement::class);

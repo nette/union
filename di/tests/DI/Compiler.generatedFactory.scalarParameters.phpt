@@ -15,6 +15,7 @@ require __DIR__ . '/../bootstrap.php';
 
 interface IArticleFactory
 {
+
 	/** @return Article */
 	public function create(string $title);
 }
@@ -31,21 +32,7 @@ class Article
 }
 
 $compiler = new DI\Compiler;
-$container = createContainer($compiler, '
-services:
-	article:
-		factory: Article(%title%)
-		implement: IArticleFactory
-		parameters: [string title]
-
-	article2:
-		implement: IArticleFactory
-		arguments: [%title%]
-		parameters: [string title]
-
-	article3:
-		implement: IArticleFactory
-');
+$container = createContainer($compiler, 'files/compiler.generatedFactory.scalarParameters.neon');
 
 Assert::type(IArticleFactory::class, $container->getService('article'));
 $article = $container->getService('article')->create('lorem-ipsum');

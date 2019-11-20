@@ -19,7 +19,7 @@ interface Good
 }
 
 
-test('', function () {
+test(function () {
 	$def = new LocatorDefinition;
 	$def->setName('abc');
 	$def->setImplement('Good');
@@ -36,12 +36,12 @@ test('', function () {
 	$method = $phpGenerator->generateMethod($def);
 
 	Assert::match(
-		<<<'XX'
-public function createServiceAbc(): Good
+'public function createServiceAbc(): Good
 {
 	return new class ($this) implements Good {
-		private $container;%A?%
-		private $mapping = ['first' => 'a', 'second' => 'a'];
+		private $container;
+
+		private $mapping = [\'first\' => \'a\', \'second\' => \'a\'];
 
 
 		public function __construct($container)
@@ -53,14 +53,10 @@ public function createServiceAbc(): Good
 		public function create($name): stdClass
 		{
 			if (!isset($this->mapping[$name])) {
-				throw new Nette\DI\MissingServiceException("Service '$name' is not defined.");
+				throw new Nette\DI\MissingServiceException("Service \'$name\' is not defined.");
 			}
 			return $this->container->createService($this->mapping[$name]);
 		}
 	};
-}
-XX
-,
-		$method->__toString()
-	);
+}', $method->__toString());
 });

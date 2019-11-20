@@ -17,10 +17,10 @@ use Nette;
  */
 final class ConstantsExtension extends Nette\DI\CompilerExtension
 {
-	public function loadConfiguration()
+	public function afterCompile(Nette\PhpGenerator\ClassType $class)
 	{
 		foreach ($this->getConfig() as $name => $value) {
-			$this->initialization->addBody('define(?, ?);', [$name, $value]);
+			$class->getMethod('initialize')->addBody('define(?, ?);', [$name, $value]);
 		}
 	}
 }

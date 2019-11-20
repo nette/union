@@ -12,7 +12,8 @@ namespace Nette\DI;
 use Nette;
 use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\Statement;
-use Nette\PhpGenerator as Php;
+use Nette\PhpGenerator\Helpers as PhpHelpers;
+use Nette\PhpGenerator\PhpLiteral;
 use Nette\Utils\Strings;
 
 
@@ -39,19 +40,20 @@ class PhpGenerator
 	/**
 	 * Generates PHP classes. First class is the container.
 	 */
-	public function generate(string $className): Php\ClassType
+	public function generate(string $className): Nette\PhpGenerator\ClassType
 	{
 		$this->className = $className;
-		$class = new Php\ClassType($this->className);
+		$class = new Nette\PhpGenerator\ClassType($this->className);
 		$class->setExtends(Container::class);
 		$class->addMethod('__construct')
 			->addBody('parent::__construct($params);')
+			->addBody($this->formatPhp('$this->parameters += ?;', [$this->builder->parameters]))
 			->addParameter('params', [])
-				->setType('array');
+				->setTypeHint('array');
 
 		foreach ($this->builder->exportMeta() as $key => $value) {
 			$class->addProperty($key)
-				->setProtected()
+				->setVisibility('protected')
 				->setValue($value);
 		}
 
@@ -66,13 +68,11 @@ class PhpGenerator
 			->setReturnType($className)
 			->setBody('return $this;');
 
-		$class->addMethod('initialize');
-
 		return $class;
 	}
 
 
-	public function toString(Php\ClassType $class): string
+	public function toString(Nette\PhpGenerator\ClassType $class): string
 	{
 		return '/** @noinspection PhpParamsInspection,PhpMethodMayBeStaticInspection */
 
@@ -82,23 +82,12 @@ declare(strict_types=1);
 	}
 
 
-	public function addInitialization(Php\ClassType $class, CompilerExtension $extension): void
-	{
-		$closure = $extension->getInitialization();
-		if ($closure->getBody()) {
-			$class->getMethod('initialize')
-				->addBody('// ' . $extension->prefix(''))
-				->addBody("($closure)();");
-		}
-	}
-
-
-	public function generateMethod(Definitions\Definition $def): Php\Method
+	public function generateMethod(Definitions\Definition $def): Nette\PhpGenerator\Method
 	{
 		$name = $def->getName();
 		try {
-			$method = new Php\Method(Container::getMethodName($name));
-			$method->setPublic();
+			$method = new Nette\PhpGenerator\Method(Container::getMethodName($name));
+			$method->setVisibility('public');
 			$method->setReturnType($def->getType());
 			$def->generateMethod($method, $this);
 			return $method;
@@ -131,9 +120,11 @@ declare(strict_types=1);
 						if ($append = (substr($name, -2) === '[]')) {
 							$name = substr($name, 0, -2);
 						}
-						$prop = $entity[0] instanceof Reference
-							? $this->formatPhp('?->?', [$entity[0], $name])
-							: $this->formatPhp($entity[0] . '::$?', [$name]);
+						if ($entity[0] instanceof Reference) {
+							$prop = $this->formatPhp('?->?', [$entity[0], $name]);
+						} else {
+							$prop = $this->formatPhp($entity[0] . '::$?', [$name]);
+						}
 						return $arguments
 							? $this->formatPhp($prop . ($append ? '[]' : '') . ' = ?', [$arguments[0]])
 							: $prop;
@@ -168,38 +159,38 @@ declare(strict_types=1);
 	{
 		array_walk_recursive($args, function (&$val): void {
 			if ($val instanceof Statement) {
-				$val = new Php\Literal($this->formatStatement($val));
+				$val = new PhpLiteral($this->formatStatement($val));
 
 			} elseif ($val instanceof Reference) {
 				$name = $val->getValue();
 				if ($val->isSelf()) {
-					$val = new Php\Literal('$service');
+					$val = new PhpLiteral('$service');
 				} elseif ($name === ContainerBuilder::THIS_CONTAINER) {
-					$val = new Php\Literal('$this');
+					$val = new PhpLiteral('$this');
 				} else {
 					$val = ContainerBuilder::literal('$this->getService(?)', [$name]);
 				}
 			}
 		});
-		return Php\Helpers::formatArgs($statement, $args);
+		return PhpHelpers::formatArgs($statement, $args);
 	}
 
 
 	/**
 	 * Converts parameters from Definition to PhpGenerator.
-	 * @return Php\Parameter[]
+	 * @return Nette\PhpGenerator\Parameter[]
 	 */
 	public function convertParameters(array $parameters): array
 	{
 		$res = [];
 		foreach ($parameters as $k => $v) {
 			$tmp = explode(' ', is_int($k) ? $v : $k);
-			$param = $res[] = new Php\Parameter(end($tmp));
+			$param = $res[] = new Nette\PhpGenerator\Parameter(end($tmp));
 			if (!is_int($k)) {
 				$param->setDefaultValue($v);
 			}
 			if (isset($tmp[1])) {
-				$param->setType($tmp[0]);
+				$param->setTypeHint($tmp[0]);
 			}
 		}
 		return $res;
