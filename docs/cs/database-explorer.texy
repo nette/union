@@ -2,16 +2,14 @@ Database Explorer
 *****************
 
 <div class=perex>
-
 Nette Database Explorer (dříve Nette Database Table, NDBT) zásadním způsobem zjednodušuje získávání dat z databáze bez nutnosti psát SQL dotazy.
 
 - pokládá efektivní dotazy
 - nepřenáší zbytečná data
 - má elegantní syntax
-
 </div>
 
-Používání Database Explorer začíná od tabulky a to zavoláním metody `table()` nad objektem [api:Nette\Database\Context]. Jak ho nejsnadněji získat je [popsáno tady |database core#Připojení a konfigurace], pokud však používáme Nette Database Explorer samostatně, lze jej [vytvořit i ručně|#Ruční vytvoření Context].
+Používání Database Explorer začíná od tabulky a to zavoláním metody `table()` nad objektem [Nette\Database\Context|api:]. Jak ho nejsnadněji získat je [popsáno tady |database core#Připojení a konfigurace], pokud však používáme Nette Database Explorer samostatně, lze jej [vytvořit i ručně|#Ruční vytvoření Context].
 
 ```php
 $books = $context->table('book'); // jméno tabulky je 'book'
@@ -122,9 +120,9 @@ $table->where('id', $ids);   // id IN (...)
 Selection správně zpracovává i záporné podmínky a umí pracovat také s prázdnými poli:
 
 ```php
-$table->where('id', []);       // id IS NULL AND FALSE
-$table->where('id NOT', []);   // id IS NULL OR TRUE
-$table->where('NOT (id ?)', $ids);  // NOT (ID IS NULL AND FALSE)
+$table->where('id', []);       // id IS null AND false
+$table->where('id NOT', []);   // id IS null OR false
+$table->where('NOT (id ?)', $ids);  // NOT (id IS null AND false)
 
 // toto způsobí výjimku, tato syntax není podporovaná
 $table->where('NOT id ?', $ids);
@@ -176,6 +174,7 @@ $authors->where(':book:book_tags.tag.name', 'PHP')
 ```
 
 
+
 Agregace výsledků
 -----------------
 
@@ -188,6 +187,7 @@ Agregace výsledků
 
 .[caution]
 Metoda `count()` bez uvedeného parametru vybere všechny záznamy a vrátí velikost pole, což je velmi neefektivní. Pokud potřebujete například spočítat počet řádků pro stránkování, vždy první argument uveďte.
+
 
 
 Escapování a uvozovky
@@ -217,6 +217,7 @@ Database Explorer umí chytře escapovat parametry a identifikátory. Pro správ
 Špatné použití může vést k bezpečnostním dírám v aplikaci.
 
 
+
 Čtení dat
 =========
 
@@ -238,7 +239,7 @@ $row = $context->table('author')->insert([
 	'name' => 'Ramsay Snow',
 	'born' => null
 ]);
-// INSERT INTO `author` (`name`, `born`) VALUES ('Ramsay Snow', NULL)
+// INSERT INTO `author` (`name`, `born`) VALUES ('Ramsay Snow', null)
 ```
 
 Má-li tabulka definovaný primární klíč, vrací nový řádek jako objekt ActiveRow.
@@ -255,7 +256,7 @@ $context->table('author')->insert([
 		'born' => null
 	]
 ]);
-// INSERT INTO `author` (`name`, `born`) VALUES ('Sansa Stark', NULL), ('Arya Stark', NULL)
+// INSERT INTO `author` (`name`, `born`) VALUES ('Sansa Stark', null), ('Arya Stark', null)
 ```
 
 Úprava záznamů (vrací počet změněných řádků):
@@ -281,7 +282,6 @@ $count = $context->table('author')
 
 Vazby mezi tabulkami
 ====================
-
 
 Relace Has one
 --------------
@@ -319,7 +319,7 @@ $book->author->name;
 $book->ref('author')->name;
 ```
 
-Instance ActiveRow nemá žádný sloupec `author`. Všechny sloupce tabulky `book` jsou prohledány na shodu s *klíčem*. Shoda v tomto případě znamená, že jméno sloupce musí obsahovat klíč. V příkladu výše sloupec `author_id` obsahuje řetězec 'author' a tedy odpovídá klíči 'author'. Pokud chceme přistoupit k záznamu překladatele, obdobným způsobem použijeme klíč 'translator', protože bude odpovídat sloupci `translator_id`. Více o logice párování klíčů si můžete přečíst v části [Joining expressions |#joining-key].
+Instance ActiveRow nemá žádný sloupec `author`. Všechny sloupce tabulky `book` jsou prohledány na shodu s *klíčem*. Shoda v tomto případě znamená, že jméno sloupce musí obsahovat klíč. V příkladu výše sloupec `author_id` obsahuje řetězec 'author' a tedy odpovídá klíči 'author'. Pokud chceme přistoupit k záznamu překladatele, obdobným způsobem použijeme klíč 'translator', protože bude odpovídat sloupci `translator_id`. Více o logice párování klíčů si můžete přečíst v kapitole [Joining expressions |#joining-key].
 
 ```php
 echo $book->title . ': ';
@@ -376,7 +376,7 @@ $author->related('book.translator_id');
 $author->related('book', 'translator_id');
 ```
 
-Můžeme použít heuristiku Nette Database Explorer založenou na cizích klíčích a použít pouze **klíč**. Klíč bude porovnán s cizími klíči, které odkazují do aktuální tabulky (tabulka `author`). Pokud je nalezena shoda, Nette Database Explorer použije tento cizí klíč, v opačném případě vyhodí výjimku [Nette\InvalidArgumentException |api:Nette\InvalidArgumentException] nebo [AmbiguousReferenceKeyException |api:Nette\Database\Conventions\AmbiguousReferenceKeyException]. Více o logice párování klíčů si můžete přečíst v části [Joining expressions |#joining-key].
+Můžeme použít heuristiku Nette Database Explorer založenou na cizích klíčích a použít pouze **klíč**. Klíč bude porovnán s cizími klíči, které odkazují do aktuální tabulky (tabulka `author`). Pokud je nalezena shoda, Nette Database Explorer použije tento cizí klíč, v opačném případě vyhodí výjimku [Nette\InvalidArgumentException |api:Nette\InvalidArgumentException] nebo [AmbiguousReferenceKeyException |api:Nette\Database\Conventions\AmbiguousReferenceKeyException]. Více o logice párování klíčů si můžete přečíst v kapitole [Joining expressions |#joining-key].
 
 Metodu `related()` může samozřejmě volat na všechny získané autory a Nette Database Explorer načte všechny odpovídající knihy najednou.
 

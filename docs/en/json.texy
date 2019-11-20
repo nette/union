@@ -2,37 +2,25 @@ JSON Functions
 **************
 
 .[perex]
-[api:Nette\Utils\Json] is a static class with JSON encoding and decoding functions. It handles vulnerabilities in different PHP versions and throws exceptions on errors.
-
-Installation:
-
-```shell
-composer require nette/utils
-```
-
-All examples assume the following class alias is defined:
-
-```php
-use Nette\Utils\Json;
-```
+[Nette\Utils\Json |api:] is a static class with useful functions you can use to work with JSON. It sanitizes errors in different PHP versions and throws exceptions on errors.
 
 
 Usage
 =====
 
-
 encode(mixed $value, int $flags=0): string .[method]
 ----------------------------------------------------
 
-Converts `$value` to JSON format. The flag can be `Json::PRETTY`, which formats JSON for easier reading and clarity, and `Json::ESCAPE_UNICODE` for ASCII output.
+Returns `$value` encoded into JSON. Accepts flag `Json::PRETTY` which formats JSON for better readability.
 
 ```php
-Json::encode($value); // returns JSON
-Json::encode($value, Json::PRETTY); // returns readable JSON
-Json::encode($value, Json::PRETTY | Json::ESCAPE_UNICODE); // combination
+use Nette\Utils\Json;
+
+Json::encode($value); // Returns $value encoded in JSON
+Json::encode($value, Json::PRETTY); // Returns formatted $value encoded in JSON
 ```
 
-It throws an `Nette\Utils\JsonException` exception on error.
+Method `encode()` throws `Nette\Utils\JsonException` on error.
 
 ```php
 try {
@@ -46,15 +34,14 @@ try {
 decode(string $json, int $flags=0): mixed .[method]
 ---------------------------------------------------
 
-Parses JSON to PHP value. The flag can be `Json::FORCE_ARRAY`, which forces an array instead of an object as the return value.
+Converts given JSON either to an object or to an array. Accepts flag `Json::FORCE_ARRAY` which forces an array instead of an object as the return value.
 
 ```php
-Json::decode('{"variable": true}'); // returns an object of stdClass
-Json::decode('{"variable": true}', Json::FORCE_ARRAY); // returns an array
-Json::decode('true'); // return true
+Json::decode('{"variable": true}'); // Returns an object of stdClass with attribute $variable
+Json::decode('{"variable": true}', Json::FORCE_ARRAY); // Returns an array with key "variable" and value true
 ```
 
-It throws an `Nette\Utils\JsonException` exception on error.
+Method `decode()` throws `Nette\Utils\JsonException` on error.
 
 ```php
 try {
@@ -65,10 +52,12 @@ try {
 ```
 
 
-How to send a JSON from a presenter?
-====================================
+MVC - Presenter
+===============
 
-You can use the `$this->sendJson($data)` method, which can be called, for example, in the `action*()` method, see [Sending a Response|presenters#Sending a Response].
+How to send a JSON from a presenter? We can use prepared method `$this->sendJson($data)`, may be called at `action**()`.
+
+By calling `sendJson()` the presenter gets immediately terminated. More info can be found in the [presenter's lifecycle|presenters#life-cycle-of-presenter].
 
 
 {{composer: nette/utils}}

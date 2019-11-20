@@ -2,20 +2,18 @@ DI: konfigurace služeb
 **********************
 
 <div class=perex>
-
-Dependency injection (DI) kontejner se snadno konfiguruje pomocí souborů NEON. Řekneme si:
+Dependency Injection (DI) kontejner se snadno konfiguruje pomocí souborů NEON. Řekneme si:
 
 - jak používat parametry
 - jak přidat a nastavit služby
 - jak vložit více konfiguračních souborů
-
 </div>
 
-Samotná konfigurace se obykle zapisuje ve [formátu NEON|NEON format].
+Samotná konfigurace se obykle zapisuje v NEON souboru. Se syntaxí se můžete seznámit na [hřišti |https://ne-on.org].
 
 
-Parametry
-=========
+Parametery
+==========
 
 V konfiguraci můžete definovat parametry, které lze pak použít jako součást definic služeb. Čímž můžete zpřehlednit konfiguraci nebo sjednodit a vyčlenit hodnoty, které se budou měnit.
 
@@ -119,7 +117,6 @@ services:
 		setup:
 			- setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION)
 			- $mode = 123
-			- '$items[]' = 456
 
 	myService:
 		factory: MyService
@@ -135,7 +132,6 @@ public function createServiceDatabase(): PDO
 	$service = new PDO('mysql:host=127.0.0.1;dbname=test', 'root', 'secret');
 	$service->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$service->mode = 123;
-	$service->items[] = 456;
 	return $service;
 }
 
@@ -227,6 +223,7 @@ services:
 	articles:
 		factory: Model\ArticleRepository(@Nette\Database\Connection)  # nebo @\PDO
 ```
+
 
 
 Pokročilá syntaxe
@@ -331,6 +328,7 @@ public function createServiceRouter(): IRouter
 	return (new App\Router\Factory())->create();
 }
 ```
+
 
 
 Autowiring
@@ -528,46 +526,6 @@ services:
 ```
 
 Proto služba `articles` nevyhodí výjimku, že existují dvě vyhovující služby typu `PDO` (tj. `mainDb` a `tempDb`), které lze do konstruktoru předat, ale použije preferovanou službu, tedy `mainDb`.
-
-
-Rozšíření Inject
-================
-
-Pomocí příznaku `inject: true` se aktivuje předávání závislostí přes veřejné proměnné s anotací [inject |di-usage#Anotace inject] a metody [inject* |di-usage#Předávání metodou inject*].
-
-```neon
-services:
-	articles:
-		factory: App\Model\Articles
-		inject: true
-```
-
-```php
-namespace App\Model;
-
-use Nette\Database\Connection;
-
-class Articles
-{
-	/** @var Connection @inject */
-	public $connection;
-}
-```
-
-Nebo v PHP 8 pomocí atributu: (vyžaduje nette/di 3.0.6)
-
-```php
-use Nette\Database\Connection;
-use Nette\DI\Attributes\Inject;
-
-class Articles
-{
-	#[Inject]
-	public Connection $connection;
-}
-```
-
-V základním nastavení je `inject` aktivováno pouze pro presentery.
 
 
 Více konfiguračních souborů

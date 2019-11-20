@@ -2,19 +2,17 @@ Dependency Injection
 ********************
 
 <div class=perex>
+Podstatou Dependency Injection (DI) je odebrat třídám zodpovědnost za získávání objektů, které potřebují ke své činnosti (tzv. služeb) a místo toho jim služby předávat při vytváření. Řekneme si:
 
-Podstatou dependency injection (DI) je odebrat třídám zodpovědnost za získávání objektů, které potřebují ke své činnosti (tzv. služeb) a místo toho jim služby předávat při vytváření. Řekneme si:
-
-- co je principem dependency injection?
+- co je principem Dependency Injection?
 - jak vytvářet DI kontejnery
-
 </div>
 
 
-Co je to dependency injection?
+Co je to Dependency Injection?
 ==============================
 
-Narovinu: dependency injection (DI) není nic tajemného nebo nepochopitelného. Celé se dá shrnout do jedné sobecké věty: **„nic nesháněj, ať se postará někdo jiný.“** Nic víc, nic míň. Převeďme to do řeči programátorů. Máme třídu `Article` reprezentující článek na blogu:
+Narovinu: Dependency Injection (DI) není nic tajemného nebo nepochopitelného. Celé se dá shrnout do jedné sobecké věty: **„nic nesháněj, ať se postará někdo jiný.“** Nic víc, nic míň. Převeďme to do řeči programátorů. Máme třídu `Article` reprezentující článek na blogu:
 
 ```php
 class Article
@@ -276,10 +274,11 @@ class Container
 A máme plně funkční DI kontejner. Jak vidíte, napsat jej není nic složitého. Za připomenutí stojí, že samotné služby neví, že je vytváří nějaký kontejner, tím pádem je možné takto vytvářet jakýkoliv objekt v PHP bez zásahu do jeho zdrojového kódu.
 
 
+
 Nette\DI\Container
 ==================
 
-Třída [api:Nette\DI\Container] je pružná implementace univerzálního DI kontejneru. Vlastní kontejnery můžeme vytvářet buď staticky, tj. poděděním této třídy, nebo si je nechat [automaticky generovat|#Generovaný kontejner], což je velmi elegantní řešení.
+Třída [Nette\DI\Container |api:] je pružná implementace univerzálního DI kontejneru. Vlastní kontejnery můžeme vytvářet buď staticky, tj. poděděním této třídy, nebo si je nechat [automaticky generovat|#Generovaný kontejner], což je velmi elegantní řešení.
 
 Názvy továrních funkcí dodržují jednotnou konvenci, jsou tvořeny předponou `createService` + názvem služby začínajícím velkým písmenem. Všimněte si, že kontejner už má definované pole `$parameters` pro uživatelské parametry a také metodu `getService()`.
 
@@ -323,7 +322,7 @@ $database = $container->getService('database');
 Generovaný kontejner
 ====================
 
-Knihovna Nette DI je ale především generátor kontejnerů. To je její nejsilnější stránka. Instruujeme ho (zpravidla) pomocí [konfiguračních souborů |di-services].
+Knihovna Nette DI je ale především generátor kontejnerů. To je její nejsilnější stránka. Instruujeme ho (zpravidla) pomocí [konfiguračních souborů |di-configuration].
 
 Třeba tato konfigurace vygeneruje cca totéž, jako byla třída `MyContainer` výše:
 
@@ -338,7 +337,7 @@ services:
 	articleFactory: ArticleFactory
 ```
 
-Zásadní výhodou je stručnost zápisu. Navíc jednotlivým třídám můžeme přidávat další a další závislosti často bez nutnosti do konfigurace zasahovat díky [autowiringu|di-services#autowiring].
+Zásadní výhodou je stručnost zápisu. Navíc jednotlivým třídám můžeme přidávat další a další závislosti často bez nutnosti do konfigurace zasahovat díky [autowiringu|di-configuration#autowiring].
 
 Nette DI vygeneruje skutečně PHP kód kontejneru. Ten je proto extrémně rychlý, programátor přesně ví, co dělá, a může ho třeba i krokovat.
 

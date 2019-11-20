@@ -1,22 +1,8 @@
-Schema: validace dat
-********************
+Schema
+******
 
 .[perex]
-Praktická knihovna pro validaci a normalizaci datových struktur oproti danému schématu s chytrým srozumitelným API.
-
-Instalace:
-
-```shell
-composer require nette/schema
-```
-
-
-Základní použití
-----------------
-
-V proměnné `$schema` máme validační schéma (co to přesně znamená a jak takové schéma vytvořit si řekneme vzápětí) a v proměnné `$data` datovou strukturu, kterou chceme validovat a normalizovat. Může jít například o data odeslaná uživatelem skrze rozhraní API, konfigurační soubor, atd.
-
-Úkol obstará třída [api:Nette\Schema\Processor], která zpracuje vstup a buď vrátí normalizovaná data, nebo v případě chyby vyhodí výjimku [api:Nette\Schema\ValidationException].
+Praktická knihovna pro validaci datových struktur proti danému schématu.
 
 ```php
 $processor = new Nette\Schema\Processor;
@@ -26,13 +12,12 @@ try {
 } catch (Nette\Schema\ValidationException $e) {
 	echo 'Data nejsou platná: ' . $e->getMessage();
 }
-```
 
+// v případě chyby vyhodí Nette\Schema\ValidationException
+```
 
 Definování schématu
 -------------------
-
-A nyní vytvoříme schéma. K jeho definování slouží třída [api:Nette\Schema\Expect], definujeme vlastně očekávání, jak mají data vypadat. Řekněme, že vstupní data musí tvořit strukturu (například pole) obsahující prvky `processRefund` typu bool a `refundAmount` typu int.
 
 ```php
 use Nette\Schema\Expect;
@@ -41,138 +26,97 @@ $schema = Expect::structure([
     'processRefund' => Expect::bool(),
     'refundAmount' => Expect::int(),
 ]);
-```
 
-Věříme, že definice schématu vypadá srozumitelně, i když ji vidíte úplně poprvé.
-
-Pošleme k validaci následující data:
-
-```php
 $data = [
     'processRefund' => true,
     'refundAmount' => 17,
 ];
 
-$normalized = $processor->process($schema, $data); // OK, projde validací
+$normalized = $processor->process($schema, $data); // projde
 ```
 
-Výstupem, tedy hodnotou `$normalized`, je objekt `stdClass`. Pokud bychom chtěli, aby výstupem bylo pole, doplníme schéma o přetypování `Expect::structure([...])->castTo('array')`.
-
-Všechny prvky struktury jsou volitelné a mají výchozí hodnotu `null`. Příklad:
-
-```php
-$data = [
-    'refundAmount' => 17,
-];
-
-$normalized = $processor->process($schema, $data); // OK, projde validací
-// $normalized = {'processRefund' => null, 'refundAmount' => 17}
-```
-
-To, že výchozí hodnotou je `null`, neznamená, že by se akceptovalo ve vstupních datech `'processRefund' => null`. Nikoliv, vstupem musí být boolean, tedy pouze `true` nebo `false`. Povolit `null` bychom museli explicitně pomoci `Expect::bool()->nullable()`.
-
-Položku lze učinit povinnou pomocí `Expect::bool()->required()`. Výchozí hodnotu změníme třeba na `false` pomocí `Expect::bool()->default(false)` nebo zkráceně `Expect::bool(false)`.
-
-A co kdybychom chtěli kromě booleanu akceptovat ještě `1` a `0`? Pak uvedeme výčet hodnot, které navíc necháme normalizovat na boolean:
+Pokud ověření dat projde, můžete přetypovat řetězce a logické hodnoty na očekávané typy definované vaším schématem:
 
 ```php
 $schema = Expect::structure([
-    'processRefund' => Expect::anyOf(true, false, 1, 0)->castTo('bool'),
-    'refundAmount' => Expect::int(),
+    'processRefund' => Expect::scalar()->castTo('bool'),
+    'refundAmount' => Expect::scalar()->castTo('int'),
 ]);
 
-$normalized = $processor->process($schema, $data);
+$data = [
+    'processRefund' => 1,
+    'refundAmount' => '17',
+];
+
+$normalized = $processor->process($schema, $data); // projde
+
 is_bool($normalized->processRefund); // true
+is_int($normalized->refundAmount); // true
 ```
 
-Nyní už znáte základy toho, jak se definuje schéma a jak se chovají jednotlivé prvky struktury. Nyní si ukážeme, jaké všechny další prvky lze při definici schématu použít.
+Ve výchozím nastavení jsou všechny prvky volitelné a mají výchozí hodnotu `null`, nebo `[]` v případě polí.
 
-
-Datové typy: type()
--------------------
-
-Ve schématu lze uvést všechny standardní datové typy PHP:
+Výchozí hodnotu můžete změnit tímto způsobem:
 
 ```php
-Expect::string($default = null)
-Expect::int($default = null)
-Expect::float($default = null)
-Expect::bool($default = null)
-Expect::null()
-Expect::array($default = [])
+$schema = Expect::structure([
+    'processRefund' => Expect::bool()->default(true), // or Expect::bool(true)
+]);
+
+$data = [];
+
+// ověřuje a nastavuje výchozí hodnoty pro chybějící prvky
+$normalized = $processor->process($schema, $data);
+
+// $normalized->processRefund === true;
 ```
 
-A dále všechny typy, [podporované třídou Validators|Validators#Očekávané typy], například `Expect::type('scalar')` nebo zkráceně `Expect::scalar()`. Také názvy tříd či rozhraní, například `Expect::type('AddressEntity')`.
 
-Lze použít i union zápis:
+Položky pole
+------------
 
-```php
-Expect::type('bool|string|array')
-```
-
-Výchozí hodnota je vždy `null` s výjimkou pro `array` a `list`, kde je to prázdné pole. (List je pole indexované podle vzestupné řady numerických klíčů od nuly, tedy neasociativní pole).
-
-
-Pole hodnot: arrayOf() listOf()
--------------------------------
-
-Pole představuje příliš obecnou strukturu, užitečnější je specifikovat, jaké přesně může obsahovat prvky. Například pole, jehož prvky mohou být pouze řetězce:
+Pole, kde jsou povoleny prvky pouze řetězce:
 
 ```php
 $schema = Expect::arrayOf('string');
 
-$processor->process($schema, ['hello', 'world']); // OK
-$processor->process($schema, ['a' => 'hello', 'b' => 'world']); // OK
-$processor->process($schema, ['key' => 123]); // CHYBA: 123 není string
+$processor->process($schema, ['key1' => 'a', 'key2' => 'b']); // projde
+$processor->process($schema, ['key' => 123]); // chyba: The option 'key' expects to be string, int 123 given.
 ```
 
-List je indexované pole:
+Indexované pole pouze s číselnými klíči:
 
 ```php
 $schema = Expect::listOf('string');
 
-$processor->process($schema, ['a', 'b']); // OK
-$processor->process($schema, ['a', 123]); // CHYBA: 123 není string
-$processor->process($schema, ['key' => 'a']); // CHYBA: není list
-$processor->process($schema, [1 => 'a', 0 => 'b']); // CHYBA: také není list
+$processor->process($schema, ['a', 'b']); // projde
+$processor->process($schema, ['key' => 'a']); // error, unexpected 'key'
 ```
 
-Parametrem může být i schéma, můžeme tedy zapsat:
+Výčtové hodnoty a anyOf()
+-------------------------
 
-```php
-Expect::arrayOf(Expect::bool())
-```
-
-Výchozí hodnota je prázdné pole.
-
-
-Výčet: anyOf()
---------------
-
-`anyOf()` představuje výčet hodnot nebo schémat, které může hodnota nabývat. Takto zapíšeme pole prvků, které mohou být buď `'a'`, `true` nebo `null`:
+`anyOf()` se používá k omezení hodnoty na pevnou sadu variant nebo podschémat:
 
 ```php
 $schema = Expect::listOf(
 	Expect::anyOf('a', true, null)
 );
 
-$processor->process($schema, ['a', true, null, 'a']); // OK
-$processor->process($schema, ['a', false]); // CHYBA: false tam nepatří
+$processor->process($schema, ['a', true, null, 'a']); // projde
+$processor->process($schema, ['a', false]); // chyba: The option '1' expects to be 'a'|true|null, false given.
 ```
 
-Prvky výčtu mohou být i schémata:
+Prvky mohou být schémata:
 
 ```php
 $schema = Expect::listOf(
 	Expect::anyOf(Expect::string(), true, null)
 );
 
-$processor->process($schema, ['foo', true, null, 'bar']); // OK
-$processor->process($schema, [123]); // CHYBA
+$processor->process($schema, ['foo', true, null, 'bar']); // projde
+$processor->process($schema, [123]); // chyba: The option '0' expects to be string|true|null, 123 given.
 ```
-
-Výchozí hodnota je `null`.
-
 
 Struktury
 ---------
@@ -189,14 +133,11 @@ $schema = Expect::structure([
 	'optional' => Expect::string(), // výchozí hodnota je null
 ]);
 
-$processor->process($schema, ['optional' => '']);
-// CHYBA: option 'required' is missing
-
-$processor->process($schema, ['required' => 'foo']);
-// OK, vrací {'required' => 'foo', 'optional' => null}
+$processor->process($schema, ['optional' => '']); // chyba: option 'required' is missing
+$processor->process($schema, ['required' => 'foo']); // projde, returns (object) ['required' => 'foo', 'optional' => null]
 ```
 
-Ačkoliv je `null` výchozí hodnota vlastnosti `optional`, ve vstupních datech povolený není (hodnotou musí být string). Vlastnosti akceptující `null` definujeme pomocí `nullable()`:
+Vlastnosti akceptující hodnotu `null` můžete definovat pomocí `nullable()`:
 
 ```php
 $schema = Expect::structure([
@@ -204,202 +145,160 @@ $schema = Expect::structure([
 	'nullable' => Expect::string()->nullable(),
 ]);
 
-$processor->process($schema, ['optional' => null]);
-// CHYBA: 'optional' expects to be string, null given.
-
-$processor->process($schema, ['nullable' => null]);
-// OK, vrací {'optional' => null, 'nullable' => null}
+$processor->process($schema, ['optional' => null]); // chyba: 'optional' expects to be string, null given.
+$processor->process($schema, ['nullable' => null]); // projde, returns (object) ['optional' => null, 'nullable' => null]
 ```
 
-Ve výchozím nastavení nemohou být ve vstupních datech žádné položky navíc:
+Ve výchozím nastavení je zakázáno uvádět další vlastnosti:
 
 ```php
 $schema = Expect::structure([
 	'key' => Expect::string(),
 ]);
 
-$processor->process($schema, ['additional' => 1]);
-// CHYBA: Unexpected option 'additional'
+$processor->process($schema, ['additional' => 1]); // chyba: Unexpected option 'additional'
 ```
 
-Což můžeme změnit pomocí `otherItems()`. Jako parametr uvedeme schéma, podle kterého se budou prvky navíc validovat:
+`otherItems()` se používá ke kontrole dalších prvků, tj. vlastností, které nejsou uvedeny v `Expect::structure()`:
 
 ```php
 $schema = Expect::structure([
 	'key' => Expect::string(),
 ])->otherItems(Expect::int());
 
-$processor->process($schema, ['additional' => 1]); // OK
-$processor->process($schema, ['additional' => true]); // CHYBA
+$processor->process($schema, ['additional' => 1]); // projde
 ```
 
+Velikost a rozsahy
+------------------
 
-Rozsahy: min() max()
---------------------
-
-Pomocí `min()` a `max()` lze u polí omezit počet prvků:
+Počet prvků lze omezit pomocí `min()` a `max()`:
 
 ```php
 // pole, nejméně 10 položek, maximálně 20 položek
-Expect::array()->min(10)->max(20);
+$schema = Expect::array()->min(10)->max(20);
 ```
 
-U řetězců omezit jejich délku:
+Délka řetězce může být omezena pomocí `min()` a `max()`:
 
 ```php
 // řetězec, nejméně 10 znaků dlouhý, maximálně 20 znaků
-Expect::string()->min(10)->max(20);
+$schema = Expect::string()->min(10)->max(20);
 ```
 
-U čísel omezit jejich hodnotu:
+Rozsah čísel lze omezit pomocí `min()` a `max()`:
 
 ```php
-// celé číslo, mezi 10 a 20 včetně
-Expect::int()->min(10)->max(20);
+// celé číslo, mezi 10 a 20
+$schema = Expect::int()->min(10)->max(20);
 ```
 
-Samozřejmě je možné uvést pouze `min()`, nebo pouze `max()`:
+Regulární výrazy
+----------------
 
-```php
-// řetězec maximálně 20 znaků
-Expect::string()->max(20);
-```
-
-
-Regulární výrazy: pattern()
----------------------------
-
-Pomocí `pattern()` lze uvést regulární výraz, kterému musí odpovídat **celý** vstupní řetězec (tj. jako by byl obalen znaky `^` a `$`):
+Řetězec může být omezen regulárním výrazem pomocí `pattern()`:
 
 ```php
 // právě 9 čísel
-Expect::string()->pattern('\d{9}');
+$schema = Expect::string()->pattern('\d{9}');
 ```
 
+Mapování dat na objekty
+-----------------------
 
-Vlastní omezení: assert()
--------------------------
-
-Libovolná další omezení zadáme pomocí `assert(callable $fn)`.
+Schéma může být generována ze třídy:
 
 ```php
-$countIsEven = function ($v) { return count($v) % 2 === 0; };
+class Config
+{
+	/** @var string */
+	public $dsn;
 
+	/** @var string|null */
+	public $user;
+
+	/** @var string|null */
+	public $password;
+
+	/** @var bool */
+	public $debugger = true;
+}
+
+$schema = Expect::from(new Config);
+
+$data = [
+	'dsn' => 'sqlite',
+	'user' => 'root'
+];
+
+$normalized = $processor->process($schema, $data);
+// $normalized is Config class
+// $normalized->dsn === 'sqlite'
+// $normalized->user === 'root'
+// $normalized->password === null
+// $normalized->debugger === true
+```
+
+Můžete dokonce použít zápis PHP 7.4:
+
+
+```php
+class Config
+{
+	public string $dsn;
+	public ?string $user;
+	public ?string $password;
+	public bool $debugger = true;
+}
+
+$schema = Expect::from(new Config);
+```
+
+Nebo použijte anonymní třídu:
+
+```php
+$schema = Expect::from(new class {
+	public string $dsn;
+	public ?string $user;
+	public ?string $password;
+	public bool $debugger = true;
+});
+```
+
+Vlastní normalizace
+-------------------
+
+```php
 $schema = Expect::arrayOf('string')
-	->assert($countIsEven); // počet musí být sudý
+	->before(function ($v) { return explode(' ', $v); });
 
-$processor->process($schema, ['a', 'b']); // OK
-$processor->process($schema, ['a', 'b', 'c']); // CHYBA: 3 není sudý počet
+$normalized = $processor->process($schema, 'a b c'); // projde a vrátí ['a', 'b', 'c']
+```
+
+Vlastní omezení
+---------------
+
+```php
+$schema = Expect::arrayOf('string')
+	->assert(function ($v) { return count($v) % 2 === 0; }); // počet musí být sudý
+
+$processor->process($schema, ['a', 'b']); // projde, 2 je sudé číslo
+$processor->process($schema, ['a', 'b', 'c']); // chyba, 3 není sudé číslo
 ```
 
 Nebo
 
 ```php
-Expect::string()->assert('is_file'); // soubor musí existovat
+$schema = Expect::string()->assert('is_file'); // soubor musí existovat
 ```
 
 Ke každému omezení můžete přidat vlastní popis. Ten bude součástí chybové zprávy.
 
 ```php
 $schema = Expect::arrayOf('string')
-	->assert($countIsEven, 'Even items in array');
+	->assert(function ($v) { return count($v) % 2 === 0; }, 'Even items in array');
 
-$processor->process($schema, ['a', 'b', 'c']);
-// Failed assertion "Even items in array" for option with value array.
+$processor->process($schema, ['a', 'b', 'c']); // Failed assertion "Even items in array" for option with value array.
 ```
-
-Metodu lze volat opakovaně a tak přidat více omezení.
-
-
-Mapování na objekty: from()
----------------------------
-
-Schéma struktury si můžeme nechat vygenerovat ze třídy. Příklad:
-
-```php
-class Config
-{
-	/** @var string */
-	public $name;
-	/** @var string|null */
-	public $password;
-	/** @var bool */
-	public $admin = false;
-}
-
-$schema = Expect::from(new Config);
-
-$data = [
-	'name' => 'franta',
-];
-
-$normalized = $processor->process($schema, $data);
-// $normalized instanceof Config
-// $normalized = {'name' => 'franta', 'password' => null, 'admin' => false}
-```
-
-Pokud používáte PHP 7.4 nebo vyšší, můžete využít nativních typů:
-
-```php
-class Config
-{
-	public string $name;
-	public ?string $password;
-	public bool $admin = false;
-}
-
-$schema = Expect::from(new Config);
-```
-
-Podporovány jsou i anonymní třídy:
-
-```php
-$schema = Expect::from(new class {
-	public string $name;
-	public ?string $password;
-	public bool $admin = false;
-});
-```
-
-Protože informace získané z definice třídy nemusí být dostačující, můžete druhým parametrem doplnit prvkům vlastní schéma:
-
-```php
-$schema = Expect::from(new Config, [
-	'name' => Expect::string()->pattern('\w:.*'),
-]);
-```
-
-
-Přetypování: castTo()
----------------------
-
-Úspěšně zvalidovaná data lze přetypovat:
-
-```php
-Expect::scalar()->castTo('string');
-```
-
-Kromě nativních PHP typů lze přetypovávat i na třídy:
-
-```php
-Expect::scalar()->castTo('AddressEntity');
-```
-
-
-Normalizace: before()
----------------------
-
-Před samotnou validací lze data normalizovat pomocí metody `before()`. Jako příklad uveďme prvek, který musí být pole řetězců (například `['a', 'b', 'c']`), avšak přijímá vstup ve formě řetězce `a b c`:
-
-```php
-$explode = function ($v) { return explode(' ', $v); };
-
-$schema = Expect::arrayOf('string')
-	->before($explode);
-
-$normalized = $processor->process($schema, 'a b c');
-// OK a vrátí ['a', 'b', 'c']
-```
-
 
 {{composer: nette/schema}}

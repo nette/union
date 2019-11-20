@@ -2,22 +2,20 @@ DI: Services Configuration
 **************************
 
 <div class=perex>
-
-Dependency injection (DI) container is easily configured using NEON files. We'll talk about:
+Dependency Injection (DI) container is easily configured using NEON files. We'll talk about:
 
 - how to use parameters
 - how to add and setup services
 - how to include multiple configuration files
-
 </div>
 
-The configuration is usually written in [NEON format].
+Configuration is usually written in NEON format. Have fun trying out the syntax at https://ne-on.org.
 
 
 Parameters
 ==========
 
-You can define parameters that can then be used as part of service definitions. This can help to separate out values that you will want to change more regularly.
+You can define parameters which can then be used as part of service definitions. This can help to separate out values that you will want to change more regularly.
 
 Use the `parameters` section of a config file to set parameters:
 
@@ -50,11 +48,11 @@ If you use a string that starts with `@` or has `%` anywhere in it, you need to 
 Services
 ========
 
-The configuration file is a place where we add definitions of our own services in section `services`. For example, this is the definition of service named `database` which is `PDO` instance:
+The configuration file is place where we add definitions of our own services in section `services`. For example, this is definition of service named `database` which is `PDO` instance:
 
 ```neon
 services:
-	# in a single line
+	# in single line
 	database: PDO(%dsn%, %user%, %password%)
 
 	# or multi-lines
@@ -119,7 +117,6 @@ services:
 		setup:
 			- setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION)
 			- $mode = 123
-			- '$items[]' = 456
 
 	myService:
 		factory: MyService
@@ -135,7 +132,6 @@ public function createServiceDatabase(): PDO
 	$service = new PDO('mysql:host=127.0.0.1;dbname=test', 'root', 'secret');
 	$service->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$service->mode = 123;
-	$service->items[] = 456;
 	return $service;
 }
 
@@ -272,7 +268,7 @@ public function createServiceFoo()
 }
 ```
 
-Method calls can also be used in parameters. In addition, to the methods, we can also call global functions, before its name we put `::`:
+Method calls can also be used in parameters. In addition to the methods, we can also call global functions, before its name we put `::`:
 
 ```neon
 services:
@@ -331,6 +327,7 @@ public function createServiceRouter(): IRouter
 	return (new App\Router\Factory())->create();
 }
 ```
+
 
 
 Autowiring
@@ -423,7 +420,7 @@ services:
 	childDep: ChildDependent    # passes the service 'child' to the constructor
 ```
 
-The `parentDep` service throws the exception `Multiple services of type ParentClass found: parent, child` because both `parent` and `child` fit into its constructor and autowiring can not make a decision on which one to choose.
+The `parentDep` service throws the exception `Multiple services of type ParentClass found: parent, child`, because both `parent` and `child` fit into its constructor and autowiring can not make a decision on which one to choose.
 
 For service `child`, we can therefore narrow down its autowiring to `ChildClass`:
 
@@ -490,11 +487,11 @@ class ChildDependent
 
 When we do not limit the `child` service, it will fit into the constructors of all `FooDependent`, `BarDependent`, `ParentDependent` and `ChildDependent` classes and autowiring will pass it there.
 
-If we narrow `child` service's autowiring down to `ChildClass` with `autowired: ChildClass` (or `self`), autowiring will pass it only to the `ChildDependent` constructor because only its typehint *is a* `ChildClass`.
+If we narrow `child` service's autowiring down to `ChildClass` with `autowired: ChildClass` (or `self`), autowiring will pass it only to the `ChildDependent` constructor, because only its typehint *is a* `ChildClass`.
 
-If we limit it to `ParentClass` with `autowired: ParentClass`, autowiring will also pass it to the `ParentDependent` constructor because its typehint will match too.
+If we limit it to `ParentClass` with `autowired: ParentClass`, autowiring will also pass it to the `ParentDependent` constructor, because its typehint will match too.
 
-If we limit it to `FooInterface`, it will be autowired into the `FooDependent` constructor and still in `ParentDependent` (typehint `ParentClass` *is a* `FooInterface`) and `ChildDependent`, but not in `BarDependent` because the `BarInterface` typehint *is not a* `FooInterface`.
+If we limit it to `FooInterface`, it will be autowired into the `FooDependent` constructor and still in `ParentDependent` (typehint `ParentClass` *is a* `FooInterface`) and `ChildDependent`, but not in `BarDependent`, because the `BarInterface` typehint *is not a* `FooInterface`.
 
 ```neon
 services:
@@ -529,46 +526,6 @@ services:
 Therefore, `articles` does not throw the exception that there are two satisfactory services of type `PDO` (ie `mainDb` and `tempDb`) that can be passed to the constructor, but it uses the preferred service `mainDb`.
 
 
-Inject Extension
-================
-
-The option `inject: true` enables passing dependencies via variables with [inject |di-usage#inject-annotations] annotation and [inject* |di-usage#passing-by-an-inject-method] methods.
-
-```neon
-services:
-	articles:
-		factory: App\Model\Articles
-		inject: true
-```
-
-```php
-namespace App\Model;
-
-use Nette\Database\Connection;
-
-class Articles
-{
-	/** @var Connection @inject */
-	public $connection;
-}
-```
-
-Or in PHP 8 using the attribute: (requires nette/di 3.0.6)
-
-```php
-use Nette\Database\Connection;
-use Nette\DI\Attributes\Inject;
-
-class Articles
-{
-	#[Inject]
-	public Connection $connection;
-}
-```
-
-By default is `inject` attribute enabled only for presenters.
-
-
 Multiple Configuration Files
 ============================
 
@@ -581,7 +538,7 @@ includes:
 	- presenters.neon
 ```
 
-If items with the same keys appear in configuration files, they will be overwritten or merged in the case of arrays. The later included file has a higher priority. The file with the `includes` section has a higher priority than included files.
+If items with the same keys appear in configuration files, they will be overwritten or merged in the case of arrays. The later included file has higher priority. The file with the `includes` section has higher priority than included files.
 
 <table class=table>
 <tr>

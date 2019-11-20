@@ -1,8 +1,10 @@
-Paginating Database Results
-***************************
+Pagination
+**********
 
 .[perex]
-When developing web applications, you often meet with the requirement to print out a restricted number of records on a page.
+When developing web applications, you often meet with the requirement to print out a restricted number of records on a page. However, mathematics behind pagination can be tricky and that's why you should use [Nette\Utils\Paginator|api:].
+
+Remember that Paginator will only help math; Selecting a portion of the data, displaying it, and viewing the Paginator's actions is up to you. .[tip]
 
 We come out of the state when we list all the data without paging. To select data from the database, we have the ArticleRepository class, which contains the constructor and the `findPublishedArticles` method, which returns all published articles sorted in descending order of publication date.
 
@@ -81,7 +83,7 @@ In the template, we will take care of rendering an articles list:
 
 In this way, we can write all articles, but this will cause problems when the number of articles grows. At that point, it will be useful to implement the paging mechanism.
 
-This will ensure that all articles are split into several pages and we will only show the articles of one current page. The total number of pages and the distribution of the articles is calculated by [Paginator] itself, depending on how many articles we have in total and how many articles we want to display on the page.
+This will ensure that all articles are split into several pages and we will only show the articles of one current page. The total number of pages and the distribution of the articles is calculated by Paginator itself, depending on how many articles we have in total and how many articles we want to display on the page.
 
 In the first step, we will modify the method for getting articles in the repository class to return only single-page articles. We will also add a new method to get the total number of articles in the database, which we will need to set a Paginator:
 
@@ -124,7 +126,7 @@ class ArticleRepository
 }
 ```
 
-The next step is to edit the presenter. We will forward the number of the currently displayed page to the render method. In the case that this number is not part of the URL, we need to set the default value to the first page.
+The next step is to edit the presenter. We will forward the number of the currently displayed page to the render method. In the case that this number is not part of the url, we need to set the default value to the first page.
 
 We also expand the render method to get the Paginator instance, setting it up, and selecting the correct articles to display in the template. HomepagePresenter will look like this:
 
@@ -188,13 +190,13 @@ The template already iterates over articles in one page, just add paging links:
 		&nbsp;|&nbsp;
 	{/if}
 
-	Page {$paginator->getPage()} of {$paginator->getPageCount()}
+	Page {$paginator->page} of {$paginator->pageCount}
 
 	{if !$paginator->isLast()}
 		&nbsp;|&nbsp;
-		<a n:href="default, $paginator->getPage() + 1">Next</a>
+		<a n:href="default, $paginator->page+1">Next</a>
 		&nbsp;|&nbsp;
-		<a n:href="default, $paginator->getPageCount()">Last</a>
+		<a n:href="default, $paginator->pageCount">Last</a>
 	{/if}
 </div>
 ```
@@ -283,7 +285,7 @@ Because we do not use Paginator, we need to edit the section showing the paging 
 	{if $page > 1}
 		<a n:href="default, 1">First</a>
 		&nbsp;|&nbsp;
-		<a n:href="default, $page - 1">Previous</a>
+		<a n:href="default, $page-1">Previous</a>
 		&nbsp;|&nbsp;
 	{/if}
 
@@ -291,7 +293,7 @@ Because we do not use Paginator, we need to edit the section showing the paging 
 
 	{if $page < $lastPage}
 		&nbsp;|&nbsp;
-		<a n:href="default, $page + 1">Next</a>
+		<a n:href="default, $page+1">Next</a>
 		&nbsp;|&nbsp;
 		<a n:href="default, $lastPage">Last</a>
 	{/if}

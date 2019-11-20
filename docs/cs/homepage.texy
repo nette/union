@@ -1,163 +1,131 @@
-Dokumentace Nette 3.0
-*********************
-
-<div class="columns documentation">
+<div class="row navig documentation">
 <div class=column>
 
-
-Začínáme s Nette .[main]
-------------------------
-- [Proč používat Nette? |why-use-nette]
-- [Píšeme první aplikaci! |quickstart/getting-started]
-- [Úvodní stránka blogu |quickstart/home-page] .[only-sidemenu]
-- [Stránka s příspěvkem |quickstart/single-post] .[only-sidemenu]
-- [Komentáře |quickstart/comments] .[only-sidemenu]
-- [Vytváření a editování příspěvků |quickstart/creating-posts] .[only-sidemenu]
-- [Autentifikace |quickstart/authentication] .[only-sidemenu]
-- [Model |quickstart/refactoring-model] .[only-sidemenu]
-
-
-Praktické informace
--------------------
-- [Přehled balíčků |www:packages]
-- [Údržba a kompatibilita s PHP |www:maintenance]
-- [Release Notes |https://nette.org/releases]
-- [Přechod na novější verze|migration]
-- [Řešení častých dotazů |Troubleshooting]
-- [Editory & nástroje |editors-and-tools]
-- [Slack |https://bit.ly/pehapkari-slack] channel #nette
-- [Tvůrci |https://nette.org/contributors]
-- [API reference |https://api.nette.org/] - přehled tříd a metod
-
-
-Základní koncepty
------------------
-- [Jak fungují aplikace? |application]
-- [Bootstrap]
+Framework
+---------
+- [Seznámení s Nette Frameworkem |Getting Started]
+- **[Píšeme první aplikaci! |quickstart] .[main]**
+- [Bootstrap] - zaváděcí soubor
 - [Konfigurace |configuring]
-- [Presentery |presenters]
-- [Routování |routing]
-- [Vytváření odkazů URL |creating-links]
-- [Komponenty |components]
-- [Sessions |sessions]
-- [Přihlašování & oprávnění |access-control]
-- [Ochrana před zranitelnostmi |vulnerability protection]
-- [AJAX & snippety |ajax]
-- [Cache |caching]
-- [Odesílání e-mailů |mailing]
-- [HTTP request & response]
-- [Překládání |translations]
 
+MVC aplikace
+------------
+- [Presentery |presenters]
+- [Komponenty a ovládací prvky |components]
+- [Routování URL |routing] - cool URL adresy
+- [AJAX & snippety |ajax]
+- [Multiplier] - opakované komponenty
+
+Latte šablonovací systém
+------------------------
+- [Úvod |latte:]
+- [Tagy (značky, makra) |latte:tags]
+- [Filtry |latte:filters]
 
 Dependency Injection
 --------------------
 - [Úvod |dependency-injection]
-- [Služby |di-services]
-- [Předávání závislostí |di-usage]
+- [Konfigurace služeb |di-configuration] - NEON syntaxe
+- [Získávání závislostí |di-usage] - předávání objektů
+- [Základní rozšíření |di-builtin-extensions]
 - [Tvorba rozšíření |di-extensions]
 
-
-Latte: šablonovací systém
--------------------------
-- [Úvodní stránka |latte:]
-- [Začínáme s Latte |latte:guide]
-- [Syntaxe |latte:syntax]
-- [Tagy (makra) |latte:tags]
-- [Filtry |latte:filters]
-- [Pro vývojáře |latte:develop]
-- [Bezpečnost především |latte:security]
-- [Sandbox |latte:sandbox]
-- [Typový systém |latte:type-system]
-- [Integrace a pluginy |latte:integrations]
-
-
-Tracy: ladění kódu
-------------------
-- [Úvodní stránka |tracy:]
-- [Začínáme s Tracy |tracy:guide]
-- [Dumpování |tracy:dumper]
-- [Měření času |tracy:stopwatch]
-- [FireLogger |tracy:FireLogger]
-- [Návody |tracy:recipes]
+Tracy
+-----
+- [Úvod |tracy:] - ladění a zpracování chyb
 - [Tvorba rozšíření |tracy:extensions]
-- [Integrace s IDE |tracy:open-files-in-ide]
+
+Testování
+---------
+- [Nette Tester |tester:]
+- [Průběžné testování s Travis CI |tester:testing-with-travis]
+
+HTTP
+----
+- [HTTP request & response]
+- [Sessions |sessions]
+- [Parsování a skládání URL |urls]
 </div>
 
 <div class=column>
+Formuláře
+---------
+- [Úvod |forms]
+- [Formulářové prvky |form-fields]
+- [Validace |form-validation]
+- [Vykreslování |form-rendering]
 
+Databáze
+--------
+- [Úvod |database]
+- [Database Core]
+- [Database Explorer]
 
-Užitečné nástroje
------------------
+Užitečné třídy
+--------------
 - [Pole |arrays] - manipulace s poli
 - [Callbacky |callback] - PHP callbacky
 - [Datum a čas |datetime] - ovládání času
 - [Souborový systém |filesystem] - kopírování, mazání, …
 - [Finder] - hledání souborů na disku
-- [Pomocné funkce |helpers] - nezařazené
 - [HTML elementy |html-elements] - generování HTML
 - [Obrázky |Images] - ořezání, velikost, atd.
 - [JSON] - čtení a generování
 - [NEON] - čtení a generování
+- [Generování náhodných řetězců |random]
 - [Hashování hesel |passwords]
-- [Paginator |paginator]
-- [Generátor PHP kódu |php generator]
-- [Náhodné řetězce |random]
+- [Řetězce |strings] - manipulace s řetězci
+- [Validace |validators] - validace vstupů
+
+Různé
+-----
+- [Přihlašování & oprávnění uživatelů |access-control]
+- [Cache |caching]
+- [Lokalizace |Localization]
+- [Stránkování |Pagination] - stránkovací matematika
+- [PHP Generator] - generuje PHP kód
 - [RobotLoader] - autoloading tříd
 - [SafeStream |safestream] - atomické operace se soubory
-- [Schema |schema] - validace datových struktur
+- [Odesílání e-mailů |mailing]
 - [SmartObject |smartobject] - rozšíření tříd v PHP
-- [PHP Reflexe |reflection]
-- [Řetězce |strings] - manipulace s řetězci
-- [Floats] - porovnávání desetinných čísel
 - [Tokenizer] - tokenizace řetězců
-- [Parsování a skládání URL |urls]
-- [Validátor |validators] - validace vstupů
+- [Schema |schema] - validace datových struktur
 
-
-Formuláře
----------
-- [Úvod |forms]
-- [Formuláře v presenterech|form-presenter]
-- [Formuláře samostatně|form-standalone]
-- [Formulářové prvky |form-fields]
-- [Validace |form-validation]
-- [Vykreslování |form-rendering]
-
-
-Databáze
+Nástroje
 --------
-- [Úvodní stránka |database]
-- [Database Core]
-- [Database Explorer]
+- [Code Checker] - kontrola a oprava kódu
+- [Requirements Checker |Requirements]
+- [Composer] - správa závislostí
+</div>
+</div>
 
 
-Testování
----------
-- [Úvodní stránka |tester:]
-- [Začínáme s Nette Tester |tester:guide]
-- [Psaní testů |tester:writing-tests]
-- [Spouštění testů |tester:running-tests]
-- [Aserce |tester:assertions]
-- [Anotace testů |tester:test-annotations]
-- [TestCase|tester:TestCase]
-- [Pomocné třídy |tester:helpers]
-- [Průběžné testování s Travis |tester:testing-with-travis]
+-----
 
 
-Kuchařka
---------
-- [Stránkování výsledků databáze |Pagination]
-- [Multiplier: dynamické komponenty |Multiplier]
+<div class="row navig documentation">
+<div class=column>
+[* icon-question.png *] Obecné informace
+----------------------------------------
+- [Packages |www:packages] - všechny Nette balíčky
+- [API reference |https://api.nette.org/] - přehled tříd a metod
+- [Přechod na novější verze|migration]
+- [Zabezpečení před zranitelnostmi |vulnerability protection]
+- [Řešení častých dotazů |Troubleshooting]
+- [Slack |https://pehapkari.slack.com/messages/C2R30BLKA]
+</div>
 
 
-Přispívání
-----------
-- [Přispívání do kódu |www:contributing]
+<div class=column>
+[* icon-ruler.png *] Přispívání
+-------------------------------
+- [Zapojení se do vývoje frameworku |www:contributing]
 - [Psaní dokumentace |www:writing]
-- [Coding Standards |www:en:coding-standard]
+- [Coding Standards |www:coding-standard]
+- [Tvůrci |https://nette.org/contributors]
 </div>
 </div>
 
 
-{{toc:no}}
-{{description: Oficiální dokumentace Nette: popisuje, jak Nette funguje a osvědčené postupy pro vývoj webových aplikací.}}
+{{sidebar:no}}
+{{maintitle: Dokumentace Nette}}
