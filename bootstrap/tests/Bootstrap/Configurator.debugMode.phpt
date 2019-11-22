@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-use Nette\Bootstrap\Configurator;
+use Nette\Configurator;
 use Tester\Assert;
 
 
@@ -14,7 +14,7 @@ require __DIR__ . '/../bootstrap.php';
 
 
 
-test('', function () {
+test(function () {
 	unset($_SERVER['HTTP_X_FORWARDED_FOR']);
 	$_SERVER['REMOTE_ADDR'] = 'xx';
 
@@ -38,7 +38,7 @@ Assert::exception(function () {
 }, Nette\InvalidArgumentException::class);
 
 
-test('localhost', function () {
+test(function () { // localhost
 	unset($_SERVER['HTTP_X_FORWARDED_FOR']);
 
 	$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -60,7 +60,7 @@ test('localhost', function () {
 });
 
 
-test('localhost + proxy', function () {
+test(function () { // localhost + proxy
 	$_SERVER['HTTP_X_FORWARDED_FOR'] = 'xx';
 
 	$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -75,7 +75,7 @@ test('localhost + proxy', function () {
 });
 
 
-test('missing $_SERVER[REMOTE_ADDR]', function () {
+test(function () { // missing $_SERVER['REMOTE_ADDR']
 	unset($_SERVER['HTTP_X_FORWARDED_FOR'], $_SERVER['REMOTE_ADDR']);
 
 	Assert::false(Configurator::detectDebugMode());
@@ -86,7 +86,7 @@ test('missing $_SERVER[REMOTE_ADDR]', function () {
 });
 
 
-test('secret', function () {
+test(function () { // secret
 	unset($_SERVER['HTTP_X_FORWARDED_FOR']);
 	$_SERVER['REMOTE_ADDR'] = '192.168.1.1';
 	$_COOKIE[Configurator::COOKIE_SECRET] = '*secret*';

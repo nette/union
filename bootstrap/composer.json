@@ -3,7 +3,7 @@
 	"description": "🅱 Nette Bootstrap: the simple way to configure and bootstrap your Nette application.",
 	"keywords": ["nette", "configurator", "bootstrapping"],
 	"homepage": "https://nette.org",
-	"license": ["BSD-3-Clause", "GPL-2.0-only", "GPL-3.0-only"],
+	"license": ["BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
 	"authors": [
 		{
 			"name": "David Grudl",
@@ -15,8 +15,8 @@
 		}
 	],
 	"require": {
-		"php": ">=7.2 <8.1",
-		"nette/di": "^3.0.3",
+		"php": ">=7.1",
+		"nette/di": "^3.0",
 		"nette/utils": "^3.0"
 	},
 	"suggest": {
@@ -35,8 +35,7 @@
 		"nette/security": "^3.0",
 		"nette/tester": "^2.0",
 		"latte/latte": "^2.2",
-		"tracy/tracy": "^2.6",
-		"phpstan/phpstan-nette": "^0.12"
+		"tracy/tracy": "^2.6"
 	},
 	"conflict": {
 		"tracy/tracy": "<2.6"
@@ -45,13 +44,9 @@
 		"classmap": ["src/"]
 	},
 	"minimum-stability": "dev",
-	"scripts": {
-		"phpstan": "phpstan analyse",
-		"tester": "tester tests -s"
-	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "3.1-dev"
+			"dev-master": "3.0-dev"
 		}
 	}
 }

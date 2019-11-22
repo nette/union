@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Nette\Bootstrap\Configurator;
+use Nette\Configurator;
 use Tester\Assert;
 
 
@@ -24,4 +24,5 @@ $configurator->addDynamicParameters([
 $container = $configurator->createContainer();
 
 Assert::same(123, $container->parameters['dynamic']);
+Assert::same('hello123', $container->parameters['expand']);
 Assert::same('/path', $container->parameters['appDir']);

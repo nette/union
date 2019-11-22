@@ -1,9 +1,9 @@
 language: php
 php:
+    - 7.1
     - 7.2
     - 7.3
     - 7.4
-    - 8.0snapshot
 
 env:
     - PHP_BIN=php
@@ -39,21 +39,22 @@ jobs:
 
 
         -   name: Nette Coding Standard
-            php: 7.4
             install:
-                - travis_retry composer create-project nette/coding-standard temp/coding-standard ^3 --no-progress
+                - travis_retry composer create-project nette/coding-standard temp/coding-standard ^2 --no-progress
             script:
-                - php temp/coding-standard/ecs check
+                - php temp/coding-standard/ecs check src tests --config temp/coding-standard/coding-standard-php71.yml
 
 
         -   stage: Static Analysis (informative)
-            php: 7.4
+            install:
+                # Install PHPStan
+                - travis_retry composer create-project phpstan/phpstan-shim temp/phpstan --no-progress
+                - travis_retry composer install --no-progress --prefer-dist
             script:
-                - composer phpstan -- --no-progress
+                - php temp/phpstan/phpstan.phar analyse --autoload-file vendor/autoload.php --level 5 src
 
 
         -   stage: Code Coverage
-            php: 7.4
             script:
                 - vendor/bin/tester -p phpdbg tests -s --coverage ./coverage.xml --coverage-src ./src
             after_script:
@@ -66,7 +67,7 @@ jobs:
         -   stage: Code Coverage
 
 
-dist: xenial
+sudo: false
 
 cache:
     directories:

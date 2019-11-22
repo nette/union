@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-use Nette\Bootstrap\Configurator;
+use Nette\Configurator;
 use Tester\Assert;
 
 
