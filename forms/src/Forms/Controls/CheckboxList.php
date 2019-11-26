@@ -46,19 +46,9 @@ class CheckboxList extends MultiChoiceControl
 	}
 
 
-	public function loadHttpData(): void
-	{
-		$data = $this->getForm()->getHttpData(Nette\Forms\Form::DATA_TEXT, substr($this->getHtmlName(), 0, -2));
-		$data = $data === null
-			? $this->getHttpData(Nette\Forms\Form::DATA_TEXT)
-			: explode(',', $data);
-		$this->value = array_keys(array_flip($data));
-		if (is_array($this->disabled)) {
-			$this->value = array_diff($this->value, array_keys($this->disabled));
-		}
-	}
-
-
+	/**
+	 * Generates control's HTML element.
+	 */
 	public function getControl(): Html
 	{
 		$input = parent::getControl();
@@ -82,6 +72,10 @@ class CheckboxList extends MultiChoiceControl
 	}
 
 
+	/**
+	 * Generates label's HTML element.
+	 * @param  string|object  $caption
+	 */
 	public function getLabel($caption = null): Html
 	{
 		return parent::getLabel($caption)->for(null);

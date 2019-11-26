@@ -23,7 +23,7 @@ class Translator implements Nette\Localization\ITranslator
 }
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addImage('button', 'image.gif');
 
@@ -33,7 +33,7 @@ test('', function () {
 });
 
 
-test('translator', function () {
+test(function () { // translator
 	$form = new Form;
 	$input = $form->addImage('button', 'image.gif');
 	$input->setTranslator(new Translator);
@@ -42,7 +42,7 @@ test('translator', function () {
 });
 
 
-test('no validation rules', function () {
+test(function () { // no validation rules
 	$form = new Form;
 	$input = $form->addImage('button', 'image.gif')->setRequired('required');
 
@@ -50,7 +50,7 @@ test('no validation rules', function () {
 });
 
 
-test('container', function () {
+test(function () { // container
 	$form = new Form;
 	$container = $form->addContainer('container');
 	$input = $container->addImage('button', 'image.gif');
@@ -59,7 +59,7 @@ test('container', function () {
 });
 
 
-test('rendering options', function () {
+test(function () { // rendering options
 	$form = new Form;
 	$input = $form->addImage('button');
 

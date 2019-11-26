@@ -56,6 +56,9 @@ class MultiSelectBox extends MultiChoiceControl
 	}
 
 
+	/**
+	 * Generates control's HTML element.
+	 */
 	public function getControl(): Nette\Utils\Html
 	{
 		$items = [];
@@ -73,18 +76,12 @@ class MultiSelectBox extends MultiChoiceControl
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function addOptionAttributes(array $attributes)
 	{
 		$this->optionAttributes = $attributes + $this->optionAttributes;
-		return $this;
-	}
-
-
-	/** @return static */
-	public function setOptionAttribute(string $name, $value = true)
-	{
-		$this->optionAttributes[$name] = $value;
 		return $this;
 	}
 

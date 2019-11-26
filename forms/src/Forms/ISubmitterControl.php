@@ -13,13 +13,11 @@ namespace Nette\Forms;
 /**
  * Defines method that must be implemented to allow a control to submit web form.
  */
-interface SubmitterControl extends Control
+interface ISubmitterControl extends IControl
 {
+
 	/**
 	 * Gets the validation scope. Clicking the button validates only the controls within the specified scope.
 	 */
 	function getValidationScope(): ?array;
 }
-
-
-interface_exists(ISubmitterControl::class);

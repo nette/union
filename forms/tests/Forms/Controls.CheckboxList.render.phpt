@@ -23,7 +23,7 @@ class Translator implements Nette\Localization\ITranslator
 }
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addCheckboxList('list', 'Label', [
 		'a' => 'First',
@@ -45,7 +45,7 @@ test('', function () {
 });
 
 
-test('checked', function () {
+test(function () { // checked
 	$form = new Form;
 	$input = $form->addCheckboxList('list', 'Label', [
 		'a' => 'First',
@@ -56,7 +56,7 @@ test('checked', function () {
 });
 
 
-test('translator', function () {
+test(function () { // translator
 	$form = new Form;
 	$input = $form->addCheckboxList('list', 'Label', [
 		'a' => 'First',
@@ -73,7 +73,7 @@ test('translator', function () {
 });
 
 
-test('Html', function () {
+test(function () { // Html
 	$form = new Form;
 	$input = $form->addCheckboxList('list', Html::el('b', 'Label'), [
 		'a' => Html::el('b', 'First'),
@@ -88,7 +88,7 @@ test('Html', function () {
 });
 
 
-test('validation rules', function () {
+test(function () { // validation rules
 	$form = new Form;
 	$input = $form->addCheckboxList('list', 'Label', [
 		'a' => 'First',
@@ -100,7 +100,7 @@ test('validation rules', function () {
 });
 
 
-test('container', function () {
+test(function () { // container
 	$form = new Form;
 	$container = $form->addContainer('container');
 	$input = $container->addCheckboxList('list', 'Label', [
@@ -112,7 +112,7 @@ test('container', function () {
 });
 
 
-test('separator prototype', function () {
+test(function () { // separator prototype
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, [
 		'a' => 'b',
@@ -123,7 +123,7 @@ test('separator prototype', function () {
 });
 
 
-test('disabled all', function () {
+test(function () { // disabled all
 	$form = new Form;
 	$input = $form->addCheckboxList('list', 'Label', [
 		'a' => 'First',
@@ -134,7 +134,7 @@ test('disabled all', function () {
 });
 
 
-test('disabled one', function () {
+test(function () { // disabled one
 	$form = new Form;
 	$input = $form->addCheckboxList('list', 'Label', [
 		'a' => 'First',
@@ -146,7 +146,7 @@ test('disabled one', function () {
 });
 
 
-test('numeric key as string & getControlPart', function () {
+test(function () { // numeric key as string & getControlPart
 	$form = new Form;
 	$input = $form->addCheckboxList('list', 'Label', [
 		1 => 'First',
@@ -157,7 +157,7 @@ test('numeric key as string & getControlPart', function () {
 });
 
 
-test('container prototype', function () {
+test(function () { // container prototype
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, [
 		'a' => 'b',
@@ -169,7 +169,7 @@ test('container prototype', function () {
 });
 
 
-test('rendering options', function () {
+test(function () { // rendering options
 	$form = new Form;
 	$input = $form->addCheckboxList('list');
 
@@ -181,7 +181,7 @@ test('rendering options', function () {
 });
 
 
-test('item label prototype', function () {
+test(function () { // item label prototype
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, [
 		'a' => 'b',

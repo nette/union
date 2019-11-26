@@ -19,7 +19,7 @@ before(function () {
 });
 
 
-test('', function () {
+test(function () {
 	$_POST = ['text' => "  a\r b \n c "];
 	$form = new Form;
 	$input = $form->addHidden('text');
@@ -28,7 +28,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addHidden('unknown');
 	Assert::same('', $input->getValue());
@@ -36,8 +36,8 @@ test('', function () {
 });
 
 
-test('invalid data', function () {
-	$_POST = ['malformed' => ['']];
+test(function () { // invalid data
+	$_POST = ['malformed' => [null]];
 	$form = new Form;
 	$input = $form->addHidden('malformed');
 	Assert::same('', $input->getValue());
@@ -45,7 +45,7 @@ test('invalid data', function () {
 });
 
 
-test('errors are moved to form', function () {
+test(function () { // errors are moved to form
 	$form = new Form;
 	$input = $form->addHidden('hidden');
 	$input->addError('error');
@@ -54,7 +54,7 @@ test('errors are moved to form', function () {
 });
 
 
-test('setValue() and invalid argument', function () {
+test(function () { // setValue() and invalid argument
 	$form = new Form;
 	$input = $form->addHidden('hidden');
 	$input->setValue(null);
@@ -65,64 +65,19 @@ test('setValue() and invalid argument', function () {
 });
 
 
-test('object', function () {
+test(function () { // object
 	$form = new Form;
 	$input = $form->addHidden('hidden')
-		->setValue($data = new Nette\Utils\DateTime('2013-07-05'));
+		->setValue(new Nette\Utils\DateTime('2013-07-05'));
 
-	Assert::same($data, $input->getValue());
+	Assert::same('2013-07-05 00:00:00', $input->getValue());
 });
 
 
-test('object from string by filter', function () {
-	$date = new Nette\Utils\DateTime('2013-07-05');
-	$_POST = ['text' => (string) $date];
-	$form = new Form;
-	$input = $form->addHidden('text');
-	$input->addFilter(function ($value) {
-		return $value ? new \Nette\Utils\DateTime($value) : $value;
-	});
-
-	Assert::same((string) $date, $input->getValue());
-	$input->validate();
-	Assert::equal($date, $input->getValue());
-});
-
-
-test('int from string', function () {
-	$_POST = ['text' => '10'];
-	$form = new Form;
-	$input = $form->addHidden('text');
-	$input->addRule($form::INTEGER);
-
-	Assert::same('10', $input->getValue());
-	$input->validate();
-	Assert::equal(10, $input->getValue());
-});
-
-
-test('persistent', function () {
+test(function () { // persistent
 	$form = new Form;
 	$input = $form['hidden'] = new Nette\Forms\Controls\HiddenField('persistent');
 	$input->setValue('other');
 
 	Assert::same('persistent', $input->getValue());
-});
-
-
-test('nullable', function () {
-	$form = new Form;
-	$input = $form->addHidden('hidden');
-	$input->setValue('');
-	$input->setNullable();
-	Assert::null($input->getValue());
-});
-
-
-test('nullable', function () {
-	$form = new Form;
-	$input = $form->addHidden('hidden');
-	$input->setValue(null);
-	$input->setNullable();
-	Assert::null($input->getValue());
 });

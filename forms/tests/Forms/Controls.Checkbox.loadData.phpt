@@ -19,10 +19,10 @@ before(function () {
 });
 
 
-test('', function () {
+test(function () {
 	$_POST = [
 		'off' => '',
-		'on' => '1',
+		'on' => 1,
 	];
 
 	$form = new Form;
@@ -38,8 +38,8 @@ test('', function () {
 });
 
 
-test('malformed data', function () {
-	$_POST = ['malformed' => ['']];
+test(function () { // malformed data
+	$_POST = ['malformed' => [null]];
 
 	$form = new Form;
 	$input = $form->addCheckbox('malformed');
@@ -49,7 +49,7 @@ test('malformed data', function () {
 });
 
 
-test('setValue() and invalid argument', function () {
+test(function () { // setValue() and invalid argument
 	$form = new Form;
 	$input = $form->addCheckbox('checkbox');
 	$input->setValue(null);

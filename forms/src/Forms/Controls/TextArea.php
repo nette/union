@@ -17,6 +17,7 @@ use Nette;
  */
 class TextArea extends TextBase
 {
+
 	/**
 	 * @param  string|object  $label
 	 */
@@ -28,6 +29,9 @@ class TextArea extends TextBase
 	}
 
 
+	/**
+	 * Generates control's HTML element.
+	 */
 	public function getControl(): Nette\Utils\Html
 	{
 		return parent::getControl()

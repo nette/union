@@ -36,7 +36,7 @@ function createForm(): Form
 }
 
 
-test('setDefaults() + iterable', function () {
+test(function () { // setDefaults() + iterable
 	$form = createForm();
 	Assert::false($form->isSubmitted());
 
@@ -65,7 +65,7 @@ test('setDefaults() + iterable', function () {
 });
 
 
-test('submitted form + getValues()', function () {
+test(function () { // submitted form + getValues()
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -83,7 +83,7 @@ test('submitted form + getValues()', function () {
 });
 
 
-test('submitted form + reset()', function () {
+test(function () { // submitted form + reset()
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -105,7 +105,7 @@ test('submitted form + reset()', function () {
 });
 
 
-test('setValues() + iterable', function () {
+test(function () { // setValues() + iterable
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -150,7 +150,7 @@ test('setValues() + iterable', function () {
 });
 
 
-test('onSuccess test', function () {
+test(function () { // onSuccess test
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();

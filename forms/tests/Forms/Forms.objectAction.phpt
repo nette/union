@@ -18,5 +18,5 @@ Assert::noError(function () {
 		}
 	});
 
-	$form->render();
+	echo $form;
 });

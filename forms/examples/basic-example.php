@@ -127,6 +127,6 @@ if ($form->isSuccess()) {
 
 <h1>Nette Forms basic example</h1>
 
-<?php $form->render() ?>
+<?php echo $form ?>
 
 <footer><a href="https://doc.nette.org/en/forms">see documentation</a></footer>

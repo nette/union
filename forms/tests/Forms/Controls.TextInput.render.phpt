@@ -23,7 +23,7 @@ class Translator implements Nette\Localization\ITranslator
 }
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addText('text', 'Label')
 		->setValue('text')
@@ -38,7 +38,7 @@ test('', function () {
 });
 
 
-test('translator', function () {
+test(function () { // translator
 	$form = new Form;
 	$input = $form->addText('text', 'Label')
 		->setHtmlAttribute('placeholder', 'place')
@@ -52,7 +52,7 @@ test('translator', function () {
 });
 
 
-test('Html with translator', function () {
+test(function () { // Html with translator
 	$form = new Form;
 	$input = $form->addText('text', Html::el('b', 'Label'))
 		->setTranslator(new Translator);
@@ -62,7 +62,7 @@ test('Html with translator', function () {
 });
 
 
-test('Html with label placeholder in validation rule message', function () {
+test(function () { // Html with label placeholder in validation rule message
 	$form = new Form;
 	$input = $form->addText('text', Html::el('b', 'Label:'))
 		->addRule(Form::REQUIRED, 'Please fill in %label');
@@ -74,7 +74,7 @@ test('Html with label placeholder in validation rule message', function () {
 });
 
 
-test('password', function () {
+test(function () { // password
 	$form = new Form;
 	$input = $form->addPassword('password')
 		->setValue('xxx');
@@ -83,7 +83,7 @@ test('password', function () {
 });
 
 
-test('validation rule required & PATTERN', function () {
+test(function () { // validation rule required & PATTERN
 	$form = new Form;
 	$input = $form->addText('text')
 		->setRequired('required')
@@ -101,7 +101,7 @@ test('validation rule required & PATTERN', function () {
 });
 
 
-test('conditional required', function () {
+test(function () { // conditional required
 	$form = new Form;
 	$input = $form->addText('text');
 	$input->addCondition($form::FILLED)
@@ -111,7 +111,7 @@ test('conditional required', function () {
 });
 
 
-test('maxlength without validation rule', function () {
+test(function () { // maxlength without validation rule
 	$form = new Form;
 	$input = $form->addText('text')
 		->setMaxLength(30);
@@ -120,7 +120,7 @@ test('maxlength without validation rule', function () {
 });
 
 
-test('validation rule LENGTH', function () {
+test(function () { // validation rule LENGTH
 	$form = new Form;
 	$input = $form->addText('text')
 		->setMaxLength(30)
@@ -130,7 +130,7 @@ test('validation rule LENGTH', function () {
 });
 
 
-test('validation rule MAX_LENGTH', function () {
+test(function () { // validation rule MAX_LENGTH
 	$form = new Form;
 	$input = $form->addText('text', null, null, 30)
 		->addRule($form::MAX_LENGTH, null, 10);
@@ -139,7 +139,7 @@ test('validation rule MAX_LENGTH', function () {
 });
 
 
-test('validation rule RANGE without setHtmlType', function () {
+test(function () { // validation rule RANGE without setHtmlType
 	$form = new Form;
 	$minInput = $form->addText('min');
 	$maxInput = $form->addText('max');
@@ -153,7 +153,7 @@ test('validation rule RANGE without setHtmlType', function () {
 });
 
 
-test('validation rule RANGE with setHtmlType', function () {
+test(function () { // validation rule RANGE with setHtmlType
 	$form = new Form;
 	$minInput = $form->addText('min');
 	$maxInput = $form->addText('max');
@@ -168,7 +168,7 @@ test('validation rule RANGE with setHtmlType', function () {
 });
 
 
-test('setEmptyValue', function () {
+test(function () { // setEmptyValue
 	$form = new Form;
 	$input = $form->addText('text')
 		->setEmptyValue('empty ');
@@ -177,7 +177,7 @@ test('setEmptyValue', function () {
 });
 
 
-test('setNullable', function () {
+test(function () { // setNullable
 	$form = new Form;
 	$input = $form->addText('text')
 		->setNullable();
@@ -186,7 +186,7 @@ test('setNullable', function () {
 });
 
 
-test('setEmptyValue & setNullable', function () {
+test(function () { // setEmptyValue & setNullable
 	$form = new Form;
 	$input = $form->addText('text')
 		->setEmptyValue('empty ')
@@ -197,7 +197,7 @@ test('setEmptyValue & setNullable', function () {
 });
 
 
-test('setDefaultValue', function () {
+test(function () { // setDefaultValue
 	$form = new Form;
 	$input = $form->addText('text')
 		->setDefaultValue('default');
@@ -206,7 +206,7 @@ test('setDefaultValue', function () {
 });
 
 
-test('container', function () {
+test(function () { // container
 	$form = new Form;
 	$container = $form->addContainer('container');
 	$input = $container->addText('text');
@@ -215,7 +215,7 @@ test('container', function () {
 });
 
 
-test('rendering options', function () {
+test(function () { // rendering options
 	$form = new Form;
 	$input = $form->addText('text');
 
@@ -227,7 +227,7 @@ test('rendering options', function () {
 });
 
 
-test('addInteger', function () {
+test(function () { // addInteger
 	$form = new Form;
 	$input = $form->addInteger('text');
 

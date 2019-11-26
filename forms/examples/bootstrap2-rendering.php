@@ -93,5 +93,5 @@ if ($form->isSuccess()) {
 		<h1>Nette Forms & Bootstrap v2 rendering example</h1>
 	</div>
 
-	<?php $form->render() ?>
+	<?php echo $form ?>
 </div>

@@ -17,7 +17,7 @@ use Nette;
  *
  * @property-read bool $submittedBy
  */
-class SubmitButton extends Button implements Nette\Forms\SubmitterControl
+class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
 {
 	/** @var callable[]&(callable(SubmitButton): void)[]; Occurs when the button is clicked and form is successfully validated */
 	public $onClick;
@@ -40,6 +40,9 @@ class SubmitButton extends Button implements Nette\Forms\SubmitterControl
 	}
 
 
+	/**
+	 * Loads HTTP data.
+	 */
 	public function loadHttpData(): void
 	{
 		parent::loadHttpData();
@@ -69,7 +72,7 @@ class SubmitButton extends Button implements Nette\Forms\SubmitterControl
 		} else {
 			$this->validationScope = [];
 			foreach ($scope ?: [] as $control) {
-				if (!$control instanceof Nette\Forms\Container && !$control instanceof Nette\Forms\Control) {
+				if (!$control instanceof Nette\Forms\Container && !$control instanceof Nette\Forms\IControl) {
 					throw new Nette\InvalidArgumentException('Validation scope accepts only Nette\Forms\Container or Nette\Forms\IControl instances.');
 				}
 				$this->validationScope[] = $control;
@@ -97,6 +100,10 @@ class SubmitButton extends Button implements Nette\Forms\SubmitterControl
 	}
 
 
+	/**
+	 * Generates control's HTML element.
+	 * @param  string|object  $caption
+	 */
 	public function getControl($caption = null): Nette\Utils\Html
 	{
 		$scope = [];

@@ -23,7 +23,7 @@ class Translator implements Nette\Localization\ITranslator
 }
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addUpload('file', 'Label');
 
@@ -32,19 +32,19 @@ test('', function () {
 	Assert::same('<label for="frm-file">Another label</label>', (string) $input->getLabel('Another label'));
 
 	Assert::type(Html::class, $input->getControl());
-	Assert::match('<input type="file" name="file" id="frm-file" data-nette-rules=\'[{"op":":fileSize","msg":"The size of the uploaded file can be up to %d% bytes.","arg":%d%}]\'>', (string) $input->getControl());
+	Assert::same('<input type="file" name="file" id="frm-file">', (string) $input->getControl());
 });
 
 
-test('multiple', function () {
+test(function () { // multiple
 	$form = new Form;
 	$input = $form->addMultiUpload('file', 'Label');
 
-	Assert::match('<input type="file" name="file[]" multiple id="frm-file" data-nette-rules=%a%>', (string) $input->getControl());
+	Assert::same('<input type="file" name="file[]" multiple id="frm-file">', (string) $input->getControl());
 });
 
 
-test('Html with translator', function () {
+test(function () { // Html with translator
 	$form = new Form;
 	$input = $form->addUpload('file', 'Label');
 	$input->setTranslator(new Translator);
@@ -55,36 +55,37 @@ test('Html with translator', function () {
 });
 
 
-test('validation rules', function () {
+test(function () { // validation rules
 	$form = new Form;
 	$input = $form->addUpload('file')->setRequired('required');
-	Assert::match('<input type="file" name="file" id="frm-file" required data-nette-rules=\'[{"op":":filled","msg":"required"},{"op":":fileSize",%a%}]\'>', (string) $input->getControl());
+
+	Assert::same('<input type="file" name="file" id="frm-file" required data-nette-rules=\'[{"op":":filled","msg":"required"}]\'>', (string) $input->getControl());
 });
 
 
-test('accepted files', function () {
+test(function () { // accepted files
 	$form = new Form;
 	$input = $form->addUpload('file1')->addRule(Form::MIME_TYPE, null, 'image/*');
-	Assert::match('<input type="file" name="file1" accept="image/*" id="frm-file1" data-nette-rules=\'[{"op":":fileSize",%a%},{"op":":mimeType","msg":"The uploaded file is not in the expected format.","arg":"image/*"}]\'>', (string) $input->getControl());
+	Assert::same('<input type="file" name="file1" accept="image/*" id="frm-file1" data-nette-rules=\'[{"op":":mimeType","msg":"The uploaded file is not in the expected format.","arg":"image/*"}]\'>', (string) $input->getControl());
 
 	$input = $form->addUpload('file2')->addRule(Form::MIME_TYPE, null, ['image/*', 'text/html']);
-	Assert::match('<input type="file" name="file2" accept="image/*, text/html" id="frm-file2" data-nette-rules=\'[{"op":":fileSize",%a%},{"op":":mimeType","msg":"The uploaded file is not in the expected format.","arg":["image/*","text/html"]}]\'>', (string) $input->getControl());
+	Assert::same('<input type="file" name="file2" accept="image/*, text/html" id="frm-file2" data-nette-rules=\'[{"op":":mimeType","msg":"The uploaded file is not in the expected format.","arg":["image/*","text/html"]}]\'>', (string) $input->getControl());
 
 	$input = $form->addUpload('file3')->addRule(Form::IMAGE);
-	Assert::match('<input type="file" name="file3" accept="image/gif, image/png, image/jpeg, image/webp" id="frm-file3" data-nette-rules=\'[{"op":":fileSize",%a%},{"op":":image","msg":"The uploaded file must be image in format JPEG, GIF, PNG or WebP."}]\'>', (string) $input->getControl());
+	Assert::same('<input type="file" name="file3" accept="image/gif, image/png, image/jpeg, image/webp" id="frm-file3" data-nette-rules=\'[{"op":":image","msg":"The uploaded file must be image in format JPEG, GIF, PNG or WebP."}]\'>', (string) $input->getControl());
 });
 
 
-test('container', function () {
+test(function () { // container
 	$form = new Form;
 	$container = $form->addContainer('container');
 	$input = $container->addUpload('file');
 
-	Assert::match('<input type="file" name="container[file]" id="frm-container-file" data-nette-rules=%a%>', (string) $input->getControl());
+	Assert::same('<input type="file" name="container[file]" id="frm-container-file">', (string) $input->getControl());
 });
 
 
-test('rendering options', function () {
+test(function () { // rendering options
 	$form = new Form;
 	$input = $form->addUpload('file');
 

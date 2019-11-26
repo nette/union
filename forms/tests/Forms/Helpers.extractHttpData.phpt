@@ -14,7 +14,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('non-multiple', function () {
+test(function () { // non-multiple
 	Assert::same('jim', Helpers::extractHttpData(['name' => 'jim'], 'name', Form::DATA_LINE));
 	Assert::same('jim', Helpers::extractHttpData(['name' => 'jim'], 'name', Form::DATA_TEXT));
 
@@ -35,7 +35,7 @@ test('non-multiple', function () {
 });
 
 
-test('multiple', function () {
+test(function () { // multiple
 	Assert::same(['1', '2'], Helpers::extractHttpData(['multi' => ['1', '2']], 'multi[]', Form::DATA_LINE));
 	Assert::same(['1', '2'], Helpers::extractHttpData(['multi' => ['1', '2']], 'multi[]', Form::DATA_TEXT));
 	Assert::same(['1', '2'], Helpers::extractHttpData(['multi' => ['x' => '1', 2 => '2']], 'multi[]', Form::DATA_TEXT));
@@ -57,7 +57,7 @@ test('multiple', function () {
 });
 
 
-test('files', function () {
+test(function () { // files
 	$file = new Nette\Http\FileUpload([
 		'name' => 'license.txt',
 		'type' => null,
@@ -74,6 +74,7 @@ test('files', function () {
 	Assert::null(Helpers::extractHttpData([
 		'multiple' => ['avatar' => [$file, $file]],
 	], 'multiple[avatar]', Form::DATA_FILE));
+
 
 	Assert::equal([$file, $file], Helpers::extractHttpData([
 		'multiple' => ['avatar' => ['x' => $file, null, $file]],

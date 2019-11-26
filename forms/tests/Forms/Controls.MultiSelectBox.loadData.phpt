@@ -29,7 +29,7 @@ $series = [
 ];
 
 
-test('Select with optgroups', function () use ($series) {
+test(function () use ($series) { // Select with optgroups
 	$_POST = ['multi' => ['red-dwarf']];
 
 	$form = new Form;
@@ -50,7 +50,7 @@ test('Select with optgroups', function () use ($series) {
 });
 
 
-test('invalid input', function () use ($series) {
+test(function () use ($series) { // invalid input
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -63,8 +63,8 @@ test('invalid input', function () use ($series) {
 });
 
 
-test('multiple selected items, zero item', function () use ($series) {
-	$_POST = ['multi' => ['red-dwarf', 'unknown', '0']];
+test(function () use ($series) { // multiple selected items, zero item
+	$_POST = ['multi' => ['red-dwarf', 'unknown', 0]];
 
 	$form = new Form;
 	$input = $form->addMultiSelect('multi', null, $series);
@@ -77,7 +77,7 @@ test('multiple selected items, zero item', function () use ($series) {
 });
 
 
-test('empty key', function () use ($series) {
+test(function () use ($series) { // empty key
 	$_POST = ['empty' => ['']];
 
 	$form = new Form;
@@ -90,7 +90,7 @@ test('empty key', function () use ($series) {
 });
 
 
-test('missing key', function () use ($series) {
+test(function () use ($series) { // missing key
 	$form = new Form;
 	$input = $form->addMultiSelect('missing', null, $series);
 
@@ -101,7 +101,7 @@ test('missing key', function () use ($series) {
 });
 
 
-test('disabled key', function () use ($series) {
+test(function () use ($series) { // disabled key
 	$_POST = ['disabled' => 'red-dwarf'];
 
 	$form = new Form;
@@ -113,8 +113,8 @@ test('disabled key', function () use ($series) {
 });
 
 
-test('malformed data', function () use ($series) {
-	$_POST = ['malformed' => [['']]];
+test(function () use ($series) { // malformed data
+	$_POST = ['malformed' => [[null]]];
 
 	$form = new Form;
 	$input = $form->addMultiSelect('malformed', null, $series);
@@ -126,8 +126,8 @@ test('malformed data', function () use ($series) {
 });
 
 
-test('validateLength', function () use ($series) {
-	$_POST = ['multi' => ['red-dwarf', 'unknown', '0']];
+test(function () use ($series) { // validateLength
+	$_POST = ['multi' => ['red-dwarf', 'unknown', 0]];
 
 	$form = new Form;
 	$input = $form->addMultiSelect('multi', null, $series);
@@ -139,8 +139,8 @@ test('validateLength', function () use ($series) {
 });
 
 
-test('validateEqual', function () use ($series) {
-	$_POST = ['multi' => ['red-dwarf', 'unknown', '0']];
+test(function () use ($series) { // validateEqual
+	$_POST = ['multi' => ['red-dwarf', 'unknown', 0]];
 
 	$form = new Form;
 	$input = $form->addMultiSelect('multi', null, $series);
@@ -152,7 +152,7 @@ test('validateEqual', function () use ($series) {
 });
 
 
-test('setItems without keys', function () use ($series) {
+test(function () use ($series) { // setItems without keys
 	$_POST = ['multi' => ['red-dwarf']];
 
 	$form = new Form;
@@ -171,14 +171,14 @@ test('setItems without keys', function () use ($series) {
 });
 
 
-test('setItems without keys', function () use ($series) {
+test(function () use ($series) { // setItems without keys
 	$form = new Form;
 	$input = $form->addMultiSelect('select')->setItems(range(1, 5), false);
 	Assert::same([1 => 1, 2, 3, 4, 5], $input->getItems());
 });
 
 
-test('setItems without keys with optgroups', function () {
+test(function () { // setItems without keys with optgroups
 	$_POST = ['multi' => ['red-dwarf']];
 
 	$form = new Form;
@@ -194,7 +194,7 @@ test('setItems without keys with optgroups', function () {
 });
 
 
-test('setValue() and invalid argument', function () use ($series) {
+test(function () use ($series) { // setValue() and invalid argument
 	$form = new Form;
 	$input = $form->addMultiSelect('select', null, $series);
 	$input->setValue(null);
@@ -205,7 +205,7 @@ test('setValue() and invalid argument', function () use ($series) {
 });
 
 
-test('object as value', function () {
+test(function () { // object as value
 	$form = new Form;
 	$input = $form->addMultiSelect('select', null, ['2013-07-05 00:00:00' => 1])
 		->setValue([new DateTime('2013-07-05')]);
@@ -214,7 +214,7 @@ test('object as value', function () {
 });
 
 
-test('object as item', function () {
+test(function () { // object as item
 	$form = new Form;
 	$input = $form->addMultiSelect('select')
 		->setItems([
@@ -227,8 +227,8 @@ test('object as item', function () {
 });
 
 
-test('disabled one', function () use ($series) {
-	$_POST = ['select' => ['red-dwarf', '0']];
+test(function () use ($series) { // disabled one
+	$_POST = ['select' => ['red-dwarf', 0]];
 
 	$form = new Form;
 	$input = $form->addMultiSelect('select', null, $series)

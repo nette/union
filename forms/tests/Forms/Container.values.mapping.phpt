@@ -76,7 +76,7 @@ function createForm(): Form
 }
 
 
-test('setDefaults() + object', function () {
+test(function () { // setDefaults() + object
 	$form = createForm();
 	Assert::false($form->isSubmitted());
 
@@ -105,7 +105,7 @@ test('setDefaults() + object', function () {
 });
 
 
-test('submitted form + getValues()', function () {
+test(function () { // submitted form + getValues()
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -125,7 +125,7 @@ test('submitted form + getValues()', function () {
 });
 
 
-test('submitted form + reset()', function () {
+test(function () { // submitted form + reset()
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -149,7 +149,7 @@ test('submitted form + reset()', function () {
 });
 
 
-test('setValues() + object', function () {
+test(function () { // setValues() + object
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -197,7 +197,7 @@ test('setValues() + object', function () {
 });
 
 
-test('getValues(...arguments...)', function () {
+test(function () { // getValues(...arguments...)
 	$_SERVER['REQUEST_METHOD'] = null;
 
 	$form = createForm();
@@ -220,6 +220,7 @@ test('getValues(...arguments...)', function () {
 		]),
 	]), $form->getValues(FormData::class));
 
+
 	$form->setMappedType(FormData::class);
 	$form['first']->setMappedType(FormFirstLevel::class);
 	$form['first-second']->setMappedType(FormSecondLevel::class);
@@ -237,18 +238,18 @@ test('getValues(...arguments...)', function () {
 
 	Assert::equal([
 		'title' => 'new1',
-		'first' => hydrate(FormFirstLevel::class, [
+		'first' => [
 			'name' => 'new2',
 			'age' => null,
-			'second' => hydrate(FormSecondLevel::class, [
+			'second' => [
 				'city' => '',
-			]),
-		]),
+			],
+		],
 	], $form->getValues(true));
 });
 
 
-test('onSuccess test', function () {
+test(function () { // onSuccess test
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();

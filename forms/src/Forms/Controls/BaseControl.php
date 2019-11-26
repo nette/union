@@ -10,8 +10,8 @@ declare(strict_types=1);
 namespace Nette\Forms\Controls;
 
 use Nette;
-use Nette\Forms\Control;
 use Nette\Forms\Form;
+use Nette\Forms\IControl;
 use Nette\Forms\Rules;
 use Nette\Utils\Html;
 
@@ -36,7 +36,7 @@ use Nette\Utils\Html;
  * @property-read array $options
  * @property-read string $error
  */
-abstract class BaseControl extends Nette\ComponentModel\Component implements Control
+abstract class BaseControl extends Nette\ComponentModel\Component implements IControl
 {
 	/** @var string */
 	public static $idMask = 'frm-%s';
@@ -50,7 +50,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	/** @var Html  label element template */
 	protected $label;
 
-	/** @var bool|bool[] */
+	/** @var bool */
 	protected $disabled = false;
 
 	/** @var callable[][]  extension methods */
@@ -68,7 +68,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	/** @var Rules */
 	private $rules;
 
-	/** @var Nette\Localization\ITranslator|bool|null */
+	/** @var Nette\Localization\ITranslator */
 	private $translator = true; // means autodetect
 
 	/** @var array user options */
@@ -105,7 +105,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	}
 
 
-	/** @return object|string */
+	/**
+	 * @return object|string
+	 */
 	public function getCaption()
 	{
 		return $this->caption;
@@ -145,11 +147,11 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	 */
 	public function getHtmlName(): string
 	{
-		return $this->control->name ?? Nette\Forms\Helpers::generateHtmlName($this->lookupPath(Form::class));
+		return Nette\Forms\Helpers::generateHtmlName($this->lookupPath(Form::class));
 	}
 
 
-	/********************* interface Control ****************d*g**/
+	/********************* interface IControl ****************d*g**/
 
 
 	/**
@@ -200,10 +202,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Disables or enables control.
-	 * @param  bool  $value
 	 * @return static
 	 */
-	public function setDisabled($value = true)
+	public function setDisabled(/*bool*/ $value = true)
 	{
 		if ($this->disabled = (bool) $value) {
 			$this->setValue(null);
@@ -267,13 +268,13 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	/**
 	 * Generates label's HTML element.
 	 * @param  string|object  $caption
-	 * @return Html|string|null
+	 * @return Html|string
 	 */
 	public function getLabel($caption = null)
 	{
 		$label = clone $this->label;
 		$label->for = $this->getHtmlId();
-		$caption = $caption ?? $this->caption;
+		$caption = $caption === null ? $this->caption : $caption;
 		$translator = $this->getForm()->getTranslator();
 		$label->setText($translator && !$caption instanceof Nette\Utils\IHtmlString ? $translator->translate($caption) : $caption);
 		return $label;
@@ -346,15 +347,6 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	public function setHtmlAttribute(string $name, $value = true)
 	{
 		$this->control->$name = $value;
-		if (
-			$name === 'name'
-			&& ($form = $this->getForm(false))
-			&& !$this->isDisabled()
-			&& $form->isAnchored()
-			&& $form->isSubmitted()
-		) {
-			$this->loadHttpData();
-		}
 		return $this;
 	}
 
@@ -389,9 +381,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	public function getTranslator(): ?Nette\Localization\ITranslator
 	{
 		if ($this->translator === true) {
-			return $this->getForm(false)
-				? $this->getForm()->getTranslator()
-				: null;
+			return $this->getForm(false) ? $this->getForm()->getTranslator() : null;
 		}
 		return $this->translator;
 	}
@@ -445,7 +435,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	 * Adds a validation condition based on another control a returns new branch.
 	 * @return Rules      new branch
 	 */
-	public function addConditionOn(Control $control, $validator, $value = null): Rules
+	public function addConditionOn(IControl $control, $validator, $value = null): Rules
 	{
 		return $this->rules->addConditionOn($control, $validator, $value);
 	}
@@ -531,7 +521,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	}
 
 
-	/** @deprecated */
+	/**
+	 * @deprecated
+	 */
 	public static function enableAutoOptionalMode(): void
 	{
 		trigger_error(__METHOD__ . '() is deprecated.', E_USER_DEPRECATED);

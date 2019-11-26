@@ -19,7 +19,7 @@ class Rule
 {
 	use Nette\SmartObject;
 
-	/** @var Control */
+	/** @var IControl */
 	public $control;
 
 	/** @var mixed */
@@ -31,9 +31,9 @@ class Rule
 	/** @var bool */
 	public $isNegative = false;
 
-	/** @var string|null */
+	/** @var string */
 	public $message;
 
-	/** @var Rules|null  for conditions */
+	/** @var Rules  for conditions */
 	public $branch;
 }

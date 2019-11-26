@@ -28,7 +28,7 @@ $series = [
 ];
 
 
-test('Radio list', function () use ($series) {
+test(function () use ($series) { // Radio list
 	$_POST = ['radio' => 'red-dwarf'];
 
 	$form = new Form;
@@ -41,7 +41,7 @@ test('Radio list', function () use ($series) {
 });
 
 
-test('Radio list with invalid input', function () use ($series) {
+test(function () use ($series) { // Radio list with invalid input
 	$_POST = ['radio' => 'days-of-our-lives'];
 
 	$form = new Form;
@@ -54,8 +54,8 @@ test('Radio list with invalid input', function () use ($series) {
 });
 
 
-test('Indexed arrays', function () use ($series) {
-	$_POST = ['zero' => '0'];
+test(function () use ($series) { // Indexed arrays
+	$_POST = ['zero' => 0];
 
 	$form = new Form;
 	$input = $form->addRadioList('zero', null, $series);
@@ -68,7 +68,7 @@ test('Indexed arrays', function () use ($series) {
 });
 
 
-test('empty key', function () use ($series) {
+test(function () use ($series) { // empty key
 	$_POST = ['empty' => ''];
 
 	$form = new Form;
@@ -81,7 +81,7 @@ test('empty key', function () use ($series) {
 });
 
 
-test('missing key', function () use ($series) {
+test(function () use ($series) { // missing key
 	$form = new Form;
 	$input = $form->addRadioList('missing', null, $series);
 
@@ -92,7 +92,7 @@ test('missing key', function () use ($series) {
 });
 
 
-test('disabled key', function () use ($series) {
+test(function () use ($series) { // disabled key
 	$_POST = ['disabled' => 'red-dwarf'];
 
 	$form = new Form;
@@ -105,8 +105,8 @@ test('disabled key', function () use ($series) {
 });
 
 
-test('malformed data', function () use ($series) {
-	$_POST = ['malformed' => ['']];
+test(function () use ($series) { // malformed data
+	$_POST = ['malformed' => [null]];
 
 	$form = new Form;
 	$input = $form->addRadioList('malformed', null, $series);
@@ -118,7 +118,7 @@ test('malformed data', function () use ($series) {
 });
 
 
-test('setItems without keys', function () use ($series) {
+test(function () use ($series) { // setItems without keys
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -131,7 +131,7 @@ test('setItems without keys', function () use ($series) {
 });
 
 
-test('setValue() and invalid argument', function () use ($series) {
+test(function () use ($series) { // setValue() and invalid argument
 	$form = new Form;
 	$input = $form->addRadioList('radio', null, $series);
 	$input->setValue(null);
@@ -142,7 +142,7 @@ test('setValue() and invalid argument', function () use ($series) {
 });
 
 
-test('object as value', function () {
+test(function () { // object as value
 	$form = new Form;
 	$input = $form->addRadioList('radio', null, ['2013-07-05 00:00:00' => 1])
 		->setValue(new DateTime('2013-07-05'));
@@ -151,7 +151,7 @@ test('object as value', function () {
 });
 
 
-test('object as item', function () {
+test(function () { // object as item
 	$form = new Form;
 	$input = $form->addRadioList('radio')
 		->setItems([new DateTime('2013-07-05')], false)
@@ -161,7 +161,7 @@ test('object as item', function () {
 });
 
 
-test('disabled one', function () use ($series) {
+test(function () use ($series) { // disabled one
 	$_POST = ['radio' => 'red-dwarf'];
 
 	$form = new Form;

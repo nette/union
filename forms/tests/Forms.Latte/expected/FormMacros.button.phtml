@@ -1,29 +1,23 @@
 <?php
 %A%
 		$form = $_form = $this->global->formsStack[] = $this->global->uiControl["myForm"];
-		echo '<form';
-		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), [], false);
-		echo '>
-	<button';
+		?><form<?php
+		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), array (
+		), false) ?>>
+	<button<?php
 		$_input = end($this->global->formsStack)["send"];
-		echo $_input->getControlPart()->attributes();
-		echo '>
+		echo $_input->getControlPart()->attributes() ?>>
 		description of button
 	</button>
 
-	<button';
+	<button<?php
 		$_input = end($this->global->formsStack)["send"];
-		echo $_input->getControlPart()->attributes();
-		echo '></button>
+		echo $_input->getControlPart()->attributes() ?>></button>
 
-	<button';
+	<button<?php
 		$_input = end($this->global->formsStack)["send"];
-		echo $_input->getControlPart()->attributes();
-		echo '>';
-		echo htmlspecialchars($_input->getCaption());
-		echo '</button>
-';
+		echo $_input->getControlPart()->attributes() ?>><?php echo htmlspecialchars($_input->getCaption()) ?></button>
+<?php
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack), false);
-		echo '</form>
-';
+?></form>
 %A%

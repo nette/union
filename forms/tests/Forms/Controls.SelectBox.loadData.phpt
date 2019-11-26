@@ -28,7 +28,7 @@ $series = [
 ];
 
 
-test('Select', function () use ($series) {
+test(function () use ($series) { // Select
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -41,7 +41,7 @@ test('Select', function () use ($series) {
 });
 
 
-test('Empty select', function () {
+test(function () { // Empty select
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -54,7 +54,7 @@ test('Empty select', function () {
 });
 
 
-test('Select with prompt', function () use ($series) {
+test(function () use ($series) { // Select with prompt
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -67,7 +67,7 @@ test('Select with prompt', function () use ($series) {
 });
 
 
-test('Select with more visible options and no input', function () use ($series) {
+test(function () use ($series) { // Select with more visible options and no input
 	$form = new Form;
 	$input = $form->addSelect('select', null, $series);
 	$input->getControlPrototype()->size = 2;
@@ -79,7 +79,7 @@ test('Select with more visible options and no input', function () use ($series) 
 });
 
 
-test('Select with optgroups', function () {
+test(function () { // Select with optgroups
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -100,7 +100,7 @@ test('Select with optgroups', function () {
 });
 
 
-test('Select with invalid input', function () use ($series) {
+test(function () use ($series) { // Select with invalid input
 	$_POST = ['select' => 'days-of-our-lives'];
 
 	$form = new Form;
@@ -113,7 +113,7 @@ test('Select with invalid input', function () use ($series) {
 });
 
 
-test('Select with prompt and invalid input', function () use ($series) {
+test(function () use ($series) { // Select with prompt and invalid input
 	$form = new Form;
 	$input = $form->addSelect('select', null, $series)->setPrompt('Select series');
 
@@ -124,8 +124,8 @@ test('Select with prompt and invalid input', function () use ($series) {
 });
 
 
-test('Indexed arrays', function () use ($series) {
-	$_POST = ['zero' => '0'];
+test(function () use ($series) { // Indexed arrays
+	$_POST = ['zero' => 0];
 
 	$form = new Form;
 	$input = $form->addSelect('zero', null, $series);
@@ -138,7 +138,7 @@ test('Indexed arrays', function () use ($series) {
 });
 
 
-test('empty key', function () use ($series) {
+test(function () use ($series) { // empty key
 	$_POST = ['empty' => ''];
 
 	$form = new Form;
@@ -151,7 +151,7 @@ test('empty key', function () use ($series) {
 });
 
 
-test('missing key', function () use ($series) {
+test(function () use ($series) { // missing key
 	$form = new Form;
 	$input = $form->addSelect('missing', null, $series);
 
@@ -162,7 +162,7 @@ test('missing key', function () use ($series) {
 });
 
 
-test('disabled key', function () use ($series) {
+test(function () use ($series) { // disabled key
 	$_POST = ['disabled' => 'red-dwarf'];
 
 	$form = new Form;
@@ -174,8 +174,8 @@ test('disabled key', function () use ($series) {
 });
 
 
-test('malformed data', function () use ($series) {
-	$_POST = ['malformed' => ['']];
+test(function () use ($series) { // malformed data
+	$_POST = ['malformed' => [null]];
 
 	$form = new Form;
 	$input = $form->addSelect('malformed', null, $series);
@@ -187,7 +187,7 @@ test('malformed data', function () use ($series) {
 });
 
 
-test('setItems without keys', function () use ($series) {
+test(function () use ($series) { // setItems without keys
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -206,14 +206,14 @@ test('setItems without keys', function () use ($series) {
 });
 
 
-test('setItems without keys', function () {
+test(function () { // setItems without keys
 	$form = new Form;
 	$input = $form->addSelect('select')->setItems(range(1, 5), false);
 	Assert::same([1 => 1, 2, 3, 4, 5], $input->getItems());
 });
 
 
-test('setItems without keys with optgroups', function () {
+test(function () { // setItems without keys with optgroups
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -229,7 +229,7 @@ test('setItems without keys with optgroups', function () {
 });
 
 
-test('setValue() and invalid argument', function () use ($series) {
+test(function () use ($series) { // setValue() and invalid argument
 	$form = new Form;
 	$input = $form->addSelect('select', null, $series);
 	$input->setValue(null);
@@ -240,7 +240,7 @@ test('setValue() and invalid argument', function () use ($series) {
 });
 
 
-test('object as value', function () {
+test(function () { // object as value
 	$form = new Form;
 	$input = $form->addSelect('select', null, ['2013-07-05 00:00:00' => 1])
 		->setValue(new DateTime('2013-07-05'));
@@ -249,7 +249,7 @@ test('object as value', function () {
 });
 
 
-test('object as item', function () {
+test(function () { // object as item
 	$form = new Form;
 	$input = $form->addSelect('select')
 		->setItems([
@@ -262,7 +262,7 @@ test('object as item', function () {
 });
 
 
-test('disabled one', function () use ($series) {
+test(function () use ($series) { // disabled one
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
@@ -279,8 +279,8 @@ test('disabled one', function () use ($series) {
 	Assert::null($input->getValue());
 });
 
-test('', function () {
-	$_POST = ['select' => '1'];
+test(function () {
+	$_POST = ['select' => 1];
 
 	$form = new Form;
 	$input = $form->addSelect('select', null, [

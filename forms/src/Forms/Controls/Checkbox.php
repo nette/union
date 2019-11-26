@@ -49,12 +49,18 @@ class Checkbox extends BaseControl
 	}
 
 
+	/**
+	 * Is control filled?
+	 */
 	public function isFilled(): bool
 	{
 		return $this->getValue() !== false; // back compatibility
 	}
 
 
+	/**
+	 * Generates control's HTML element.
+	 */
 	public function getControl(): Html
 	{
 		return $this->wrapper->setHtml($this->getLabelPart()->insert(0, $this->getControlPart()));
@@ -64,9 +70,8 @@ class Checkbox extends BaseControl
 	/**
 	 * Bypasses label generation.
 	 */
-	public function getLabel($caption = null)
+	public function getLabel($caption = null): void
 	{
-		return null;
 	}
 
 

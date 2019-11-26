@@ -23,7 +23,7 @@ class Translator implements Nette\Localization\ITranslator
 }
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		'a' => 'First',
@@ -45,7 +45,7 @@ test('', function () {
 });
 
 
-test('checked', function () {
+test(function () { // checked
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		'a' => 'First',
@@ -56,7 +56,7 @@ test('checked', function () {
 });
 
 
-test('translator', function () {
+test(function () { // translator
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		'a' => 'First',
@@ -73,7 +73,7 @@ test('translator', function () {
 });
 
 
-test('Html', function () {
+test(function () { // Html
 	$form = new Form;
 	$input = $form->addRadioList('list', Html::el('b', 'Label'), [
 		'a' => Html::el('b', 'First'),
@@ -88,7 +88,7 @@ test('Html', function () {
 });
 
 
-test('validation rules', function () {
+test(function () { // validation rules
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		'a' => 'First',
@@ -100,7 +100,7 @@ test('validation rules', function () {
 });
 
 
-test('container', function () {
+test(function () { // container
 	$form = new Form;
 	$container = $form->addContainer('container');
 	$input = $container->addRadioList('list', 'Label', [
@@ -112,7 +112,7 @@ test('container', function () {
 });
 
 
-test('container prototype', function () {
+test(function () { // container prototype
 	$form = new Form;
 	$input = $form->addRadioList('list', null, [
 		'a' => 'b',
@@ -124,7 +124,7 @@ test('container prototype', function () {
 });
 
 
-test('disabled all', function () {
+test(function () { // disabled all
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		'a' => 'First',
@@ -135,7 +135,7 @@ test('disabled all', function () {
 });
 
 
-test('disabled one', function () {
+test(function () { // disabled one
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		'a' => 'First',
@@ -147,7 +147,7 @@ test('disabled one', function () {
 });
 
 
-test('item label prototype', function () {
+test(function () { // item label prototype
 	$form = new Form;
 	$input = $form->addRadioList('list', null, [
 		'a' => 'b',
@@ -160,7 +160,7 @@ test('item label prototype', function () {
 });
 
 
-test('forced ID', function () {
+test(function () { // forced ID
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		'a' => 'First',
@@ -172,7 +172,7 @@ test('forced ID', function () {
 });
 
 
-test('numeric key as string & getControlPart', function () {
+test(function () { // numeric key as string & getControlPart
 	$form = new Form;
 	$input = $form->addRadioList('list', 'Label', [
 		1 => 'First',
@@ -183,7 +183,7 @@ test('numeric key as string & getControlPart', function () {
 });
 
 
-test('rendering options', function () {
+test(function () { // rendering options
 	$form = new Form;
 	$input = $form->addRadioList('list');
 

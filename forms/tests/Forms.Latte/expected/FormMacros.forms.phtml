@@ -1,290 +1,254 @@
 <?php
 %A%
+		/* line 1 */
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin($form = $_form = $this->global->formsStack[] = $this->global->uiControl["myForm"], ['id' => 'myForm', 'class'=>"ajax"]);
-		echo "\n";
+?>
+
+<?php
 		$iterations = 0;
 		foreach (['id', 'username', 'select', 'area', 'send'] as $name) {
-			echo '		';
+			?>		<?php
 			$_input = is_object($name) ? $name : end($this->global->formsStack)[$name];
-			if ($_label = $_input->getLabel()) echo $_label;
-			echo '
-		';
+			if ($_label = $_input->getLabel()) echo $_label ?>
+
+		<?php
 			$_input = is_object($name) ? $name : end($this->global->formsStack)[$name];
-			echo $_input->getControl()->addAttributes(['title' => 'Hello', 'size' => 10]) /* line 4 */;
-			echo '
-		';
+			echo $_input->getControl()->addAttributes(['title' => 'Hello', 'size' => 10]) /* line 4 */ ?>
+
+		<?php
 			echo LR\Filters::escapeHtmlText($_input->getError());
-			echo '
-		';
+?>
+
+		<?php
 			$_input = is_object($name) ? $name : end($this->global->formsStack)[$name];
 			echo LR\Filters::escapeHtmlText($_input->getError());
-			echo '
+?>
+
 
 		<br>
 
-		';
+		<?php
 			$_input = is_object($form[$name]) ? $form[$name] : end($this->global->formsStack)[$form[$name]];
-			if ($_label = $_input->getLabel()) echo $_label->addAttributes(['title' => 'hello'])->startTag();
-			echo ' ';
+			if ($_label = $_input->getLabel()) echo $_label->addAttributes(['title' => 'hello'])->startTag() ?> <?php
 			$_input = is_object($form[$name]) ? $form[$name] : end($this->global->formsStack)[$form[$name]];
-			echo $_input->getControl()->addAttributes(['title' => 'Hello', 'size' => 10]) /* line 10 */;
-			echo ' ';
-			if ($_label) echo $_label->endTag();
-			echo '
-		';
+			echo $_input->getControl()->addAttributes(['title' => 'Hello', 'size' => 10]) /* line 10 */ ?> <?php
+			if ($_label) echo $_label->endTag() ?>
+
+		<?php
 			$_input = is_object($form[$name]) ? $form[$name] : end($this->global->formsStack)[$form[$name]];
 			echo LR\Filters::escapeHtmlText($_input->getError());
-			echo "\n";
+?>
+
+<?php
 			$iterations++;
 		}
-		echo '
-	';
-		$_input = is_object($form['username']) ? $form['username'] : end($this->global->formsStack)[$form['username']];
-		if ($_label = $_input->getLabel()) echo $_label;
-		echo '
+?>
 
-	<LABEL title=hello';
+	<?php
+		$_input = is_object($form['username']) ? $form['username'] : end($this->global->formsStack)[$form['username']];
+		if ($_label = $_input->getLabel()) echo $_label ?>
+
+
+	<LABEL title=hello<?php
 		$_input = end($this->global->formsStack)["username"];
-		echo $_input->getLabelPart()->addAttributes(['title' => null])->attributes();
-		echo '>Name</LABEL>
-	<input value=val type class="hello"';
+		echo $_input->getLabelPart()->addAttributes(array (
+		'title' => NULL,
+		))->attributes() ?>>Name</LABEL>
+	<input value=val type class="hello"<?php
 		$_input = end($this->global->formsStack)["username"];
-		echo $_input->getControlPart()->addAttributes(['value' => null, 'type' => null, 'class' => null])->attributes();
-		echo '>
+		echo $_input->getControlPart()->addAttributes(array (
+		'value' => NULL,
+		'type' => NULL,
+		'class' => NULL,
+		))->attributes() ?>>
 
-	<label';
+	<label<?php
 		$_input = is_object($form['username']) ? $form['username'] : end($this->global->formsStack)[$form['username']];
-		echo $_input->getLabelPart()->attributes();
-		echo '></label>
-	<label';
+		echo $_input->getLabelPart()->attributes() ?>></label>
+	<label<?php
 		$_input = is_object($form['username']) ? $form['username'] : end($this->global->formsStack)[$form['username']];
-		echo $_input->getLabelPart()->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
-	<input';
+		echo $_input->getLabelPart()->attributes() ?>><?php echo $_input->getLabelPart()->getHtml() ?></label>
+	<input<?php
 		$_input = is_object($form['username']) ? $form['username'] : end($this->global->formsStack)[$form['username']];
-		echo $_input->getControlPart()->attributes();
-		echo '>
+		echo $_input->getControlPart()->attributes() ?>>
 
-	';
+	<?php
 		if ($_label = end($this->global->formsStack)["my"]->getLabel()) echo $_label;
-		echo end($this->global->formsStack)["my"]->getControl() /* line 23 */;
-		echo "\n";
+		echo end($this->global->formsStack)["my"]->getControl() /* line 23 */ ?>
+
+<?php
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack));
-		echo '
+?>
 
 
-';
+
+<?php
 		/* line 27 */
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin($form = $_form = $this->global->formsStack[] = $this->global->uiControl["myForm"], []);
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack));
-		echo '
+?>
 
-';
+
+<?php
 		/* line 29 */
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin($form = $_form = $this->global->formsStack[] = $this->global->uiControl["myForm"], []);
-		echo "\n";
+?>
+
+<?php
 		$iterations = 0;
 		foreach ($form['sex']->items as $key => $label) {
-			echo '	';
-			if ($_label = end($this->global->formsStack)["sex"]->getLabelPart($key)) echo $_label->startTag();
-			echo ' ';
-			echo end($this->global->formsStack)["sex"]->getControlPart($key) /* line 32 */;
-			echo ' ';
+			?>	<?php if ($_label = end($this->global->formsStack)["sex"]->getLabelPart($key)) echo $_label->startTag() ?> <?php
+			echo end($this->global->formsStack)["sex"]->getControlPart($key) /* line 32 */ ?> <?php
 			echo LR\Filters::escapeHtmlText($label) /* line 32 */;
-			if ($_label) echo $_label->endTag();
-			echo '
-	<label title=hello';
+			if ($_label) echo $_label->endTag() ?>
+
+	<label title=hello<?php
 			$_input = end($this->global->formsStack)["sex"];
-			echo $_input->getLabelPart($key)->addAttributes(['title' => null])->attributes();
-			echo '> <input';
+			echo $_input->getLabelPart($key)->addAttributes(array (
+			'title' => NULL,
+			))->attributes() ?>> <input<?php
 			$_input = end($this->global->formsStack)["sex"];
-			echo $_input->getControlPart($key)->attributes();
-			echo '> </label>
-';
+			echo $_input->getControlPart($key)->attributes() ?>> </label>
+<?php
 			$iterations++;
 		}
-		echo '<label';
+		?><label<?php
 		$_input = end($this->global->formsStack)["sex"];
-		echo $_input->getLabelPart()->attributes();
-		echo '></label>
-<label';
+		echo $_input->getLabelPart()->attributes() ?>></label>
+<label<?php
 		$_input = end($this->global->formsStack)["sex"];
-		echo $_input->getLabelPart()->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
-<label title="hello"';
+		echo $_input->getLabelPart()->attributes() ?>><?php echo $_input->getLabelPart()->getHtml() ?></label>
+<label title="hello"<?php
 		$_input = end($this->global->formsStack)["sex"];
-		echo $_input->getLabelPart()->addAttributes(['title' => null])->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
+		echo $_input->getLabelPart()->addAttributes(array (
+		'title' => NULL,
+		))->attributes() ?>><?php echo $_input->getLabelPart()->getHtml() ?></label>
 
 
-';
-		if ($_label = end($this->global->formsStack)["checkbox"]->getLabelPart("")) echo $_label->startTag();
-		echo ' ';
-		echo end($this->global->formsStack)["checkbox"]->getControlPart("") /* line 41 */;
-		echo ' Label';
-		if ($_label) echo $_label->endTag();
-		echo '
-<label title=hello';
+<?php if ($_label = end($this->global->formsStack)["checkbox"]->getLabelPart("")) echo $_label->startTag() ?> <?php
+		echo end($this->global->formsStack)["checkbox"]->getControlPart("") /* line 41 */ ?> Label<?php if ($_label) echo $_label->endTag() ?>
+
+<label title=hello<?php
 		$_input = end($this->global->formsStack)["checkbox"];
-		echo $_input->getLabelPart("")->addAttributes(['title' => null])->attributes();
-		echo '> <input';
+		echo $_input->getLabelPart("")->addAttributes(array (
+		'title' => NULL,
+		))->attributes() ?>> <input<?php
 		$_input = end($this->global->formsStack)["checkbox"];
-		echo $_input->getControlPart("")->attributes();
-		echo '> </label>
-<label title=hello';
+		echo $_input->getControlPart("")->attributes() ?>> </label>
+<label title=hello<?php
 		$_input = end($this->global->formsStack)["checkbox"];
-		echo $_input->getLabelPart()->addAttributes(['title' => null])->attributes();
-		echo '> <input';
+		echo $_input->getLabelPart()->addAttributes(array (
+		'title' => NULL,
+		))->attributes() ?>> <input<?php
 		$_input = end($this->global->formsStack)["checkbox"];
-		echo $_input->getControlPart()->attributes();
-		echo '> </label>
-<label';
+		echo $_input->getControlPart()->attributes() ?>> </label>
+<label<?php
 		$_input = end($this->global->formsStack)["checkbox"];
-		echo $_input->getLabelPart("")->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
-<label title=hello';
+		echo $_input->getLabelPart("")->attributes() ?>><?php echo $_input->getLabelPart()->getHtml() ?></label>
+<label title=hello<?php
 		$_input = end($this->global->formsStack)["checkbox"];
-		echo $_input->getLabelPart()->addAttributes(['title' => null])->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
+		echo $_input->getLabelPart()->addAttributes(array (
+		'title' => NULL,
+		))->attributes() ?>><?php echo $_input->getLabelPart()->getHtml() ?></label>
 
 
-';
+<?php
 		$iterations = 0;
 		foreach ($form['checklist']->items as $key => $label) {
-			echo '	';
-			if ($_label = end($this->global->formsStack)["checklist"]->getLabelPart($key)) echo $_label->startTag();
-			echo ' ';
-			echo end($this->global->formsStack)["checklist"]->getControlPart($key) /* line 50 */;
-			echo ' ';
+			?>	<?php if ($_label = end($this->global->formsStack)["checklist"]->getLabelPart($key)) echo $_label->startTag() ?> <?php
+			echo end($this->global->formsStack)["checklist"]->getControlPart($key) /* line 50 */ ?> <?php
 			echo LR\Filters::escapeHtmlText($label) /* line 50 */;
-			if ($_label) echo $_label->endTag();
-			echo '
-	<label';
+			if ($_label) echo $_label->endTag() ?>
+
+	<label<?php
 			$_input = end($this->global->formsStack)["checklist"];
-			echo $_input->getLabelPart($key)->attributes();
-			echo '> <input title=hello';
+			echo $_input->getLabelPart($key)->attributes() ?>> <input title=hello<?php
 			$_input = end($this->global->formsStack)["checklist"];
-			echo $_input->getControlPart($key)->addAttributes(['title' => null])->attributes();
-			echo '> </label>
-';
+			echo $_input->getControlPart($key)->addAttributes(array (
+			'title' => NULL,
+			))->attributes() ?>> </label>
+<?php
 			$iterations++;
 		}
-		echo '<label';
+		?><label<?php
 		$_input = end($this->global->formsStack)["checklist"];
-		echo $_input->getLabelPart()->attributes();
-		echo '></label>
-<label';
+		echo $_input->getLabelPart()->attributes() ?>></label>
+<label<?php
 		$_input = end($this->global->formsStack)["checklist"];
-		echo $_input->getLabelPart()->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
-<label title="hello"';
+		echo $_input->getLabelPart()->attributes() ?>><?php echo $_input->getLabelPart()->getHtml() ?></label>
+<label title="hello"<?php
 		$_input = end($this->global->formsStack)["checklist"];
-		echo $_input->getLabelPart()->addAttributes(['title' => null])->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
+		echo $_input->getLabelPart()->addAttributes(array (
+		'title' => NULL,
+		))->attributes() ?>><?php echo $_input->getLabelPart()->getHtml() ?></label>
 
 
-';
+<?php
 		$form = $_form = $this->global->formsStack[] = $this->global->uiControl["myForm"];
 		if (1) {
-			echo '<form id="myForm" class="ajax"';
-			echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), ['id' => null, 'class' => null], false);
-			echo '>
-	<input';
+			?><form id="myForm" class="ajax"<?php
+			echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), array (
+			'id' => NULL,
+			'class' => NULL,
+			), false) ?>>
+	<input<?php
 			$_input = end($this->global->formsStack)["username"];
-			echo $_input->getControlPart()->attributes();
-			echo '>
-';
+			echo $_input->getControlPart()->attributes() ?>>
+<?php
 			echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack), false);
-			echo '</form>
-';
+?></form>
+<?php
 		}
-		echo '
+?>
 
-';
+
+<?php
 		$form = $_form = $this->global->formsStack[] = $this->global->uiControl["myForm"];
-		echo '<form';
-		echo ($__tmp = array_filter(['nclass'])) ? ' class="' . LR\Filters::escapeHtmlAttr(implode(" ", array_unique($__tmp))) . '"' : "";
-		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), ['class' => null], false);
-		echo '>
-	<input';
+		?><form<?php
+		if ($_tmp = array_filter(['nclass'])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"';
+		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), array (
+		'class' => NULL,
+		), false) ?>>
+	<input<?php
 		$_input = end($this->global->formsStack)["username"];
-		echo $_input->getControlPart()->addAttributes(['class' => null])->attributes();
-		echo ($__tmp = array_filter(['nclass'])) ? ' class="' . LR\Filters::escapeHtmlAttr(implode(" ", array_unique($__tmp))) . '"' : "";
-		echo '>
-';
+		echo $_input->getControlPart()->addAttributes(array (
+		'class' => NULL,
+		))->attributes();
+		if ($_tmp = array_filter(['nclass'])) echo ' class="', LR\Filters::escapeHtmlAttr(implode(" ", array_unique($_tmp))), '"' ?>>
+<?php
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack), false);
-		echo '</form>
+?></form>
 
 
-';
+<?php
 		$form = $_form = $this->global->formsStack[] = is_object($this->global->uiControl['myForm']) ? $this->global->uiControl['myForm'] : $this->global->uiControl[$this->global->uiControl['myForm']];
-		echo '<FORM';
-		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), [], false);
-		echo '>
-	<input';
+		?><FORM<?php
+		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), array (
+		), false) ?>>
+	<input<?php
 		$_input = end($this->global->formsStack)["username"];
-		echo $_input->getControlPart()->attributes();
-		echo '>
-';
+		echo $_input->getControlPart()->attributes() ?>>
+<?php
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack), false);
-		echo '</FORM>
+?></FORM>
 
 
-<select';
+<select<?php
 		$_input = end($this->global->formsStack)["select"];
-		echo $_input->getControlPart()->attributes();
-		echo '>';
-		echo $_input->getControl()->getHtml();
-		echo '</select>
+		echo $_input->getControlPart()->attributes() ?>><?php echo $_input->getControl()->getHtml() ?></select>
 
 
-<textarea title="';
-		echo LR\Filters::escapeHtmlAttr(10) /* line 76 */;
-		echo '"';
+<textarea title="<?php echo LR\Filters::escapeHtmlAttr(10) /* line 76 */ ?>"<?php
 		$_input = end($this->global->formsStack)["area"];
-		echo $_input->getControlPart()->addAttributes(['title' => null])->attributes();
-		echo '>';
-		echo $_input->getControl()->getHtml();
-		echo '</textarea>
+		echo $_input->getControlPart()->addAttributes(array (
+		'title' => NULL,
+		))->attributes() ?>><?php echo $_input->getControl()->getHtml() ?></textarea>
 
 
-<select';
+<select<?php
 		$_input = end($this->global->formsStack)["select"];
-		echo $_input->getControlPart()->attributes();
-		echo '>';
-		echo $_input->getControl()->getHtml();
-		echo '</select>
-';
+		echo $_input->getControlPart()->attributes() ?>><?php echo $_input->getControl()->getHtml() ?></select>
+<?php
 		echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack));
-		echo '
-
-
-';
-		$form = $this->global->formsStack[] = $this->global->uiControl["myForm"];
-		echo '<label';
-		$_input = end($this->global->formsStack)["sex"];
-		echo $_input->getLabelPart()->attributes();
-		echo '>';
-		echo $_input->getLabelPart()->getHtml();
-		echo '</label>
-<input';
-		$_input = end($this->global->formsStack)["username"];
-		echo $_input->getControlPart()->attributes();
-		echo '>
-';
-		array_pop($this->global->formsStack);
+?>
 %A%

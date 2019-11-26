@@ -11,7 +11,6 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Forms;
-use Nette\Forms\Form;
 use Nette\Http\FileUpload;
 
 
@@ -34,9 +33,8 @@ class UploadControl extends BaseControl
 		$this->control->multiple = $multiple;
 		$this->setOption('type', 'file');
 		$this->addRule([$this, 'isOk'], Forms\Validator::$messages[self::VALID]);
-		$this->addRule(Form::MAX_FILE_SIZE, null, Forms\Helpers::iniGetSize('upload_max_filesize'));
 
-		$this->monitor(Form::class, function (Form $form): void {
+		$this->monitor(Forms\Form::class, function (Forms\Form $form): void {
 			if (!$form->isMethod('post')) {
 				throw new Nette\InvalidStateException('File upload requires method POST.');
 			}
@@ -45,15 +43,21 @@ class UploadControl extends BaseControl
 	}
 
 
+	/**
+	 * Loads HTTP data.
+	 */
 	public function loadHttpData(): void
 	{
-		$this->value = $this->getHttpData(Form::DATA_FILE);
+		$this->value = $this->getHttpData(Nette\Forms\Form::DATA_FILE);
 		if ($this->value === null) {
 			$this->value = new FileUpload(null);
 		}
 	}
 
 
+	/**
+	 * Returns HTML name of control.
+	 */
 	public function getHtmlName(): string
 	{
 		return parent::getHtmlName() . ($this->control->multiple ? '[]' : '');
@@ -94,19 +98,15 @@ class UploadControl extends BaseControl
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function addRule($validator, $errorMessage = null, $arg = null)
 	{
-		if ($validator === Form::IMAGE) {
+		if ($validator === Forms\Form::IMAGE) {
 			$this->control->accept = implode(', ', FileUpload::IMAGE_MIME_TYPES);
-		} elseif ($validator === Form::MIME_TYPE) {
+		} elseif ($validator === Forms\Form::MIME_TYPE) {
 			$this->control->accept = implode(', ', (array) $arg);
-		} elseif ($validator === Form::MAX_FILE_SIZE) {
-			if ($arg > Forms\Helpers::iniGetSize('upload_max_filesize')) {
-				$ini = ini_get('upload_max_filesize');
-				trigger_error("Value of MAX_FILE_SIZE ($arg) is greater than value of directive upload_max_filesize ($ini).", E_USER_WARNING);
-			}
-			$this->getRules()->removeRule($validator);
 		}
 		return parent::addRule($validator, $errorMessage, $arg);
 	}

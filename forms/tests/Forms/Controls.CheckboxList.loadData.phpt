@@ -29,8 +29,8 @@ $series = [
 ];
 
 
-test('empty input', function () use ($series) {
-	$_POST = [];
+test(function () use ($series) { // invalid input
+	$_POST = ['list' => 'red-dwarf'];
 
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, $series);
@@ -42,21 +42,8 @@ test('empty input', function () use ($series) {
 });
 
 
-test('compact mode', function () use ($series) {
-	$_POST = ['list' => 'red-dwarf,0'];
-
-	$form = new Form;
-	$input = $form->addCheckboxList('list', null, $series);
-
-	Assert::true($form->isValid());
-	Assert::same(['red-dwarf', 0], $input->getValue());
-	Assert::same(['red-dwarf' => 'Red Dwarf', 0 => 'South Park'], $input->getSelectedItems());
-	Assert::true($input->isFilled());
-});
-
-
-test('multiple selected items, zero item', function () use ($series) {
-	$_POST = ['multi' => ['red-dwarf', 'unknown', '0']];
+test(function () use ($series) { // multiple selected items, zero item
+	$_POST = ['multi' => ['red-dwarf', 'unknown', 0]];
 
 	$form = new Form;
 	$input = $form->addCheckboxList('multi', null, $series);
@@ -69,7 +56,7 @@ test('multiple selected items, zero item', function () use ($series) {
 });
 
 
-test('empty key', function () use ($series) {
+test(function () use ($series) { // empty key
 	$_POST = ['empty' => ['']];
 
 	$form = new Form;
@@ -82,7 +69,7 @@ test('empty key', function () use ($series) {
 });
 
 
-test('missing key', function () use ($series) {
+test(function () use ($series) { // missing key
 	$form = new Form;
 	$input = $form->addCheckboxList('missing', null, $series);
 
@@ -93,7 +80,7 @@ test('missing key', function () use ($series) {
 });
 
 
-test('disabled key', function () use ($series) {
+test(function () use ($series) { // disabled key
 	$_POST = ['disabled' => 'red-dwarf'];
 
 	$form = new Form;
@@ -105,8 +92,8 @@ test('disabled key', function () use ($series) {
 });
 
 
-test('malformed data', function () use ($series) {
-	$_POST = ['malformed' => [['']]];
+test(function () use ($series) { // malformed data
+	$_POST = ['malformed' => [[null]]];
 
 	$form = new Form;
 	$input = $form->addCheckboxList('malformed', null, $series);
@@ -118,8 +105,8 @@ test('malformed data', function () use ($series) {
 });
 
 
-test('validateLength', function () use ($series) {
-	$_POST = ['multi' => ['red-dwarf', 'unknown', '0']];
+test(function () use ($series) { // validateLength
+	$_POST = ['multi' => ['red-dwarf', 'unknown', 0]];
 
 	$form = new Form;
 	$input = $form->addCheckboxList('multi', null, $series);
@@ -131,8 +118,8 @@ test('validateLength', function () use ($series) {
 });
 
 
-test('validateEqual', function () use ($series) {
-	$_POST = ['multi' => ['red-dwarf', 'unknown', '0']];
+test(function () use ($series) { // validateEqual
+	$_POST = ['multi' => ['red-dwarf', 'unknown', 0]];
 
 	$form = new Form;
 	$input = $form->addCheckboxList('multi', null, $series);
@@ -144,7 +131,7 @@ test('validateEqual', function () use ($series) {
 });
 
 
-test('setValue() and invalid argument', function () use ($series) {
+test(function () use ($series) { // setValue() and invalid argument
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, $series);
 	$input->setValue(null);
@@ -155,7 +142,7 @@ test('setValue() and invalid argument', function () use ($series) {
 });
 
 
-test('object as value', function () {
+test(function () { // object as value
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, ['2013-07-05 00:00:00' => 1])
 		->setValue([new DateTime('2013-07-05')]);
@@ -164,7 +151,7 @@ test('object as value', function () {
 });
 
 
-test('object as item', function () {
+test(function () { // object as item
 	$form = new Form;
 	$input = $form->addCheckboxList('list')
 		->setItems([new DateTime('2013-07-05')], false)
@@ -174,8 +161,8 @@ test('object as item', function () {
 });
 
 
-test('disabled one', function () use ($series) {
-	$_POST = ['list' => ['red-dwarf', '0']];
+test(function () use ($series) { // disabled one
+	$_POST = ['list' => ['red-dwarf', 0]];
 
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, $series)

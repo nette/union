@@ -19,7 +19,7 @@ before(function () {
 });
 
 
-test('trim & new lines', function () {
+test(function () { // trim & new lines
 	$_POST = ['text' => "  a\r b \n c "];
 
 	$form = new Form;
@@ -30,7 +30,7 @@ test('trim & new lines', function () {
 });
 
 
-test('trim & new lines in textarea', function () {
+test(function () { // trim & new lines in textarea
 	$_POST = ['text' => "  a\r b \n c "];
 
 	$form = new Form;
@@ -40,7 +40,7 @@ test('trim & new lines in textarea', function () {
 });
 
 
-test('empty value', function () {
+test(function () { // empty value
 	$_POST = ['url' => 'nette.org'];
 
 	$form = new Form;
@@ -51,7 +51,7 @@ test('empty value', function () {
 });
 
 
-test('empty value', function () {
+test(function () { // empty value
 	$_POST = ['phone' => '+420 '];
 
 	$form = new Form;
@@ -62,7 +62,7 @@ test('empty value', function () {
 });
 
 
-test('invalid UTF', function () {
+test(function () { // invalid UTF
 	$_POST = ['invalidutf' => "invalid\xAA\xAA\xAAutf"];
 
 	$form = new Form;
@@ -71,7 +71,7 @@ test('invalid UTF', function () {
 });
 
 
-test('missing data', function () {
+test(function () { // missing data
 	$form = new Form;
 	$input = $form->addText('unknown');
 
@@ -80,8 +80,8 @@ test('missing data', function () {
 });
 
 
-test('malformed data', function () {
-	$_POST = ['malformed' => ['']];
+test(function () { // malformed data
+	$_POST = ['malformed' => [null]];
 
 	$form = new Form;
 	$input = $form->addText('malformed');
@@ -91,7 +91,7 @@ test('malformed data', function () {
 });
 
 
-test('setValue() and invalid argument', function () {
+test(function () { // setValue() and invalid argument
 	$_POST = ['text' => "  a\r b \n c "];
 
 	$form = new Form;
@@ -104,7 +104,7 @@ test('setValue() and invalid argument', function () {
 });
 
 
-test('float', function () {
+test(function () { // float
 	$_POST = ['number' => ' 10,5 '];
 
 	$form = new Form;
@@ -118,7 +118,7 @@ test('float', function () {
 
 
 
-test('float in condition', function () {
+test(function () { // float in condition
 	$_POST = ['number' => ' 10,5 '];
 
 	$form = new Form;
@@ -131,7 +131,7 @@ test('float in condition', function () {
 });
 
 
-test('non float', function () {
+test(function () { // non float
 	$_POST = ['number' => ' 10,5 '];
 
 	$form = new Form;
@@ -143,7 +143,7 @@ test('non float', function () {
 });
 
 
-test('URL', function () {
+test(function () { // URL
 	$_POST = ['url' => 'nette.org'];
 
 	$form = new Form;
@@ -155,7 +155,7 @@ test('URL', function () {
 });
 
 
-test('object', function () {
+test(function () { // object
 	$form = new Form;
 	$input = $form->addText('text')
 		->setValue($date = new Nette\Utils\DateTime('2013-07-05'));
@@ -164,7 +164,7 @@ test('object', function () {
 });
 
 
-test('filter', function () {
+test(function () { // filter
 	$_POST = ['text' => 'hello'];
 
 	$form = new Form;
@@ -177,7 +177,7 @@ test('filter', function () {
 });
 
 
-test('filter in condition', function () {
+test(function () { // filter in condition
 	$_POST = ['text' => 'hello'];
 
 	$form = new Form;
@@ -188,37 +188,4 @@ test('filter in condition', function () {
 	Assert::same('hello', $input->getValue());
 	$input->validate();
 	Assert::same('olleh', $input->getValue());
-});
-
-
-test('filter in BLANK condition', function () {
-	$_POST = ['text' => ''];
-
-	$form = new Form;
-	$input = $form->addText('text');
-	$input->addCondition($form::BLANK)
-		->addFilter(function () use ($input) {
-			return 'default';
-		});
-
-	Assert::same('', $input->getValue());
-	$input->validate();
-	Assert::same('default', $input->getValue());
-});
-
-
-test('filter in !FILLED condition', function () {
-	$_POST = ['text' => ''];
-
-	$form = new Form;
-	$input = $form->addText('text');
-	$input->addCondition($form::FILLED)
-		->elseCondition()
-		->addFilter(function () use ($input) {
-			return 'default';
-		});
-
-	Assert::same('', $input->getValue());
-	$input->validate();
-	Assert::same('default', $input->getValue());
 });

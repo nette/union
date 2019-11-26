@@ -36,7 +36,7 @@ function createForm(): Form
 }
 
 
-test('setDefaults() + array', function () {
+test(function () { // setDefaults() + array
 	$form = createForm();
 	Assert::false($form->isSubmitted());
 
@@ -65,7 +65,7 @@ test('setDefaults() + array', function () {
 });
 
 
-test('submitted form + getValues(true)', function () {
+test(function () { // submitted form + getValues(true)
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -83,7 +83,7 @@ test('submitted form + getValues(true)', function () {
 });
 
 
-test('submitted form + reset()', function () {
+test(function () { // submitted form + reset()
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -105,7 +105,7 @@ test('submitted form + reset()', function () {
 });
 
 
-test('setValues() + array', function () {
+test(function () { // setValues() + array
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -150,7 +150,7 @@ test('setValues() + array', function () {
 });
 
 
-test('getValues(...arguments...)', function () {
+test(function () { // getValues(...arguments...)
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -177,7 +177,7 @@ test('getValues(...arguments...)', function () {
 });
 
 
-test('setMappedType(array)', function () {
+test(function () { // setMappedType(array)
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -205,7 +205,7 @@ test('setMappedType(array)', function () {
 });
 
 
-test('onSuccess test', function () {
+test(function () { // onSuccess test
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();

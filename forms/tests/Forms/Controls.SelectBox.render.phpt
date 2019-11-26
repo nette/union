@@ -23,7 +23,7 @@ class Translator implements Nette\Localization\ITranslator
 }
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		'a' => 'First',
@@ -39,7 +39,7 @@ test('', function () {
 });
 
 
-test('selected', function () {
+test(function () { // selected
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		'a' => 'First',
@@ -50,7 +50,7 @@ test('selected', function () {
 });
 
 
-test('selected 2x', function () {
+test(function () { // selected 2x
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		['a' => 'First'],
@@ -61,7 +61,7 @@ test('selected 2x', function () {
 });
 
 
-test('translator & groups', function () {
+test(function () { // translator & groups
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		'a' => 'First',
@@ -75,7 +75,7 @@ test('translator & groups', function () {
 });
 
 
-test('Html with translator & groups', function () {
+test(function () { // Html with translator & groups
 	$form = new Form;
 	$input = $form->addSelect('list', Html::el('b', 'Label'), [
 		'a' => Html::el('option', 'First')->class('class'),
@@ -89,7 +89,7 @@ test('Html with translator & groups', function () {
 });
 
 
-test('validation rules', function () {
+test(function () { // validation rules
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		'a' => 'First',
@@ -100,7 +100,7 @@ test('validation rules', function () {
 });
 
 
-test('container', function () {
+test(function () { // container
 	$form = new Form;
 	$container = $form->addContainer('container');
 	$input = $container->addSelect('list', 'Label', [
@@ -112,7 +112,7 @@ test('container', function () {
 });
 
 
-test('disabled all', function () {
+test(function () { // disabled all
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		'a' => 'First',
@@ -123,7 +123,7 @@ test('disabled all', function () {
 });
 
 
-test('disabled one', function () {
+test(function () { // disabled one
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		'a' => 'First',
@@ -134,7 +134,7 @@ test('disabled one', function () {
 });
 
 
-test('rendering options', function () {
+test(function () { // rendering options
 	$form = new Form;
 	$input = $form->addSelect('list');
 
@@ -146,14 +146,13 @@ test('rendering options', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$input = $form->addSelect('list', 'Label', [
 		1 => 'First',
 		2 => 'Second',
 	])->setValue(1);
-	$input->addOptionAttributes(['bar' => 'b', 'selected?' => 2]);
+	$input->addOptionAttributes(['bar' => 'b', 'selected?' => 2, 'foo:' => [1 => 'a', 2 => 'b']]);
 	$input->addOptionAttributes(['bar' => 'c']);
-	$input->setOptionAttribute('foo:', [1 => 'a', 2 => 'b']);
 	Assert::same('<select name="list" id="frm-list"><option bar="c" value="1" selected foo="a">First</option><option bar="c" value="2" foo="b">Second</option></select>', (string) $input->getControl());
 });

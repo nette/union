@@ -20,7 +20,7 @@ class CsrfProtection extends HiddenField
 {
 	public const PROTECTION = 'Nette\Forms\Controls\CsrfProtection::validateCsrf';
 
-	/** @var Nette\Http\Session|null */
+	/** @var Nette\Http\Session */
 	public $session;
 
 
@@ -37,14 +37,6 @@ class CsrfProtection extends HiddenField
 		$this->monitor(Presenter::class, function (Presenter $presenter): void {
 			if (!$this->session) {
 				$this->session = $presenter->getSession();
-				$this->session->start();
-			}
-		});
-
-		$this->monitor(Nette\Forms\Form::class, function (Nette\Forms\Form $form): void {
-			if (!$this->session && !$form instanceof Nette\Application\UI\Form) {
-				$this->session = new Nette\Http\Session($form->httpRequest, new Nette\Http\Response);
-				$this->session->start();
 			}
 		});
 	}
@@ -60,6 +52,9 @@ class CsrfProtection extends HiddenField
 	}
 
 
+	/**
+	 * Loads HTTP data.
+	 */
 	public function loadHttpData(): void
 	{
 		$this->value = $this->getHttpData(Nette\Forms\Form::DATA_TEXT);
@@ -68,14 +63,11 @@ class CsrfProtection extends HiddenField
 
 	public function getToken(): string
 	{
-		if (!$this->session) {
-			throw new Nette\InvalidStateException('Session initialization error');
-		}
-		$session = $this->session->getSection(self::class);
+		$session = $this->getSession()->getSection(__CLASS__);
 		if (!isset($session->token)) {
 			$session->token = Nette\Utils\Random::generate();
 		}
-		return $session->token ^ $this->session->getId();
+		return $session->token ^ $this->getSession()->getId();
 	}
 
 
@@ -88,16 +80,33 @@ class CsrfProtection extends HiddenField
 	}
 
 
+	/**
+	 * Generates control's HTML element.
+	 */
 	public function getControl(): Nette\Utils\Html
 	{
 		return parent::getControl()->value($this->generateToken());
 	}
 
 
-	/** @internal */
+	/**
+	 * @internal
+	 */
 	public static function validateCsrf(self $control): bool
 	{
 		$value = (string) $control->getValue();
 		return $control->generateToken(substr($value, 0, 10)) === $value;
+	}
+
+
+	/********************* backend ****************d*g**/
+
+
+	private function getSession(): Nette\Http\Session
+	{
+		if (!$this->session) {
+			$this->session = new Nette\Http\Session($this->getForm()->httpRequest, new Nette\Http\Response);
+		}
+		return $this->session;
 	}
 }

@@ -36,6 +36,9 @@ abstract class MultiChoiceControl extends BaseControl
 	}
 
 
+	/**
+	 * Loads HTTP data.
+	 */
 	public function loadHttpData(): void
 	{
 		$this->value = array_keys(array_flip($this->getHttpData(Nette\Forms\Form::DATA_TEXT)));
@@ -59,7 +62,7 @@ abstract class MultiChoiceControl extends BaseControl
 		}
 		$flip = [];
 		foreach ($values as $value) {
-			if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+			if (!is_scalar($value) && !method_exists($value, '__toString')) {
 				throw new Nette\InvalidArgumentException(sprintf("Values must be scalar, %s given in field '%s'.", gettype($value), $this->name));
 			}
 			$flip[(string) $value] = true;
@@ -133,7 +136,7 @@ abstract class MultiChoiceControl extends BaseControl
 
 	/**
 	 * Disables or enables control or items.
-	 * @param  bool|array  $value
+	 * @param  bool|bool[]  $value
 	 * @return static
 	 */
 	public function setDisabled($value = true)
@@ -158,7 +161,9 @@ abstract class MultiChoiceControl extends BaseControl
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function checkDefaultValue(bool $value = true)
 	{
 		$this->checkDefaultValue = $value;

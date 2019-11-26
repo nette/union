@@ -14,7 +14,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('error handling', function () {
+test(function () { // error handling
 	$form = new Form;
 	$input = $form->addText('text')
 		->setRequired('error');
@@ -34,7 +34,7 @@ test('error handling', function () {
 });
 
 
-test('validators', function () {
+test(function () { // validators
 	$form = new Form;
 	$input = $form->addText('text');
 	$input->setValue(123);
@@ -71,7 +71,7 @@ test('validators', function () {
 });
 
 
-test('validators for array', function () {
+test(function () { // validators for array
 	$form = new Form;
 	$input = $form->addMultiSelect('select', null, ['a', 'b', 'c', 'd']);
 	$input->setValue([1, 2, 3]);
@@ -95,7 +95,7 @@ test('validators for array', function () {
 });
 
 
-test('setHtmlId', function () {
+test(function () { // setHtmlId
 	$form = new Form;
 	$input = $form->addText('text')->setHtmlId('myId');
 
@@ -103,7 +103,7 @@ test('setHtmlId', function () {
 });
 
 
-test('special name', function () {
+test(function () { // special name
 	$form = new Form;
 	$input = $form->addText('submit');
 
@@ -111,7 +111,7 @@ test('special name', function () {
 });
 
 
-test('disabled', function () {
+test(function () { // disabled
 	$form = new Form;
 	$form->addText('disabled')
 		->setDisabled()
@@ -123,7 +123,7 @@ test('disabled', function () {
 });
 
 
-test('disabled & submitted', function () {
+test(function () { // disabled & submitted
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = ['disabled' => 'submitted value'];
 
@@ -134,6 +134,7 @@ test('disabled & submitted', function () {
 
 	Assert::true($form->isSubmitted());
 	Assert::same('default', $form['disabled']->getValue());
+
 
 	unset($form['disabled']);
 	$input = new Nette\Forms\Controls\TextInput;
@@ -146,7 +147,7 @@ test('disabled & submitted', function () {
 });
 
 
-test('', function () {
+test(function () {
 	$form = new Form;
 	$form->setTranslator(new class implements Nette\Localization\ITranslator {
 		public function translate($s, ...$parameters): string
@@ -177,18 +178,4 @@ test('', function () {
 
 	Assert::match('<label for="frm-list2">list</label>', (string) $input->getLabel());
 	Assert::same(['"list" field is required.'], $input->getErrors());
-});
-
-
-test('change HTML name', function () {
-	$_POST = ['b' => '123', 'send' => ''];
-	$form = new Form;
-	$form->addSubmit('send', 'Send');
-	$input = $form->addText('a');
-
-	Assert::same('', $input->getValue());
-	$input->setHtmlAttribute('name', 'b');
-	Assert::same('123', $input->getValue());
-
-	Assert::match('<input type="text" name="b" id="frm-a" value="123">', (string) $input->getControl());
 });

@@ -19,7 +19,7 @@ before(function () {
 });
 
 
-test('', function () {
+test(function () {
 	$_POST = [
 		'button' => 'x',
 	];
@@ -31,7 +31,7 @@ test('', function () {
 });
 
 
-test('empty value', function () {
+test(function () { // empty value
 	$_POST = [
 		'button1' => '',
 		'button2' => '0',
@@ -49,7 +49,7 @@ test('empty value', function () {
 });
 
 
-test('missing data', function () {
+test(function () { // missing data
 	$form = new Form;
 	$input = $form->addSubmit('button');
 	Assert::false($input->isFilled());
@@ -57,7 +57,7 @@ test('missing data', function () {
 });
 
 
-test('malformed data', function () {
+test(function () { // malformed data
 	$_POST = [
 		'malformed' => [],
 	];

@@ -10,7 +10,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('valid', function () {
+test(function () { // valid
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = ['btn' => ''];
 
@@ -39,7 +39,7 @@ test('valid', function () {
 });
 
 
-test('valid -> invalid', function () {
+test(function () { // valid -> invalid
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = ['btn' => ''];
 
@@ -75,7 +75,7 @@ test('valid -> invalid', function () {
 });
 
 
-test('invalid', function () {
+test(function () { // invalid
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = ['btn' => ''];
 
