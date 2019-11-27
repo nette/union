@@ -281,12 +281,8 @@ class Assert
 	/**
 	 * Asserts that a function throws exception of given type and its message matches given pattern.
 	 */
-	public static function exception(
-		callable $function,
-		string $class,
-		string $message = null,
-		$code = null
-	): ?\Throwable {
+	public static function exception(callable $function, string $class, string $message = null, $code = null): ?\Throwable
+	{
 		self::$counter++;
 		$e = null;
 		try {

@@ -57,28 +57,28 @@ class MyTest extends Tester\TestCase
 	/** @throws E_NOTICE */
 	public function testNotice()
 	{
-		$a = &pi();
+		$a++;
 	}
 
 
-	/** @throws E_NOTICE  Only variables should be assigned by reference */
+	/** @throws E_NOTICE  Undefined variable: a */
 	public function testNoticeMessage()
 	{
-		$a = &pi();
+		$a++;
 	}
 
 
 	/** @throws E_WARNING */
 	public function testBadError()
 	{
-		$a = &pi();
+		$a++;
 	}
 
 
 	/** @throws E_NOTICE  With message */
 	public function testNoticeBadMessage()
 	{
-		$a = &pi();
+		$a++;
 	}
 
 
@@ -131,7 +131,7 @@ Assert::exception(function () use ($test) {
 
 Assert::exception(function () use ($test) {
 	$test->runTest('testThrowsWithDataprovider');
-}, Exception::class, "Exception was expected, but none was thrown in testThrowsWithDataprovider(1) (data set '0')");
+}, Exception::class, 'Exception was expected, but none was thrown in testThrowsWithDataprovider(1)');
 
 Assert::exception(function () use ($test) {
 	$test->runTest('testUndefinedMethod');
@@ -142,8 +142,8 @@ $test->runTest('testNoticeMessage');
 
 Assert::exception(function () use ($test) {
 	$test->runTest('testBadError');
-}, Tester\AssertException::class, 'E_WARNING was expected, but E_NOTICE (Only variables should be assigned by reference) was generated in %a%testBadError()');
+}, Tester\AssertException::class, 'E_WARNING was expected, but E_NOTICE (Undefined variable: a) was generated in %a%testBadError()');
 
 Assert::exception(function () use ($test) {
 	$test->runTest('testNoticeBadMessage');
-}, Tester\AssertException::class, "E_NOTICE with a message matching 'With message' was expected but got 'Only variables should be assigned by reference' in testNoticeBadMessage()");
+}, Tester\AssertException::class, "E_NOTICE with a message matching 'With message' was expected but got 'Undefined variable: a' in testNoticeBadMessage()");

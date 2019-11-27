@@ -23,7 +23,7 @@ class TestCase
 	/** @var bool */
 	private $handleErrors = false;
 
-	/** @var callable|false|null */
+	/** @var callable|null|false */
 	private $prevErrorHandler = false;
 
 
@@ -89,21 +89,16 @@ class TestCase
 		if ($args === null) {
 			$defaultParams = [];
 			foreach ($method->getParameters() as $param) {
-				$defaultParams[$param->getName()] = $param->isDefaultValueAvailable()
-					? $param->getDefaultValue()
-					: null;
+				$defaultParams[$param->getName()] = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
 			}
 
-			foreach ((array) $info['dataprovider'] as $i => $provider) {
+			foreach ((array) $info['dataprovider'] as $provider) {
 				$res = $this->getData($provider);
 				if (!is_array($res) && !$res instanceof \Traversable) {
 					throw new TestCaseException("Data provider $provider() doesn't return array or Traversable.");
 				}
-
-				foreach ($res as $k => $set) {
-					$data["$i-$k"] = is_string(key($set))
-						? array_merge($defaultParams, $set)
-						: $set;
+				foreach ($res as $set) {
+					$data[] = is_string(key($set)) ? array_merge($defaultParams, $set) : $set;
 				}
 			}
 
@@ -125,14 +120,12 @@ class TestCase
 					$this->silentTearDown();
 				}
 
-				return $this->prevErrorHandler
-					? ($this->prevErrorHandler)(...func_get_args())
-					: false;
+				return $this->prevErrorHandler ? ($this->prevErrorHandler)(...func_get_args()) : false;
 			});
 		}
 
 
-		foreach ($data as $k => $params) {
+		foreach ($data as $params) {
 			try {
 				$this->setUp();
 
@@ -159,13 +152,7 @@ class TestCase
 				$this->tearDown();
 
 			} catch (AssertException $e) {
-				throw $e->setMessage(sprintf(
-					'%s in %s(%s)%s',
-					$e->origMessage,
-					$method->getName(),
-					substr(Dumper::toLine($params), 1, -1),
-					is_string($k) ? (" (data set '" . explode('-', $k, 2)[1] . "')") : ''
-				));
+				throw $e->setMessage("$e->origMessage in {$method->getName()}(" . (substr(Dumper::toLine($params), 1, -1)) . ')');
 			}
 		}
 	}

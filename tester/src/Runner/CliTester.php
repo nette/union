@@ -92,14 +92,14 @@ class CliTester
 		echo <<<'XX'
  _____ ___  ___ _____ ___  ___
 |_   _/ __)( __/_   _/ __)| _ )
-  |_| \___ /___) |_| \___ |_|_\  v2.3.4
+  |_| \___ /___) |_| \___ |_|_\  v2.3.1
 
 
 XX;
 
 		$cmd = new CommandLine(<<<'XX'
 Usage:
-    tester [options] [<test file> | <directory>]...
+    tester.php [options] [<test file> | <directory>]...
 
 Options:
     -p <path>                    Specify PHP interpreter to run (default: php).
@@ -257,9 +257,11 @@ XX
 			echo 'failed. Coverage file is empty. Do you call Tester\Environment::setup() in tests?';
 			return;
 		}
-		$generator = pathinfo($file, PATHINFO_EXTENSION) === 'xml'
-			? new CodeCoverage\Generators\CloverXMLGenerator($file, $this->options['--coverage-src'])
-			: new CodeCoverage\Generators\HtmlGenerator($file, $this->options['--coverage-src']);
+		if (pathinfo($file, PATHINFO_EXTENSION) === 'xml') {
+			$generator = new CodeCoverage\Generators\CloverXMLGenerator($file, $this->options['--coverage-src']);
+		} else {
+			$generator = new CodeCoverage\Generators\HtmlGenerator($file, $this->options['--coverage-src']);
+		}
 		$generator->render($file);
 		echo round($generator->getCoveredPercent()) . "% covered\n";
 	}
@@ -295,7 +297,7 @@ XX
 			} elseif ($idle >= 60) {
 				$idle = round($idle / 60) . ' min';
 			} else {
-				$idle .= ' sec';
+				$idle = $idle . ' sec';
 			}
 			echo 'Watching ' . implode(', ', $this->options['--watch']) . " (idle for $idle) " . str_repeat('.', ++$counter % 5) . "    \r";
 			sleep(2);

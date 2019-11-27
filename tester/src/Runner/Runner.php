@@ -20,9 +20,6 @@ class Runner
 	/** @var string[]  paths to test files/directories */
 	public $paths = [];
 
-	/** @var string[] */
-	public $ignoreDirs = ['vendor'];
-
 	/** @var int  run in parallel threads */
 	public $threadCount = 1;
 
@@ -125,16 +122,15 @@ class Runner
 		$threads = range(1, $this->threadCount);
 
 		$this->installInterruptHandler();
-		$async = $this->threadCount > 1 && count($this->jobs) > 1;
-
 		while (($this->jobs || $running) && !$this->isInterrupted()) {
 			while ($threads && $this->jobs) {
 				$running[] = $job = array_shift($this->jobs);
+				$async = $this->threadCount > 1 && (count($running) + count($this->jobs) > 1);
 				$job->setEnvironmentVariable(Environment::THREAD, (string) array_shift($threads));
 				$job->run($async ? $job::RUN_ASYNC : 0);
 			}
 
-			if ($async) {
+			if (count($running) > 1) {
 				usleep(Job::RUN_USLEEP); // stream_select() doesn't work with proc_open()
 			}
 
@@ -168,9 +164,6 @@ class Runner
 
 		if (is_dir($path)) {
 			foreach (glob(str_replace('[', '[[]', $path) . '/*', GLOB_ONLYDIR) ?: [] as $dir) {
-				if (in_array(basename($dir), $this->ignoreDirs, true)) {
-					continue;
-				}
 				$this->findTests($dir);
 			}
 
@@ -236,13 +229,9 @@ class Runner
 
 	private function installInterruptHandler(): void
 	{
-		if (function_exists('pcntl_signal')) {
+		if (extension_loaded('pcntl')) {
 			pcntl_signal(SIGINT, function (): void {
 				pcntl_signal(SIGINT, SIG_DFL);
-				$this->interrupted = true;
-			});
-		} elseif (function_exists('sapi_windows_set_ctrl_handler') && PHP_SAPI === 'cli') {
-			sapi_windows_set_ctrl_handler(function () {
 				$this->interrupted = true;
 			});
 		}
@@ -251,17 +240,15 @@ class Runner
 
 	private function removeInterruptHandler(): void
 	{
-		if (function_exists('pcntl_signal')) {
+		if (extension_loaded('pcntl')) {
 			pcntl_signal(SIGINT, SIG_DFL);
-		} elseif (function_exists('sapi_windows_set_ctrl_handler') && PHP_SAPI === 'cli') {
-			sapi_windows_set_ctrl_handler(null);
 		}
 	}
 
 
 	private function isInterrupted(): bool
 	{
-		if (function_exists('pcntl_signal_dispatch')) {
+		if (extension_loaded('pcntl')) {
 			pcntl_signal_dispatch();
 		}
 
