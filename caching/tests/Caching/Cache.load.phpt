@@ -18,25 +18,16 @@ require __DIR__ . '/Cache.php';
 // load twice with fallback
 $storage = new TestStorage;
 $cache = new Cache($storage, 'ns');
-$cache->onEvent[] = function (...$args) use (&$event) {
-	$event[] = $args;
-};
 
 $value = $cache->load('key', function () {
 	return 'value';
 });
-Assert::same('value', $value);
-Assert::same([
-	[$cache, $cache::EVENT_MISS, 'key'],
-	[$cache, $cache::EVENT_SAVE, 'key'],
-], $event);
+Assert::equal('value', $value);
 
-$event = [];
 $data = $cache->load('key', function () {
 	return "won't load this value"; // will read from storage
 });
-Assert::same('value', $data['data']);
-Assert::same([[$cache, $cache::EVENT_HIT, 'key']], $event);
+Assert::equal('value', $data['data']);
 
 
 // load twice with closure fallback, pass dependencies
@@ -48,13 +39,13 @@ $value = $cache->load('key', function (&$deps) use ($dependencies) {
 	$deps = $dependencies;
 	return 'value';
 });
-Assert::same('value', $value);
+Assert::equal('value', $value);
 
 $data = $cache->load('key', function () {
 	return "won't load this value"; // will read from storage
 });
-Assert::same('value', $data['data']);
-Assert::same($dependencies, $data['dependencies']);
+Assert::equal('value', $data['data']);
+Assert::equal($dependencies, $data['dependencies']);
 
 
 // load twice with fallback, pass dependencies
@@ -67,7 +58,7 @@ function fallback(&$deps)
 
 
 $value = $cache->load('key2', 'fallback');
-Assert::same('value', $value);
+Assert::equal('value', $value);
 $data = $cache->load('key2');
-Assert::same('value', $data['data']);
-Assert::same($dependencies, $data['dependencies']);
+Assert::equal('value', $data['data']);
+Assert::equal($dependencies, $data['dependencies']);

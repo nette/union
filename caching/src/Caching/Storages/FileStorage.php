@@ -16,7 +16,7 @@ use Nette\Caching\Cache;
 /**
  * Cache file storage.
  */
-class FileStorage implements Nette\Caching\Storage
+class FileStorage implements Nette\Caching\IStorage
 {
 	use Nette\SmartObject;
 
@@ -56,14 +56,14 @@ class FileStorage implements Nette\Caching\Storage
 	/** @var string */
 	private $dir;
 
-	/** @var Journal */
+	/** @var IJournal */
 	private $journal;
 
 	/** @var array */
 	private $locks;
 
 
-	public function __construct(string $dir, Journal $journal = null)
+	public function __construct(string $dir, IJournal $journal = null)
 	{
 		if (!is_dir($dir)) {
 			throw new Nette\DirectoryNotFoundException("Directory '$dir' not found.");
@@ -81,9 +81,12 @@ class FileStorage implements Nette\Caching\Storage
 	public function read(string $key)
 	{
 		$meta = $this->readMetaAndLock($this->getCacheFile($key), LOCK_SH);
-		return $meta && $this->verify($meta)
-			? $this->readData($meta) // calls fclose()
-			: null;
+		if ($meta && $this->verify($meta)) {
+			return $this->readData($meta); // calls fclose()
+
+		} else {
+			return null;
+		}
 	}
 
 
@@ -132,12 +135,10 @@ class FileStorage implements Nette\Caching\Storage
 			@mkdir($dir); // @ - directory may already exist
 		}
 		$handle = fopen($cacheFile, 'c+b');
-		if (!$handle) {
-			return;
+		if ($handle) {
+			$this->locks[$key] = $handle;
+			flock($handle, LOCK_EX);
 		}
-
-		$this->locks[$key] = $handle;
-		flock($handle, LOCK_EX);
 	}
 
 
@@ -271,14 +272,12 @@ class FileStorage implements Nette\Caching\Storage
 		} elseif ($namespaces) {
 			foreach ($namespaces as $namespace) {
 				$dir = $this->dir . '/_' . urlencode($namespace);
-				if (!is_dir($dir)) {
-					continue;
+				if (is_dir($dir)) {
+					foreach (Nette\Utils\Finder::findFiles('_*')->in($dir) as $entry) {
+						$this->delete((string) $entry);
+					}
+					@rmdir($dir); // may already contain new files
 				}
-
-				foreach (Nette\Utils\Finder::findFiles('_*')->in($dir) as $entry) {
-					$this->delete((string) $entry);
-				}
-				@rmdir($dir); // may already contain new files
 			}
 		}
 
@@ -328,7 +327,11 @@ class FileStorage implements Nette\Caching\Storage
 		flock($meta[self::HANDLE], LOCK_UN);
 		fclose($meta[self::HANDLE]);
 
-		return empty($meta[self::META_SERIALIZED]) ? $data : unserialize($data);
+		if (empty($meta[self::META_SERIALIZED])) {
+			return $data;
+		} else {
+			return unserialize($data);
+		}
 	}
 
 
@@ -362,14 +365,12 @@ class FileStorage implements Nette\Caching\Storage
 		if (!$handle) {
 			$handle = @fopen($file, 'r+'); // @ - file may not exist
 		}
-		if (!$handle) {
-			return;
+		if ($handle) {
+			flock($handle, LOCK_EX);
+			ftruncate($handle, 0);
+			flock($handle, LOCK_UN);
+			fclose($handle);
+			@unlink($file); // @ - file may not already exist
 		}
-
-		flock($handle, LOCK_EX);
-		ftruncate($handle, 0);
-		flock($handle, LOCK_UN);
-		fclose($handle);
-		@unlink($file); // @ - file may not already exist
 	}
 }

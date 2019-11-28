@@ -1,13 +1,27 @@
 <?php
+// source: %A%
+
+class Template%a% extends Latte\Runtime\Template
+{
+
+	function main()
+	{
 %A%
-		if (Nette\Bridges\CacheLatte\CacheMacro::createCache($this->global->cacheStorage, '%[\w]+%', $this->global->cacheStack)) try {
-			echo '	';
-			echo LR\Filters::escapeHtmlText(($this->filters->lower)($title)) /* line 4 */;
-			echo "\n";
+		if (Nette\Bridges\CacheLatte\CacheMacro::createCache($this->global->cacheStorage, '%[\w]+%', $this->global->cacheStack)) {
+			?>	<?php echo %a% ?>
+
+<?php
 			Nette\Bridges\CacheLatte\CacheMacro::endCache($this->global->cacheStack);
 		}
-		catch (\Throwable $__e) {
-			Nette\Bridges\CacheLatte\CacheMacro::rollback($this->global->cacheStack);
-			throw $__e;
-		}
 %A%
+	}
+
+
+	function prepare()
+	{
+%A%
+		Nette\Bridges\CacheLatte\CacheMacro::initRuntime($this);
+%A%
+	}
+
+}

@@ -13,8 +13,9 @@ namespace Nette\Caching;
 /**
  * Cache storage.
  */
-interface Storage
+interface IStorage
 {
+
 	/**
 	 * Read from cache.
 	 * @return mixed
@@ -41,6 +42,3 @@ interface Storage
 	 */
 	function clean(array $conditions): void;
 }
-
-
-class_exists(IStorage::class);

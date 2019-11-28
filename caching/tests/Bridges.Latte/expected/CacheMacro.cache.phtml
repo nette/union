@@ -1,30 +1,37 @@
 <?php
+// source: %A%
+
+class Template%a% extends Latte\Runtime\Template
+{
+
+	function main()
+	{
 %A%
-		echo 'Noncached content
+Noncached content
 
-';
-		if (Nette\Bridges\CacheLatte\CacheMacro::createCache($this->global->cacheStorage, '%[\w]+%', $this->global->cacheStack, [$id, 'tags' => 'mytag'])) try {
-			echo '
-<h1>';
-			echo LR\Filters::escapeHtmlText(($this->filters->upper)($title)) /* line 5 */;
-			echo '</h1>
+%A%
+		if (Nette\Bridges\CacheLatte\CacheMacro::createCache($this->global->cacheStorage, '%[\w]+%', $this->global->cacheStack, [$id, 'tags' => 'mytag'])) {
+?>
 
-';
+<h1><?php echo %a% ?></h1>
+
+<?php
 			/* line 7 */
 			$this->createTemplate('include.cache.latte', ['localvar' => 11] + $this->params, "include")->renderToContentType('html');
-			echo "\n";
+?>
+
+<?php
 			Nette\Bridges\CacheLatte\CacheMacro::endCache($this->global->cacheStack, [$id, 'tags' => 'mytag']);
-		}
-		catch (\Throwable $__e) {
-			Nette\Bridges\CacheLatte\CacheMacro::rollback($this->global->cacheStack);
-			throw $__e;
 		}
 %A%
 	}
 
 
-	public function prepare(): void
+	function prepare()
 	{
 %A%
 		Nette\Bridges\CacheLatte\CacheMacro::initRuntime($this);
 %A%
+	}
+
+}
