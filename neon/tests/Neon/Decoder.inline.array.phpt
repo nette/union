@@ -29,7 +29,7 @@ Assert::same([
 	'on' => true,
 	-5 => 1,
 	'5.3' => 1,
-], Neon::decode('{false: no, "on": true, -5: 1, 5.3: 1}'));
+], Neon::decode('{false: off, "on": true, -5: 1, 5.3: 1}'));
 
 
 Assert::same([
@@ -105,6 +105,3 @@ Assert::equal(
 	]),
 	Neon::decode('1() 2()')
 );
-
-// JSON compatibility
-Assert::same(['a' => true], Neon::decode('{"a":true}'));

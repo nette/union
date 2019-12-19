@@ -11,12 +11,11 @@ namespace Nette\Neon;
 
 
 /**
- * Converts value to NEON format.
- * @internal
+ * Simple generator for Nette Object Notation.
  */
 final class Encoder
 {
-	public const BLOCK = 1;
+	const BLOCK = 1;
 
 
 	/**
@@ -66,31 +65,20 @@ final class Encoder
 				return ($isList ? '[' : '{') . substr($s, 0, -2) . ($isList ? ']' : '}');
 			}
 
-		} elseif (is_string($var)) {
-			if (!preg_match('~[\x00-\x1F]|^[+-.]?\d|^(true|false|yes|no|on|off|null)$~Di', $var)
-				&& preg_match('~^' . Decoder::PATTERNS[1] . '$~Dx', $var) // 1 = literals
-			) {
-				return $var;
-			}
-
-			$res = json_encode($var, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-			if ($res === false) {
-				throw new Exception('Invalid UTF-8 sequence: ' . $var);
-			}
-			if (strpos($var, "\n") !== false) {
-				$res = preg_replace_callback('#[^\\\\]|\\\\(.)#s', function ($m) {
-					return ['n' => "\n\t", 't' => "\t", '"' => '"'][$m[1] ?? ''] ?? $m[0];
-				}, $res);
-				$res = '"""' . "\n\t" . substr($res, 1, -1) . "\n" . '"""';
-			}
-			return $res;
+		} elseif (
+			is_string($var)
+			&& !is_numeric($var)
+			&& !preg_match('~[\x00-\x1F]|^\d{4}|^(true|false|yes|no|on|off|null)\z~i', $var)
+			&& preg_match('~^' . Decoder::PATTERNS[1] . '\z~x', $var) // 1 = literals
+		) {
+			return $var;
 
 		} elseif (is_float($var)) {
 			$var = json_encode($var);
 			return strpos($var, '.') === false ? $var . '.0' : $var;
 
 		} else {
-			return json_encode($var);
+			return json_encode($var, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 		}
 	}
 }

@@ -16,22 +16,22 @@ namespace Nette\Neon;
  */
 final class Decoder
 {
-	public const PATTERNS = [
+	const PATTERNS = [
 		// strings
 		'
 			\'\'\'\n (?:(?: [^\n] | \n(?![\t\ ]*+\'\'\') )*+ \n)?[\t\ ]*+\'\'\' |
 			"""\n (?:(?: [^\n] | \n(?![\t\ ]*+""") )*+ \n)?[\t\ ]*+""" |
-			\' (?: \'\' | [^\'\n] )*+ \' |
+			\'[^\'\n]*+\' |
 			" (?: \\\\. | [^"\\\\\n] )*+ "
 		',
 
 		// literal / boolean / integer / float
 		'
-			(?: [^#"\',:=[\]{}()\n\t\ `-] | (?<!["\']) [:-] [^"\',=[\]{}()\n\t\ ] )
+			(?: [^#"\',:=[\]{}()\x00-\x20!`-] | [:-][^"\',\]})\s] )
 			(?:
-				[^,:=\]})(\n\t\ ]++ |
-				:(?! [\n\t\ ,\]})] | $ ) |
-				[\ \t]++ [^#,:=\]})(\n\t\ ]
+				[^,:=\]})(\x00-\x20]++ |
+				:(?! [\s,\]})] | $ ) |
+				[\ \t]++ [^#,:=\]})(\x00-\x20]
 			)*+
 		',
 
@@ -48,27 +48,25 @@ final class Decoder
 		'?:[\t\ ]++',
 	];
 
-	private const PATTERN_DATETIME = '#\d\d\d\d-\d\d?-\d\d?(?:(?:[Tt]| ++)\d\d?:\d\d:\d\d(?:\.\d*+)? *+(?:Z|[-+]\d\d?(?::?\d\d)?)?)?$#DA';
+	const PATTERN_DATETIME = '#\d\d\d\d-\d\d?-\d\d?(?:(?:[Tt]| ++)\d\d?:\d\d:\d\d(?:\.\d*+)? *+(?:Z|[-+]\d\d?(?::?\d\d)?)?)?\z#A';
 
-	private const PATTERN_HEX = '#0x[0-9a-fA-F]++$#DA';
+	const PATTERN_HEX = '#0x[0-9a-fA-F]++\z#A';
 
-	private const PATTERN_OCTAL = '#0o[0-7]++$#DA';
+	const PATTERN_OCTAL = '#0o[0-7]++\z#A';
 
-	private const PATTERN_BINARY = '#0b[0-1]++$#DA';
+	const PATTERN_BINARY = '#0b[0-1]++\z#A';
 
-	private const SIMPLE_TYPES = [
+	const SIMPLE_TYPES = [
 		'true' => 'TRUE', 'True' => 'TRUE', 'TRUE' => 'TRUE', 'yes' => 'TRUE', 'Yes' => 'TRUE', 'YES' => 'TRUE', 'on' => 'TRUE', 'On' => 'TRUE', 'ON' => 'TRUE',
 		'false' => 'FALSE', 'False' => 'FALSE', 'FALSE' => 'FALSE', 'no' => 'FALSE', 'No' => 'FALSE', 'NO' => 'FALSE', 'off' => 'FALSE', 'Off' => 'FALSE', 'OFF' => 'FALSE',
 		'null' => 'NULL', 'Null' => 'NULL', 'NULL' => 'NULL',
 	];
 
-	private const DEPRECATED_TYPES = ['on' => 1, 'On' => 1, 'ON' => 1, 'off' => 1, 'Off' => 1, 'OFF' => 1];
-
-	private const ESCAPE_SEQUENCES = [
+	const ESCAPE_SEQUENCES = [
 		't' => "\t", 'n' => "\n", 'r' => "\r", 'f' => "\x0C", 'b' => "\x08", '"' => '"', '\\' => '\\', '/' => '/', '_' => "\u{A0}",
 	];
 
-	private const BRACKETS = [
+	const BRACKETS = [
 		'[' => ']',
 		'{' => '}',
 		'(' => ')',
@@ -90,16 +88,16 @@ final class Decoder
 	 */
 	public function decode(string $input)
 	{
-		if (substr($input, 0, 3) === "\u{FEFF}") { // BOM
+		if (!is_string($input)) {
+			throw new \InvalidArgumentException(sprintf('Argument must be a string, %s given.', gettype($input)));
+
+		} elseif (substr($input, 0, 3) === "\u{FEFF}") { // BOM
 			$input = substr($input, 3);
 		}
 		$this->input = "\n" . str_replace("\r", '', $input); // \n forces indent detection
 
-		$pattern = '~(' . implode(')|(', self::PATTERNS) . ')~Amixu';
+		$pattern = '~(' . implode(')|(', self::PATTERNS) . ')~Amix';
 		$this->tokens = preg_split($pattern, $this->input, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE | PREG_SPLIT_DELIM_CAPTURE);
-		if ($this->tokens === false) {
-			throw new Exception('Invalid UTF-8 sequence.');
-		}
 
 		$last = end($this->tokens);
 		if ($this->tokens && !preg_match($pattern, $last[0])) {
@@ -152,9 +150,7 @@ final class Decoder
 				} elseif ($hasKey && $key === null && $hasValue && !$inlineParser) {
 					$n++;
 					$result[] = $this->parse($indent . '  ', [], $value, true);
-					$newIndent = isset($tokens[$n], $tokens[$n + 1]) // not last
-						? (string) substr($tokens[$n][0], 1)
-						: '';
+					$newIndent = isset($tokens[$n], $tokens[$n + 1]) ? (string) substr($tokens[$n][0], 1) : ''; // not last
 					if (strlen($newIndent) > strlen($indent)) {
 						$n++;
 						$this->error('Bad indentation');
@@ -196,10 +192,7 @@ final class Decoder
 					$value = $this->parse(false, []);
 				}
 				$hasValue = true;
-				if ( // unexpected type of bracket or block-parser
-					!isset($tokens[$n])
-					|| $tokens[$n][0] !== self::BRACKETS[$t]
-				) {
+				if (!isset($tokens[$n]) || $tokens[$n][0] !== self::BRACKETS[$t]) { // unexpected type of bracket or block-parser
 					$this->error();
 				}
 
@@ -240,9 +233,7 @@ final class Decoder
 							$this->error('Bad indentation');
 						}
 						$this->addValue($result, $key, $this->parse($newIndent));
-						$newIndent = isset($tokens[$n], $tokens[$n + 1]) // not last
-							? (string) substr($tokens[$n][0], 1)
-							: '';
+						$newIndent = isset($tokens[$n], $tokens[$n + 1]) ? (string) substr($tokens[$n][0], 1) : ''; // not last
 						if (strlen($newIndent) > strlen($indent)) {
 							$n++;
 							$this->error('Bad indentation');
@@ -255,13 +246,7 @@ final class Decoder
 
 						} elseif ($hasKey) {
 							$this->addValue($result, $key, $hasValue ? $value : null);
-							if (
-								$key !== null
-								&& !$hasValue
-								&& $newIndent === $indent
-								&& isset($tokens[$n + 1])
-								&& $tokens[$n + 1][0] === '-'
-							) {
+							if ($key !== null && !$hasValue && $newIndent === $indent && isset($tokens[$n + 1]) && $tokens[$n + 1][0] === '-') {
 								$result = &$result[$key];
 							}
 							$hasKey = $hasValue = false;
@@ -274,27 +259,19 @@ final class Decoder
 				}
 
 			} else { // Value
-				$isKey = ($tmp = $tokens[$n + 1][0] ?? null) && ($tmp === ':' || $tmp === '=');
-
 				if ($t[0] === '"' || $t[0] === "'") {
 					if (preg_match('#^...\n++([\t ]*+)#', $t, $m)) {
 						$converted = substr($t, 3, -3);
 						$converted = str_replace("\n" . $m[1], "\n", $converted);
-						$converted = preg_replace('#^\n|\n[\t ]*+$#D', '', $converted);
+						$converted = preg_replace('#^\n|\n[\t ]*+\z#', '', $converted);
 					} else {
 						$converted = substr($t, 1, -1);
-						if ($t[0] === "'") {
-							$converted = str_replace("''", "'", $converted);
-						}
 					}
 					if ($t[0] === '"') {
 						$converted = preg_replace_callback('#\\\\(?:ud[89ab][0-9a-f]{2}\\\\ud[c-f][0-9a-f]{2}|u[0-9a-f]{4}|x[0-9a-f]{2}|.)#i', [$this, 'cbString'], $converted);
 					}
-				} elseif (!$isKey && isset(self::SIMPLE_TYPES[$t])) {
+				} elseif (isset(self::SIMPLE_TYPES[$t]) && (!isset($tokens[$n + 1][0]) || ($tokens[$n + 1][0] !== ':' && $tokens[$n + 1][0] !== '='))) {
 					$converted = constant(self::SIMPLE_TYPES[$t]);
-					if (isset(self::DEPRECATED_TYPES[$t])) {
-						trigger_error("Neon: keyword '$t' is deprecated, use true/yes or false/no.", E_USER_DEPRECATED);
-					}
 				} elseif (is_numeric($t)) {
 					$converted = $t * 1;
 				} elseif (preg_match(self::PATTERN_HEX, $t)) {
@@ -303,7 +280,7 @@ final class Decoder
 					$converted = octdec($t);
 				} elseif (preg_match(self::PATTERN_BINARY, $t)) {
 					$converted = bindec($t);
-				} elseif (!$isKey && preg_match(self::PATTERN_DATETIME, $t)) {
+				} elseif (preg_match(self::PATTERN_DATETIME, $t)) {
 					$converted = new \DateTimeImmutable($t);
 				} else { // literal
 					$converted = $t;
@@ -369,24 +346,22 @@ final class Decoder
 			}
 			return iconv('UTF-32BE', 'UTF-8//IGNORE', pack('N', $code));
 		} elseif ($sq[1] === 'x' && strlen($sq) === 4) {
-			trigger_error("Neon: '$sq' is deprecated, use '\\uXXXX' instead.", E_USER_DEPRECATED);
 			return chr(hexdec(substr($sq, 2)));
 		} else {
 			$this->error("Invalid escaping sequence $sq");
+			return '';
 		}
 	}
 
 
 	private function error(string $message = "Unexpected '%s'")
 	{
-		$last = $this->tokens[$this->pos] ?? null;
+		$last = isset($this->tokens[$this->pos]) ? $this->tokens[$this->pos] : null;
 		$offset = $last ? $last[1] : strlen($this->input);
 		$text = substr($this->input, 0, $offset);
 		$line = substr_count($text, "\n");
 		$col = $offset - strrpos("\n" . $text, "\n") + 1;
-		$token = $last
-			? str_replace("\n", '<new line>', substr($last[0], 0, 40))
-			: 'end';
+		$token = $last ? str_replace("\n", '<new line>', substr($last[0], 0, 40)) : 'end';
 		throw new Exception(str_replace('%s', $token, $message) . " on line $line, column $col.");
 	}
 }

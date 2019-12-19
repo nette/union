@@ -43,8 +43,6 @@ $dataSet = [
 
 		// strings
 		["''", ''],
-		["'foo'", 'foo'],
-		["'fo''o'", "fo'o"],
 		['""', ''],
 		['"foo"', 'foo'],
 		['"f\\no"', "f\no"],
@@ -94,13 +92,20 @@ $dataSet = [
 		['yes', true],
 		['Yes', true],
 		['YES', true],
+		['on', true],
+		['On', true],
+		['ON', true],
 		['False', false],
 		['FALSE', false],
 		['no', false],
 		['No', false],
 		['NO', false],
+		['off', false],
+		['Off', false],
+		['OFF', false],
 
 		// extended string syntax
+		['"\\x42 hex escape"', "\x42 hex escape"],
 		["'single \\n quote'", 'single \\n quote'],
 
 		// strings without quotes
@@ -125,19 +130,6 @@ $dataSet = [
 		['@x', '@x'],
 		['@true', '@true'],
 
-		['!hello', '!hello'],
-
-		['::', '::'],
-		[':0', ':0'],
-		[':-1', ':-1'],
-		[':true', ':true'],
-		[':false', ':false'],
-		[':null', ':null'],
-		[':NULL', ':NULL'],
-		['-:', '-:'],
-		['-0', -0],
-		['-true', '-true'],
-
 		['42 px', '42 px'],
 		['42 .2', '42 .2'],
 		['42 2', '42 2'],
@@ -151,7 +143,9 @@ $dataSet = [
 		['{false: 42}', ['false' => 42]],
 		['{null: 42}', ['null' => 42]],
 		['{yes: 42}', ['yes' => 42]],
+		['{on: 42}', ['on' => 42]],
 		['{no: 42}', ['no' => 42]],
+		['{off: 42}', ['off' => 42]],
 		['{42: 42}', [42 => 42]],
 		['{0: 42}', [0 => 42]],
 		['{-1: 42}', [-1 => 42]],
@@ -180,17 +174,6 @@ $dataSet = [
 		["\u{FEFF}a", 'a'],
 	],
 
-	// deprecated NEON syntax
-	'deprecated syntax' => [
-		['on', true],
-		['On', true],
-		['ON', true],
-		['off', false],
-		['Off', false],
-		['OFF', false],
-		['"\\x42 hex escape"', "\x42 hex escape"],
-	],
-
 	// inputs with invalid syntax, but still valid UTF-8
 	'invalid syntax' => [
 		['"\\a invalid escape"'],
@@ -217,20 +200,17 @@ $dataSet = [
 		['=abc'],
 		['{a :b}'],
 		['a :b'],
-
-		['-['],
-		['-{'],
-		['-('],
-		[':['],
-		[':{'],
-		[':('],
 	],
 
 	// RFC JSON with valid syntax which can not be encoded in UTF-8
 	'invalid encoding' => [
-		['"XXX\uD801YYY\uDC01ZZZ"'], // lead and tail surrogates alone
-		['"XXX\uD801\uD801YYY"'], // two lead surrogates
-		['"XXX\uDC01\uDC01YYY"'], // two tail surrogates
+		['"XXX\uD801YYY\uDC01ZZZ"', 'XXXYYYZZZ'], // lead and tail surrogates alone
+		['"XXX\uD801\uD801YYY"', 'XXXYYY'], // two lead surrogates
+		['"XXX\uDC01\uDC01YYY"', 'XXXYYY'], // two tail surrogates
+	],
+
+	// inputs which are not valid UTF-8, but silently ignored
+	'ignored invalid encoding' => [
 		["'\xc3\x28'"], // Invalid 2 Octet Sequence
 		["'\xa0\xa1'"], // Invalid Sequence Identifier
 		["'\xe2\x28\xa1'"], // Invalid 3 Octet Sequence (in 2nd Octet)
@@ -251,9 +231,8 @@ foreach (array_merge($dataSet['RFC JSON'], $dataSet['PHP JSON'], $dataSet['NEON'
 	Assert::same($set[1], Neon::decode($set[0]));
 }
 
-foreach ($dataSet['deprecated syntax'] as $set) {
-	echo "$set[0]\n";
-	Assert::same($set[1], @Neon::decode($set[0])); // @ is deprecated
+foreach ($dataSet['ignored invalid encoding'] as $set) {
+	Assert::same(substr($set[0], 1, -1), Neon::decode($set[0]));
 }
 
 foreach (array_merge($dataSet['invalid syntax'], $dataSet['invalid encoding']) as $set) {
