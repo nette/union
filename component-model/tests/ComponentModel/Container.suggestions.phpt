@@ -38,7 +38,6 @@ class TestContainer extends Container
 
 $cont = new TestContainer;
 $cont->addComponent(new TestContainer, 'form');
-$cont->addComponent(new TestContainer, '0');
 
 Assert::exception(function () use ($cont) {
 	$comp = $cont->getComponent('from');

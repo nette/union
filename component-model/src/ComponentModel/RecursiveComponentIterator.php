@@ -27,7 +27,6 @@ final class RecursiveComponentIterator extends \RecursiveArrayIterator implement
 
 	/**
 	 * The sub-iterator for the current element.
-	 * @return \RecursiveIterator<int|string,IComponent>
 	 */
 	public function getChildren(): \RecursiveIterator
 	{
