@@ -34,10 +34,6 @@ class MimePart
 
 	public const LINE_LENGTH = 76;
 
-	private const
-		SEQUENCE_VALUE = 1, // value, RFC 2231
-		SEQUENCE_WORD = 2;  // encoded-word, RFC 2047
-
 	/** @var array */
 	private $headers = [];
 
@@ -50,7 +46,7 @@ class MimePart
 
 	/**
 	 * Sets a header.
-	 * @param  string|array|null  $value  value or pair email => name
+	 * @param  string|array  $value  value or pair email => name
 	 * @return static
 	 */
 	public function setHeader(string $name, $value, bool $append = false)
@@ -128,19 +124,19 @@ class MimePart
 			$s = '';
 			foreach ($this->headers[$name] as $email => $name) {
 				if ($name != null) { // intentionally ==
-					$s .= self::encodeSequence($name, $offset, self::SEQUENCE_WORD);
+					$s .= self::encodeHeader($name, $offset, true);
 					$email = " <$email>";
 				}
 				$s .= self::append($email . ',', $offset);
 			}
 			return ltrim(substr($s, 0, -1)); // last comma
 
-		} elseif (preg_match('#^(\S+; (?:file)?name=)"(.*)"$#D', $this->headers[$name], $m)) { // Content-Disposition
+		} elseif (preg_match('#^(\S+; (?:file)?name=)"(.*)"\z#', $this->headers[$name], $m)) { // Content-Disposition
 			$offset += strlen($m[1]);
-			return $m[1] . self::encodeSequence(stripslashes($m[2]), $offset, self::SEQUENCE_VALUE);
+			return $m[1] . '"' . self::encodeHeader($m[2], $offset) . '"';
 
 		} else {
-			return ltrim(self::encodeSequence($this->headers[$name], $offset));
+			return ltrim(self::encodeHeader($this->headers[$name], $offset));
 		}
 	}
 
@@ -190,7 +186,7 @@ class MimePart
 	 */
 	public function addPart(self $part = null): self
 	{
-		return $this->parts[] = $part ?? new self;
+		return $this->parts[] = $part === null ? new self : $part;
 	}
 
 
@@ -280,13 +276,10 @@ class MimePart
 	/**
 	 * Converts a 8 bit header to a string.
 	 */
-	private static function encodeSequence(string $s, int &$offset = 0, int $type = null): string
+	private static function encodeHeader(string $s, int &$offset = 0, bool $quotes = false): string
 	{
-		if (
-			(strlen($s) < self::LINE_LENGTH - 3) && // 3 is tab + quotes
-			strspn($s, "!\"#$%&\\'()*+,-./0123456789:;<>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^`abcdefghijklmnopqrstuvwxyz{|}~=? _\r\n\t") === strlen($s)
-		) {
-			if ($type && preg_match('#[^ a-zA-Z0-9!\#$%&\'*+/?^_`{|}~-]#', $s)) { // RFC 2822 atext except =
+		if (strspn($s, "!\"#$%&\'()*+,-./0123456789:;<>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^`abcdefghijklmnopqrstuvwxyz{|}~=? _\r\n\t") === strlen($s)) {
+			if ($quotes && preg_match('#[^ a-zA-Z0-9!\#$%&\'*+/?^_`{|}~-]#', $s)) { // RFC 2822 atext except =
 				return self::append('"' . addcslashes($s, '"\\') . '"', $offset);
 			}
 			return self::append($s, $offset);
@@ -305,11 +298,7 @@ class MimePart
 		]);
 
 		$offset = strlen($s) - strrpos($s, "\n");
-		$s = substr($s, $old + 2); // adds ': '
-		if ($type === self::SEQUENCE_VALUE) {
-			$s = '"' . $s . '"';
-		}
-		$s = str_replace("\n ", "\n\t", $s);
+		$s = str_replace("\n ", "\n\t", substr($s, $old + 2)); // adds ': '
 		return $o . $s;
 	}
 

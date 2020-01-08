@@ -7,18 +7,4 @@
 
 declare(strict_types=1);
 
-namespace Nette\Mail;
-
-
-/**
- * Mailer interface.
- */
-interface Mailer
-{
-
-	/**
-	 * Sends email.
-	 * @throws SendException
-	 */
-	function send(Message $mail): void;
-}
+class_alias(Nette\Mail\Mailer::class, Nette\Mail\IMailer::class);

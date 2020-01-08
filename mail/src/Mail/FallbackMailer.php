@@ -51,7 +51,6 @@ class FallbackMailer implements Mailer
 			throw new Nette\InvalidArgumentException('At least one mailer must be provided.');
 		}
 
-		$failures = [];
 		for ($i = 0; $i < $this->retryCount; $i++) {
 			if ($i > 0) {
 				usleep($this->retryWaitTime * 1000);
@@ -75,7 +74,9 @@ class FallbackMailer implements Mailer
 	}
 
 
-	/** @return static */
+	/**
+	 * @return static
+	 */
 	public function addMailer(Mailer $mailer)
 	{
 		$this->mailers[] = $mailer;

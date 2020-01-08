@@ -78,11 +78,8 @@ EOD
 
 
 $mail = new Message;
-$mail->addAttachment('žluťoučký.zip', file_get_contents(__DIR__ . '/fixtures/small.bin'), 'application/octet-stream');
-$mail->addAttachment('veryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongemail.pdf', file_get_contents(__DIR__ . '/fixtures/small.bin'), 'application/octet-stream');
-$mail->addAttachment('ž', file_get_contents(__DIR__ . '/fixtures/small.bin'), 'application/octet-stream');
-$mail->addAttachment('abc', file_get_contents(__DIR__ . '/fixtures/small.bin'), 'application/octet-stream');
-$mail->addAttachment('"\\', file_get_contents(__DIR__ . '/fixtures/small.bin'), 'application/octet-stream');
+$name = iconv('UTF-8', 'WINDOWS-1250', 'žluťoučký.zip');
+$mail->addAttachment($name, file_get_contents(__DIR__ . '/fixtures/example.zip'), 'application/zip');
 $mailer->send($mail);
 
 Assert::match(<<<'EOD'
@@ -99,39 +96,14 @@ Content-Transfer-Encoding: 7bit
 
 
 ----------%S%
-Content-Type: application/octet-stream
+Content-Type: application/zip
 Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="=?UTF-8?B?xb5sdcWlb3XEjWs=?=
-	=?UTF-8?B?w70uemlw?="
+Content-Disposition: attachment; filename="%S?%"
 
-UEsDBBQ=
-----------%S%
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="=?UTF-8?B?dmVyeXZlcnl2ZXI=?=
-	=?UTF-8?B?eXZlcnl2ZXJ5dmVyeXZlcnl2ZXJ5dmVyeXZlcnl2ZXJ5dmVyeXZlcnk=?=
-	=?UTF-8?B?dmVyeXZlcnl2ZXJ5dmVyeXZlcnl2ZXJ5dmVyeXZlcnl2ZXJ5dmVyeXY=?=
-	=?UTF-8?B?ZXJ5bG9uZ2VtYWlsLnBkZg==?="
-
-UEsDBBQ=
-----------%S%
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="=?UTF-8?B?xb4=?="
-
-UEsDBBQ=
-----------%S%
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=abc
-
-UEsDBBQ=
-----------%S%
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="\"\\"
-
-UEsDBBQ=
+UEsDBBQAAAAIACeIMjsmkSpnQAAAAEEAAAALAAAAdmVyc2lvbi50eHTzSy0pSVVwK0rMTS3PL8pW
+MNCz1DNU0ChKLcsszszPU0hJNjMwTzNQKErNSU0sTk1RAIoZGRhY6gKRoYUmLxcAUEsBAhQAFAAA
+AAgAJ4gyOyaRKmdAAAAAQQAAAAsAAAAAAAAAAAAgAAAAAAAAAHZlcnNpb24udHh0UEsFBgAAAAAB
+AAEAOQAAAGkAAAAAAA==
 ----------%S%--
 EOD
 , TestMailer::$output);

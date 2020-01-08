@@ -141,7 +141,7 @@ class Message extends MimePart
 	 */
 	private function formatEmail(string $email, string $name = null): array
 	{
-		if (!$name && preg_match('#^(.+) +<(.*)>$#D', $email, $matches)) {
+		if (!$name && preg_match('#^(.+) +<(.*)>\z#', $email, $matches)) {
 			[, $name, $email] = $matches;
 			$name = stripslashes($name);
 			$tmp = substr($name, 1, -1);
@@ -179,7 +179,7 @@ class Message extends MimePart
 	 */
 	public function setPriority(int $priority)
 	{
-		$this->setHeader('X-Priority', (string) $priority);
+		$this->setHeader('X-Priority', $priority);
 		return $this;
 	}
 
@@ -208,7 +208,7 @@ class Message extends MimePart
 					|<body[^<>]*\s background\s*=\s*
 					|<[^<>]+\s style\s*=\s* ["\'][^"\'>]+[:\s] url\(
 					|<style[^>]*>[^<]+ [:\s] url\()
-					(["\']?)(?![a-z]+:|[/\#])([^"\'>)\s]+)
+					(["\']?)(?![a-z]+:|[/\\#])([^"\'>)\s]+)
 					|\[\[ ([\w()+./@~-]+) \]\]
 				#ix',
 				PREG_OFFSET_CAPTURE
@@ -218,18 +218,16 @@ class Message extends MimePart
 				if (!isset($cids[$file])) {
 					$cids[$file] = substr($this->addEmbeddedFile($file)->getHeader('Content-ID'), 1, -1);
 				}
-				$html = substr_replace(
-					$html,
+				$html = substr_replace($html,
 					"{$m[1][0]}{$m[2][0]}cid:{$cids[$file]}",
-					$m[0][1],
-					strlen($m[0][0])
+					$m[0][1], strlen($m[0][0])
 				);
 			}
 		}
 
 		if ($this->getSubject() == null) { // intentionally ==
 			$html = Strings::replace($html, '#<title>(.+?)</title>#is', function (array $m): void {
-				$this->setSubject(Nette\Utils\Html::htmlToText($m[1]));
+				$this->setSubject(html_entity_decode($m[1], ENT_QUOTES, 'UTF-8'));
 			});
 		}
 
@@ -295,16 +293,14 @@ class Message extends MimePart
 	/**
 	 * Creates file MIME part.
 	 */
-	private function createAttachment(
-		string $file,
-		?string $content,
-		?string $contentType,
-		string $disposition
-	): MimePart {
+	private function createAttachment(string $file, string $content = null, string $contentType = null, string $disposition): MimePart
+	{
 		$part = new MimePart;
 		if ($content === null) {
-			$content = Nette\Utils\FileSystem::read($file);
-			$file = Strings::fixEncoding(basename($file));
+			$content = @file_get_contents($file); // @ is escalated to exception
+			if ($content === false) {
+				throw new Nette\FileNotFoundException("Unable to read file '$file'.");
+			}
 		}
 		if (!$contentType) {
 			$contentType = finfo_buffer(finfo_open(FILEINFO_MIME_TYPE), $content);
@@ -318,7 +314,7 @@ class Message extends MimePart
 		$part->setBody($content);
 		$part->setContentType($contentType);
 		$part->setEncoding(preg_match('#(multipart|message)/#A', $contentType) ? self::ENCODING_8BIT : self::ENCODING_BASE64);
-		$part->setHeader('Content-Disposition', $disposition . '; filename="' . addcslashes($file, '"\\') . '"');
+		$part->setHeader('Content-Disposition', $disposition . '; filename="' . Strings::fixEncoding(basename($file)) . '"');
 		return $part;
 	}
 
@@ -388,14 +384,14 @@ class Message extends MimePart
 	 */
 	protected function buildText(string $html): string
 	{
-		$html = Strings::replace($html, [
-			'#<(style|script|head).*</\1>#Uis' => '',
+		$text = Strings::replace($html, [
+			'#<(style|script|head).*</\\1>#Uis' => '',
 			'#<t[dh][ >]#i' => ' $0',
 			'#<a\s[^>]*href=(?|"([^"]+)"|\'([^\']+)\')[^>]*>(.*?)</a>#is' => '$2 &lt;$1&gt;',
 			'#[\r\n]+#' => ' ',
 			'#<(/?p|/?h\d|li|br|/tr)[ >/]#i' => "\n$0",
 		]);
-		$text = Nette\Utils\Html::htmlToText($html);
+		$text = html_entity_decode(strip_tags($text), ENT_QUOTES, 'UTF-8');
 		$text = Strings::replace($text, '#[ \t]+#', ' ');
 		return trim($text);
 	}

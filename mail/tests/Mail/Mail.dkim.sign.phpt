@@ -25,12 +25,12 @@ $mail->addTo('Lady Jane <jane@example.com>');
 $mail->setSubject('Hello Jane!');
 $mail->setBody('Příliš žluťoučký kůň');
 
-$signer = new class(['privateKey' => $privateKey, 'domain' => 'nette.org', 'selector' => 'selector'], ['From', 'To', 'Subject']) extends DkimSigner {
-	protected function getTime(): int
-	{
-		return 0;
-	}
-};
+$signer = new DkimSigner([
+	'privateKey' => $privateKey,
+	'domain' => 'nette.org',
+	'selector' => 'selector',
+	'testMode' => true,
+], ['From', 'To', 'Subject']);
 
 Assert::match(<<<'EOD'
 MIME-Version: 1.0
