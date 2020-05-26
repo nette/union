@@ -3,30 +3,78 @@
  */
 trait Trait1
 {
-	public function func1()
+	public $x1;
+
+
+	public function f1()
 	{
 	}
 }
 
 trait Trait2
 {
-	protected function func2()
+	protected $x2;
+	public $x1;
+
+
+	public function f2()
+	{
+	}
+
+
+	public function f1()
 	{
 	}
 }
 
-abstract class Class1
+class Class1 extends ParentClass
 {
-	public function func1()
+	protected $x2;
+
+
+	public function f1()
 	{
 	}
 
 
-	protected function func2()
+	public function f2()
 	{
 	}
 }
 
-class Class2 extends Class1
+class Class2 extends ParentClass
 {
+	public $x1;
+	protected $x2;
+
+
+	public function f1()
+	{
+	}
+
+
+	public function f2()
+	{
+	}
+}
+
+class Class3 extends ParentClass
+{
+	public $x1;
+	protected $x2;
+
+
+	public function f1()
+	{
+	}
+
+
+	public function f2()
+	{
+	}
+
+
+	public function aliased()
+	{
+	}
 }
