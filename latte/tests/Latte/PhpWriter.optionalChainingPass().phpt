@@ -1,5 +1,7 @@
 <?php
 
+/** @phpVersion < 8 */
+
 declare(strict_types=1);
 
 use Latte\MacroTokens;
