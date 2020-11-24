@@ -28,8 +28,8 @@ Assert::with(Structure::class, function () {
 	Assert::type(Structure::class, $schema);
 	Assert::equal([
 		'dsn' => Expect::string('mysql'),
-		'user' => Expect::type('?string')->required(),
-		'password' => Expect::type('?string'),
+		'user' => Expect::type('string|null')->required(),
+		'password' => Expect::type('string|null'),
 		'options' => Expect::array(),
 		'debugger' => Expect::bool(true),
 		'mixed' => Expect::mixed(),
