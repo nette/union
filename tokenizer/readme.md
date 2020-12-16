@@ -13,24 +13,32 @@ Introduction
 
 Tokenizer is a tool that uses regular expressions to split given string into tokens. What the hell is that good for, you might ask? Well, you can create your own languages!
 
-Documentation can be found on the [website](https://doc.nette.org/tokenizer). If you like it, **[please make a donation now](https://github.com/sponsors/dg)**. Thank you!
+Documentation can be found on the [website](https://doc.nette.org/tokenizer).
 
-Installation:
+If you like Nette, **[please make a donation now](https://nette.org/donate)**. Thank you!
+
+
+Installation
+------------
+
+The recommended way to install is via Composer:
 
 ```
 composer require nette/tokenizer
 ```
 
-It requires PHP version 7.1 and supports PHP up to 8.0.
+The release 2.3 requires PHP version 5.4 and supports PHP up to 7.2. The release 3.0 requires PHP 7.1.
 
 
 Usage
 -----
 
-Let's create a simple tokenizer that separates strings to numbers, whitespaces, and letters.
+Let's create a simple tokenizer that separates strings to numbers, whitespaces and letters.
 
 ```php
-$tokenizer = new Nette\Tokenizer\Tokenizer([
+use Nette\Tokenizer\Tokenizer;
+
+$tokenizer = new Tokenizer([
 	T_DNUMBER => '\d+',
 	T_WHITESPACE => '\s+',
 	T_STRING => '\w+',
@@ -39,7 +47,7 @@ $tokenizer = new Nette\Tokenizer\Tokenizer([
 
 *Hint: In case you are wondering where the T_ constants come from, they are [internal type](http://php.net/manual/tokens.php) used for parsing code. They cover most of the common token names we usually need. Keep in mind their value is not guaranteed so don't use numbers for comparison.*
 
-Now when we give it a string, it will return stream [Nette\Tokenizer\Stream](https://api.nette.org/3.0/Nette/Tokenizer/Stream.html) of tokens [Nette\Tokenizer\Token](https://api.nette.org/3.0/Nette/Tokenizer/Token.html).
+Now when we give it a string, it will return stream (Nette\Tokenizer\Stream) of tokens (Nette\Tokenizer\Token).
 
 ```php
 $stream = $tokenizer->tokenize("say \n123");
@@ -59,9 +67,9 @@ Also, you can access the individual properties of token:
 
 ```php
 $firstToken = $stream->tokens[0];
-$firstToken->value; // say
-$firstToken->type; // value of T_STRING
-$firstToken->offset; // position in string: 0
+echo $firstToken->value; // say
+echo $firstToken->type; // value of T_STRING
+echo $firstToken->offset; // position in string: 0
 ```
 
 Simple, isn't it?
@@ -80,7 +88,31 @@ Let's try to parse a simple annotation from PHPDoc and create an object from it.
 
 (Never use capturing subpatterns in Tokenizer's regular expressions like `'(ab)+c'`, use only non-capturing ones `'(?:ab)+c'`.)
 
-This should work on simple annotations, right? Now let's show input string that we will try to parse.
+This should work on simple annotations, right? Now let's define few classes to demonstrate.
+
+```php
+class Author
+{
+	public $name;
+
+	public function __construct($name)
+	{
+		$this->name = $name;
+	}
+}
+
+class Package
+{
+	public $name;
+
+	public function __construct($name)
+	{
+		$this->name = $name;
+	}
+}
+```
+
+and input string that we will try to parse.
 
 ```php
 $input = '
@@ -89,7 +121,7 @@ $input = '
 ';
 ```
 
-Let's create a `Parser` class that will accept the string and return an array of pairs `[name, value]`. It will be very naive and simple.
+Let's create a `Parser` class that will accept the string and return an array of objects. It will be very naive and simple.
 
 ```php
 use Nette\Tokenizer\Tokenizer;
@@ -116,7 +148,7 @@ class Parser
 		]);
 	}
 
-	public function parse(string $input): array
+	public function parse($input)
 	{
 		$this->stream = $this->tokenizer->tokenize($input);
 
@@ -130,13 +162,13 @@ class Parser
 		return $result;
 	}
 
-	private function parseAnnotation(): array
+	protected function parseAnnotation()
 	{
 		$name = $this->stream->joinUntil(self::T_WHITESPACE);
 		$this->stream->nextUntil(self::T_STRING);
 		$content = $this->stream->joinUntil(self::T_AT);
 
-		return [$name, trim($content)];
+		return new $name(trim($content));
 	}
 }
 ```
@@ -148,24 +180,23 @@ $annotations = $parser->parse($input);
 
 So what the `parse()` method does? It iterates over the tokens and searches for `@` which is the symbol annotations start with. Calling `nextToken()` moves the cursor to the next token. Method `isCurrent()` checks if the current token at the cursor is the given type. Then, if the `@` is found, the `parse()` method calls `parseAnnotation()` which expects the annotations to be in a very speficic format.
 
-First, using the method `joinUntil()`, the stream keeps moving the cursor and appending the values of the tokens to the buffer until it finds token of the required type, then stops and returns the buffer output. Because there is only one token of type `T_STRING` at that given position and it's `'name'`, there will be value `'name'` in variable `$name`.
+First, using the method `joinUntil()`, the stream keeps moving the cursor and appending the tokens values to the buffer until it finds token of required type, then stops and returns the buffer output. Because there is only one token of type `T_STRING` at that given position and it's `'name'`, there will be value `'name'` in variable `$name`.
 
-Method `nextUntil()` is similar like `joinUntil()` but it has no buffer. It only moves the cursor until it finds the token. So this call simply skips all the whitespaces after the annotation name.
+Method `nextUntil()` is similar like `joinUntil()` but it has no buffer. It only moves the cursor until it finds the token. So this call simply skips all the whitespaces after annotation name.
 
 And then, there is another `joinUntil()`, that searches for next `@`. This specific call will return `"David Grudl\n    "`.
 
-And there we go, we've parsed one whole annotation! The `$content` probably ends with whitespaces, so we have to trim it. Now we can return this specific annotation as pair `[$name, $content]`.
+And there we go, we've parsed one whole annotation! Now we can create an instance of class for that specific annotation and pass it the parsed value. The `$content` probably ends with whitespaces, so we have to trim it.
 
 Try copypasting the code and running it. If you dump the `$annotations` variable it should return some similar output.
 
 ```
 array (2)
-   0 => array (2)
-   |  0 => 'author'
-   |  1 => 'David Grudl'
-   1 => array (2)
-   |  0 => 'package'
-   |  1 => 'Nette'
+   0 => Author
+   |  name => "David Grudl"
+   |
+   1 => Package
+      name => "Nette"
 ```
 
 Stream methods
@@ -173,14 +204,14 @@ Stream methods
 
 The stream can return current token using method `currentToken()` or only it's value using `currentValue()`.
 
-`nextToken()` moves the cursor and returns the token. If you give it no arguments, it simply returns the next token.
+`nextToken()` moves the cursor and returns the token. If you give it no arguments, it simply returns next token.
 
 `nextValue()` is just like `nextToken()` but it only returns the token value.
 
 Most of the methods also accept multiple arguments so you can search for multiple types at once.
 
 ```php
-// iterate until a string or a whitespace is found, then return the following token
+// iterate until a string or a whitespace is found, then stop and return the following token
 $token = $stream->nextToken(T_STRING, T_WHITESPACE);
 
 // give me next token
@@ -194,7 +225,7 @@ You can also search by the token value.
 $token = $stream->nextToken('@');
 ```
 
-`nextUntil()` moves the cursor and returns the an array of all the tokens it sees until it finds the desired token, but it stops before the token. It can accept multiple arguments.
+`nextUntil()` moves the cursor and returns the array of all the tokens it sees until it finds the desired token, but it stops before the token. It can accept multiple arguments.
 
 `joinUntil()` is similar to `nextUntil()`, but concatenates all the tokens it passed through and returns string.
 
@@ -202,7 +233,7 @@ $token = $stream->nextToken('@');
 
 `nextAll()` is just like `joinAll()`, but it returns array of the tokens.
 
-`isCurrent()` checks if the current token or the current token's value is equal to one of the given arguments.
+`isCurrent()` checks if the current token or the current token's value is equal to one of given arguments.
 
 ```php
 // is the current token '@' or type of T_AT?
