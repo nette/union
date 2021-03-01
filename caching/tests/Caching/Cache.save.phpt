@@ -31,9 +31,7 @@ Assert::same($dependencies, $res['dependencies']);
 $storage = new testStorage;
 $cache = new Cache($storage, 'ns');
 
-@$cache->save('key', function () { // @ deprecated
-	return 'value';
-});
+@$cache->save('key', fn () => 'value');
 
 $res = $cache->load('key');
 Assert::same('value', $res['data']);
@@ -45,9 +43,7 @@ $storage = new testStorage;
 $cache = new Cache($storage, 'ns');
 $dependencies = [Cache::TAGS => ['tag']];
 
-@$cache->save('key', function () { // @ deprecated
-	return 'value';
-}, $dependencies);
+@$cache->save('key', fn () => 'value', $dependencies);
 
 $res = $cache->load('key');
 Assert::same('value', $res['data']);
@@ -59,9 +55,7 @@ $storage = new testStorage;
 $cache = new Cache($storage, 'ns');
 $dependencies = [Cache::EXPIRATION => new DateTime];
 
-@$res = $cache->save('key', function () { // @ deprecated
-	return 'value';
-}, $dependencies);
+@$res = $cache->save('key', fn () => 'value', $dependencies);
 Assert::same('value', $res);
 
 $res = $cache->load('key');
