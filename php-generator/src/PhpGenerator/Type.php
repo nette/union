@@ -26,8 +26,8 @@ class Type
 		ITERABLE = 'iterable',
 		VOID = 'void',
 		MIXED = 'mixed',
-		FALSE = 'false',
-		NULL = 'null',
+		false = 'false',
+		null = 'null',
 		SELF = 'self',
 		PARENT = 'parent',
 		STATIC = 'static';
