@@ -40,7 +40,7 @@ class E extends TestClass
 function createAttached(IComponent $sender)
 {
 	return function (IComponent $obj) use ($sender) {
-		Notes::add('ATTACHED(' . $obj::class . ', ' . $sender::class . ')');
+		Notes::add('ATTACHED(' . get_class($obj) . ', ' . get_class($sender) . ')');
 	};
 }
 
@@ -48,7 +48,7 @@ function createAttached(IComponent $sender)
 function createDetached(IComponent $sender)
 {
 	return function (IComponent $obj) use ($sender) {
-		Notes::add('detached(' . $obj::class . ', ' . $sender::class . ')');
+		Notes::add('detached(' . get_class($obj) . ', ' . get_class($sender) . ')');
 	};
 }
 
@@ -113,7 +113,7 @@ class FooControl extends TestClass
 
 	protected function myAttached(TestClass $obj)
 	{
-		Notes::add('ATTACHED(' . $obj::class . ', ' . static::class . ')');
+		Notes::add('ATTACHED(' . get_class($obj) . ', ' . static::class . ')');
 	}
 }
 
