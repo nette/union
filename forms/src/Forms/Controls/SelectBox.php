@@ -34,11 +34,9 @@ class SelectBox extends ChoiceControl
 	{
 		parent::__construct($label, $items);
 		$this->setOption('type', 'select');
-		$this->addCondition(function () {
-			return $this->prompt === false
+		$this->addCondition(fn () => $this->prompt === false
 				&& $this->options
-				&& $this->control->size < 2;
-		})->addRule(Nette\Forms\Form::FILLED, Nette\Forms\Validator::$messages[self::VALID]);
+				&& $this->control->size < 2)->addRule(Nette\Forms\Form::FILLED, Nette\Forms\Validator::$messages[self::VALID]);
 	}
 
 
@@ -101,7 +99,7 @@ class SelectBox extends ChoiceControl
 			[
 				'disabled:' => is_array($this->disabled) ? $this->disabled : null,
 			] + $this->optionAttributes,
-			$this->value
+			$this->value,
 		)->addAttributes(parent::getControl()->attrs);
 	}
 
