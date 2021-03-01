@@ -7,10 +7,10 @@ use Nette\Caching\IStorage;
 
 class TestStorage implements IStorage
 {
-	private array $data = [];
+	private $data = [];
 
 
-	public function read(string $key): mixed
+	public function read(string $key)
 	{
 		return $this->data[$key] ?? null;
 	}

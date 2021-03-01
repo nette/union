@@ -20,13 +20,13 @@ set_time_limit(0);
 function randomStr()
 {
 	$s = str_repeat('LaTrine', rand(10, 2000));
-	return sha1($s, binary: true) . $s;
+	return sha1($s, true) . $s;
 }
 
 
 function checkStr($s)
 {
-	return substr($s, 0, 20) === sha1(substr($s, 20), binary: true);
+	return substr($s, 0, 20) === sha1(substr($s, 20), true);
 }
 
 
@@ -40,6 +40,7 @@ $storage = new FileStorage(getTempDir());
 for ($i = 0; $i <= COUNT_FILES; $i++) {
 	$storage->write((string) $i, randomStr(), []);
 }
+
 
 // test loop
 $hits = ['ok' => 0, 'notfound' => 0, 'error' => 0, 'cantwrite' => 0, 'cantdelete' => 0];
@@ -66,6 +67,7 @@ for ($counter = 0; $counter < 1000; $counter++) {
 		$hits['error']++;
 	}
 }
+
 
 Assert::same([
 	'ok' => 1000,

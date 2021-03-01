@@ -19,10 +19,14 @@ require __DIR__ . '/Cache.php';
 $storage = new TestStorage;
 $cache = new Cache($storage, 'ns');
 
-$value = $cache->load('key', fn() => 'value');
+$value = $cache->load('key', function () {
+	return 'value';
+});
 Assert::same('value', $value);
 
-$data = $cache->load('key', fn() => "won't load this value");
+$data = $cache->load('key', function () {
+	return "won't load this value"; // will read from storage
+});
 Assert::same('value', $data['data']);
 
 
@@ -37,18 +41,11 @@ $value = $cache->load('key', function (&$deps) use ($dependencies) {
 });
 Assert::same('value', $value);
 
-$data = $cache->load('key', fn() => "won't load this value");
+$data = $cache->load('key', function () {
+	return "won't load this value"; // will read from storage
+});
 Assert::same('value', $data['data']);
 Assert::same($dependencies, $data['dependencies']);
-
-
-$value = $cache->load('key2', fn() => 'value2', $dependencies);
-Assert::same('value2', $value);
-
-$data = $cache->load('key2', fn() => "won't load this value");
-Assert::same('value2', $data['data']);
-Assert::same($dependencies, $data['dependencies']);
-
 
 
 // load twice with fallback, pass dependencies
@@ -59,8 +56,8 @@ function fallback(&$deps)
 }
 
 
-$value = $cache->load('key3', 'fallback');
+$value = $cache->load('key2', 'fallback');
 Assert::same('value', $value);
-$data = $cache->load('key3');
+$data = $cache->load('key2');
 Assert::same('value', $data['data']);
 Assert::same($dependencies, $data['dependencies']);
