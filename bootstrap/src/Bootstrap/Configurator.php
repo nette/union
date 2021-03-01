@@ -30,9 +30,10 @@ class Configurator
 
 
 	/** @var callable[]  function (Configurator $sender, DI\Compiler $compiler); Occurs after the compiler is created */
-	public array $onCompile = [];
+	public $onCompile = [];
 
-	public array $defaultExtensions = [
+	/** @var array */
+	public $defaultExtensions = [
 		'application' => [Nette\Bridges\ApplicationDI\ApplicationExtension::class, ['%debugMode%', ['%appDir%'], '%tempDir%/cache/nette.application']],
 		'cache' => [Nette\Bridges\CacheDI\CacheExtension::class, ['%tempDir%']],
 		'constants' => Extensions\ConstantsExtension::class,
@@ -54,7 +55,7 @@ class Configurator
 	];
 
 	/** @var string[] of classes which shouldn't be autowired */
-	public array $autowireExcludedClasses = [
+	public $autowireExcludedClasses = [
 		\ArrayAccess::class,
 		\Countable::class,
 		\IteratorAggregate::class,
@@ -62,12 +63,17 @@ class Configurator
 		\Traversable::class,
 	];
 
-	protected array $staticParameters;
-	protected array $dynamicParameters = [];
-	protected array $services = [];
+	/** @var array */
+	protected $staticParameters;
 
-	/** @var array<string|array> */
-	protected array $configs = [];
+	/** @var array */
+	protected $dynamicParameters = [];
+
+	/** @var array */
+	protected $services = [];
+
+	/** @var array of string|array */
+	protected $configs = [];
 
 
 	public function __construct()
@@ -78,11 +84,15 @@ class Configurator
 
 	/**
 	 * Set parameter %debugMode%.
+	 * @param  bool|string|array  $value
+	 * @return static
 	 */
-	public function setDebugMode(bool|string|array $value): static
+	public function setDebugMode($value)
 	{
 		if (is_string($value) || is_array($value)) {
 			$value = static::detectDebugMode($value);
+		} elseif (!is_bool($value)) {
+			throw new Nette\InvalidArgumentException(sprintf('Value must be either a string, array, or boolean, %s given.', gettype($value)));
 		}
 
 		$this->staticParameters['debugMode'] = $value;
@@ -99,8 +109,9 @@ class Configurator
 
 	/**
 	 * Sets path to temporary directory.
+	 * @return static
 	 */
-	public function setTempDirectory(string $path): static
+	public function setTempDirectory(string $path)
 	{
 		$this->staticParameters['tempDir'] = $path;
 		return $this;
@@ -109,8 +120,9 @@ class Configurator
 
 	/**
 	 * Sets the default timezone.
+	 * @return static
 	 */
-	public function setTimeZone(string $timezone): static
+	public function setTimeZone(string $timezone)
 	{
 		date_default_timezone_set($timezone);
 		@ini_set('date.timezone', $timezone); // @ - function may be disabled
@@ -118,8 +130,11 @@ class Configurator
 	}
 
 
-	/** @deprecated use addStaticParameters() */
-	public function addParameters(array $params): static
+	/**
+	 * Alias for addStaticParameters()
+	 * @return static
+	 */
+	public function addParameters(array $params)
 	{
 		return $this->addStaticParameters($params);
 	}
@@ -127,8 +142,9 @@ class Configurator
 
 	/**
 	 * Adds new static parameters.
+	 * @return static
 	 */
-	public function addStaticParameters(array $params): static
+	public function addStaticParameters(array $params)
 	{
 		$this->staticParameters = DI\Config\Helpers::merge($params, $this->staticParameters);
 		return $this;
@@ -137,8 +153,9 @@ class Configurator
 
 	/**
 	 * Adds new dynamic parameters.
+	 * @return static
 	 */
-	public function addDynamicParameters(array $params): static
+	public function addDynamicParameters(array $params)
 	{
 		$this->dynamicParameters = $params + $this->dynamicParameters;
 		return $this;
@@ -147,8 +164,9 @@ class Configurator
 
 	/**
 	 * Add instances of services.
+	 * @return static
 	 */
-	public function addServices(array $services): static
+	public function addServices(array $services)
 	{
 		$this->services = $services + $this->services;
 		return $this;
@@ -189,7 +207,9 @@ class Configurator
 	}
 
 
-	/** @deprecated use enableTracy() */
+	/**
+	 * Alias for enableTracy()
+	 */
 	public function enableDebugger(?string $logDirectory = null, ?string $email = null): void
 	{
 		$this->enableTracy($logDirectory, $email);
@@ -220,8 +240,10 @@ class Configurator
 
 	/**
 	 * Adds configuration file.
+	 * @param  string|array  $config
+	 * @return static
 	 */
-	public function addConfig(string|array $config): static
+	public function addConfig($config)
 	{
 		$this->configs[] = $config;
 		return $this;
@@ -254,11 +276,11 @@ class Configurator
 	{
 		$loader = new DI\ContainerLoader(
 			$this->getCacheDirectory() . '/nette.configurator',
-			$this->staticParameters['debugMode'],
+			$this->staticParameters['debugMode']
 		);
 		return $loader->load(
 			[$this, 'generateContainer'],
-			$this->generateContainerKey(),
+			$this->generateContainerKey()
 		);
 	}
 
@@ -336,8 +358,9 @@ class Configurator
 
 	/**
 	 * Detects debug mode by IP addresses or computer names whitelist detection.
+	 * @param  string|array  $list
 	 */
-	public static function detectDebugMode(string|array $list = null): bool
+	public static function detectDebugMode($list = null): bool
 	{
 		$addr = $_SERVER['REMOTE_ADDR'] ?? php_uname('n');
 		$secret = is_string($_COOKIE[self::CookieSecret] ?? null)

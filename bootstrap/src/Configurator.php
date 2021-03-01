@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace Nette;
 
 if (false) {
-	/** @deprecated use Nette\Bootstrap\Configurator */
+	/** alias for Nette\Bootstrap\Configurator */
 	class Configurator extends Bootstrap\Configurator
 	{
 	}
