@@ -164,7 +164,7 @@ abstract class Component extends Nette\ComponentModel\Container implements Signa
 						$name,
 						$this instanceof Presenter ? 'presenter ' . $this->getName() : "component '{$this->getUniqueId()}'",
 						$meta['type'],
-						is_object($params[$name]) ? get_class($params[$name]) : gettype($params[$name])
+						is_object($params[$name]) ? get_class($params[$name]) : gettype($params[$name]),
 					));
 				}
 				$this->$name = $params[$name];
@@ -324,7 +324,7 @@ abstract class Component extends Nette\ComponentModel\Container implements Signa
 		$presenter = $this->getPresenter();
 		$presenter->redirectUrl(
 			$presenter->createRequest($this, $destination, $args, 'redirect'),
-			Nette\Http\IResponse::S301_MOVED_PERMANENTLY
+			Nette\Http\IResponse::S301_MOVED_PERMANENTLY,
 		);
 	}
 
