@@ -22,6 +22,8 @@ class TestClass
 	protected $onProtected;
 
 	private $onPrivate;
+
+	public array $onEvent;
 }
 
 
@@ -81,3 +83,8 @@ Assert::exception(function () use ($obj) {
 	$obj->onPublic = 'string';
 	$obj->onPublic();
 }, Nette\UnexpectedValueException::class, 'Property TestClass::$onPublic must be iterable or null, string given.');
+
+Assert::noError(function () {
+	$obj = new TestClass;
+	$obj->onEvent();
+});
