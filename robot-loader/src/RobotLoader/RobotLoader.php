@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Nette\Loaders;
 
 use Nette;
-use Nette\Utils\FileSystem;
 use SplFileInfo;
 
 
@@ -32,31 +31,43 @@ class RobotLoader
 	private const RetryLimit = 3;
 
 	/** @var string[] */
-	public array $ignoreDirs = ['.*', '*.old', '*.bak', '*.tmp', 'temp'];
+	public $ignoreDirs = ['.*', '*.old', '*.bak', '*.tmp', 'temp'];
 
 	/** @var string[] */
-	public array $acceptFiles = ['*.php'];
-	private bool $autoRebuild = true;
-	private bool $reportParseErrors = true;
+	public $acceptFiles = ['*.php'];
+
+	/** @var bool */
+	private $autoRebuild = true;
+
+	/** @var bool */
+	private $reportParseErrors = true;
 
 	/** @var string[] */
-	private array $scanPaths = [];
+	private $scanPaths = [];
 
 	/** @var string[] */
-	private array $excludeDirs = [];
+	private $excludeDirs = [];
 
 	/** @var array<string, array{string, int}>  class => [file, time] */
-	private array $classes = [];
-	private bool $cacheLoaded = false;
-	private bool $refreshed = false;
+	private $classes = [];
+
+	/** @var bool */
+	private $cacheLoaded = false;
+
+	/** @var bool */
+	private $refreshed = false;
 
 	/** @var array<string, int>  class => counter */
-	private array $missingClasses = [];
+	private $missingClasses = [];
 
 	/** @var array<string, int>  file => mtime */
-	private array $emptyFiles = [];
-	private ?string $tempDirectory = null;
-	private bool $needSave = false;
+	private $emptyFiles = [];
+
+	/** @var string|null */
+	private $tempDirectory;
+
+	/** @var bool */
+	private $needSave = false;
 
 
 	public function __construct()
@@ -78,7 +89,7 @@ class RobotLoader
 	/**
 	 * Register autoloader.
 	 */
-	public function register(bool $prepend = false): static
+	public function register(bool $prepend = false): self
 	{
 		spl_autoload_register([$this, 'tryLoad'], true, $prepend);
 		return $this;
@@ -129,15 +140,21 @@ class RobotLoader
 
 	/**
 	 * Add path or paths to list.
+	 * @param  string  ...$paths  absolute path
 	 */
-	public function addDirectory(string ...$paths): static
+	public function addDirectory(...$paths): self
 	{
+		if (is_array($paths[0] ?? null)) {
+			trigger_error(__METHOD__ . '() use variadics ...$paths to add an array of paths.', E_USER_WARNING);
+			$paths = $paths[0];
+		}
+
 		$this->scanPaths = array_merge($this->scanPaths, $paths);
 		return $this;
 	}
 
 
-	public function reportParseErrors(bool $on = true): static
+	public function reportParseErrors(bool $on = true): self
 	{
 		$this->reportParseErrors = $on;
 		return $this;
@@ -146,9 +163,15 @@ class RobotLoader
 
 	/**
 	 * Excludes path or paths from list.
+	 * @param  string  ...$paths  absolute path
 	 */
-	public function excludeDirectory(string ...$paths): static
+	public function excludeDirectory(...$paths): self
 	{
+		if (is_array($paths[0] ?? null)) {
+			trigger_error(__METHOD__ . '() use variadics ...$paths to add an array of paths.', E_USER_WARNING);
+			$paths = $paths[0];
+		}
+
 		$this->excludeDirs = array_merge($this->excludeDirs, $paths);
 		return $this;
 	}
@@ -236,7 +259,7 @@ class RobotLoader
 							'Ambiguous class %s resolution; defined in %s and in %s.',
 							$class,
 							$this->classes[$class][0],
-							$file,
+							$file
 						));
 					}
 
@@ -249,7 +272,7 @@ class RobotLoader
 
 
 	/**
-	 * Creates an iterator scanning directory for PHP files and subdirectories.
+	 * Creates an iterator scaning directory for PHP files, subdirectories and 'netterobots.txt' files.
 	 * @throws Nette\IOException if path is not found
 	 */
 	private function createFileIterator(string $dir): Nette\Utils\Finder
@@ -259,19 +282,51 @@ class RobotLoader
 		}
 
 		$dir = realpath($dir) ?: $dir; // realpath does not work in phar
+
+		if (is_string($ignoreDirs = $this->ignoreDirs)) {
+			trigger_error(self::class . ': $ignoreDirs must be an array.', E_USER_WARNING);
+			$ignoreDirs = preg_split('#[,\s]+#', $ignoreDirs);
+		}
+
 		$disallow = [];
-		foreach (array_merge($this->ignoreDirs, $this->excludeDirs) as $item) {
+		foreach (array_merge($ignoreDirs, $this->excludeDirs) as $item) {
 			if ($item = realpath($item)) {
-				$disallow[FileSystem::unixSlashes($item)] = true;
+				$disallow[str_replace('\\', '/', $item)] = true;
 			}
 		}
 
-		return Nette\Utils\Finder::findFiles($this->acceptFiles)
-			->filter($filter = fn(SplFileInfo $file) => $file->getRealPath() === false
-				|| !isset($disallow[FileSystem::unixSlashes($file->getRealPath())]))
-			->descentFilter($filter)
+		if (is_string($acceptFiles = $this->acceptFiles)) {
+			trigger_error(self::class . ': $acceptFiles must be an array.', E_USER_WARNING);
+			$acceptFiles = preg_split('#[,\s]+#', $acceptFiles);
+		}
+
+		$iterator = Nette\Utils\Finder::findFiles(...$acceptFiles)
+			->filter(function (SplFileInfo $file) use (&$disallow) {
+				return $file->getRealPath() === false
+					? true
+					: !isset($disallow[str_replace('\\', '/', $file->getRealPath())]);
+			})
 			->from($dir)
-			->exclude($this->ignoreDirs);
+			->exclude(...$ignoreDirs)
+			->filter($filter = function (SplFileInfo $dir) use (&$disallow) {
+				if ($dir->getRealPath() === false) {
+					return true;
+				}
+
+				$path = str_replace('\\', '/', $dir->getRealPath());
+				if (is_file("$path/netterobots.txt")) {
+					foreach (file("$path/netterobots.txt") as $s) {
+						if (preg_match('#^(?:disallow\\s*:)?\\s*(\\S+)#i', $s, $matches)) {
+							$disallow[$path . rtrim('/' . ltrim($matches[1], '/'), '/')] = true;
+						}
+					}
+				}
+
+				return !isset($disallow[$path]);
+			});
+
+		$filter(new SplFileInfo($dir));
+		return $iterator;
 	}
 
 
@@ -298,7 +353,7 @@ class RobotLoader
 					'Ambiguous class %s resolution; defined in %s and in %s.',
 					$class,
 					$prevFile,
-					$file,
+					$file
 				));
 			}
 
@@ -320,7 +375,7 @@ class RobotLoader
 		$classes = [];
 
 		try {
-			$tokens = \PhpToken::tokenize($code, TOKEN_PARSE);
+			$tokens = token_get_all($code, TOKEN_PARSE);
 		} catch (\ParseError $e) {
 			if ($this->reportParseErrors) {
 				$rp = new \ReflectionProperty($e, 'file');
@@ -333,40 +388,43 @@ class RobotLoader
 		}
 
 		foreach ($tokens as $token) {
-			switch ($token->id) {
-				case T_COMMENT:
-				case T_DOC_COMMENT:
-				case T_WHITESPACE:
-					continue 2;
+			if (is_array($token)) {
+				switch ($token[0]) {
+					case T_COMMENT:
+					case T_DOC_COMMENT:
+					case T_WHITESPACE:
+						continue 2;
 
-				case T_STRING:
-				case T_NAME_QUALIFIED:
-					if ($expected) {
-						$name .= $token->text;
-					}
+					case T_STRING:
+					case PHP_VERSION_ID < 80000
+						? T_NS_SEPARATOR
+						: T_NAME_QUALIFIED:
+						if ($expected) {
+							$name .= $token[1];
+						}
 
-					continue 2;
+						continue 2;
 
-				case T_NAMESPACE:
-				case T_CLASS:
-				case T_INTERFACE:
-				case T_TRAIT:
-				case PHP_VERSION_ID < 80100
-					? T_CLASS
-					: T_ENUM:
-					$expected = $token->id;
-					$name = '';
-					continue 2;
-
-				case T_CURLY_OPEN:
-				case T_DOLLAR_OPEN_CURLY_BRACES:
-					$level++;
+					case T_NAMESPACE:
+					case T_CLASS:
+					case T_INTERFACE:
+					case T_TRAIT:
+					case PHP_VERSION_ID < 80100
+						? T_CLASS
+						: T_ENUM:
+						$expected = $token[0];
+						$name = '';
+						continue 2;
+					case T_CURLY_OPEN:
+					case T_DOLLAR_OPEN_CURLY_BRACES:
+						$level++;
+				}
 			}
 
 			if ($expected) {
 				if ($expected === T_NAMESPACE) {
 					$namespace = $name ? $name . '\\' : '';
-					$minLevel = $token->text === '{' ? 1 : 0;
+					$minLevel = $token === '{' ? 1 : 0;
 
 				} elseif ($name && $level === $minLevel) {
 					$classes[] = $namespace . $name;
@@ -375,9 +433,9 @@ class RobotLoader
 				$expected = null;
 			}
 
-			if ($token->text === '{') {
+			if ($token === '{') {
 				$level++;
-			} elseif ($token->text === '}') {
+			} elseif ($token === '}') {
 				$level--;
 			}
 		}
@@ -392,7 +450,7 @@ class RobotLoader
 	/**
 	 * Sets auto-refresh mode.
 	 */
-	public function setAutoRefresh(bool $on = true): static
+	public function setAutoRefresh(bool $on = true): self
 	{
 		$this->autoRebuild = $on;
 		return $this;
@@ -402,9 +460,9 @@ class RobotLoader
 	/**
 	 * Sets path to temporary directory.
 	 */
-	public function setTempDirectory(string $dir): static
+	public function setTempDirectory(string $dir): self
 	{
-		FileSystem::createDir($dir);
+		Nette\Utils\FileSystem::createDir($dir);
 		$this->tempDirectory = $dir;
 		return $this;
 	}
@@ -493,7 +551,7 @@ class RobotLoader
 				"Unable to acquire %s lock on file '%s'. %s",
 				$mode & LOCK_EX ? 'exclusive' : 'shared',
 				$file,
-				error_get_last()['message'],
+				error_get_last()['message']
 			));
 		}
 
@@ -507,11 +565,11 @@ class RobotLoader
 			throw new \LogicException('Set path to temporary directory using setTempDirectory().');
 		}
 
-		return $this->tempDirectory . '/' . md5(serialize($this->generateCacheKey())) . '.php';
+		return $this->tempDirectory . '/' . md5(serialize($this->getCacheKey())) . '.php';
 	}
 
 
-	protected function generateCacheKey(): array
+	protected function getCacheKey(): array
 	{
 		return [$this->ignoreDirs, $this->acceptFiles, $this->scanPaths, $this->excludeDirs, 'v2'];
 	}
