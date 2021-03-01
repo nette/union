@@ -31,37 +31,32 @@ class RobotLoader
 	private const RETRY_LIMIT = 3;
 
 	/** @var string[] */
-	public $ignoreDirs = ['.*', '*.old', '*.bak', '*.tmp', 'temp'];
+	public array $ignoreDirs = ['.*', '*.old', '*.bak', '*.tmp', 'temp'];
 
 	/** @var string[] */
-	public $acceptFiles = ['*.php'];
+	public array $acceptFiles = ['*.php'];
 
-	/** @var bool */
-	private $autoRebuild = true;
+	private bool $autoRebuild = true;
 
-	/** @var bool */
-	private $reportParseErrors = true;
+	private bool $reportParseErrors = true;
 
 	/** @var string[] */
-	private $scanPaths = [];
+	private array $scanPaths = [];
 
 	/** @var string[] */
-	private $excludeDirs = [];
+	private array $excludeDirs = [];
 
 	/** @var array of class => [file, time] */
-	private $classes = [];
+	private array $classes = [];
 
-	/** @var bool */
-	private $cacheLoaded = false;
+	private bool $cacheLoaded = false;
 
-	/** @var bool */
-	private $refreshed = false;
+	private bool $refreshed = false;
 
 	/** @var array of missing classes */
-	private $missing = [];
+	private array $missing = [];
 
-	/** @var string|null */
-	private $tempDirectory;
+	private ?string $tempDirectory;
 
 
 	public function __construct()
