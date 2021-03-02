@@ -157,29 +157,18 @@ class Cache
 	{
 		$key = $this->generateKey($key);
 
-		if ($data instanceof \Closure) {
-			trigger_error(__METHOD__ . '() closure argument is deprecated.', E_USER_WARNING);
-			$this->storage->lock($key);
-			try {
-				$data = $data(...[&$dependencies]);
-			} catch (\Throwable $e) {
-				$this->storage->remove($key);
-				throw $e;
-			}
-		}
-
 		if ($data === null) {
 			$this->storage->remove($key);
 			return null;
-		} else {
-			$dependencies = $this->completeDependencies($dependencies);
-			if (isset($dependencies[self::EXPIRATION]) && $dependencies[self::EXPIRATION] <= 0) {
-				$this->storage->remove($key);
-			} else {
-				$this->storage->write($key, $data, $dependencies);
-			}
-			return $data;
 		}
+
+		$dependencies = $this->completeDependencies($dependencies);
+		if (isset($dependencies[self::EXPIRATION]) && $dependencies[self::EXPIRATION] <= 0) {
+			$this->storage->remove($key);
+		} else {
+			$this->storage->write($key, $data, $dependencies);
+		}
+		return $data;
 	}
 
 

@@ -21,17 +21,3 @@ $value = range("\x00", "\xFF");
 $cache = new Cache(new FileStorage(getTempDir()));
 
 Assert::null($cache->load($key));
-
-
-// Writing cache using Closure...
-$res = @$cache->save($key, fn () => $value);
-
-Assert::same($res, $value);
-
-Assert::same($cache->load($key), $value);
-
-
-// Removing from cache using null callback...
-@$cache->save($key, fn () => null);
-
-Assert::null($cache->load($key));

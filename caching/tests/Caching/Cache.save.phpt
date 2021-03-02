@@ -25,38 +25,3 @@ $cache->save('key', 'value', $dependencies);
 $res = $cache->load('key');
 Assert::same('value', $res['data']);
 Assert::same($dependencies, $res['dependencies']);
-
-
-// save callback return value
-$storage = new testStorage;
-$cache = new Cache($storage, 'ns');
-
-@$cache->save('key', fn () => 'value');
-
-$res = $cache->load('key');
-Assert::same('value', $res['data']);
-Assert::same([], $res['dependencies']);
-
-
-// save callback return value with dependencies
-$storage = new testStorage;
-$cache = new Cache($storage, 'ns');
-$dependencies = [Cache::TAGS => ['tag']];
-
-@$cache->save('key', fn () => 'value', $dependencies);
-
-$res = $cache->load('key');
-Assert::same('value', $res['data']);
-Assert::same($dependencies, $res['dependencies']);
-
-
-// do not save already expired data
-$storage = new testStorage;
-$cache = new Cache($storage, 'ns');
-$dependencies = [Cache::EXPIRATION => new DateTime];
-
-@$res = $cache->save('key', fn () => 'value', $dependencies);
-Assert::same('value', $res);
-
-$res = $cache->load('key');
-Assert::null($res);
