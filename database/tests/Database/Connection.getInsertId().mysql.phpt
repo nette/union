@@ -11,6 +11,9 @@ use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
 
+$connection->query('CREATE DATABASE IF NOT EXISTS nette_test');
+$connection->query('USE nette_test');
+
 
 $connection->query('
 	CREATE TEMPORARY TABLE noprimarykey (

@@ -17,14 +17,14 @@ use Nette;
  */
 class Row extends Nette\Utils\ArrayHash implements IRow
 {
-	public function __get(mixed $key): never
+	public function __get($key)
 	{
 		$hint = Nette\Utils\Helpers::getSuggestion(array_map('strval', array_keys((array) $this)), $key);
 		throw new Nette\MemberAccessException("Cannot read an undeclared column '$key'" . ($hint ? ", did you mean '$hint'?" : '.'));
 	}
 
 
-	public function __isset(string $key): bool
+	public function __isset($key)
 	{
 		return isset($this->key);
 	}
@@ -33,8 +33,10 @@ class Row extends Nette\Utils\ArrayHash implements IRow
 	/**
 	 * Returns a item.
 	 * @param  string|int  $key  key or index
+	 * @return mixed
 	 */
-	public function offsetGet($key): mixed
+	#[\ReturnTypeWillChange]
+	public function offsetGet($key)
 	{
 		if (is_int($key)) {
 			$arr = array_slice((array) $this, $key, 1);

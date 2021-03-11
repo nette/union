@@ -21,11 +21,13 @@ if (version_compare($ver, '10') < 0) {
 
 function shortInfo(array $columns): array
 {
-	return array_map(fn(array $col): array => [
-		'name' => $col['name'],
-		'autoincrement' => $col['autoincrement'],
-		'sequence' => $col['vendor']['sequence'],
-	], $columns);
+	return array_map(function (array $col): array {
+		return [
+			'name' => $col['name'],
+			'autoincrement' => $col['autoincrement'],
+			'sequence' => $col['vendor']['sequence'],
+		];
+	}, $columns);
 }
 
 
@@ -121,7 +123,7 @@ test('Materialized view columns', function () use ($connection) {
 
 	Assert::same(
 		['name', 'id'],
-		array_column($driver->getColumns('source_mt'), 'name'),
+		array_column($driver->getColumns('source_mt'), 'name')
 	);
 });
 

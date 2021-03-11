@@ -6,6 +6,7 @@
 
 declare(strict_types=1);
 
+use Mockery\MockInterface;
 use Nette\Database\Structure;
 use Tester\Assert;
 use Tester\TestCase;
@@ -17,7 +18,7 @@ class StructureMock extends Structure
 {
 	protected function needStructure(): void
 	{
-		if (!isset($this->structure)) {
+		if (!$this->structure) {
 			$this->structure = $this->loadStructure();
 		}
 	}
@@ -29,10 +30,17 @@ class StructureMock extends Structure
  */
 class StructureTestCase extends TestCase
 {
-	private Nette\Database\Connection $connection;
-	private Nette\Database\Driver $driver;
-	private Nette\Caching\Storage $storage;
-	private Structure $structure;
+	/** @var MockInterface */
+	private $connection;
+
+	/** @var MockInterface */
+	private $driver;
+
+	/** @var MockInterface */
+	private $storage;
+
+	/** @var Structure */
+	private $structure;
 
 
 	protected function setUp()
@@ -40,7 +48,7 @@ class StructureTestCase extends TestCase
 		parent::setUp();
 		$this->driver = Mockery::mock(Nette\Database\Driver::class);
 		$this->connection = Mockery::mock(Nette\Database\Connection::class);
-		$this->storage = Mockery::mock(Nette\Caching\Storage::class);
+		$this->storage = Mockery::mock(Nette\Caching\IStorage::class);
 
 		$this->connection->shouldReceive('getDsn')->once()->andReturn('');
 		$this->connection->shouldReceive('getDriver')->once()->andReturn($this->driver);
@@ -74,13 +82,13 @@ class StructureTestCase extends TestCase
 		$this->connection->shouldReceive('getDriver')->times(4)->andReturn($this->driver);
 		$this->driver->shouldReceive('getForeignKeys')->with('authors')->once()->andReturn([]);
 		$this->driver->shouldReceive('getForeignKeys')->with('Books')->once()->andReturn([
-			['local' => ['author_id'], 'table' => 'authors', 'foreign' => ['id'], 'name' => 'authors_fk1'],
-			['local' => ['translator_id'], 'table' => 'authors', 'foreign' => ['id'], 'name' => 'authors_fk2'],
+			['local' => 'author_id', 'table' => 'authors', 'foreign' => 'id', 'name' => 'authors_fk1'],
+			['local' => 'translator_id', 'table' => 'authors', 'foreign' => 'id', 'name' => 'authors_fk2'],
 		]);
 		$this->driver->shouldReceive('getForeignKeys')->with('tags')->once()->andReturn([]);
 		$this->driver->shouldReceive('getForeignKeys')->with('books_x_tags')->once()->andReturn([
-			['local' => ['book_id'], 'table' => 'Books', 'foreign' => ['id'], 'name' => 'books_x_tags_fk1'],
-			['local' => ['tag_id'], 'table' => 'tags', 'foreign' => ['id'], 'name' => 'books_x_tags_fk2'],
+			['local' => 'book_id', 'table' => 'Books', 'foreign' => 'id', 'name' => 'books_x_tags_fk1'],
+			['local' => 'tag_id', 'table' => 'tags', 'foreign' => 'id', 'name' => 'books_x_tags_fk2'],
 		]);
 
 		$this->structure = new StructureMock($this->connection, $this->storage);
@@ -110,11 +118,9 @@ class StructureTestCase extends TestCase
 		Assert::same($columns, $this->structure->getColumns('Tags'));
 
 		$structure = $this->structure;
-		Assert::exception(
-			fn() => $structure->getColumns('InvaliD'),
-			Nette\InvalidArgumentException::class,
-			"Table 'invalid' does not exist.",
-		);
+		Assert::exception(function () use ($structure) {
+			$structure->getColumns('InvaliD');
+		}, Nette\InvalidArgumentException::class, "Table 'invalid' does not exist.");
 	}
 
 
@@ -122,11 +128,9 @@ class StructureTestCase extends TestCase
 	{
 		Assert::same('id', $this->structure->getPrimaryKey('books'));
 		Assert::same(['book_id', 'tag_id'], $this->structure->getPrimaryKey('Books_x_tags'));
-		Assert::exception(
-			fn() => $this->structure->getPrimaryKey('invalid'),
-			Nette\InvalidArgumentException::class,
-			"Table 'invalid' does not exist.",
-		);
+		Assert::exception(function () {
+			$this->structure->getPrimaryKey('invalid');
+		}, Nette\InvalidArgumentException::class, "Table 'invalid' does not exist.");
 	}
 
 
@@ -151,7 +155,7 @@ class StructureTestCase extends TestCase
 
 		Assert::same(
 			['author_id', 'translator_id'],
-			$this->structure->getHasManyReference('authors', 'books'),
+			$this->structure->getHasManyReference('authors', 'books')
 		);
 	}
 
@@ -172,7 +176,7 @@ class StructureTestCase extends TestCase
 
 		Assert::same(
 			['Books', 'book_id'],
-			$this->structure->getBelongsToReference('books_x_tags', 'book_id'),
+			$this->structure->getBelongsToReference('books_x_tags', 'book_id')
 		);
 
 		Assert::null($this->structure->getBelongsToReference('books_x_tags', 'non_exist'));

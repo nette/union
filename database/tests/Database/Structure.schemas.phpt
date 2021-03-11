@@ -6,6 +6,7 @@
 
 declare(strict_types=1);
 
+use Mockery\MockInterface;
 use Nette\Database\Structure;
 use Tester\Assert;
 use Tester\TestCase;
@@ -17,7 +18,7 @@ class StructureMock extends Structure
 {
 	protected function needStructure(): void
 	{
-		if (!isset($this->structure)) {
+		if (!$this->structure) {
 			$this->structure = $this->loadStructure();
 		}
 	}
@@ -29,10 +30,17 @@ class StructureMock extends Structure
  */
 class StructureSchemasTestCase extends TestCase
 {
-	private Nette\Database\Connection $connection;
-	private Nette\Database\Driver $driver;
-	private Nette\Caching\Storage $storage;
-	private Structure $structure;
+	/** @var MockInterface */
+	private $connection;
+
+	/** @var MockInterface */
+	private $driver;
+
+	/** @var MockInterface */
+	private $storage;
+
+	/** @var Structure */
+	private $structure;
 
 
 	protected function setUp()
@@ -40,7 +48,7 @@ class StructureSchemasTestCase extends TestCase
 		parent::setUp();
 		$this->driver = Mockery::mock(Nette\Database\Driver::class);
 		$this->connection = Mockery::mock(Nette\Database\Connection::class);
-		$this->storage = Mockery::mock(Nette\Caching\Storage::class);
+		$this->storage = Mockery::mock(Nette\Caching\IStorage::class);
 
 		$this->connection->shouldReceive('getDsn')->once()->andReturn('');
 		$this->connection->shouldReceive('getDriver')->once()->andReturn($this->driver);
@@ -60,8 +68,8 @@ class StructureSchemasTestCase extends TestCase
 		$this->connection->shouldReceive('getDriver')->times(2)->andReturn($this->driver);
 		$this->driver->shouldReceive('getForeignKeys')->with('authors.authors')->once()->andReturn([]);
 		$this->driver->shouldReceive('getForeignKeys')->with('books.books')->once()->andReturn([
-			['local' => ['author_id'], 'table' => 'authors.authors', 'foreign' => ['id'], 'name' => 'authors_authors_fk1'],
-			['local' => ['translator_id'], 'table' => 'authors.authors', 'foreign' => ['id'], 'name' => 'authors_authors_fk2'],
+			['local' => 'author_id', 'table' => 'authors.authors', 'foreign' => 'id', 'name' => 'authors_authors_fk1'],
+			['local' => 'translator_id', 'table' => 'authors.authors', 'foreign' => 'id', 'name' => 'authors_authors_fk2'],
 		]);
 
 		$this->structure = new StructureMock($this->connection, $this->storage);

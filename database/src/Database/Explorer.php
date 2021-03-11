@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Nette\Database;
 
-use JetBrains\PhpStorm\Language;
 use Nette;
 use Nette\Database\Conventions\StaticConventions;
 
@@ -19,16 +18,31 @@ use Nette\Database\Conventions\StaticConventions;
  */
 class Explorer
 {
-	private readonly Conventions $conventions;
+	use Nette\SmartObject;
+
+	/** @var Connection */
+	private $connection;
+
+	/** @var IStructure */
+	private $structure;
+
+	/** @var Conventions */
+	private $conventions;
+
+	/** @var Nette\Caching\IStorage */
+	private $cacheStorage;
 
 
 	public function __construct(
-		private readonly Connection $connection,
-		private readonly IStructure $structure,
+		Connection $connection,
+		Structure $structure,
 		?Conventions $conventions = null,
-		private readonly ?Nette\Caching\Storage $cacheStorage = null,
+		?Nette\Caching\IStorage $cacheStorage = null
 	) {
+		$this->connection = $connection;
+		$this->structure = $structure;
 		$this->conventions = $conventions ?: new StaticConventions;
+		$this->cacheStorage = $cacheStorage;
 	}
 
 
@@ -50,9 +64,14 @@ class Explorer
 	}
 
 
-	public function transaction(callable $callback): mixed
+	/**
+	 * @return mixed
+	 */
+	public function transaction(callable $callback)
 	{
-		return $this->connection->transaction(fn() => $callback($this));
+		return $this->connection->transaction(function () use ($callback) {
+			return $callback($this);
+		});
 	}
 
 
@@ -66,7 +85,7 @@ class Explorer
 	 * Generates and executes SQL query.
 	 * @param  literal-string  $sql
 	 */
-	public function query(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ResultSet
+	public function query(string $sql, ...$params): ResultSet
 	{
 		return $this->connection->query($sql, ...$params);
 	}
@@ -75,7 +94,6 @@ class Explorer
 	/** @deprecated  use query() */
 	public function queryArgs(string $sql, array $params): ResultSet
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use query()', E_USER_DEPRECATED);
 		return $this->connection->query($sql, ...$params);
 	}
 
@@ -111,7 +129,7 @@ class Explorer
 	 * Shortcut for query()->fetch()
 	 * @param  literal-string  $sql
 	 */
-	public function fetch(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ?Row
+	public function fetch(string $sql, ...$params): ?Row
 	{
 		return $this->connection->query($sql, ...$params)->fetch();
 	}
@@ -120,8 +138,9 @@ class Explorer
 	/**
 	 * Shortcut for query()->fetchField()
 	 * @param  literal-string  $sql
+	 * @return mixed
 	 */
-	public function fetchField(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): mixed
+	public function fetchField(string $sql, ...$params)
 	{
 		return $this->connection->query($sql, ...$params)->fetchField();
 	}
@@ -131,7 +150,7 @@ class Explorer
 	 * Shortcut for query()->fetchFields()
 	 * @param  literal-string  $sql
 	 */
-	public function fetchFields(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ?array
+	public function fetchFields(string $sql, ...$params): ?array
 	{
 		return $this->connection->query($sql, ...$params)->fetchFields();
 	}
@@ -141,7 +160,7 @@ class Explorer
 	 * Shortcut for query()->fetchPairs()
 	 * @param  literal-string  $sql
 	 */
-	public function fetchPairs(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): array
+	public function fetchPairs(string $sql, ...$params): array
 	{
 		return $this->connection->query($sql, ...$params)->fetchPairs();
 	}
@@ -151,7 +170,7 @@ class Explorer
 	 * Shortcut for query()->fetchAll()
 	 * @param  literal-string  $sql
 	 */
-	public function fetchAll(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): array
+	public function fetchAll(string $sql, ...$params): array
 	{
 		return $this->connection->query($sql, ...$params)->fetchAll();
 	}

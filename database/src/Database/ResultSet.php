@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Nette\Database;
 
 use Nette;
+use PDO;
 
 
 /**
@@ -17,33 +18,70 @@ use Nette;
  */
 class ResultSet implements \Iterator, IRowContainer
 {
-	private ?ResultDriver $result = null;
+	use Nette\SmartObject;
+
+	/** @var Connection */
+	private $connection;
+
+	/** @var \PDOStatement|null */
+	private $pdoStatement;
 
 	/** @var callable(array, ResultSet): array */
 	private $normalizer;
-	private Row|false|null $lastRow = null;
-	private int $lastRowKey = -1;
+
+	/** @var Row|false|null */
+	private $lastRow;
+
+	/** @var int */
+	private $lastRowKey = -1;
 
 	/** @var Row[] */
-	private array $rows;
-	private float $time;
-	private array $types;
+	private $rows;
+
+	/** @var float */
+	private $time;
+
+	/** @var string */
+	private $queryString;
+
+	/** @var array */
+	private $params;
+
+	/** @var array */
+	private $types;
 
 
 	public function __construct(
-		private readonly Connection $connection,
-		private readonly string $queryString,
-		private readonly array $params,
-		?callable $normalizer = null,
+		Connection $connection,
+		string $queryString,
+		array $params,
+		?callable $normalizer = null
 	) {
 		$time = microtime(true);
+		$this->connection = $connection;
+		$this->queryString = $queryString;
+		$this->params = $params;
 		$this->normalizer = $normalizer;
 
-		$driver = $connection->getDriver();
-		if (str_starts_with($queryString, '::')) {
-			$driver->{substr($queryString, 2)}();
-		} else {
-			$this->result = $driver->query($queryString, $params);
+		try {
+			if (substr($queryString, 0, 2) === '::') {
+				$connection->getPdo()->{substr($queryString, 2)}();
+			} elseif ($queryString !== null) {
+				$types = ['boolean' => PDO::PARAM_BOOL, 'integer' => PDO::PARAM_INT, 'resource' => PDO::PARAM_LOB, 'NULL' => PDO::PARAM_NULL];
+				$this->pdoStatement = $connection->getPdo()->prepare($queryString);
+				foreach ($params as $key => $value) {
+					$type = gettype($value);
+					$this->pdoStatement->bindValue(is_int($key) ? $key + 1 : $key, $value, $types[$type] ?? PDO::PARAM_STR);
+				}
+
+				$this->pdoStatement->setFetchMode(PDO::FETCH_ASSOC);
+				@$this->pdoStatement->execute(); // @ PHP generates warning when ATTR_ERRMODE = ERRMODE_EXCEPTION bug #73878
+			}
+		} catch (\PDOException $e) {
+			$e = $connection->getDriver()->convertException($e);
+			$e->queryString = $queryString;
+			$e->params = $params;
+			throw $e;
 		}
 
 		$this->time = microtime(true) - $time;
@@ -53,7 +91,7 @@ class ResultSet implements \Iterator, IRowContainer
 	/** @deprecated */
 	public function getConnection(): Connection
 	{
-		throw new Nette\DeprecatedException(__METHOD__ . '() is deprecated.');
+		return $this->connection;
 	}
 
 
@@ -62,7 +100,7 @@ class ResultSet implements \Iterator, IRowContainer
 	 */
 	public function getPdoStatement(): ?\PDOStatement
 	{
-		return $this->result->getPDOStatement();
+		return $this->pdoStatement;
 	}
 
 
@@ -80,19 +118,22 @@ class ResultSet implements \Iterator, IRowContainer
 
 	public function getColumnCount(): ?int
 	{
-		return $this->result?->getColumnCount();
+		return $this->pdoStatement ? $this->pdoStatement->columnCount() : null;
 	}
 
 
 	public function getRowCount(): ?int
 	{
-		return $this->result?->getRowCount();
+		return $this->pdoStatement ? $this->pdoStatement->rowCount() : null;
 	}
 
 
 	public function getColumnTypes(): array
 	{
-		$this->types ??= $this->result->getColumnTypes();
+		if ($this->types === null) {
+			$this->types = $this->connection->getDriver()->getColumnTypes($this->pdoStatement);
+		}
+
 		return $this->types;
 	}
 
@@ -135,13 +176,15 @@ class ResultSet implements \Iterator, IRowContainer
 	}
 
 
-	public function current(): Row|false|null
+	#[\ReturnTypeWillChange]
+	public function current()
 	{
 		return $this->lastRow;
 	}
 
 
-	public function key(): int
+	#[\ReturnTypeWillChange]
+	public function key()
 	{
 		return $this->lastRowKey;
 	}
@@ -168,13 +211,14 @@ class ResultSet implements \Iterator, IRowContainer
 	 */
 	public function fetch(): ?Row
 	{
-		$data = $this->result?->fetch();
-		if ($data === null) {
+		$data = $this->pdoStatement ? $this->pdoStatement->fetch() : null;
+		if (!$data) {
+			$this->pdoStatement->closeCursor();
 			return null;
 
-		} elseif ($this->lastRow === null && count($data) !== $this->result->getColumnCount()) {
-			$duplicates = Helpers::findDuplicates($this->result);
-			trigger_error("Found duplicate columns in database result set: $duplicates.");
+		} elseif ($this->lastRow === null && count($data) !== $this->pdoStatement->columnCount()) {
+			$duplicates = Helpers::findDuplicates($this->pdoStatement);
+			trigger_error("Found duplicate columns in database result set: $duplicates.", E_USER_NOTICE);
 		}
 
 		$row = new Row;
@@ -189,20 +233,18 @@ class ResultSet implements \Iterator, IRowContainer
 	}
 
 
-	/** @internal */
-	public function fetchArray(): ?array
-	{
-		return $this->result?->fetch();
-	}
-
-
 	/**
 	 * Fetches single field.
+	 * @return mixed
 	 */
-	public function fetchField(): mixed
+	public function fetchField($column = 0)
 	{
+		if (func_num_args()) {
+			trigger_error(__METHOD__ . '() argument is deprecated.', E_USER_DEPRECATED);
+		}
+
 		$row = $this->fetch();
-		return $row ? $row[0] : null;
+		return $row ? $row[$column] : null;
 	}
 
 
@@ -218,8 +260,10 @@ class ResultSet implements \Iterator, IRowContainer
 
 	/**
 	 * Fetches all rows as associative array.
+	 * @param  string|int  $key  column name used for an array key or null for numeric index
+	 * @param  string|int  $value  column name used for an array value or null for the whole row
 	 */
-	public function fetchPairs(string|int|null $key = null, string|int|null $value = null): array
+	public function fetchPairs($key = null, $value = null): array
 	{
 		return Helpers::toPairs($this->fetchAll(), $key, $value);
 	}
@@ -231,13 +275,17 @@ class ResultSet implements \Iterator, IRowContainer
 	 */
 	public function fetchAll(): array
 	{
-		$this->rows ??= iterator_to_array($this);
+		if ($this->rows === null) {
+			$this->rows = iterator_to_array($this);
+		}
+
 		return $this->rows;
 	}
 
 
 	/**
 	 * Fetches all rows and returns associative tree.
+	 * @param  string  $path  associative descriptor
 	 */
 	public function fetchAssoc(string $path): array
 	{
