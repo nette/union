@@ -13,10 +13,8 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$acl = new Permission;
-$acl->addResource('area');
-Assert::exception(
-	fn() => $acl->addResource('area'),
-	Nette\InvalidStateException::class,
-	"Resource 'area' already exists in the list.",
-);
+Assert::exception(function () {
+	$acl = new Permission;
+	$acl->addResource('area');
+	$acl->addResource('area');
+}, Nette\InvalidStateException::class, "Resource 'area' already exists in the list.");
