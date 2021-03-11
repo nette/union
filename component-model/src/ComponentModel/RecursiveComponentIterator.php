@@ -30,7 +30,7 @@ final class RecursiveComponentIterator extends \RecursiveArrayIterator implement
 	 */
 	public function getChildren(): self
 	{
-		return new self($this->current()->getComponents());
+		return $this->current()->getComponents();
 	}
 
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Test: Nette\ComponentModel\Container::getComponents().
+ * Test: Nette\ComponentModel\Container iterator.
  */
 
 declare(strict_types=1);
@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Nette\ComponentModel\Component;
 use Nette\ComponentModel\Container;
 use Tester\Assert;
+
 
 require __DIR__ . '/../bootstrap.php';
 
@@ -38,13 +39,26 @@ Assert::same([
 	'one',
 	'two',
 	'button1',
-], array_keys($list));
+], array_keys(iterator_to_array($list)));
+
 
 // Filter
-$list = $c->getComponents(false, Button::class);
+$list = $c->getComponents(false, 'Button');
 Assert::same([
 	'button1',
-], array_keys($list));
+], array_keys(iterator_to_array($list)));
+
+
+// RecursiveIteratorIterator
+$list = new RecursiveIteratorIterator($c->getComponents(), 1);
+Assert::same([
+	'one',
+	'inner',
+	'inner2',
+	'button2',
+	'two',
+	'button1',
+], array_keys(iterator_to_array($list)));
 
 
 // Recursive
@@ -60,7 +74,7 @@ Assert::same([
 
 
 // Recursive & filter I
-$list = $c->getComponents(true, Button::class);
+$list = $c->getComponents(true, 'Button');
 Assert::same([
 	'button2',
 	'button1',

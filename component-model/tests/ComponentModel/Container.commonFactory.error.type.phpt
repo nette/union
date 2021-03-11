@@ -26,7 +26,6 @@ class TestClass extends Container
 $a = new TestClass;
 $a->addComponent(new TestClass, 'a');
 
-Assert::exception(
-	fn() => $a->getComponent('b'),
-	TypeError::class,
-);
+Assert::exception(function () use ($a) {
+	$a->getComponent('b');
+}, TypeError::class);

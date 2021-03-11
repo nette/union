@@ -17,26 +17,26 @@ use Nette;
  *
  * Components are objects implementing IComponent. They has parent component and own name.
  *
- * @template T of IContainer
- * @implements IComponent<T>
  * @property-read string $name
- * @property-read T|null $parent
+ * @property-read IContainer|null $parent
  */
 abstract class Component implements IComponent
 {
 	use Nette\SmartObject;
 
-	private ?IContainer $parent = null;
-	private ?string $name = null;
+	/** @var IContainer|null */
+	private $parent;
+
+	/** @var string|null */
+	private $name;
 
 	/** @var array<string, array{?IComponent, ?int, ?string, array<int, array{?callable, ?callable}>}> means [type => [obj, depth, path, [attached, detached]]] */
-	private array $monitors = [];
+	private $monitors = [];
 
 
 	/**
 	 * Finds the closest ancestor specified by class or interface name.
 	 * @param  bool  $throw   throw exception if component doesn't exist?
-	 * @return ($throw is true ? IComponent : ?IComponent)
 	 */
 	final public function lookup(?string $type, bool $throw = true): ?IComponent
 	{
@@ -80,7 +80,6 @@ abstract class Component implements IComponent
 	/**
 	 * Finds the closest ancestor specified by class or interface name and returns backtrace path.
 	 * A path is the concatenation of component names separated by self::NAME_SEPARATOR.
-	 * @return ($throw is true ? string : ?string)
 	 */
 	final public function lookupPath(?string $type = null, bool $throw = true): ?string
 	{
@@ -94,14 +93,15 @@ abstract class Component implements IComponent
 	 */
 	final public function monitor(string $type, ?callable $attached = null, ?callable $detached = null): void
 	{
-		if (!$attached && !$detached) {
-			throw new Nette\InvalidStateException('At least one handler is required.');
+		if (func_num_args() === 1) {
+			$attached = [$this, 'attached'];
+			$detached = [$this, 'detached'];
 		}
 
 		if (
-			($obj = $this->lookup($type, throw: false))
+			($obj = $this->lookup($type, false))
 			&& $attached
-			&& !in_array([$attached, $detached], $this->monitors[$type][3], strict: true)
+			&& !in_array([$attached, $detached], $this->monitors[$type][3], true)
 		) {
 			$attached($obj);
 		}
@@ -119,6 +119,26 @@ abstract class Component implements IComponent
 	}
 
 
+	/**
+	 * This method will be called when the component (or component's parent)
+	 * becomes attached to a monitored object. Do not call this method yourself.
+	 * @deprecated  use monitor($type, $attached)
+	 */
+	protected function attached(IComponent $obj): void
+	{
+	}
+
+
+	/**
+	 * This method will be called before the component (or component's parent)
+	 * becomes detached from a monitored object. Do not call this method yourself.
+	 * @deprecated  use monitor($type, null, $detached)
+	 */
+	protected function detached(IComponent $obj): void
+	{
+	}
+
+
 	/********************* interface IComponent ****************d*g**/
 
 
@@ -130,7 +150,6 @@ abstract class Component implements IComponent
 
 	/**
 	 * Returns the parent container if any.
-	 * @return T
 	 */
 	final public function getParent(): ?IContainer
 	{
@@ -141,11 +160,11 @@ abstract class Component implements IComponent
 	/**
 	 * Sets or removes the parent of this component. This method is managed by containers and should
 	 * not be called by applications
-	 * @param  T  $parent
+	 * @return static
 	 * @throws Nette\InvalidStateException
 	 * @internal
 	 */
-	public function setParent(?IContainer $parent, ?string $name = null): static
+	public function setParent(?IContainer $parent, ?string $name = null)
 	{
 		if ($parent === null && $this->parent === null && $name !== null) {
 			$this->name = $name; // just rename
@@ -183,7 +202,6 @@ abstract class Component implements IComponent
 	/**
 	 * Is called by a component when it is about to be set new parent. Descendant can
 	 * override this method to disallow a parent change by throwing an Nette\InvalidStateException
-	 * @param  T  $parent
 	 * @throws Nette\InvalidStateException
 	 */
 	protected function validateParent(IContainer $parent): void
@@ -232,7 +250,7 @@ abstract class Component implements IComponent
 
 				} else {
 					unset($this->monitors[$type]); // forces re-lookup
-					if ($obj = $this->lookup($type, throw: false)) {
+					if ($obj = $this->lookup($type, false)) {
 						foreach ($rec[3] as $pair) {
 							$listeners[] = [$pair[0], $obj];
 						}
@@ -248,7 +266,7 @@ abstract class Component implements IComponent
 		if ($depth === 0) { // call listeners
 			$prev = [];
 			foreach ($listeners as $item) {
-				if ($item[0] && !in_array($item, $prev, strict: true)) {
+				if ($item[0] && !in_array($item, $prev, true)) {
 					$item[0]($item[1]);
 					$prev[] = $item;
 				}
