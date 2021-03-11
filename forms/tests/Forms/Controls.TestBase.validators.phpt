@@ -99,7 +99,7 @@ test('', function () {
 	$control = new TextInput;
 
 	$control->value = new class () {
-		public string $lorem = 'ipsum';
+		public $lorem = 'ipsum';
 
 
 		public function __toString(): string
@@ -125,7 +125,7 @@ test('', function () {
 test('', function () {
 	class MockUploadControl extends UploadControl
 	{
-		public function setValue($value): static
+		public function setValue($value)
 		{
 			$this->value = $value;
 			return $this;

@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Nette\Forms\Controls;
 
 use Nette;
-use Stringable;
 
 
 /**
@@ -18,7 +17,10 @@ use Stringable;
  */
 class TextArea extends TextBase
 {
-	public function __construct(string|Stringable|null $label = null)
+	/**
+	 * @param  string|object  $label
+	 */
+	public function __construct($label = null)
 	{
 		parent::__construct($label);
 		$this->control->setName('textarea');

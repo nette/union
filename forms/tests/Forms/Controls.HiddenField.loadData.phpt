@@ -13,11 +13,10 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-setUp(function () {
+before(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
-	ob_start();
+	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 	Form::initialize(true);
 });
 
@@ -62,11 +61,9 @@ test('setValue() and invalid argument', function () {
 	$input = $form->addHidden('hidden');
 	$input->setValue(null);
 
-	Assert::exception(
-		fn() => $input->setValue([]),
-		Nette\InvalidArgumentException::class,
-		"Value must be scalar or null, array given in field 'hidden'.",
-	);
+	Assert::exception(function () use ($input) {
+		$input->setValue([]);
+	}, Nette\InvalidArgumentException::class, "Value must be scalar or null, array given in field 'hidden'.");
 });
 
 
@@ -84,7 +81,9 @@ test('object from string by filter', function () {
 	$_POST = ['text' => (string) $date];
 	$form = new Form;
 	$input = $form->addHidden('text');
-	$input->addFilter(fn($value) => $value ? new Nette\Utils\DateTime($value) : $value);
+	$input->addFilter(function ($value) {
+		return $value ? new Nette\Utils\DateTime($value) : $value;
+	});
 
 	Assert::same((string) $date, $input->getValue());
 	$input->validate();

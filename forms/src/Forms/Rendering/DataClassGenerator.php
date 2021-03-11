@@ -19,13 +19,19 @@ use Nette\Forms\Form;
  */
 final class DataClassGenerator
 {
-	public string $classNameSuffix = 'FormData';
-	public bool $propertyPromotion = false;
+	/** @var string */
+	public $classNameSuffix = 'FormData';
+
+	/** @var bool */
+	public $propertyPromotion = false;
+
+	/** @var bool */
+	public $useSmartObject = true;
 
 
 	public function generateCode(Form $form, ?string $baseName = null): string
 	{
-		$baseName ??= preg_replace('~Form$~', '', ucwords((string) $form->getName()));
+		$baseName = $baseName ?? preg_replace('~Form$~', '', ucwords((string) $form->getName()));
 		return $this->processContainer($form, $baseName);
 	}
 
@@ -77,6 +83,7 @@ final class DataClassGenerator
 		$class = $baseName . $this->classNameSuffix;
 		return "class $class\n"
 			. "{\n"
+			. ($this->useSmartObject ? "\tuse \\Nette\\SmartObject;\n\n" : '')
 			. ($this->propertyPromotion
 				? "\tpublic function __construct(\n"
 					. ($props ? "\t\t" . implode(",\n\t\t", $props) . ",\n" : '')

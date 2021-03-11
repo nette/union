@@ -17,7 +17,7 @@ use Nette\Utils\Strings;
 /**
  * Forms helpers.
  */
-final class Helpers
+class Helpers
 {
 	use Nette\StaticClass;
 
@@ -30,19 +30,16 @@ final class Helpers
 	/**
 	 * Extracts and sanitizes submitted form data for single control.
 	 * @param  int  $type  type Form::DataText, DataLine, DataFile, DataKeys
+	 * @return string|string[]
 	 * @internal
 	 */
-	public static function extractHttpData(
-		array $data,
-		string $htmlName,
-		int $type,
-	): string|array|Nette\Http\FileUpload|null
+	public static function extractHttpData(array $data, string $htmlName, int $type)
 	{
 		$name = explode('[', str_replace(['[]', ']', '.'], ['', '', '_'], $htmlName));
 		$data = Nette\Utils\Arrays::get($data, $name, null);
 		$itype = $type & ~Form::DataKeys;
 
-		if (str_ends_with($htmlName, '[]')) {
+		if (substr($htmlName, -2) === '[]') {
 			if (!is_array($data)) {
 				return [];
 			}
@@ -96,7 +93,7 @@ final class Helpers
 			$name = substr_replace($name, '', strpos($name, ']'), 1) . ']';
 		}
 
-		if (is_numeric($name) || in_array($name, self::UnsafeNames, strict: true)) {
+		if (is_numeric($name) || in_array($name, self::UnsafeNames, true)) {
 			$name = '_' . $name;
 		}
 
@@ -133,7 +130,7 @@ final class Helpers
 					continue;
 				}
 			} else {
-				$msg = Validator::formatMessage($rule, withValue: false);
+				$msg = Validator::formatMessage($rule, false);
 				if ($msg instanceof Nette\HtmlStringable) {
 					$msg = html_entity_decode(strip_tags((string) $msg), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 				}
@@ -165,7 +162,7 @@ final class Helpers
 		array $items,
 		?array $inputAttrs = null,
 		?array $labelAttrs = null,
-		$wrapper = null,
+		$wrapper = null
 	): string
 	{
 		[$inputAttrs, $inputTag] = self::prepareAttrs($inputAttrs, 'input');
@@ -187,7 +184,7 @@ final class Helpers
 			$input->value = $value;
 			$res .= ($res === '' && $wrapperEnd === '' ? '' : $wrapper)
 				. $labelTag . $label->attributes() . '>'
-				. $inputTag . $input->attributes() . '>'
+				. $inputTag . $input->attributes() . (isset(Html::$xhtml) && Html::$xhtml ? ' />' : '>')
 				. ($caption instanceof Nette\HtmlStringable ? $caption : htmlspecialchars((string) $caption, ENT_NOQUOTES, 'UTF-8'))
 				. '</label>'
 				. $wrapperEnd;
@@ -250,7 +247,7 @@ final class Helpers
 				$p = substr($k, 0, -1);
 				unset($attrs[$k], $attrs[$p]);
 				if ($k[-1] === '?') {
-					$dynamic[$p] = array_fill_keys((array) $v, value: true);
+					$dynamic[$p] = array_fill_keys((array) $v, true);
 				} elseif (is_array($v) && $v) {
 					$dynamic[$p] = $v;
 				} else {
@@ -284,7 +281,7 @@ final class Helpers
 			return $res;
 		} else {
 			throw new Nette\InvalidStateException(
-				Nette\Utils\Reflection::toString($reflection) . " has unsupported type '$type'.",
+				Nette\Utils\Reflection::toString($reflection) . " has unsupported type '$type'."
 			);
 		}
 	}

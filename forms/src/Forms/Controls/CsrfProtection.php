@@ -11,24 +11,24 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Application\UI\Presenter;
-use Stringable;
 
 
 /**
  * CSRF protection field.
- * @extends BaseControl<null>
  */
 class CsrfProtection extends HiddenField
 {
 	public const Protection = 'Nette\Forms\Controls\CsrfProtection::validateCsrf';
-
-	/** @deprecated use CsrfProtection::Protection */
 	public const PROTECTION = self::Protection;
 
-	public ?Nette\Http\Session $session = null;
+	/** @var Nette\Http\Session|null */
+	public $session;
 
 
-	public function __construct(string|Stringable|null $errorMessage = null)
+	/**
+	 * @param string|object  $errorMessage
+	 */
+	public function __construct($errorMessage)
 	{
 		parent::__construct();
 		$this->setOmitted()
@@ -52,9 +52,10 @@ class CsrfProtection extends HiddenField
 
 
 	/**
+	 * @return static
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
 		return $this;
 	}
@@ -73,11 +74,11 @@ class CsrfProtection extends HiddenField
 		}
 
 		$session = $this->session->getSection(self::class);
-		if (!$session->get('token')) {
-			$session->set('token', Nette\Utils\Random::generate());
+		if (!isset($session->token)) {
+			$session->token = Nette\Utils\Random::generate();
 		}
 
-		return $session->get('token') ^ $this->session->getId();
+		return $session->token ^ $this->session->getId();
 	}
 
 
@@ -87,7 +88,7 @@ class CsrfProtection extends HiddenField
 			$random = Nette\Utils\Random::generate(10);
 		}
 
-		return $random . base64_encode(sha1($this->getToken() . $random, binary: true));
+		return $random . base64_encode(sha1($this->getToken() . $random, true));
 	}
 
 

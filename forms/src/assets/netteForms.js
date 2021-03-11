@@ -138,6 +138,7 @@
 	 * Validates form element against given rules.
 	 */
 	Nette.validateControl = function(elem, rules, onlyCheck, value, emptyOptional) {
+		var top = !rules;
 		elem = elem.tagName ? elem : elem[0]; // RadioNodeList
 		rules = rules || JSON.parse(elem.getAttribute('data-nette-rules') || '[]');
 		value = value === undefined ? {value: Nette.getEffectiveValue(elem)} : value;
@@ -186,6 +187,13 @@
 			}
 		}
 
+		if (elem.type === 'number' && !elem.validity.valid) {
+			if (top && !onlyCheck) {
+				Nette.addError(elem, Nette.invalidNumberMessage);
+			}
+			return false;
+		}
+
 		return true;
 	};
 
@@ -222,13 +230,6 @@
 					continue;
 				}
 				radios[elem.name] = true;
-
-			} else if (elem.type === 'number' && elem.validity.badInput && !Nette.isDisabled(elem)) {
-				if (onlyCheck) {
-					return false;
-				}
-				Nette.addError(elem, Nette.invalidNumberMessage);
-				continue;
 			}
 
 			if ((scope && !elem.name.replace(/]\[|\[|]|$/g, '-').match(scope)) || Nette.isDisabled(elem)) {
@@ -239,7 +240,6 @@
 				return false;
 			}
 		}
-
 		var success = !Nette.formErrors.length;
 		Nette.showFormErrors(form, Nette.formErrors);
 		return success;
@@ -307,29 +307,33 @@
 	 * Display modal window.
 	 */
 	Nette.showModal = function(message, onclose) {
-		var dialog = document.createElement('dialog');
+		var dialog = document.createElement('dialog'),
+			ua = navigator.userAgentData;
 
-		if (!dialog.showModal) {
-			alert(message);
-			onclose();
+		if (ua && dialog.showModal
+			&& ua.brands.some(function(item) { return item.brand === 'Opera' || (item.brand === 'Chromium' && ua.mobile); })
+		) {
+			var style = document.createElement('style');
+			style.innerText = '.netteFormsModal { text-align: center; margin: auto; border: 2px solid black; padding: 1rem } .netteFormsModal button { padding: .1em 2em }';
+
+			var button = document.createElement('button');
+			button.innerText = 'OK';
+			button.onclick = function () {
+				dialog.remove();
+				onclose();
+			};
+
+			dialog.setAttribute('class', 'netteFormsModal');
+			dialog.innerText = message + '\n\n';
+			dialog.appendChild(style);
+			dialog.appendChild(button);
+			document.body.appendChild(dialog);
+			dialog.showModal();
 			return;
 		}
 
-		var style = document.createElement('style');
-		style.innerText = '.netteFormsModal { text-align: center; margin: auto; border: 2px solid black; padding: 1rem } .netteFormsModal button { padding: .1em 2em }';
-
-		var button = document.createElement('button');
-		button.innerText = 'OK';
-		button.onclick = function () {
-			dialog.remove();
-			onclose();
-		};
-
-		dialog.setAttribute('class', 'netteFormsModal');
-		dialog.innerText = message + '\n\n';
-		dialog.append(style, button);
-		document.body.append(dialog);
-		dialog.showModal();
+		alert(message);
+		onclose();
 	};
 
 
@@ -337,10 +341,6 @@
 	 * Validates single rule.
 	 */
 	Nette.validateRule = function(elem, op, arg, value) {
-		if (elem.type === 'number' && elem.validity.badInput) {
-			return op === 'filled';
-		}
-
 		value = value === undefined ? {value: Nette.getEffectiveValue(elem, true)} : value;
 
 		if (op.charAt(0) === ':') {
@@ -365,9 +365,12 @@
 
 	Nette.validators = {
 		filled: function(elem, arg, val) {
+			if (elem.type === 'number' && elem.validity.badInput) {
+				return true;
+			}
 			return val !== '' && val !== false && val !== null
 				&& (!Array.isArray(val) || !!val.length)
-				&& (!(val instanceof FileList) || val.length);
+				&& (!window.FileList || !(val instanceof window.FileList) || val.length);
 		},
 
 		blank: function(elem, arg, val) {
@@ -410,14 +413,35 @@
 		},
 
 		minLength: function(elem, arg, val) {
+			if (elem.type === 'number') {
+				if (elem.validity.tooShort) {
+					return false;
+				} else if (elem.validity.badInput) {
+					return null;
+				}
+			}
 			return val.length >= arg;
 		},
 
 		maxLength: function(elem, arg, val) {
+			if (elem.type === 'number') {
+				if (elem.validity.tooLong) {
+					return false;
+				} else if (elem.validity.badInput) {
+					return null;
+				}
+			}
 			return val.length <= arg;
 		},
 
 		length: function(elem, arg, val) {
+			if (elem.type === 'number') {
+				if (elem.validity.tooShort || elem.validity.tooLong) {
+					return false;
+				} else if (elem.validity.badInput) {
+					return null;
+				}
+			}
 			arg = Array.isArray(arg) ? arg : [arg, arg];
 			return (arg[0] === null || val.length >= arg[0]) && (arg[1] === null || val.length <= arg[1]);
 		},
@@ -456,7 +480,7 @@
 					regExp = new RegExp('^(?:' + arg + ')$', caseInsensitive ? 'i' : '');
 				}
 
-				if (val instanceof FileList) {
+				if (window.FileList && val instanceof FileList) {
 					for (var i = 0; i < val.length; i++) {
 						if (!regExp.test(val[i].name)) {
 							return false;
@@ -475,14 +499,23 @@
 		},
 
 		numeric: function(elem, arg, val) {
+			if (elem.type === 'number' && elem.validity.badInput) {
+				return false;
+			}
 			return (/^[0-9]+$/).test(val);
 		},
 
 		integer: function(elem, arg, val) {
+			if (elem.type === 'number' && elem.validity.badInput) {
+				return false;
+			}
 			return (/^-?[0-9]+$/).test(val);
 		},
 
 		'float': function(elem, arg, val, value) {
+			if (elem.type === 'number' && elem.validity.badInput) {
+				return false;
+			}
 			val = val.replace(/ +/g, '').replace(/,/g, '.');
 			if ((/^-?[0-9]*\.?[0-9]+$/).test(val)) {
 				value.value = val;
@@ -492,23 +525,37 @@
 		},
 
 		min: function(elem, arg, val) {
-			if (Number.isFinite(arg)) {
-				val = parseFloat(val);
+			if (elem.type === 'number') {
+				if (elem.validity.rangeUnderflow) {
+					return false;
+				} else if (elem.validity.badInput) {
+					return null;
+				}
 			}
-			return val >= arg;
+			return arg === null || parseFloat(val) >= arg;
 		},
 
 		max: function(elem, arg, val) {
-			if (Number.isFinite(arg)) {
-				val = parseFloat(val);
+			if (elem.type === 'number') {
+				if (elem.validity.rangeOverflow) {
+					return false;
+				} else if (elem.validity.badInput) {
+					return null;
+				}
 			}
-			return val <= arg;
+			return arg === null || parseFloat(val) <= arg;
 		},
 
 		range: function(elem, arg, val) {
-			return Array.isArray(arg)
-				? (arg[0] === null || Nette.validators.min(elem, arg[0], val)) && (arg[1] === null || Nette.validators.max(elem, arg[1], val))
-				: null;
+			if (elem.type === 'number') {
+				if (elem.validity.rangeUnderflow || elem.validity.rangeOverflow) {
+					return false;
+				} else if (elem.validity.badInput) {
+					return null;
+				}
+			}
+			return Array.isArray(arg) ?
+				((arg[0] === null || parseFloat(val) >= arg[0]) && (arg[1] === null || parseFloat(val) <= arg[1])) : null;
 		},
 
 		submitted: function(elem) {
@@ -516,9 +563,11 @@
 		},
 
 		fileSize: function(elem, arg, val) {
-			for (var i = 0; i < val.length; i++) {
-				if (val[i].size > arg) {
-					return false;
+			if (window.FileList) {
+				for (var i = 0; i < val.length; i++) {
+					if (val[i].size > arg) {
+						return false;
+					}
 				}
 			}
 			return true;
@@ -531,7 +580,7 @@
 			}
 			re = new RegExp(re.join('|'));
 
-			if (val instanceof FileList) {
+			if (window.FileList && val instanceof FileList) {
 				for (i = 0; i < val.length; i++) {
 					if (val[i].type && !re.test(val[i].type)) {
 						return false;
@@ -685,7 +734,7 @@
 				elem = document.createElement('input');
 				elem.setAttribute('name', name);
 				elem.setAttribute('type', 'hidden');
-				form.append(elem);
+				form.appendChild(elem);
 			}
 			form.elements[name].value = values[name].join(',');
 			form.elements[name].disabled = values[name].length === 0;
@@ -724,12 +773,6 @@
 				e.stopPropagation();
 				e.preventDefault();
 			}
-		});
-
-		form.addEventListener('reset', function() {
-			setTimeout(function() {
-				Nette.toggleForm(form);
-			});
 		});
 	};
 

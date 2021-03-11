@@ -22,40 +22,6 @@ describe('Nette.validators', function() {
 	});
 
 
-	it('min', function() {
-		expect(Nette.validators.min(null, 0, '')).toBe(false);
-		expect(Nette.validators.min(null, 0, 'foo')).toBe(false);
-		expect(Nette.validators.min(null, 0, '0')).toBe(true);
-		expect(Nette.validators.min(null, 0, '1')).toBe(true);
-		expect(Nette.validators.min(null, 0, '-1')).toBe(false);
-		expect(Nette.validators.min(null, 0, 0)).toBe(true);
-		expect(Nette.validators.min(null, 0, 1)).toBe(true);
-		expect(Nette.validators.min(null, 0, -1)).toBe(false);
-	});
-
-
-	it('max', function() {
-		expect(Nette.validators.max(null, 0, '')).toBe(false);
-		expect(Nette.validators.max(null, 0, 'foo')).toBe(false);
-		expect(Nette.validators.max(null, 0, '0')).toBe(true);
-		expect(Nette.validators.max(null, 0, '1')).toBe(false);
-		expect(Nette.validators.max(null, 0, '-1')).toBe(true);
-		expect(Nette.validators.max(null, 0, 0)).toBe(true);
-		expect(Nette.validators.max(null, 0, 1)).toBe(false);
-		expect(Nette.validators.max(null, 0, -1)).toBe(true);
-	});
-
-
-	it('range', function() {
-		expect(Nette.validators.range(null, 0, null)).toBe(false);
-		expect(Nette.validators.range(null, 0, 'foo')).toBe(false);
-		expect(Nette.validators.range(null, 0, ['0', null])).toBe(true);
-		expect(Nette.validators.range(null, 0, ['1', null])).toBe(false);
-		expect(Nette.validators.range(null, 0, ['-1', '1'])).toBe(true);
-		expect(Nette.validators.range(null, 0, [null, '1'])).toBe(true);
-	});
-
-
 	it('email', function() {
 		expect(Nette.validators.email(null, null, '')).toBe(false);
 		expect(Nette.validators.email(null, null, 'hello')).toBe(false);
