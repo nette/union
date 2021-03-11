@@ -45,8 +45,6 @@ mail:
 	smtp: true
 	dkim:
 		privateKey: fixtures/private.key
-		domain: nette.org
-		selector: s
 
 ');
 Assert::type(Nette\Mail\DkimSigner::class, $container3->getService('mail.signer'));

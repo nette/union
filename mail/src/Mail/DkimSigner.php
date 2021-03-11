@@ -28,20 +28,36 @@ class DkimSigner implements Signer
 
 	private const DkimSignature = 'DKIM-Signature';
 
+	/** @var string */
+	private $domain;
+
+	/** @var array */
+	private $signHeaders;
+
+	/** @var string */
+	private $selector;
+
+	/** @var string */
+	private $privateKey;
+
+	/** @var string */
+	private $passPhrase;
+
 
 	/** @throws Nette\NotSupportedException */
-	public function __construct(
-		private string $domain,
-		private string $selector,
-		#[\SensitiveParameter]
-		private string $privateKey,
-		#[\SensitiveParameter]
-		private ?string $passPhrase = null,
-		private array $signHeaders = self::DefaultSignHeaders,
-	) {
+	public function __construct(array $options, array $signHeaders = self::DefaultSignHeaders)
+	{
 		if (!extension_loaded('openssl')) {
 			throw new Nette\NotSupportedException('DkimSigner requires PHP extension openssl which is not loaded.');
 		}
+
+		$this->domain = $options['domain'] ?? '';
+		$this->selector = $options['selector'] ?? '';
+		$this->privateKey = $options['privateKey'] ?? '';
+		$this->passPhrase = $options['passPhrase'] ?? '';
+		$this->signHeaders = count($signHeaders) > 0
+			? $signHeaders
+			: self::DefaultSignHeaders;
 	}
 
 
@@ -93,7 +109,7 @@ class DkimSigner implements Signer
 
 		$parts = [];
 		foreach ($test = explode("\r\n", $rawHeader) as $key => $header) {
-			if (str_contains($header, ':')) {
+			if (strpos($header, ':') !== false) {
 				[$heading, $value] = explode(':', $header, 2);
 
 				if (($index = array_search($heading, $selectedHeaders, true)) !== false) {
@@ -119,7 +135,15 @@ class DkimSigner implements Signer
 		}
 
 		if (openssl_sign($value, $signature, $privateKey, 'sha256WithRSAEncryption')) {
+			if (PHP_VERSION_ID < 80000) {
+				openssl_pkey_free($privateKey);
+			}
+
 			return base64_encode($signature);
+		}
+
+		if (PHP_VERSION_ID < 80000) {
+			openssl_pkey_free($privateKey);
 		}
 
 		return '';
@@ -131,8 +155,8 @@ class DkimSigner implements Signer
 		return base64_encode(
 			pack(
 				'H*',
-				hash('sha256', $body),
-			),
+				hash('sha256', $body)
+			)
 		);
 	}
 
@@ -147,7 +171,9 @@ class DkimSigner implements Signer
 
 	protected function getSignedHeaders(Message $message): array
 	{
-		return array_filter($this->signHeaders, fn($name) => $message->getHeader($name) !== null);
+		return array_filter($this->signHeaders, function ($name) use ($message) {
+			return $message->getHeader($name) !== null;
+		});
 	}
 
 
