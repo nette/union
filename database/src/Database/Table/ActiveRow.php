@@ -18,11 +18,14 @@ use Nette;
  */
 class ActiveRow implements \IteratorAggregate, IRow
 {
-	private Selection $table;
+	/** @var Selection */
+	private $table;
 
-	private array $data;
+	/** @var array of row data */
+	private $data;
 
-	private bool $dataRefreshed = false;
+	/** @var bool */
+	private $dataRefreshed = false;
 
 
 	public function __construct(array $data, Selection $table)
@@ -52,7 +55,16 @@ class ActiveRow implements \IteratorAggregate, IRow
 
 	public function __toString()
 	{
-		return (string) $this->getPrimary();
+		try {
+			return (string) $this->getPrimary();
+		} catch (\Throwable $e) {
+			if (func_num_args() || PHP_VERSION_ID >= 70400) {
+				throw $e;
+			}
+
+			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
+			return '';
+		}
 	}
 
 
@@ -65,9 +77,9 @@ class ActiveRow implements \IteratorAggregate, IRow
 
 	/**
 	 * Returns primary key value.
-	 * @return mixed possible int, string, array, object (Nette\Database\DateTime)
+	 * @return mixed possible int, string, array, object (Nette\Utils\DateTime)
 	 */
-	public function getPrimary(bool $throw = true): mixed
+	public function getPrimary(bool $throw = true)
 	{
 		$primary = $this->table->getPrimary($throw);
 		if ($primary === null) {
@@ -219,8 +231,10 @@ class ActiveRow implements \IteratorAggregate, IRow
 	/**
 	 * Returns value of column.
 	 * @param  string  $column
+	 * @return mixed
 	 */
-	public function offsetGet($column): mixed
+	#[\ReturnTypeWillChange]
+	public function offsetGet($column)
 	{
 		return $this->__get($column);
 	}
@@ -256,7 +270,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 	 * @return ActiveRow|mixed
 	 * @throws Nette\MemberAccessException
 	 */
-	public function &__get(string $key): mixed
+	public function &__get(string $key)
 	{
 		if ($this->accessColumn($key)) {
 			return $this->data[$key];
@@ -264,7 +278,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 
 		$referenced = $this->table->getReferencedTable($this, $key);
 		if ($referenced !== false) {
-			$this->accessColumn($key, selectColumn: false);
+			$this->accessColumn($key, false);
 			return $referenced;
 		}
 
@@ -282,7 +296,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 
 		$referenced = $this->table->getReferencedTable($this, $key);
 		if ($referenced !== false) {
-			$this->accessColumn($key, selectColumn: false);
+			$this->accessColumn($key, false);
 			return (bool) $referenced;
 		}
 

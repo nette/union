@@ -9,8 +9,10 @@ declare(strict_types=1);
 
 namespace Nette\Database;
 
-use JetBrains\PhpStorm\Language;
+use Nette;
 use Nette\Utils\Arrays;
+use PDO;
+use PDOException;
 
 
 /**
@@ -18,21 +20,37 @@ use Nette\Utils\Arrays;
  */
 class Connection
 {
+	use Nette\SmartObject;
+
 	/** @var array<callable(self): void>  Occurs after connection is established */
-	public array $onConnect = [];
+	public $onConnect = [];
 
 	/** @var array<callable(self, ResultSet|DriverException): void>  Occurs after query is executed */
-	public array $onQuery = [];
+	public $onQuery = [];
 
-	private array $params;
-	private array $options;
-	private ?Driver $driver = null;
-	private SqlPreprocessor $preprocessor;
+	/** @var array */
+	private $params;
+
+	/** @var array */
+	private $options;
+
+	/** @var Driver */
+	private $driver;
+
+	/** @var SqlPreprocessor */
+	private $preprocessor;
+
+	/** @var PDO|null */
+	private $pdo;
 
 	/** @var callable(array, ResultSet): array */
-	private $rowNormalizer;
-	private ?string $sql = null;
-	private int $transactionDepth = 0;
+	private $rowNormalizer = [Helpers::class, 'normalizeRow'];
+
+	/** @var string|null */
+	private $sql;
+
+	/** @var int */
+	private $transactionDepth = 0;
 
 
 	public function __construct(
@@ -41,11 +59,10 @@ class Connection
 		?string $user = null,
 		#[\SensitiveParameter]
 		?string $password = null,
-		?array $options = null,
+		?array $options = null
 	) {
 		$this->params = [$dsn, $user, $password];
 		$this->options = (array) $options;
-		$this->rowNormalizer = new RowNormalizer;
 
 		if (empty($options['lazy'])) {
 			$this->connect();
@@ -55,21 +72,23 @@ class Connection
 
 	public function connect(): void
 	{
-		if ($this->driver) {
+		if ($this->pdo) {
 			return;
 		}
 
-		$dsn = explode(':', $this->params[0])[0];
-		$class = empty($this->options['driverClass'])
-			? 'Nette\Database\Drivers\\' . ucfirst(str_replace('sql', 'Sql', $dsn)) . 'Driver'
-			: $this->options['driverClass'];
-		if (!class_exists($class)) {
-			throw new ConnectionException("Invalid data source '$dsn'.");
+		try {
+			$this->pdo = new PDO($this->params[0], $this->params[1], $this->params[2], $this->options);
+			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		} catch (PDOException $e) {
+			throw ConnectionException::from($e);
 		}
 
+		$class = empty($this->options['driverClass'])
+			? 'Nette\Database\Drivers\\' . ucfirst(str_replace('sql', 'Sql', $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME))) . 'Driver'
+			: $this->options['driverClass'];
 		$this->driver = new $class;
-		$this->driver->connect($this->params[0], $this->params[1], $this->params[2], $this->options);
 		$this->preprocessor = new SqlPreprocessor($this);
+		$this->driver->initialize($this, $this->options);
 		Arrays::invoke($this->onConnect, $this);
 	}
 
@@ -83,7 +102,7 @@ class Connection
 
 	public function disconnect(): void
 	{
-		$this->driver = null;
+		$this->pdo = null;
 	}
 
 
@@ -93,11 +112,10 @@ class Connection
 	}
 
 
-	/** deprecated use getDriver()->getPdo() */
-	public function getPdo(): \PDO
+	public function getPdo(): PDO
 	{
 		$this->connect();
-		return $this->driver->getPdo();
+		return $this->pdo;
 	}
 
 
@@ -111,7 +129,6 @@ class Connection
 	/** @deprecated use getDriver() */
 	public function getSupplementalDriver(): Driver
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use getDriver()', E_USER_DEPRECATED);
 		$this->connect();
 		return $this->driver;
 	}
@@ -126,15 +143,22 @@ class Connection
 
 	public function getInsertId(?string $sequence = null): string
 	{
-		$this->connect();
-		return $this->driver->getInsertId($sequence);
+		try {
+			$res = $this->getPdo()->lastInsertId($sequence);
+			return $res === false ? '0' : $res;
+		} catch (PDOException $e) {
+			throw $this->driver->convertException($e);
+		}
 	}
 
 
-	public function quote(string $string): string
+	public function quote(string $string, int $type = PDO::PARAM_STR): string
 	{
-		$this->connect();
-		return $this->driver->quote($string);
+		try {
+			return $this->getPdo()->quote($string, $type);
+		} catch (PDOException $e) {
+			throw DriverException::from($e);
+		}
 	}
 
 
@@ -168,7 +192,10 @@ class Connection
 	}
 
 
-	public function transaction(callable $callback): mixed
+	/**
+	 * @return mixed
+	 */
+	public function transaction(callable $callback)
 	{
 		if ($this->transactionDepth === 0) {
 			$this->beginTransaction();
@@ -199,12 +226,12 @@ class Connection
 	 * Generates and executes SQL query.
 	 * @param  literal-string  $sql
 	 */
-	public function query(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ResultSet
+	public function query(string $sql, ...$params): ResultSet
 	{
 		[$this->sql, $params] = $this->preprocess($sql, ...$params);
 		try {
 			$result = new ResultSet($this, $this->sql, $params, $this->rowNormalizer);
-		} catch (DriverException $e) {
+		} catch (PDOException $e) {
 			Arrays::invoke($this->onQuery, $this, $e);
 			throw $e;
 		}
@@ -217,7 +244,6 @@ class Connection
 	/** @deprecated  use query() */
 	public function queryArgs(string $sql, array $params): ResultSet
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use query()', E_USER_DEPRECATED);
 		return $this->query($sql, ...$params);
 	}
 
@@ -248,7 +274,7 @@ class Connection
 	 * Shortcut for query()->fetch()
 	 * @param  literal-string  $sql
 	 */
-	public function fetch(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ?Row
+	public function fetch(string $sql, ...$params): ?Row
 	{
 		return $this->query($sql, ...$params)->fetch();
 	}
@@ -257,8 +283,9 @@ class Connection
 	/**
 	 * Shortcut for query()->fetchField()
 	 * @param  literal-string  $sql
+	 * @return mixed
 	 */
-	public function fetchField(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): mixed
+	public function fetchField(string $sql, ...$params)
 	{
 		return $this->query($sql, ...$params)->fetchField();
 	}
@@ -268,7 +295,7 @@ class Connection
 	 * Shortcut for query()->fetchFields()
 	 * @param  literal-string  $sql
 	 */
-	public function fetchFields(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): ?array
+	public function fetchFields(string $sql, ...$params): ?array
 	{
 		return $this->query($sql, ...$params)->fetchFields();
 	}
@@ -278,7 +305,7 @@ class Connection
 	 * Shortcut for query()->fetchPairs()
 	 * @param  literal-string  $sql
 	 */
-	public function fetchPairs(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): array
+	public function fetchPairs(string $sql, ...$params): array
 	{
 		return $this->query($sql, ...$params)->fetchPairs();
 	}
@@ -288,7 +315,7 @@ class Connection
 	 * Shortcut for query()->fetchAll()
 	 * @param  literal-string  $sql
 	 */
-	public function fetchAll(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): array
+	public function fetchAll(string $sql, ...$params): array
 	{
 		return $this->query($sql, ...$params)->fetchAll();
 	}

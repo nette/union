@@ -21,14 +21,14 @@ class Helpers
 {
 	use Nette\StaticClass;
 
-	/** maximum SQL length */
-	public static int $maxLength = 100;
+	/** @var int maximum SQL length */
+	public static $maxLength = 100;
 
-	public static array $typePatterns = [
+	/** @var array */
+	public static $typePatterns = [
 		'^_' => IStructure::FIELD_TEXT, // PostgreSQL arrays
 		'(TINY|SMALL|SHORT|MEDIUM|BIG|LONG)(INT)?|INT(EGER|\d+| IDENTITY)?|(SMALL|BIG|)SERIAL\d*|COUNTER|YEAR|BYTE|LONGLONG|UNSIGNED BIG INT' => IStructure::FIELD_INTEGER,
-		'(NEW)?DEC(IMAL)?(\(.*)?|NUMERIC|(SMALL)?MONEY|CURRENCY|NUMBER' => IStructure::FIELD_FIXED,
-		'REAL|DOUBLE( PRECISION)?|FLOAT\d*' => IStructure::FIELD_FLOAT,
+		'(NEW)?DEC(IMAL)?(\(.*)?|NUMERIC|REAL|DOUBLE( PRECISION)?|FLOAT\d*|(SMALL)?MONEY|CURRENCY|NUMBER' => IStructure::FIELD_FLOAT,
 		'BOOL(EAN)?' => IStructure::FIELD_BOOL,
 		'TIME' => IStructure::FIELD_TIME,
 		'DATE' => IStructure::FIELD_DATE,
@@ -201,10 +201,45 @@ class Helpers
 	}
 
 
-	/** @deprecated  use RowNormalizer::normalizeRow() */
+	/** @internal */
 	public static function normalizeRow(array $row, ResultSet $resultSet): array
 	{
-		return (new RowNormalizer)($row, $resultSet);
+		foreach ($resultSet->getColumnTypes() as $key => $type) {
+			$value = $row[$key];
+			if ($value === null || $value === false || $type === IStructure::FIELD_TEXT) {
+				// do nothing
+			} elseif ($type === IStructure::FIELD_INTEGER) {
+				$row[$key] = is_float($tmp = $value * 1) ? $value : $tmp;
+
+			} elseif ($type === IStructure::FIELD_FLOAT) {
+				if (is_string($value) && ($pos = strpos($value, '.')) !== false) {
+					$value = rtrim(rtrim($pos === 0 ? "0$value" : $value, '0'), '.');
+				}
+
+				$row[$key] = (float) $value;
+
+			} elseif ($type === IStructure::FIELD_BOOL) {
+				$row[$key] = ((bool) $value) && $value !== 'f' && $value !== 'F';
+
+			} elseif (
+				$type === IStructure::FIELD_DATETIME
+				|| $type === IStructure::FIELD_DATE
+				|| $type === IStructure::FIELD_TIME
+			) {
+				$row[$key] = new Nette\Utils\DateTime($value);
+
+			} elseif ($type === IStructure::FIELD_TIME_INTERVAL) {
+				preg_match('#^(-?)(\d+)\D(\d+)\D(\d+)(\.\d+)?$#D', $value, $m);
+				$row[$key] = new \DateInterval("PT$m[2]H$m[3]M$m[4]S");
+				$row[$key]->f = isset($m[5]) ? (float) $m[5] : 0.0;
+				$row[$key]->invert = (int) (bool) $m[1];
+
+			} elseif ($type === IStructure::FIELD_UNIX_TIMESTAMP) {
+				$row[$key] = Nette\Utils\DateTime::from($value);
+			}
+		}
+
+		return $row;
 	}
 
 
@@ -264,10 +299,9 @@ class Helpers
 		bool $explain,
 		string $name,
 		Tracy\Bar $bar,
-		Tracy\BlueScreen $blueScreen,
+		Tracy\BlueScreen $blueScreen
 	): ?ConnectionPanel
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use Nette\Bridges\DatabaseTracy\ConnectionPanel::initialize()', E_USER_DEPRECATED);
 		return ConnectionPanel::initialize($connection, true, $name, $explain, $bar, $blueScreen);
 	}
 
@@ -279,10 +313,9 @@ class Helpers
 		string $name = '',
 		bool $explain = true,
 		?Tracy\Bar $bar = null,
-		?Tracy\BlueScreen $blueScreen = null,
+		?Tracy\BlueScreen $blueScreen = null
 	): ?ConnectionPanel
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use Nette\Bridges\DatabaseTracy\ConnectionPanel::initialize()', E_USER_DEPRECATED);
 		return ConnectionPanel::initialize($connection, $addBarPanel, $name, $explain, $bar, $blueScreen);
 	}
 
@@ -326,11 +359,11 @@ class Helpers
 	/**
 	 * Finds duplicate columns in select statement
 	 */
-	public static function findDuplicates(ResultDriver $result): string
+	public static function findDuplicates(\PDOStatement $statement): string
 	{
 		$cols = [];
-		for ($i = 0; $i < $result->getColumnCount(); $i++) {
-			$meta = $result->getColumnMeta($i);
+		for ($i = 0; $i < $statement->columnCount(); $i++) {
+			$meta = $statement->getColumnMeta($i);
 			$cols[$meta['name']][] = $meta['table'] ?? '';
 		}
 
