@@ -18,7 +18,10 @@ use Tracy;
  */
 class UserPanel implements Tracy\IBarPanel
 {
-	private Nette\Security\User $user;
+	use Nette\SmartObject;
+
+	/** @var Nette\Security\User */
+	private $user;
 
 
 	public function __construct(Nette\Security\User $user)

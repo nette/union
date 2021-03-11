@@ -19,11 +19,16 @@ use Nette;
  */
 class Permission implements Authorizator
 {
-	private array $roles = [];
-	private array $resources = [];
+	use Nette\SmartObject;
 
-	/** Access Control List rules; whitelist (deny everything to all) by default */
-	private array $rules = [
+	/** @var array  Role storage */
+	private $roles = [];
+
+	/** @var array  Resource storage */
+	private $resources = [];
+
+	/** @var array  Access Control List rules; whitelist (deny everything to all) by default */
+	private $rules = [
 		'allResources' => [
 			'allRoles' => [
 				'allPrivileges' => [
@@ -37,8 +42,10 @@ class Permission implements Authorizator
 		'byResource' => [],
 	];
 
-	private string|Role|null $queriedRole;
-	private string|Resource|null $queriedResource;
+	/** @var mixed */
+	private $queriedRole;
+
+	private $queriedResource;
 
 
 	/********************* roles ****************d*g**/
@@ -47,12 +54,14 @@ class Permission implements Authorizator
 	/**
 	 * Adds a Role to the list. The most recently added parent
 	 * takes precedence over parents that were previously added.
+	 * @param  string|array $parents
 	 * @throws Nette\InvalidArgumentException
 	 * @throws Nette\InvalidStateException
+	 * @return static
 	 */
-	public function addRole(string $role, string|array $parents = null): static
+	public function addRole(string $role, $parents = null)
 	{
-		$this->checkRole($role, exists: false);
+		$this->checkRole($role, false);
 		if (isset($this->roles[$role])) {
 			throw new Nette\InvalidStateException("Role '$role' already exists in the list.");
 		}
@@ -85,7 +94,7 @@ class Permission implements Authorizator
 	 */
 	public function hasRole(string $role): bool
 	{
-		$this->checkRole($role, exists: false);
+		$this->checkRole($role, false);
 		return isset($this->roles[$role]);
 	}
 
@@ -154,8 +163,9 @@ class Permission implements Authorizator
 	 * Removes the Role from the list.
 	 *
 	 * @throws Nette\InvalidStateException
+	 * @return static
 	 */
-	public function removeRole(string $role): static
+	public function removeRole(string $role)
 	{
 		$this->checkRole($role);
 
@@ -191,8 +201,10 @@ class Permission implements Authorizator
 
 	/**
 	 * Removes all Roles from the list.
+	 *
+	 * @return static
 	 */
-	public function removeAllRoles(): static
+	public function removeAllRoles()
 	{
 		$this->roles = [];
 
@@ -218,10 +230,11 @@ class Permission implements Authorizator
 	 *
 	 * @throws Nette\InvalidArgumentException
 	 * @throws Nette\InvalidStateException
+	 * @return static
 	 */
-	public function addResource(string $resource, ?string $parent = null): static
+	public function addResource(string $resource, ?string $parent = null)
 	{
-		$this->checkResource($resource, exists: false);
+		$this->checkResource($resource, false);
 
 		if (isset($this->resources[$resource])) {
 			throw new Nette\InvalidStateException("Resource '$resource' already exists in the list.");
@@ -246,7 +259,7 @@ class Permission implements Authorizator
 	 */
 	public function hasResource(string $resource): bool
 	{
-		$this->checkResource($resource, exists: false);
+		$this->checkResource($resource, false);
 		return isset($this->resources[$resource]);
 	}
 
@@ -313,8 +326,9 @@ class Permission implements Authorizator
 	 * Removes a Resource and all of its children.
 	 *
 	 * @throws Nette\InvalidStateException
+	 * @return static
 	 */
-	public function removeResource(string $resource): static
+	public function removeResource(string $resource)
 	{
 		$this->checkResource($resource);
 
@@ -344,8 +358,9 @@ class Permission implements Authorizator
 
 	/**
 	 * Removes all Resources.
+	 * @return static
 	 */
-	public function removeAllResources(): static
+	public function removeAllResources()
 	{
 		foreach ($this->resources as $resource => $foo) {
 			foreach ($this->rules['byResource'] as $resourceCurrent => $rules) {
@@ -366,14 +381,18 @@ class Permission implements Authorizator
 	/**
 	 * Allows one or more Roles access to [certain $privileges upon] the specified Resource(s).
 	 * If $assertion is provided, then it must return true in order for rule to apply.
+	 *
+	 * @param  string|string[]|null  $roles
+	 * @param  string|string[]|null  $resources
+	 * @param  string|string[]|null  $privileges
+	 * @return static
 	 */
 	public function allow(
-		string|array|null $roles = self::All,
-		string|array|null $resources = self::All,
-		string|array|null $privileges = self::All,
-		?callable $assertion = null,
-	): static
-	{
+		$roles = self::All,
+		$resources = self::All,
+		$privileges = self::All,
+		?callable $assertion = null
+	) {
 		$this->setRule(true, self::Allow, $roles, $resources, $privileges, $assertion);
 		return $this;
 	}
@@ -382,14 +401,18 @@ class Permission implements Authorizator
 	/**
 	 * Denies one or more Roles access to [certain $privileges upon] the specified Resource(s).
 	 * If $assertion is provided, then it must return true in order for rule to apply.
+	 *
+	 * @param  string|string[]|null  $roles
+	 * @param  string|string[]|null  $resources
+	 * @param  string|string[]|null  $privileges
+	 * @return static
 	 */
 	public function deny(
-		string|array|null $roles = self::All,
-		string|array|null $resources = self::All,
-		string|array|null $privileges = self::All,
-		?callable $assertion = null,
-	): static
-	{
+		$roles = self::All,
+		$resources = self::All,
+		$privileges = self::All,
+		?callable $assertion = null
+	) {
 		$this->setRule(true, self::Deny, $roles, $resources, $privileges, $assertion);
 		return $this;
 	}
@@ -397,12 +420,13 @@ class Permission implements Authorizator
 
 	/**
 	 * Removes "allow" permissions from the list in the context of the given Roles, Resources, and privileges.
+	 *
+	 * @param  string|string[]|null  $roles
+	 * @param  string|string[]|null  $resources
+	 * @param  string|string[]|null  $privileges
+	 * @return static
 	 */
-	public function removeAllow(
-		string|array|null $roles = self::All,
-		string|array|null $resources = self::All,
-		string|array|null $privileges = self::All,
-	): static
+	public function removeAllow($roles = self::All, $resources = self::All, $privileges = self::All)
 	{
 		$this->setRule(false, self::Allow, $roles, $resources, $privileges);
 		return $this;
@@ -411,12 +435,13 @@ class Permission implements Authorizator
 
 	/**
 	 * Removes "deny" restrictions from the list in the context of the given Roles, Resources, and privileges.
+	 *
+	 * @param  string|string[]|null  $roles
+	 * @param  string|string[]|null  $resources
+	 * @param  string|string[]|null  $privileges
+	 * @return static
 	 */
-	public function removeDeny(
-		string|array|null $roles = self::All,
-		string|array|null $resources = self::All,
-		string|array|null $privileges = self::All,
-	): static
+	public function removeDeny($roles = self::All, $resources = self::All, $privileges = self::All)
 	{
 		$this->setRule(false, self::Deny, $roles, $resources, $privileges);
 		return $this;
@@ -425,16 +450,13 @@ class Permission implements Authorizator
 
 	/**
 	 * Performs operations on Access Control List rules.
+	 * @param  string|string[]|null  $roles
+	 * @param  string|string[]|null  $resources
+	 * @param  string|string[]|null  $privileges
 	 * @throws Nette\InvalidStateException
+	 * @return static
 	 */
-	protected function setRule(
-		bool $toAdd,
-		bool $type,
-		string|array|null $roles,
-		string|array|null $resources,
-		string|array|null $privileges,
-		?callable $assertion = null,
-	): void
+	protected function setRule(bool $toAdd, bool $type, $roles, $resources, $privileges, ?callable $assertion = null)
 	{
 		// ensure that all specified Roles exist; normalize input to array of Roles or null
 		if ($roles === self::All) {
@@ -475,7 +497,7 @@ class Permission implements Authorizator
 		if ($toAdd) { // add to the rules
 			foreach ($resources as $resource) {
 				foreach ($roles as $role) {
-					$rules = &$this->getRules($resource, $role, create: true);
+					$rules = &$this->getRules($resource, $role, true);
 					if (count($privileges) === 0) {
 						$rules['allPrivileges']['type'] = $type;
 						$rules['allPrivileges']['assert'] = $assertion;
@@ -528,6 +550,8 @@ class Permission implements Authorizator
 				}
 			}
 		}
+
+		return $this;
 	}
 
 
@@ -542,13 +566,12 @@ class Permission implements Authorizator
 	 * and its respective parents are checked similarly before the lower-priority parents of
 	 * the Role are checked.
 	 *
+	 * @param  string|Role|null  $role
+	 * @param  string|Nette\Security\Resource|null  $resource
+	 * @param  string|null  $privilege
 	 * @throws Nette\InvalidStateException
 	 */
-	public function isAllowed(
-		string|Role|null $role = self::All,
-		string|Resource|null $resource = self::All,
-		string|null $privilege = self::All,
-	): bool
+	public function isAllowed($role = self::All, $resource = self::All, $privilege = self::All): bool
 	{
 		$this->queriedRole = $role;
 		if ($role !== self::All) {
@@ -605,8 +628,9 @@ class Permission implements Authorizator
 
 	/**
 	 * Returns real currently queried Role. Use by assertion.
+	 * @return mixed
 	 */
-	public function getQueriedRole(): string|Role|null
+	public function getQueriedRole()
 	{
 		return $this->queriedRole;
 	}
@@ -614,8 +638,9 @@ class Permission implements Authorizator
 
 	/**
 	 * Returns real currently queried Resource. Use by assertion.
+	 * @return mixed
 	 */
-	public function getQueriedResource(): string|Resource|null
+	public function getQueriedResource()
 	{
 		return $this->queriedResource;
 	}
@@ -628,8 +653,9 @@ class Permission implements Authorizator
 	 * Performs a depth-first search of the Role DAG, starting at $role, in order to find a rule
 	 * allowing/denying $role access to a/all $privilege upon $resource.
 	 * @param  bool  $all (true) or one?
+	 * @return mixed  null if no applicable rule is found, otherwise returns ALLOW or DENY
 	 */
-	private function searchRolePrivileges(bool $all, ?string $role, ?string $resource, ?string $privilege): ?bool
+	private function searchRolePrivileges(bool $all, $role, $resource, $privilege)
 	{
 		$dfs = [
 			'visited' => [],
@@ -674,8 +700,12 @@ class Permission implements Authorizator
 
 	/**
 	 * Returns the rule type associated with the specified Resource, Role, and privilege.
+	 * @param  string|null  $resource
+	 * @param  string|null  $role
+	 * @param  string|null  $privilege
+	 * @return bool|null  null if a rule does not exist or assertion fails, otherwise returns ALLOW or DENY
 	 */
-	private function getRuleType(?string $resource, ?string $role, ?string $privilege): ?bool
+	private function getRuleType($resource, $role, $privilege): ?bool
 	{
 		if (!$rules = $this->getRules($resource, $role)) {
 			return null;
@@ -712,8 +742,10 @@ class Permission implements Authorizator
 	/**
 	 * Returns the rules associated with a Resource and a Role, or null if no such rules exist.
 	 * If the $create parameter is true, then a rule set is first created and then returned to the caller.
+	 * @param  string|null  $resource
+	 * @param  string|null  $role
 	 */
-	private function &getRules(?string $resource, ?string $role, bool $create = false): ?array
+	private function &getRules($resource, $role, bool $create = false): ?array
 	{
 		$null = null;
 		if ($resource === self::All) {

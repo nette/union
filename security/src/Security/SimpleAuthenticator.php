@@ -9,12 +9,26 @@ declare(strict_types=1);
 
 namespace Nette\Security;
 
+use Nette;
+
 
 /**
  * Trivial implementation of Authenticator.
  */
 class SimpleAuthenticator implements Authenticator
 {
+	use Nette\SmartObject;
+
+	/** @var array */
+	private $passwords;
+
+	/** @var array */
+	private $roles;
+
+	/** @var array */
+	private $data;
+
+
 	/**
 	 * @param  array  $passwords list of pairs username => password
 	 * @param  array  $roles list of pairs username => role[]
@@ -22,11 +36,13 @@ class SimpleAuthenticator implements Authenticator
 	 */
 	public function __construct(
 		#[\SensitiveParameter]
-		private array $passwords,
-		private array $roles = [],
-		private array $data = [],
-		private ?Passwords $verifier = null,
+		array $passwords,
+		array $roles = [],
+		array $data = []
 	) {
+		$this->passwords = $passwords;
+		$this->roles = $roles;
+		$this->data = $data;
 	}
 
 
@@ -38,7 +54,7 @@ class SimpleAuthenticator implements Authenticator
 	public function authenticate(
 		string $username,
 		#[\SensitiveParameter]
-		string $password,
+		string $password
 	): IIdentity
 	{
 		foreach ($this->passwords as $name => $pass) {
@@ -57,9 +73,6 @@ class SimpleAuthenticator implements Authenticator
 
 	protected function verifyPassword(string $password, string $passOrHash): bool
 	{
-		if (preg_match('~\$.{50,}~A', $passOrHash)) {
-			return $this->verifier->verify($password, $passOrHash);
-		}
 		return $password === $passOrHash;
 	}
 }

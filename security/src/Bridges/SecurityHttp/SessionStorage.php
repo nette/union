@@ -13,7 +13,6 @@ use Nette;
 use Nette\Http\Session;
 use Nette\Http\SessionSection;
 use Nette\Security\IIdentity;
-use Nette\Security\User;
 
 
 /**
@@ -21,11 +20,22 @@ use Nette\Security\User;
  */
 final class SessionStorage implements Nette\Security\UserStorage
 {
-	private string $namespace = '';
-	private Session $sessionHandler;
-	private ?SessionSection $sessionSection = null;
-	private ?int $expireTime = null;
-	private bool $expireIdentity = false;
+	use Nette\SmartObject;
+
+	/** @var string */
+	private $namespace = '';
+
+	/** @var Session */
+	private $sessionHandler;
+
+	/** @var SessionSection */
+	private $sessionSection;
+
+	/** @var ?int */
+	private $expireTime;
+
+	/** @var bool */
+	private $expireIdentity = false;
 
 
 	public function __construct(Session $sessionHandler)
@@ -52,7 +62,7 @@ final class SessionStorage implements Nette\Security\UserStorage
 	{
 		$section = $this->getSessionSection();
 		$section->set('authenticated', false);
-		$section->set('reason', User::LogoutManual);
+		$section->set('reason', self::LogoutManual);
 		$section->set('authTime', null);
 		if ($clearIdentity === true) {
 			$section->set('identity', null);
@@ -100,8 +110,9 @@ final class SessionStorage implements Nette\Security\UserStorage
 
 	/**
 	 * Changes namespace; allows more users to share a session.
+	 * @return static
 	 */
-	public function setNamespace(string $namespace): static
+	public function setNamespace(string $namespace)
 	{
 		if ($this->namespace !== $namespace) {
 			$this->namespace = $namespace;
@@ -138,7 +149,7 @@ final class SessionStorage implements Nette\Security\UserStorage
 
 		if ($section->get('authenticated') && $section->get('expireDelta') > 0) { // check time expiration
 			if ($section->get('expireTime') < time()) {
-				$section->set('reason', User::LogoutInactivity);
+				$section->set('reason', self::LogoutInactivity);
 				$section->set('authenticated', false);
 				if ($section->get('expireIdentity')) {
 					$section->remove('identity');

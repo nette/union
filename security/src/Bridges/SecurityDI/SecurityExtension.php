@@ -19,7 +19,8 @@ use Tracy;
  */
 class SecurityExtension extends Nette\DI\CompilerExtension
 {
-	private bool $debugMode;
+	/** @var bool */
+	private $debugMode;
 
 
 	public function __construct(bool $debugMode = false)
@@ -39,8 +40,8 @@ class SecurityExtension extends Nette\DI\CompilerExtension
 						'password' => Expect::string(),
 						'roles' => Expect::anyOf(Expect::string(), Expect::listOf('string')),
 						'data' => Expect::array(),
-					])->castTo('array'),
-				),
+					])->castTo('array')
+				)
 			),
 			'roles' => Expect::arrayOf('string|array|null'), // role => parent(s)
 			'resources' => Expect::arrayOf('string|null'), // resource => parent
@@ -55,9 +56,9 @@ class SecurityExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function loadConfiguration(): void
+	public function loadConfiguration()
 	{
-		/** @var object{debugger: bool, users: array, roles: array, resources: array, authentication: \stdClass} $config */
+		/** @var object{debugger: bool, users: array, roles: array, resources: array} $config */
 		$config = $this->config;
 		$builder = $this->getContainerBuilder();
 
@@ -80,6 +81,10 @@ class SecurityExtension extends Nette\DI\CompilerExtension
 			$storage->addSetup('setCookieParameters', [$auth->cookieName, $auth->cookieDomain, $auth->cookieSamesite]);
 		}
 
+		$builder->addDefinition($this->prefix('legacyUserStorage')) // deprecated
+			->setType(Nette\Security\IUserStorage::class)
+			->setFactory(Nette\Http\UserStorage::class);
+
 		$user = $builder->addDefinition($this->prefix('user'))
 			->setFactory(Nette\Security\User::class);
 
@@ -97,7 +102,7 @@ class SecurityExtension extends Nette\DI\CompilerExtension
 			}
 
 			$builder->addDefinition($this->prefix('authenticator'))
-				->setType(Nette\Security\Authenticator::class)
+				->setType(Nette\Security\IAuthenticator::class)
 				->setFactory(Nette\Security\SimpleAuthenticator::class, [$usersList, $usersRoles, $usersData]);
 
 			if ($this->name === 'security') {
@@ -130,7 +135,7 @@ class SecurityExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function beforeCompile(): void
+	public function beforeCompile()
 	{
 		$builder = $this->getContainerBuilder();
 
