@@ -10,7 +10,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 $_POST = [
 	'title' => 'sent title',
 	'first' => [
@@ -24,7 +24,6 @@ $_POST = [
 
 function createForm(): Form
 {
-	ob_start();
 	Form::initialize(true);
 
 	$form = new Form;
@@ -65,11 +64,11 @@ test('setDefaults() + array', function () {
 				'city' => 'zzz',
 			],
 		],
-	], $form->getValues('array'));
+	], $form->getValues(true));
 });
 
 
-test('submitted form + getValues(array)', function () {
+test('submitted form + getValues(true)', function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 
 	$form = createForm();
@@ -83,7 +82,7 @@ test('submitted form + getValues(array)', function () {
 				'city' => 'sent city',
 			],
 		],
-	], $form->getValues('array'));
+	], $form->getValues(true));
 });
 
 
@@ -105,7 +104,7 @@ test('submitted form + reset()', function () {
 				'city' => '',
 			],
 		],
-	], $form->getValues('array'));
+	], $form->getValues(true));
 });
 
 
@@ -131,7 +130,7 @@ test('setValues() + array', function () {
 				'city' => 'sent city',
 			],
 		],
-	], $form->getValues('array'));
+	], $form->getValues(true));
 
 	// erase
 	$form->setValues([
@@ -150,7 +149,7 @@ test('setValues() + array', function () {
 				'city' => '',
 			],
 		],
-	], $form->getValues('array'));
+	], $form->getValues(true));
 });
 
 
@@ -262,7 +261,7 @@ test('onSuccess test', function () {
 });
 
 
-test('submitted form + setValidationScope() + getValues(array)', function () {
+test('submitted form + setValidationScope() + getValues(true)', function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST['send'] = '';
 
@@ -276,28 +275,11 @@ test('submitted form + setValidationScope() + getValues(array)', function () {
 			'age' => 999,
 			'second' => [],
 		],
-	], $form->getValues('array'));
+	], $form->getValues(true));
 });
 
 
-test('submitted form + setValidationScope() + getValues(array)', function () {
-	$_SERVER['REQUEST_METHOD'] = 'POST';
-	$_POST['send'] = '';
-
-	$form = createForm();
-	$form->addSubmit('send')->setValidationScope([$form['first']]);
-
-	Assert::truthy($form->isSubmitted());
-	Assert::equal([
-		'name' => '',
-		'age' => 999,
-		'second' => [
-			'city' => 'sent city',
-		],
-	], $form['first']->getValues('array'));
-});
-
-test('submitted form + setValidationScope() + getValues(array)', function () {
+test('submitted form + setValidationScope() + getValues(true)', function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST['send'] = '';
 
@@ -312,5 +294,5 @@ test('submitted form + setValidationScope() + getValues(array)', function () {
 				'city' => 'sent city',
 			],
 		],
-	], $form->getValues('array'));
+	], $form->getValues(true));
 });

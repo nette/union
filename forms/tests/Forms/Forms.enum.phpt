@@ -2,6 +2,7 @@
 
 /**
  * Test: Nette\Forms\Controls\BaseControl & enum
+ * @phpVersion 8.1
  */
 
 declare(strict_types=1);
@@ -21,7 +22,6 @@ enum TestEnum: string
 
 
 test('validators for enums', function () {
-	ob_start();
 	Form::initialize(true);
 	$form = new Form;
 	$input = $form->addText('text');
@@ -37,7 +37,6 @@ test('validators for enums', function () {
 test('enum as default value', function () {
 	$items = ['case 1' => '1', 'case 2' => '2', 'case 3' => '3', 'case 4' => '4'];
 
-	ob_start();
 	Form::initialize(true);
 	$form = new Form;
 	$form->addSelect('select', null, $items);

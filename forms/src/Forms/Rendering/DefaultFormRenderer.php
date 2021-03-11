@@ -19,6 +19,8 @@ use Nette\Utils\Html;
  */
 class DefaultFormRenderer implements Nette\Forms\FormRenderer
 {
+	use Nette\SmartObject;
+
 	/**
 	 *  /--- form.container
 	 *
@@ -54,8 +56,8 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 	 *      \---
 	 *    \---
 	 *  \--
-	 */
-	public array $wrappers = [
+	 * @var array of HTML tags */
+	public $wrappers = [
 		'form' => [
 			'container' => null,
 		],
@@ -116,17 +118,22 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 		],
 	];
 
-	protected Nette\Forms\Form $form;
-	protected int $counter = 0;
+	/** @var Nette\Forms\Form */
+	protected $form;
+
+	/** @var int */
+	protected $counter;
 
 
 	/**
 	 * Provides complete form rendering.
-	 * @param  ?string  $mode  'begin', 'errors', 'ownerrors', 'body', 'end' or empty to render all
+	 * @param  string  $mode  'begin', 'errors', 'ownerrors', 'body', 'end' or empty to render all
 	 */
 	public function render(Nette\Forms\Form $form, ?string $mode = null): string
 	{
-		$this->form = $form;
+		if ($this->form !== $form) {
+			$this->form = $form;
+		}
 
 		$s = '';
 		if (!$mode || $mode === 'begin') {
@@ -137,7 +144,7 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 			$s .= $this->renderErrors();
 
 		} elseif ($mode === 'errors') {
-			$s .= $this->renderErrors(own: false);
+			$s .= $this->renderErrors(null, false);
 		}
 
 		if (!$mode || $mode === 'body') {
@@ -196,6 +203,10 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 			if ($control->getOption('type') === 'hidden' && !$control->getOption('rendered')) {
 				$s .= $control->getControl();
 			}
+		}
+
+		if (iterator_count($this->form->getComponents(true, Nette\Forms\Controls\TextInput::class)) < 2) {
+			$s .= '<!--[if IE]><input type=IEbug disabled style="display:none"><![endif]-->';
 		}
 
 		if ($s) {
@@ -314,9 +325,14 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 
 	/**
 	 * Renders group of controls.
+	 * @param  Nette\Forms\Container|Nette\Forms\ControlGroup  $parent
 	 */
-	public function renderControls(Nette\Forms\Container|Nette\Forms\ControlGroup $parent): string
+	public function renderControls($parent): string
 	{
+		if (!($parent instanceof Nette\Forms\Container || $parent instanceof Nette\Forms\ControlGroup)) {
+			throw new Nette\InvalidArgumentException('Argument must be Nette\Forms\Container or Nette\Forms\ControlGroup instance.');
+		}
+
 		$container = $this->getWrapper('controls container');
 
 		$buttons = null;
@@ -500,13 +516,15 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 	}
 
 
-	protected function renderLabelElement(Nette\Forms\Control $control): Html|string|null
+	/** @return string|Html|null */
+	protected function renderLabelElement(Nette\Forms\Control $control)
 	{
 		return $control->getLabel();
 	}
 
 
-	protected function renderControlElement(Nette\Forms\Control $control): Html|string
+	/** @return string|Html */
+	protected function renderControlElement(Nette\Forms\Control $control)
 	{
 		return $control->getControl();
 	}
@@ -519,9 +537,11 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 	}
 
 
-	protected function getValue(string $name): mixed
+	/** @return mixed */
+	protected function getValue(string $name)
 	{
 		$name = explode(' ', $name);
-		return $this->wrappers[$name[0]][$name[1]] ?? null;
+		$data = &$this->wrappers[$name[0]][$name[1]];
+		return $data;
 	}
 }

@@ -16,7 +16,7 @@ require __DIR__ . '/../bootstrap.php';
 
 
 $_SERVER['REQUEST_METHOD'] = 'POST';
-$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 
 $_FILES = [
 	'avatar' => [
@@ -141,32 +141,6 @@ test('empty data', function () {
 
 	Assert::false($form->isValid());
 	Assert::equal(new FileUpload([]), $input->getValue());
-	Assert::false($input->isFilled());
-	Assert::false($input->isOk());
-});
-
-
-test('missing data + nullable', function () {
-	$form = new Form;
-	$input = $form->addMultiUpload('empty')
-		->setNullable() // has no effect
-		->setRequired();
-
-	Assert::false($form->isValid());
-	Assert::equal([], $input->getValue());
-	Assert::false($input->isFilled());
-	Assert::false($input->isOk());
-});
-
-
-test('empty data + nullable', function () {
-	$form = new Form;
-	$input = $form->addUpload('missing')
-		->setNullable()
-		->setRequired();
-
-	Assert::false($form->isValid());
-	Assert::null($input->getValue());
 	Assert::false($input->isFilled());
 	Assert::false($input->isOk());
 });

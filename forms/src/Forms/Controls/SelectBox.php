@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Nette\Forms\Controls;
 
 use Nette;
-use Stringable;
 
 
 /**
@@ -20,32 +19,36 @@ class SelectBox extends ChoiceControl
 {
 	/** validation rule */
 	public const Valid = ':selectBoxValid';
-
-	/** @deprecated use SelectBox::Valid */
 	public const VALID = self::Valid;
 
-	/** of option / optgroup */
-	private array $options = [];
-	private string|Stringable|false $prompt = false;
-	private array $optionAttributes = [];
+	/** @var array of option / optgroup */
+	private $options = [];
+
+	/** @var string|object|false */
+	private $prompt = false;
+
+	/** @var array */
+	private $optionAttributes = [];
 
 
 	public function __construct($label = null, ?array $items = null)
 	{
 		parent::__construct($label, $items);
 		$this->setOption('type', 'select');
-		$this->addCondition(
-			fn() => $this->prompt === false
-			&& $this->options
-			&& $this->control->size < 2,
-		)->addRule(Nette\Forms\Form::Filled, Nette\Forms\Validator::$messages[self::Valid]);
+		$this->addCondition(function () {
+			return $this->prompt === false
+				&& $this->options
+				&& $this->control->size < 2;
+		})->addRule(Nette\Forms\Form::Filled, Nette\Forms\Validator::$messages[self::Valid]);
 	}
 
 
 	/**
 	 * Sets first prompt item in select box.
+	 * @param  string|object|false  $prompt
+	 * @return static
 	 */
-	public function setPrompt(string|Stringable|false $prompt): static
+	public function setPrompt($prompt)
 	{
 		$this->prompt = $prompt;
 		return $this;
@@ -53,9 +56,10 @@ class SelectBox extends ChoiceControl
 
 
 	/**
-	 * Returns first prompt item.
+	 * Returns first prompt item?
+	 * @return string|object|false
 	 */
-	public function getPrompt(): string|Stringable|false
+	public function getPrompt()
 	{
 		return $this->prompt;
 	}
@@ -63,8 +67,9 @@ class SelectBox extends ChoiceControl
 
 	/**
 	 * Sets options and option groups from which to choose.
+	 * @return static
 	 */
-	public function setItems(array $items, bool $useKeys = true): static
+	public function setItems(array $items, bool $useKeys = true)
 	{
 		if (!$useKeys) {
 			$res = [];
@@ -83,47 +88,37 @@ class SelectBox extends ChoiceControl
 		}
 
 		$this->options = $items;
-		return parent::setItems(Nette\Utils\Arrays::flatten($items, preserveKeys: true));
+		return parent::setItems(Nette\Utils\Arrays::flatten($items, true));
 	}
 
 
 	public function getControl(): Nette\Utils\Html
 	{
-		$items = [];
+		$items = $this->prompt === false ? [] : ['' => $this->translate($this->prompt)];
 		foreach ($this->options as $key => $value) {
 			$items[is_array($value) ? $this->translate($key) : $key] = $this->translate($value);
 		}
 
-		$attrs = $this->optionAttributes;
-		$attrs['disabled:'] = $this->disabledChoices;
-
-		$selected = $this->value;
-		if ($this->prompt !== false) {
-			$promptKey = '';
-			while (isset($items[$promptKey])) {
-				$promptKey .= "\x1";
-			}
-			$items = [$promptKey => $this->translate($this->prompt)] + $items;
-			if ($this->isRequired()) {
-				$attrs['hidden:'][$promptKey] = $attrs['disabled:'][$promptKey] = true;
-				$selected ??= $promptKey; // disabled & selected for Safari, hidden for other browsers
-			}
-		}
-
-		return Nette\Forms\Helpers::createSelectBox($items, $attrs, $selected)
-			->addAttributes(parent::getControl()->attrs);
+		return Nette\Forms\Helpers::createSelectBox(
+			$items,
+			[
+				'disabled:' => is_array($this->disabled) ? $this->disabled : null,
+			] + $this->optionAttributes,
+			$this->value
+		)->addAttributes(parent::getControl()->attrs);
 	}
 
 
-	/** @deprecated use setOptionAttribute() */
-	public function addOptionAttributes(array $attributes): static
+	/** @return static */
+	public function addOptionAttributes(array $attributes)
 	{
 		$this->optionAttributes = $attributes + $this->optionAttributes;
 		return $this;
 	}
 
 
-	public function setOptionAttribute(string $name, mixed $value = true): static
+	/** @return static */
+	public function setOptionAttribute(string $name, $value = true)
 	{
 		$this->optionAttributes[$name] = $value;
 		return $this;

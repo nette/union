@@ -11,7 +11,6 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
-use Stringable;
 
 
 /**
@@ -23,13 +22,23 @@ use Stringable;
  */
 class RadioList extends ChoiceControl
 {
-	public bool $generateId = false;
-	protected Html $separator;
-	protected Html $container;
-	protected Html $itemLabel;
+	/** @var bool */
+	public $generateId = false;
+
+	/** @var Html  separator element template */
+	protected $separator;
+
+	/** @var Html  container element template */
+	protected $container;
+
+	/** @var Html  item label template */
+	protected $itemLabel;
 
 
-	public function __construct(string|Stringable|null $label = null, ?array $items = null)
+	/**
+	 * @param  string|object  $label
+	 */
+	public function __construct($label = null, ?array $items = null)
 	{
 		parent::__construct($label, $items);
 		$this->control->type = 'radio';
@@ -57,12 +66,12 @@ class RadioList extends ChoiceControl
 				array_merge($input->attrs, [
 					'id:' => $ids,
 					'checked?' => $this->value,
-					'disabled:' => $this->disabled ?: $this->disabledChoices,
+					'disabled:' => $this->disabled,
 					'data-nette-rules:' => [key($items) => $input->attrs['data-nette-rules']],
 				]),
 				['for:' => $ids] + $this->itemLabel->attrs,
-				$this->separator,
-			),
+				$this->separator
+			)
 		);
 	}
 
@@ -78,8 +87,8 @@ class RadioList extends ChoiceControl
 		$key = key([(string) $key => null]);
 		return parent::getControl()->addAttributes([
 			'id' => $this->getHtmlId() . '-' . $key,
-			'checked' => in_array($key, (array) $this->value, strict: true),
-			'disabled' => $this->disabled || isset($this->disabledChoices[$key]),
+			'checked' => in_array($key, (array) $this->value, true),
+			'disabled' => is_array($this->disabled) ? isset($this->disabled[$key]) : $this->disabled,
 			'value' => $key,
 		]);
 	}
@@ -89,7 +98,7 @@ class RadioList extends ChoiceControl
 	{
 		$itemLabel = clone $this->itemLabel;
 		return func_num_args()
-			? $itemLabel->setText($this->translate($this->getItems()[$key]))->for($this->getHtmlId() . '-' . $key)
+			? $itemLabel->setText($this->translate($this->items[$key]))->for($this->getHtmlId() . '-' . $key)
 			: $this->getLabel();
 	}
 

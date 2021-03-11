@@ -17,21 +17,27 @@ use Nette;
  */
 class ControlGroup
 {
-	protected \WeakMap $controls;
-	private array $options = [];
+	use Nette\SmartObject;
+
+	/** @var \SplObjectStorage */
+	protected $controls;
+
+	/** @var array user options */
+	private $options = [];
 
 
 	public function __construct()
 	{
-		$this->controls = new \WeakMap;
+		$this->controls = new \SplObjectStorage;
 	}
 
 
-	public function add(...$items): static
+	/** @return static */
+	public function add(...$items)
 	{
 		foreach ($items as $item) {
 			if ($item instanceof Control) {
-				$this->controls[$item] = null;
+				$this->controls->attach($item);
 
 			} elseif ($item instanceof Container) {
 				foreach ($item->getComponents() as $component) {
@@ -41,7 +47,7 @@ class ControlGroup
 				$this->add(...$item);
 
 			} else {
-				$type = get_debug_type($item);
+				$type = is_object($item) ? get_class($item) : gettype($item);
 				throw new Nette\InvalidArgumentException("Control or Container items expected, $type given.");
 			}
 		}
@@ -52,15 +58,15 @@ class ControlGroup
 
 	public function remove(Control $control): void
 	{
-		unset($this->controls[$control]);
+		$this->controls->detach($control);
 	}
 
 
 	public function removeOrphans(): void
 	{
-		foreach ($this->controls as $control => $foo) {
+		foreach ($this->controls as $control) {
 			if (!$control->getForm(false)) {
-				unset($this->controls[$control]);
+				$this->controls->detach($control);
 			}
 		}
 	}
@@ -69,11 +75,7 @@ class ControlGroup
 	/** @return Control[] */
 	public function getControls(): array
 	{
-		$res = [];
-		foreach ($this->controls as $control => $foo) {
-			$res[] = $control;
-		}
-		return $res;
+		return iterator_to_array($this->controls);
 	}
 
 
@@ -85,8 +87,10 @@ class ControlGroup
 	 * - 'container' - container as Html object
 	 * - 'description' - textual or Nette\HtmlStringable object description
 	 * - 'embedNext' - describes how render next group
+	 *
+	 * @return static
 	 */
-	public function setOption(string $key, mixed $value): static
+	public function setOption(string $key, $value)
 	{
 		if ($value === null) {
 			unset($this->options[$key]);
@@ -101,11 +105,11 @@ class ControlGroup
 
 	/**
 	 * Returns user-specific option.
+	 * @return mixed
 	 */
-	public function getOption(string $key): mixed
+	public function getOption(string $key)
 	{
 		if (func_num_args() > 1) {
-			trigger_error(__METHOD__ . '() parameter $default is deprecated, use operator ??', E_USER_DEPRECATED);
 			$default = func_get_arg(1);
 		}
 		return $this->options[$key] ?? $default ?? null;

@@ -10,8 +10,6 @@ declare(strict_types=1);
 namespace Nette\Forms\Controls;
 
 use Nette;
-use Nette\Utils\Html;
-use Stringable;
 
 
 /**
@@ -19,8 +17,11 @@ use Stringable;
  */
 class HiddenField extends BaseControl
 {
-	private bool $persistValue = false;
-	private bool $nullable = false;
+	/** @var bool */
+	private $persistValue;
+
+	/** @var bool */
+	private $nullable = false;
 
 
 	public function __construct($persistentValue = null)
@@ -28,7 +29,6 @@ class HiddenField extends BaseControl
 		parent::__construct();
 		$this->control->type = 'hidden';
 		$this->setOption('type', 'hidden');
-		$this->value = '';
 		if ($persistentValue !== null) {
 			$this->unmonitor(Nette\Forms\Form::class);
 			$this->persistValue = true;
@@ -39,16 +39,17 @@ class HiddenField extends BaseControl
 
 	/**
 	 * Sets control's value.
+	 * @return static
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
 		if ($value === null) {
 			$value = '';
 		} elseif ($value instanceof \BackedEnum) {
 			$value = $value->value;
-		} elseif (!is_scalar($value) && !$value instanceof Stringable) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->getName()));
+		} elseif (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", gettype($value), $this->name));
 		}
 
 		if (!$this->persistValue) {
@@ -59,7 +60,7 @@ class HiddenField extends BaseControl
 	}
 
 
-	public function getValue(): mixed
+	public function getValue()
 	{
 		return $this->nullable && $this->value === '' ? null : $this->value;
 	}
@@ -67,21 +68,16 @@ class HiddenField extends BaseControl
 
 	/**
 	 * Sets whether getValue() returns null instead of empty string.
+	 * @return static
 	 */
-	public function setNullable(bool $value = true): static
+	public function setNullable(bool $value = true)
 	{
 		$this->nullable = $value;
 		return $this;
 	}
 
 
-	public function isNullable(): bool
-	{
-		return $this->nullable;
-	}
-
-
-	public function getControl(): Html
+	public function getControl(): Nette\Utils\Html
 	{
 		$this->setOption('rendered', true);
 		$el = clone $this->control;
@@ -96,7 +92,7 @@ class HiddenField extends BaseControl
 	/**
 	 * Bypasses label generation.
 	 */
-	public function getLabel($caption = null): Html|string|null
+	public function getLabel($caption = null)
 	{
 		return null;
 	}
@@ -104,8 +100,9 @@ class HiddenField extends BaseControl
 
 	/**
 	 * Adds error message to the list.
+	 * @param  string|object  $message
 	 */
-	public function addError(string|Stringable $message, bool $translate = true): void
+	public function addError($message, bool $translate = true): void
 	{
 		$this->getForm()->addError($message, $translate);
 	}

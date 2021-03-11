@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Nette\Forms\Blueprint;
 use Nette\Forms\Form;
 use Tester\Assert;
 
@@ -15,16 +14,18 @@ $form->addText('name')->setRequired();
 $form->addInteger('age');
 $form->addContainer('cont')
 	->addText('name');
-$form->addHidden('id')
-	->setNullable();
+$form->addHidden('id');
 $form->addCheckbox('agree');
 $form->addSubmit('submit', 'Send');
 
-$res = (new Blueprint)->generateDataClass($form);
+$generator = new Nette\Forms\Rendering\DataClassGenerator;
+$res = $generator->generateCode($form);
 
 Assert::match(
 	'class SignFormData
 {
+	use \Nette\SmartObject;
+
 	public string $name;
 	public ?int $age;
 	public SignContFormData $cont;
@@ -34,13 +35,17 @@ Assert::match(
 
 class SignContFormData
 {
-	public string $name;
+	use \Nette\SmartObject;
+
+	public ?string $name;
 }
 ',
-	$res,
+	$res
 );
 
-$res = (new Blueprint)->generateDataClass($form, true);
+$generator->propertyPromotion = true;
+$generator->useSmartObject = false;
+$res = $generator->generateCode($form);
 
 Assert::match(
 	'class SignFormData
@@ -58,10 +63,10 @@ Assert::match(
 class SignContFormData
 {
 	public function __construct(
-		public string $name,
+		public ?string $name,
 	) {
 	}
 }
 ',
-	$res,
+	$res
 );

@@ -34,17 +34,20 @@ test('', function () {
 });
 
 
-testException('', function () {
-	$form = new Form;
-	$form->addText('foo')
-		->addRule(Form::Valid);
-}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addRule method.');
-
+test('', function () {
+	Assert::exception(function () {
+		$form = new Form;
+		$form->addText('foo')
+			->addRule(Form::Valid);
+	}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addRule method.');
+});
 
 test('', function () {
 	$form = new Form;
 	$form->addText('foo')
-		->addFilter(fn($value) => str_replace(' ', '', $value))
+		->addFilter(function ($value) {
+			return str_replace(' ', '', $value);
+		})
 		->addRule($form::Pattern, 'only numbers', '\d{5}');
 
 	$form['foo']->setValue('160 00');
@@ -62,7 +65,9 @@ test('', function () {
 	$foo = $form->addText('foo');
 	$rules = $foo->getRules();
 	$rules->addFilter(
-		fn($value) => str_replace(' ', '', $value),
+		function ($value) {
+			return str_replace(' ', '', $value);
+		}
 	);
 	$rules->addRule($form::Pattern, 'only numbers', '\d{5}');
 
@@ -76,15 +81,19 @@ test('', function () {
 });
 
 
-testException('', function () {
-	$form = new Form;
-	$form->addText('foo')
-		->addCondition(Form::Valid);
-}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addCondition method.');
+test('', function () {
+	Assert::exception(function () {
+		$form = new Form;
+		$form->addText('foo')
+			->addCondition(Form::Valid);
+	}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addCondition method.');
+});
 
 
-testException('', function () {
-	$form = new Form;
-	@$form->addText('foo')
-		->addRule(~Form::Valid); // @ - negative rules are deprecated
-}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addRule method.');
+test('', function () {
+	Assert::exception(function () {
+		$form = new Form;
+		@$form->addText('foo')
+			->addRule(~Form::Valid); // @ - negative rules are deprecated
+	}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addRule method.');
+});

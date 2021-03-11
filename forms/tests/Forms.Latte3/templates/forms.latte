@@ -30,7 +30,6 @@
 {foreach $form[sex]->items as $key => $label}
 	{label sex:$key} {input sex:$key} {$label}{/label}
 	<label n:name="sex:$key" title=hello> <input n:name="sex:$key"> </label>
-	<label n:name="sex:$key" title=hello />
 {/foreach}
 <label n:name="sex"></label>
 <label n:name="sex" />
@@ -50,7 +49,6 @@
 {foreach $form[checklist]->items as $key => $label}
 	{label checklist:$key} {input checklist:$key} {$label}{/label}
 	<label n:name="checklist:$key"> <input n:name="checklist:$key" title=hello> </label>
-	<label n:name="checklist:$key" />
 {/foreach}
 <label n:name="checklist"></label>
 <label n:name="checklist" />
@@ -80,3 +78,9 @@
 
 <select n:name="select" />
 {/form}
+
+
+{formContext myForm}
+<label n:name="sex" />
+<input n:name=username>
+{/formContext myForm}

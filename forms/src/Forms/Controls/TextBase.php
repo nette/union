@@ -12,7 +12,6 @@ namespace Nette\Forms\Controls;
 use Nette;
 use Nette\Forms\Form;
 use Nette\Utils\Strings;
-use Stringable;
 
 
 /**
@@ -20,21 +19,27 @@ use Stringable;
  */
 abstract class TextBase extends BaseControl
 {
-	protected string $emptyValue = '';
-	protected mixed $rawValue = '';
-	private bool $nullable = false;
+	/** @var string */
+	protected $emptyValue = '';
+
+	/** @var mixed unfiltered submitted value */
+	protected $rawValue = '';
+
+	/** @var bool */
+	private $nullable;
 
 
 	/**
 	 * Sets control's value.
+	 * @return static
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
 		if ($value === null) {
 			$value = '';
-		} elseif (!is_scalar($value) && !$value instanceof Stringable) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->getName()));
+		} elseif (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", gettype($value), $this->name));
 		}
 
 		$this->value = $value;
@@ -47,7 +52,7 @@ abstract class TextBase extends BaseControl
 	 * Returns control's value.
 	 * @return mixed
 	 */
-	public function getValue(): mixed
+	public function getValue()
 	{
 		$value = $this->value === Strings::trim($this->translate($this->emptyValue))
 			? ''
@@ -58,24 +63,20 @@ abstract class TextBase extends BaseControl
 
 	/**
 	 * Sets whether getValue() returns null instead of empty string.
+	 * @return static
 	 */
-	public function setNullable(bool $value = true): static
+	public function setNullable(bool $value = true)
 	{
 		$this->nullable = $value;
 		return $this;
 	}
 
 
-	public function isNullable(): bool
-	{
-		return $this->nullable;
-	}
-
-
 	/**
 	 * Sets the special value which is treated as empty string.
+	 * @return static
 	 */
-	public function setEmptyValue(string $value): static
+	public function setEmptyValue(string $value)
 	{
 		$this->emptyValue = $value;
 		return $this;
@@ -93,8 +94,9 @@ abstract class TextBase extends BaseControl
 
 	/**
 	 * Sets the maximum number of allowed characters.
+	 * @return static
 	 */
-	public function setMaxLength(int $length): static
+	public function setMaxLength(int $length)
 	{
 		$this->control->maxlength = $length;
 		return $this;
@@ -124,11 +126,8 @@ abstract class TextBase extends BaseControl
 	}
 
 
-	public function addRule(
-		callable|string $validator,
-		string|Stringable|null $errorMessage = null,
-		mixed $arg = null,
-	): static
+	/** @return static */
+	public function addRule($validator, $errorMessage = null, $arg = null)
 	{
 		foreach ($this->getRules() as $rule) {
 			if (!$rule->canExport() && !$rule->branch) {

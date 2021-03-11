@@ -15,11 +15,10 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-setUp(function () {
+before(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
-	ob_start();
+	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 	Form::initialize(true);
 });
 
@@ -162,12 +161,15 @@ test('empty input & validateEqual', function () use ($series) {
 });
 
 
-testException('setValue() and invalid argument', function () use ($series) {
+test('setValue() and invalid argument', function () use ($series) {
 	$form = new Form;
 	$input = $form->addCheckboxList('list', null, $series);
 	$input->setValue(null);
-	$input->setValue('unknown');
-}, Nette\InvalidArgumentException::class, "Value 'unknown' are out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'list'.");
+
+	Assert::exception(function () use ($input) {
+		$input->setValue('unknown');
+	}, Nette\InvalidArgumentException::class, "Value 'unknown' are out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'list'.");
+});
 
 
 test('object as value', function () {
@@ -182,7 +184,7 @@ test('object as value', function () {
 test('object as item', function () {
 	$form = new Form;
 	$input = $form->addCheckboxList('list')
-		->setItems([new DateTime('2013-07-05')], useKeys: false)
+		->setItems([new DateTime('2013-07-05')], false)
 		->setValue('2013-07-05 00:00:00');
 
 	Assert::equal(['2013-07-05 00:00:00' => new DateTime('2013-07-05')], $input->getSelectedItems());

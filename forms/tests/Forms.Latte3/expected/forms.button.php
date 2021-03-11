@@ -1,27 +1,27 @@
 <?php
 %A%
-		$this->global->forms->begin($form = $this->global->uiControl['myForm']) /* line %d% */;
+		$form = $this->global->formsStack[] = $this->global->uiControl['myForm'] /* line %d% */;
 		echo '<form';
-		echo $this->global->forms->renderFormBegin([], false) /* line %d% */;
+		echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), [], false) /* line %d% */;
 		echo '>
 	<button';
-		echo ($ʟ_elem = $this->global->forms->item('send')->getControlPart())->attributes() /* line %d% */;
+		echo ($ʟ_input = Nette\Bridges\FormsLatte\Runtime::item('send', $this->global))->getControlPart()->attributes() /* line %d% */;
 		echo '>
 		description of button
 	</button>
 
 	<button';
-		echo ($ʟ_elem = $this->global->forms->item('send')->getControlPart())->attributes() /* line %d% */;
+		echo ($ʟ_input = Nette\Bridges\FormsLatte\Runtime::item('send', $this->global))->getControlPart()->attributes() /* line %d% */;
 		echo '></button>
 
 	<button';
-		echo ($ʟ_elem = $this->global->forms->item('send')->getControlPart())->attributes() /* line %d% */;
+		echo ($ʟ_input = Nette\Bridges\FormsLatte\Runtime::item('send', $this->global))->getControlPart()->attributes() /* line %d% */;
 		echo '>';
-		echo LR\Filters::escapeHtmlText($ʟ_elem->value) /* line %d% */;
+		echo LR\Filters::escapeHtmlText($ʟ_input->getCaption()) /* line %d% */;
 		echo '</button>
 ';
-		echo $this->global->forms->renderFormEnd(false) /* line %d% */;
+		echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(end($this->global->formsStack), false) /* line %d% */;
 		echo '</form>
 ';
-		$this->global->forms->end();
+		array_pop($this->global->formsStack);
 %A%

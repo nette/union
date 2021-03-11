@@ -14,8 +14,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-setUp(function () {
-	ob_start();
+before(function () {
 	Form::initialize(true);
 });
 
@@ -54,6 +53,7 @@ test('validators', function () {
 	Assert::true(Validator::validateFilled($input));
 	Assert::true(Validator::validateValid($input));
 
+	Assert::false(Validator::validateLength($input, null));
 	Assert::false(Validator::validateLength($input, 2));
 	Assert::true(Validator::validateLength($input, 3));
 
@@ -89,6 +89,7 @@ test('validators for array', function () {
 	Assert::true(Validator::validateFilled($input));
 	Assert::true(Validator::validateValid($input));
 
+	Assert::false(Validator::validateLength($input, null));
 	Assert::false(Validator::validateLength($input, 2));
 	Assert::true(Validator::validateLength($input, 3));
 
@@ -131,19 +132,15 @@ test('disabled', function () {
 test('disabled & submitted', function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = ['disabled' => 'submitted value'];
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 
 	$form = new Form;
 	$form->addText('disabled')
 		->setDisabled()
 		->setDefaultValue('default');
-	$form->addText('disabled2')
-		->setDisabled();
-	$form->setDefaults(['disabled2' => 'default']);
 
 	Assert::true($form->isSubmitted());
 	Assert::same('default', $form['disabled']->getValue());
-	Assert::same('default', $form['disabled2']->getValue());
 
 	unset($form['disabled']);
 	$input = new Nette\Forms\Controls\TextInput;

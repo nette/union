@@ -26,13 +26,16 @@ $form->addText('query', 'Search:')
 	->setHtmlType('search')
 	->setHtmlAttribute('autofocus');
 
-$form->addInteger('count', 'Number of results:')
+$form->addText('count', 'Number of results:')
+	->setHtmlType('number')
 	->setDefaultValue(10)
+	->addRule($form::Integer, 'Must be numeric value')
 	->addRule($form::Range, 'Must be in range from %d to %d', [1, 100]);
 
-$form->addFloat('precision', 'Precision:')
+$form->addText('precision', 'Precision:')
 	->setHtmlType('range')
 	->setDefaultValue(50)
+	->addRule($form::Integer, 'Precision must be numeric value')
 	->addRule($form::Range, 'Precision must be in range from %d to %d', [0, 100]);
 
 $form->addEmail('email', 'Send to email:')
@@ -54,7 +57,7 @@ if ($form->isSuccess()) {
 <meta charset="utf-8">
 <title>Nette Forms and HTML5</title>
 <link rel="stylesheet" media="screen" href="assets/style.css" />
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.js"></script>
 
 <h1>Nette Forms and HTML5</h1>
 

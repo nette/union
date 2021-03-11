@@ -39,7 +39,7 @@ test('', function () {
 });
 
 
-testException('', function () {
+Assert::exception(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('forms', new FormsExtension);
 
