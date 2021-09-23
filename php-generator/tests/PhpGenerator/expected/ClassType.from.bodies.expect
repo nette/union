@@ -27,7 +27,7 @@ abstract class Class7
 
 	public function long()
 	{
-		if ($member instanceof \Abc\Method) {
+		if ($member instanceof Method) {
 			$s = [1, 2, 3];
 		}
 		/*
@@ -41,17 +41,17 @@ abstract class Class7
 	{
 		echo FOO;
 		echo \FOO;
-		echo \Abc\a\FOO;
+		echo a\FOO;
 		echo \Nette\FOO;
 
 		// functions
 		func();
 		\func();
-		\Abc\a\func();
+		a\func();
 		\Nette\func();
 
 		// classes
-		$x = new \Abc\MyClass;
+		$x = new MyClass;
 		$y = new \stdClass;
 		$z = \Nette\Utils\ArrayHash::class;
 	}
@@ -77,7 +77,7 @@ abstract class Class7
 		line
 		comment */
 		// Alias Method will not be resolved in comment
-		if ($member instanceof \Abc\Method) {
+		if ($member instanceof Method) {
 			$s1 = "\na\n\tb\n\t\tc\n";
 			$s2 = "\na\n\t{$b}\n\t\t$c\n";
 
