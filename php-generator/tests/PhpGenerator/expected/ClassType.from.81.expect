@@ -1,3 +1,4 @@
+#[Attr(new Abc\Attr(/* unknown */))]
 class Class11
 {
 	final public const FOO = 10;
@@ -7,6 +8,11 @@ class Class11
 
 
 	public function foo(Foo&Bar $c): Foo&Bar
+	{
+	}
+
+
+	public function bar($c = new stdClass(/* unknown */))
 	{
 	}
 }
