@@ -424,7 +424,7 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function removeAllow($roles = self::All, $resources = self::All, $privileges = self::All)
+	public function removeAllow($roles = self::All, $resources = self::All, $privileges = self::All): static
 	{
 		$this->setRule(false, self::Allow, $roles, $resources, $privileges);
 		return $this;
@@ -439,7 +439,7 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function removeDeny($roles = self::All, $resources = self::All, $privileges = self::All)
+	public function removeDeny($roles = self::All, $resources = self::All, $privileges = self::All): static
 	{
 		$this->setRule(false, self::Deny, $roles, $resources, $privileges);
 		return $this;
