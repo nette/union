@@ -61,10 +61,7 @@ class Explorer
 	}
 
 
-	/**
-	 * @return mixed
-	 */
-	public function transaction(callable $callback)
+	public function transaction(callable $callback): mixed
 	{
 		return $this->connection->transaction(fn() => $callback($this));
 	}
@@ -133,9 +130,8 @@ class Explorer
 	/**
 	 * Shortcut for query()->fetchField()
 	 * @param  literal-string  $sql
-	 * @return mixed
 	 */
-	public function fetchField(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params)
+	public function fetchField(#[Language('SQL')] string $sql, #[Language('GenericSQL')] ...$params): mixed
 	{
 		return $this->connection->query($sql, ...$params)->fetchField();
 	}
