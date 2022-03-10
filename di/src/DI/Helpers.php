@@ -85,7 +85,7 @@ final class Helpers
 		}
 
 		return $dynamic
-			? new Statement('::implode', ['', $res])
+			? new Statement('::implode', [$res])
 			: implode('', $res);
 	}
 
@@ -274,7 +274,7 @@ final class Helpers
 
 		throw new Nette\InvalidStateException(sprintf(
 			'Cannot convert %s to %s.',
-			is_scalar($value) ? "'$value'" : gettype($value),
+			is_scalar($value) ? "'$value'" : get_debug_type($value),
 			$type,
 		));
 	}
