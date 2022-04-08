@@ -1,5 +1,6 @@
 <?php
 
+/** @phpversion 8.1 */
 // Array spread
 
 declare(strict_types=1);
