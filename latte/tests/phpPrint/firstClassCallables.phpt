@@ -1,5 +1,6 @@
 <?php
 
+/** @phpversion 8.1 */
 // First-class callables
 
 declare(strict_types=1);
