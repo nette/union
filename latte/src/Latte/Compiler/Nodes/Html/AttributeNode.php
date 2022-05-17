@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Latte\Compiler\Nodes\Html;
 
+use Latte\Compiler\NodeHelpers;
 use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
@@ -17,10 +18,8 @@ use Latte\Compiler\PrintContext;
 class AttributeNode extends AreaNode
 {
 	public function __construct(
-		public string $name,
-		public string $text,
+		public AreaNode $name,
 		public ?AreaNode $value = null,
-		public ?string $quote = null,
 		public ?Position $position = null,
 	) {
 	}
@@ -28,11 +27,12 @@ class AttributeNode extends AreaNode
 
 	public function print(PrintContext $context): string
 	{
-		$res = 'echo ' . var_export($this->text, true) . ';';
-		$context->restoreEscape();
-		$context->beginEscape()->enterHtmlAttribute($this->name, $this->quote);
+		$res = $this->name->print($context);
 		if ($this->value) {
+			$context->beginEscape()->enterHtmlAttribute(NodeHelpers::toText($this->name));
+			$res .= "echo '=';";
 			$res .= $this->value->print($context);
+			$context->restoreEscape();
 		}
 		return $res;
 	}
@@ -40,6 +40,7 @@ class AttributeNode extends AreaNode
 
 	public function &getIterator(): \Generator
 	{
+		yield $this->name;
 		if ($this->value) {
 			yield $this->value;
 		}
