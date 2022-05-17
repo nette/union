@@ -9,22 +9,16 @@ declare(strict_types=1);
 
 namespace Latte\Runtime;
 
+use Latte;
+
 
 /** @internal */
 final class Block
 {
-	/** content type */
+	use Latte\Strict;
+
 	public ?string $contentType = null;
 
-	/** used by BlockMacros */
-	public ?string $code = null;
-
-	/** @var callable[]  used by Template */
+	/** @var callable[] */
 	public array $functions = [];
-
-	/** used by BlockMacros */
-	public bool $hasParameters = false;
-
-	/** used by BlockMacros */
-	public ?string $comment = null;
 }
