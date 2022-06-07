@@ -84,20 +84,21 @@ The whole configuration including is stored in `config/` in files `common.neon` 
 Injecting the Database Connection
 =================================
 
-The presenter `HomePresenter`, which will list the articles, needs a database connection. To receive it, write a constructor like this:
+The presenter `HomepagePresenter`, which will list the articles, needs a database connection. To receive it, write a constructor like this:
 
-```php .{file:app/Presenters/HomePresenter.php}
-<?php
+```php .{file:app/Presenters/HomepagePresenter.php}
 namespace App\Presenters;
 
 use Nette;
 use Nette\Application\UI\Form;
 
-final class HomePresenter extends Nette\Application\UI\Presenter
+final class HomepagePresenter extends Nette\Application\UI\Presenter
 {
-	public function __construct(
-		private Nette\Database\Explorer $database,
-	) {
+	private Nette\Database\Explorer $database;
+
+	public function __construct(Nette\Database\Explorer $database)
+	{
+		$this->database = $database;
 	}
 
 	// ...
@@ -110,7 +111,7 @@ Loading Posts from the Database
 
 Now let’s fetch the posts from the database and pass them to the template, which will then render the HTML code. This is what the so-called *render* method is for:
 
-```php .{file:app/Presenters/HomePresenter.php}
+```php .{file:app/Presenters/HomepagePresenter.php}
 public function renderDefault(): void
 {
 	$this->template->posts = $this->database
@@ -120,7 +121,7 @@ public function renderDefault(): void
 }
 ```
 
-The presenter now has one render method `renderDefault()` that passes data to a view called `default`. Presenter templates can be found in `app/Presenters/templates/{PresenterName}/{viewName}.latte`, so in this case the template will be located in `app/Presenters/templates/Home/default.latte`. In the template, a variable named `$posts` is now available, which contains the posts from database.
+The presenter now has one render method `renderDefault()` that passes data to a view called `default`. Presenter templates can be found in `app/Presenters/templates/{PresenterName}/{viewName}.latte`, so in this case the template will be located in `app/Presenters/templates/Homepage/default.latte`. In the template, a variable named `$posts` is now available, which contains the posts from database.
 
 
 Template
@@ -136,9 +137,9 @@ By default, the layout template is located in `templates/@layout.latte`, which c
 ...
 ```
 
-`{include content}` inserts a block named `content` into the main template. You can define it in the templates of each view. In this case, we will edit the file `Home/default.latte` like this:
+`{include content}` inserts a block named `content` into the main template. You can define it in the templates of each view. In this case, we will edit the file `Homepage/default.latte` like this:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
 	Hello World
 {/block}
@@ -148,9 +149,9 @@ It defines the *content* [block |latte:tags#block], which will be inserted into 
 
 Let’s display the blog posts - we will edit the template like this:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
-	<h1>My blog</h1>
+	<h1 n:block="title">My blog</h1>
 
 	{foreach $posts as $post}
 	<div class="post">
@@ -164,13 +165,12 @@ Let’s display the blog posts - we will edit the template like this:
 {/block}
 ```
 
-If you refresh your browser, you’ll see the list of your blog posts. The list isn't very fancy or colorful, so feel free to add some [shiny CSS |https://github.com/nette-examples/quickstart/blob/v4.0/www/css/style.css] to `www/css/style.css` and link it in a layout:
+If you refresh your browser, you’ll see the list of your blog posts. The list isn't very fancy or colorful, so feel free to add some [shiny CSS |https://github.com/nette/tutorial-quickstart/blob/v3.1/www/css/style.css] to `www/css/style.css` and link it in a layout:
 
 ```latte .{file:app/Presenters/templates/@layout.latte}
 	...
 	<link rel="stylesheet" href="{$basePath}/css/style.css">
 </head>
-...
 ```
 
 The `{foreach}` tag iterates over all posts passed to the template in `$posts` variable and displays a piece of HTML code for each post. Just like a PHP code would.
@@ -179,18 +179,14 @@ The `|date` thing is called a filter. Filters are used to format the output. Thi
 
 One more thing. We can make the code a little bit shorter and thus simpler. We can replace *Latte tags* with *n:attributes* like this:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
-{block content}
-	<h1>My blog</h1>
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
+<div n:foreach="$posts as $post" class="post">
+	<div class="date">{$post->created_at|date:'F j, Y'}</div>
 
-	<div n:foreach="$posts as $post" class="post">
-		<div class="date">{$post->created_at|date:'F j, Y'}</div>
+	<h2>{$post->title}</h2>
 
-		<h2>{$post->title}</h2>
-
-		<div>{$post->content}</div>
-	</div>
-{/block}
+	<div>{$post->content}</div>
+</div>
 ```
 
 The `n:foreach`, simply wraps the *div* with a *foreach* block (it does exactly the same thing as the previous block of code).

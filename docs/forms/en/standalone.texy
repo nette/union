@@ -120,36 +120,36 @@ If you look in the source code of the page with form, you may notice that Nette 
 
 Additional validation rules will be added by method `addRule()`. The first parameter is rule, the second is again the text of the error message, and the optional validation rule argument can follow. What does that mean?
 
-The form will get another optional input *age* with the condition, that it has to be a number (`addInteger()`) and in certain boundaries (`$form::Range`). And here we will use the third argument of `addRule()`, the range itself:
+The form will get another optional input *age* with the condition, that it has to be a number (`addInteger()`) and in certain boundaries (`$form::RANGE`). And here we will use the third argument of `addRule()`, the range itself:
 
 ```php
 $form->addInteger('age', 'Age:')
-	->addRule($form::Range, 'You must be older 18 years and be under 120.', [18, 120]);
+	->addRule($form::RANGE, 'You must be older 18 years and be under 120.', [18, 120]);
 ```
 
 .[tip]
 If the user does not fill in the field, the validation rules will not be verified, because the field is optional.
 
-Obviously room for a small refactoring is available. In the error message and in the third parameter, the numbers are listed in duplicate, which is not ideal. If we were creating a [multilingual form|rendering#translating] and the message containing numbers would have to be translated into multiple languages, it would make it more difficult to change values. For this reason, substitute characters `%d` can be used:
+Obviously room for a small refactoring is available. In the error message and in the third parameter, the numbers are listed in duplicate, which is not ideal. If we were creating a [multilingual form|best-practices:translations] and the message containing numbers would have to be translated into multiple languages, it would make it more difficult to change values. For this reason, substitute characters `%d` can be used:
 
 ```php
-	->addRule($form::Range, 'You must be older %d years and be under %d.', [18, 120]);
+	->addRule($form::RANGE, 'You must be older %d years and be under %d.', [18, 120]);
 ```
 
-Let's return to the *password* field, make it *required*, and verify the minimum password length (`$form::MinLength`), again using the substitute characters in the message:
+Let's return to the *password* field, make it *required*, and verify the minimum password length (`$form::MIN_LENGTH`), again using the substitute characters in the message:
 
 ```php
 $form->addPassword('password', 'Password:')
 	->setRequired('Pick a password')
-	->addRule($form::MinLength, 'Your password has to be at least %d long', 8);
+	->addRule($form::MIN_LENGTH, 'Your password has to be at least %d long', 8);
 ```
 
-We will add a field `passwordVerify` to the form, where the user enters the password again, for checking. Using validation rules, we check whether both passwords are the same (`$form::Equal`). And as an argument we give a reference to the first password using [square brackets |#Access to Controls]:
+We will add a field `passwordVerify` to the form, where the user enters the password again, for checking. Using validation rules, we check whether both passwords are the same (`$form::EQUAL`). And as an argument we give a reference to the first password using [square brackets |#Access to Controls]:
 
 ```php
 $form->addPassword('passwordVerify', 'Password again:')
 	->setRequired('Fill your password again to check for typo')
-	->addRule($form::Equal, 'Password mismatch', $form['password'])
+	->addRule($form::EQUAL, 'Password mismatch', $form['password'])
 	->setOmitted();
 ```
 
@@ -196,14 +196,18 @@ There are really a lot of ways to render a form, so it's dedicated [chapter abou
 Mapping to Classes
 ==================
 
-Let's go back to form data processing. Method `getValues()` returned the submitted data as an `ArrayHash` object. Because this is a generic class, something like `stdClass`, we will lack some convenience when working with it, such as code completition for properties in editors or static code analysis. This could be solved by having a specific class for each form, whose properties represent the individual controls. E.g.:
+Let's go back to form data processing. Method `getValues()` returned the submitted data as an `ArrayHash` object. Because this is a generic class, something like `stdClass`, we will lack some convenience when working with it, such as code completition for properties in editors
+or static code analysis. This could be solved by having a specific class for each form, whose properties represent the individual controls. E.g.:
 
 ```php
 class RegistrationFormData
 {
-	public string $name;
-	public int $age;
-	public string $password;
+	/** @var string */
+	public $name;
+	/** @var int */
+	public $age;
+	/** @var string */
+	public $password;
 }
 ```
 
@@ -289,7 +293,7 @@ Vulnerability Protection
 
 Nette Framework puts a great effort to be safe and since forms are the most common user input, Nette forms are as good as impenetrable.
 
-In addition to protecting the forms against attack well-known vulnerabilities such as [Cross-Site Scripting (XSS) |nette:glossary#cross-site-scripting-xss] and [Cross-Site Request Forgery (CSRF)|nette:glossary#cross-site-request-forgery-csrf] it does a lot of small security tasks that you no longer have to think about.
+In addition to protecting the forms agains attack well-known vulnerabilities such as [Cross-Site Scripting (XSS) |nette:glossary#cross-site-scripting-xss] and [Cross-Site Request Forgery (CSRF)|nette:glossary#cross-site-request-forgery-csrf] it does a lot of small security tasks that you no longer have to think about.
 
 For example, it filters out all control characters from the inputs and checks the validity of the UTF-8 encoding, so that the data from the form will always be clean. For select boxes and radio lists, it verifies that the selected items were actually from the offered ones and there was no forgery. We've already mentioned that for single-line text input, it removes end-of-line characters that an attacker could send there. For multiline inputs, it normalizes the end-of-line characters. And so on.
 
@@ -301,7 +305,7 @@ The mentioned CSRF attack is that an attacker lures the victim to visit a page t
 $form->allowCrossOrigin(); // ATTENTION! Turns off protection!
 ```
 
-This protection uses a SameSite cookie named `_nss`. Therefore, create a form before flushing the first output so that the cookie can be sent.
+This protection uses a SameSite cookie named `_nss`. Therefore, create a form before flushing the first output so that the cookie can be sended.
 
 SameSite cookie protection may not be 100% reliable, so it's a good idea to turn on token protection:
 
@@ -313,3 +317,6 @@ It's strongly recommended to apply this protection to the forms in an administra
 Otherwise, start the session with the method `Nette\Http\Session::start()`.
 
 So, we have a quick introduction to forms in Nette. Try looking in the [examples |https://github.com/nette/forms/tree/master/examples] directory in the distribution for more inspiration.
+
+
+{{composer: nette/forms}}

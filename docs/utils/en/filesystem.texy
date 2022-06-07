@@ -2,10 +2,8 @@ Filesystem Functions
 ********************
 
 .[perex]
-[api:Nette\Utils\FileSystem] is a class, which contains useful functions for working with a filesystem. One advantage over native PHP functions is that they throw exceptions in case of errors.
+[api:Nette\Utils\FileSystem] is a static class, which contains useful functions for working with a filesystem.
 
-
-If you need to search for files on the disk, use the [Finder |finder].
 
 Installation:
 
@@ -20,107 +18,22 @@ use Nette\Utils\FileSystem;
 ```
 
 
-Manipulation
-============
-
-
 copy(string $origin, string $target, bool $overwrite=true): void .[method]
 --------------------------------------------------------------------------
 
-Copies a file or an entire directory. Overwrites existing files and directories by default. If `$overwrite` is set to `false` and a `$target` already exists, throws an exception `Nette\InvalidStateException`. Throws an exception `Nette\IOException` on error occurred.
-
-```php
-FileSystem::copy('/path/to/source', '/path/to/dest', overwrite: true);
-```
+Copies a file or a directory `$origin` to a `$target`. Overwrites existing files and directories by default. If `$overwrite` is set to `false` and a `$target` already exists, throws an exception `Nette\InvalidStateException`. Throws an exception `Nette\IOException` on error occurred.
 
 
 createDir(string $directory, int $mode=0777): void .[method]
 ------------------------------------------------------------
 
-Creates a directory if it does not exist, including parent directories. Throws an exception `Nette\IOException` on error occurred.
-
-```php
-FileSystem::createDir('/path/to/dir');
-```
+Creates a `$directory` if it doesn't exist. Throws an exception `Nette\IOException` on error occurred.
 
 
 delete(string $path): void .[method]
 ------------------------------------
 
-Deletes a file or an entire directory if exists. If the directory is not empty, it deletes its contents first. Throws an exception `Nette\IOException` on error occurred.
-
-```php
-FileSystem::delete('/path/to/fileOrDir');
-```
-
-
-makeWritable(string $path, int $dirMode=0777, int $fileMode=0666): void .[method]
----------------------------------------------------------------------------------
-
-Sets file permissions to `$fileMode` or directory permissions to `$dirMode`. Recursively traverses and sets permissions on the entire contents of the directory as well.
-
-```php
-FileSystem::makeWritable('/path/to/fileOrDir');
-```
-
-
-open(string $path, string $mode): resource .[method]
-----------------------------------------------------
-
-Opens file and returns resource. The `$mode` parameter works the same as the native `fopen()`:https://www.php.net/manual/en/function.fopen.php function. If an error occurs, it raises the `Nette\IOException` exception.
-
-```php
-$res = FileSystem::open('/path/to/file', 'r');
-```
-
-
-read(string $file): string .[method]
-------------------------------------
-
-Reads the content of a `$file`. Throws an exception `Nette\IOException` on error occurred.
-
-```php
-$content = FileSystem::read('/path/to/file');
-```
-
-
-readLines(string $file, bool $stripNewLines=true): \Generator .[method]
------------------------------------------------------------------------
-
-Reads the file content line by line. Unlike the native `file()` function, it does not read the entire file into memory, but reads it continuously, so that files larger than the available memory can be read. The `$stripNewLines` specifies whether to strip the `\r` and `\n` line break characters.
-In case of an error, it raises a `Nette\IOException` exception.
-
-```php
-$lines = FileSystem::readLines('/path/to/file');
-
-foreach ($lines as $lineNum => $line) {
-	echo "Line $lineNum: $line\n";
-}
-```
-
-
-rename(string $origin, string $target, bool $overwrite=true): void .[method]
-----------------------------------------------------------------------------
-
-Renames or moves a file or a directory specified by `$origin` to `$target`. Overwrites existing files and directories by default. If `$overwrite` is set to `false` and `$target` already exists, throws an exception `Nette\InvalidStateException`. Throws an exception `Nette\IOException` on error occurred.
-
-```php
-FileSystem::rename('/path/to/source', '/path/to/dest', overwrite: true);
-```
-
-
-write(string $file, string $content, int $mode=0666): void .[method]
---------------------------------------------------------------------
-
-Writes the `$content` to a `$file`. Throws an exception `Nette\IOException` on error occurred.
-
-```php
-FileSystem::write('/path/to/file', $content);
-```
-
-
-Paths
-=====
+Deletes a file or a directory specified by `$path` if exists. Throws an exception `Nette\IOException` on error occurred.
 
 
 isAbsolute(string $path): bool .[method]
@@ -158,45 +71,23 @@ FileSystem::normalizePath('file/../../bar'); // '/../bar'
 ```
 
 
-unixSlashes(string $path): string .[method]
--------------------------------------------
+read(string $file): string .[method]
+------------------------------------
 
-Converts slashes to `/` used on Unix systems.
-
-```php
-$path = FileSystem::unixSlashes($path);
-```
+Reads the content of a `$file`. Throws an exception `Nette\IOException` on error occurred.
 
 
-platformSlashes(string $path): string .[method]
------------------------------------------------
+rename(string $origin, string $target, bool $overwrite=true): void .[method]
+----------------------------------------------------------------------------
 
-Converts slashes to characters specific to the current platform, i.e. `\` on Windows and `/` elsewhere.
-
-```php
-$path = FileSystem::platformSlashes($path);
-```
+Renames or moves a file or a directory specified by `$origin` to `$target`. Overwrites existing files and directories by default. If `$overwrite` is set to `false` and `$target` already exists, throws an exception `Nette\InvalidStateException`. Throws an exception `Nette\IOException` on error occurred.
 
 
-Static vs Non-static Approach
-=============================
+write(string $file, string $content, int $mode=0666): void .[method]
+--------------------------------------------------------------------
 
-To easily replace the `FileSystem` class with another class for example for testing purposes, use it non-statically:
-
-```php
-class AnyClassUsingFileSystem
-{
-	public function __construct(
-		private FileSystem $fileSystem,
-	) {
-	}
+Writes the `$content` to a `$file`. Throws an exception `Nette\IOException` on error occurred.
 
 
-	public function readConfig(): string
-	{
-		return $this->fileSystem->read(/* ... */);
-	}
 
-	...
-}
-```
+{{composer: nette/utils}}

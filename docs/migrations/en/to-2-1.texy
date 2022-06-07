@@ -137,7 +137,7 @@ Database (NDB)
 
 Are you using Nette Database Table (NDBT), a great part of the NDB to which is accessed via `$database->table(...)`?
 
-- method `table()` was moved from `Connection` to new class `Nette\Database\Context`. It contains all of the important methods for working with databases, so feel free to change the `Connection` for `Context` and you're done.
+- method `table()` was moved from `Connection` to new class `Nette\Database\Context`. It "contains":https://api.nette.org/2.1/Nette.Database.Context.html all of the important methods for working with databases, so feel free to change the `Connection` for `Context` and you're done.
 - properties of `ActiveRow` are now read-only, for updating use `$row->update(['field' => 'value'])`. The old behavior had so many difficulties, sorry.
 - backjoin syntax was changed from `book_tag:tag.name` to `:book_tag.tag.name` (see semicolons)
 - instead of second argument `$having` in method `group()` use method `having()`
@@ -191,7 +191,7 @@ Latte
 -----
 - default mode is HTML (instead of XHTML); if you need to use XHTML, please see configuration
 - automatic quoting of attributes in `<a title={$title}>`; this should not cause any trouble, but it's better to mention it just in case
-- renamed `n:input` to `n:name`; it can be used on tags other than `<input>`, like label, select, form and textarea
+- renamed`n:input` to `n:name`; it can be used on tags other than `<input>`, like label, select, form and textarea
 - deprecated `{attr}` (replaced by `n:attr`) and `{assign}` -> `{var}`
 - it's now best practice to use `{$var|noescape}` instead of old "exclamation mark" notation `{!$var}`, it's more clearer
 - shorter macro for blocks `{#block}` (present in development version) was not included in version 2.1 due to comprehension reasons
@@ -229,7 +229,7 @@ Debugger
 
 Mail
 ----
-- Deprecated method `Nette\Mail\Message::send()`, use mailer
+- Deprecated method `Nette\Mail\Message::send()`, use mailer, see "documentation":https://doc.nette.org/en/2.1/mailing.
 - Mail\Message: methods `setHtmlBody()` and `setBody()` render template immediately
 - MimePart: removed method `generateMessage()`, use `getEncodedMessage()` instead
 

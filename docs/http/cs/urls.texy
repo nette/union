@@ -40,7 +40,7 @@ Lze také URL naparsovat a dále s ním manipulovat:
 
 ```php
 $url = new Url(
-	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer',
+	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer'
 );
 ```
 
@@ -54,7 +54,6 @@ Pro vrácení nebo změnu jednotlivých komponent URL jsou vám k dispozici tyto
 | `setPassword(string $password)`			| `getPassword(): string`		| `'xyz*12'`
 | `setHost(string $host)`					| `getHost(): string`			| `'nette.org'`
 | `setPort(int $port)`						| `getPort(): ?int`				| `8080`
-|											| `getDefaultPort(): ?int`		| `80`
 | `setPath(string $path)`					| `getPath(): string`			| `'/en/download'`
 | `setQuery(string\|array $query)`			| `getQuery(): string`			| `'name=param'`
 | `setFragment(string $fragment)`			| `getFragment(): string`		| `'footer'`
@@ -105,7 +104,7 @@ Třída [api:Nette\Http\UrlImmutable] je immutable (neměnnou) alternativou tř�
 use Nette\Http\UrlImmutable;
 
 $url = new UrlImmutable(
-	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer',
+	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer'
 );
 
 $newUrl = $url
@@ -126,7 +125,6 @@ Pro vrácení nebo změnu jednotlivých komponent URL slouží metody:
 | `withPassword(string $password)`			| `getPassword(): string`		| `'xyz*12'`
 | `withHost(string $host)`					| `getHost(): string`			| `'nette.org'`
 | `withPort(int $port)`						| `getPort(): ?int`				| `8080`
-|											| `getDefaultPort(): ?int`		| `80`
 | `withPath(string $path)`					| `getPath(): string`			| `'/en/download'`
 | `withQuery(string\|array $query)`			| `getQuery(): string`			| `'name=param'`
 | `withFragment(string $fragment)`			| `getFragment(): string`		| `'footer'`
@@ -182,3 +180,6 @@ Pro vrácení částí URL jsou k dispozici metody:
 | `getPathInfo(): string`		| `'/pathinfo/'`
 
 Objekty `UrlScript` přímo nevytváříme, ale vrací jej metoda [Nette\Http\Request::getUrl()|request].
+
+
+{{composer: nette/http}}

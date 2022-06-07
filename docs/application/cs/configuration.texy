@@ -19,9 +19,6 @@ application:
 	# název error-presenteru
 	errorPresenter: Error   # (string) výchozí je 'Nette:Error'
 
-	# definuje pravidla pro překlad názvu presenteru na třídu
-	mapping: ...
-
 	# chybné odkazy negenerují varování?
 	# má efekt pouze ve vývojářském režimu
 	silentLinks: ...        # (bool) výchozí je false
@@ -31,7 +28,56 @@ Protože ve vývojovém režimu se error-presentery standardně nevolají a chyb
 
 Volba `silentLinks` určuje, jak se Nette zachová ve vývojářském režimu, když selže generování odkazu (třeba proto, že neexistuje presenter, atd). Výchozí hodnota `false` znamená, že Nette vyhodí `E_USER_WARNING` chybu. Nastavením na `true` dojde k potlačení této chybové hlášky. V produkčním prostředí se `E_USER_WARNING` vyvolá vždy. Toto chování můžeme také ovlivnit nastavením proměnné presenteru [$invalidLinkMode|creating-links#neplatne-odkazy].
 
-[Mapování definuje pravidla |modules#mapování], podle kterých se z názvu presenteru odvodí název třídy.
+
+Mapování
+--------
+
+Definuje pravidla, podle kterých se z názvu presenteru (třeba `Homepage`) odvodí název třídy (třeba `App\Presenters\HomepagePresenter`). Právě takového mapování lze docílit následující konfigurací:
+
+```neon
+application:
+	mapping:
+		*: App\Presenters\*Presenter
+```
+
+Název presenteru se nahradí za hvezdičku a výsledkem je název třídy. Snadné!
+
+Pokud presentery členíme do modulů, můžeme pro každý modul mít vlastní mapování:
+
+```neon
+application:
+	mapping:
+		Front: App\Modules\Front\*Presenter
+		Admin: App\Modules\Admin\*Presenter
+		Api: App\Api\*Presenter
+```
+
+Nyní se presenter `Front:Homepage` mapuje na třídu `App\Modules\Front\HomepagePresenter` a presenter `Admin:Dashboard` na třídu `App\Modules\Admin\DashboardPresenter`.
+
+Šikovnější bude vytvořit obecné (hvězdičkové) pravidlo, které první dvě nahradí a přibude v něm hvezdička navíc právě pro modul:
+
+```neon
+application:
+	mapping:
+		*: App\Modules\*\*Presenter
+		Api: App\Api\*Presenter
+```
+
+Opět presenter `Front:Homepage` namapuje na třídu `App\Modules\Front\HomepagePresenter`.
+
+Ale co když používáme vícenásobně zanořené moduly a máme třeba presenter `Admin:User:Edit`? V takovém případě se segment s hvězdičkou představující modul pro každou úroveň jednoduše zopakuje a výsledkem bude třída `App\Modules\Admin\User\EditPresenter`.
+
+Alternativním zápisem je místo řetězce použít pole skládající se ze tří segmentů:
+
+```neon
+application:
+	mapping:
+		*: [App\Modules, *, *Presenter]
+```
+
+Tento zápis je ekvivalentní s původním `App\Modules\*\*Presenter`.
+
+Výchozí hodnotou je `*: *Module\*Presenter`.
 
 
 Automatická registrace presenterů
@@ -73,14 +119,11 @@ latte:
 	# zobrazit Latte panel v Tracy Baru pro hlavní šablonu (true) nebo všechny komponenty (all)?
 	debugger: ...        # (true|false|'all') výchozí je true
 
+	# přepne Latte do XHTML režimu (deprecated)
+	xhtml: ...           # (bool) výchozí je false
+
 	# generuje šablony s hlavičkou declare(strict_types=1)
 	strictTypes: ...     # (bool) výchozí je false
-
-	# zapne režim [striktního parseru |latte:develop#striktní režim]
-	strictParsing: ...   # (bool) výchozí je false
-
-	# aktivuje [kontrolu vygenerovaného kódu |latte:develop#Kontrola vygenerovaného kódu]
-	phpLinter: ...       # (string) výchozí je null
 
 	# třída objektu $this->template
 	templateClass: App\MyTemplateClass # výchozí je Nette\Bridges\ApplicationLatte\DefaultTemplate
@@ -123,7 +166,7 @@ routing:
 	cache: ...      # (bool) výchozí je false
 ```
 
-Routování obvykle definujeme ve třídě [RouterFactory |routing#Kolekce rout]. Alternativně lze routy definovat také v konfiguraci pomocí dvojic `maska: akce`, ale tento způsob nenabízí tak širokou variabilitu v nastavení:
+Routování obvykle definujeme ve třídě RouterFactory, omezenější alternativou je definice v konfiguraci pomocí dvojic `maska: akce`:
 
 ```neon
 routing:
@@ -140,13 +183,10 @@ Vytváření PHP konstant.
 
 ```neon
 constants:
-	Foobar: 'baz'
+	FOOBAR: 'baz'
 ```
 
-Po nastartování aplikace bude vytvořena konstanta `Foobar`.
-
-.[note]
-Konstanty by neměly sloužit jako jakési globálně dostupné proměnné. Pro předávání hodnot do objektů využijte [dependency injection |dependency-injection:passing-dependencies].
+Po nastartování aplikace bude vytvořena konstanta `FOOBAR`.
 
 
 PHP
@@ -158,18 +198,3 @@ Nastavení direktiv PHP. Přehled všech direktiv naleznete na [php.net |https:/
 php:
 	date.timezone: Europe/Prague
 ```
-
-
-Služby DI
-=========
-
-Tyto služby se přidávají do DI kontejneru:
-
-| Název           | Typ                        | Popis
-|----------------------------------------------------------
-| `application.application`	     | [api:Nette\Application\Application]      |  [spouštěč celé aplikace |how-it-works#Nette Application]
-| `application.linkGenerator`    | [api:Nette\Application\LinkGenerator]    |  [LinkGenerator |creating-links#LinkGenerator]
-| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] |  továrna na presentery
-| `application.###`              | [api:Nette\Application\UI\Presenter]     |  jednotlivé presentery
-| `latte.latteFactory`           | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | továrna objektu `Latte\Engine`
-| `latte.templateFactory`        | [api:Nette\Application\UI\TemplateFactory] | továrna pro [`$this->template` |templates]

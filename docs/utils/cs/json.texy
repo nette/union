@@ -4,7 +4,6 @@ Práce s JSON
 .[perex]
 [api:Nette\Utils\Json] je statická třída s funkcemi pro kódování a dekódování formátu JSON. Ošetřuje zranitelnosti různých verzí PHP a vyhazuje výjimky při chybách.
 
-
 Instalace:
 
 ```shell
@@ -22,39 +21,15 @@ Použití
 =======
 
 
-encode(mixed $value, bool $pretty=false, bool $asciiSafe=false, bool $htmlSafe=false, bool $forceObjects=false): string .[method]
----------------------------------------------------------------------------------------------------------------------------------
+encode(mixed $value, int $flags=0): string .[method]
+----------------------------------------------------
 
-Převádí `$value` do formátu JSON.
-
-Při nastavení `$pretty` naformátuje JSON pro snažší čtení a přehlednost:
+Převádí `$value` do formátu JSON. Příznak `$flag` může být `Json::PRETTY`, který naformátuje JSON pro snažší čtení a přehlednost, a `Json::ESCAPE_UNICODE`, který zajistí výstup v ASCII.
 
 ```php
 Json::encode($value); // vrací JSON
-Json::encode($value, pretty: true); // vrací přehlednější JSON
-```
-
-Při `$asciiSafe` vygeneruje výstup v ASCII, tj. unicode znaky nahradí za sekvence `\uxxxx`:
-
-```php
-Json::encode('žluťoučký', asciiSafe: true);
-// '"\u017elu\u0165ou\u010dk\u00fd"'
-```
-
-Parametr `$htmlSafe` zajistí, že výstup nebude obsahovat znaky mající v HTML speciální význam:
-
-```php
-Json::encode('one<two & three', htmlSafe: true);
-// '"one\u003Ctwo \u0026 three"'
-```
-
-S `$forceObjects` se budou i pole s numerickými klíči kódovat jako JavaScriptové objekty:
-
-```php
-Json::encode(['a', 'b', 'c']);
-// '["a","b","c"]'
-Json::encode(['a', 'b', 'c'], forceObjects: true);
-// '{"0":"a","1":"b","2":"c"}'
+Json::encode($value, Json::PRETTY); // vrací přehlednější JSON
+Json::encode($value, Json::PRETTY | Json::ESCAPE_UNICODE); // kombinace
 ```
 
 Při chybě vyhazuje výjimku `Nette\Utils\JsonException`.
@@ -68,16 +43,15 @@ try {
 ```
 
 
-decode(string $json, bool $forceArray=false): mixed .[method]
--------------------------------------------------------------
+decode(string $json, int $flags=0): mixed .[method]
+---------------------------------------------------
 
-Parsuje JSON do PHP.
-
-Nastavení `$forceArray` vynutí vrácení polí místo objektů:
+Parsuje JSON do PHP. Příznak `$flag` může být `Json::FORCE_ARRAY`, který vynutí vrácení pole místo objektu.
 
 ```php
 Json::decode('{"variable": true}'); // vrací objekt typu stdClass
-Json::decode('{"variable": true}', forceArray: true); // vrací pole
+Json::decode('{"variable": true}', Json::FORCE_ARRAY); // vrací pole
+Json::decode('true'); // vrací true
 ```
 
 Při chybě vyhazuje výjimku `Nette\Utils\JsonException`.
@@ -95,3 +69,6 @@ Jak odeslat JSON z presenteru?
 ==============================
 
 Lze k tomu použít metodu `$this->sendJson($data)`, kterou můžeme zavolat třeba v metodě `action*()`, viz [Odeslání odpovědi|application:presenters#Odeslání odpovědi].
+
+
+{{composer: nette/utils}}

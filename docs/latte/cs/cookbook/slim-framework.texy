@@ -49,17 +49,17 @@ use Psr\Container\ContainerInterface;
 
 return [
 
-	// ...
+    // ...
 
-	Engine::class => function (ContainerInterface $container) {
-		$latte = new Engine();
-		$settings = $container->get('settings');
-		$latte->setLoader(new FileLoader($settings['template']));
-		$latte->setTempDirectory($settings['template_temp']);
-		$latte->setAutoRefresh($settings['template_auto_refresh']);
+    Engine::class => function (ContainerInterface $container) {
+        $latte = new Engine();
+        $settings = $container->get('settings');
+        $latte->setLoader(new FileLoader($settings['template']));
+        $latte->setTempDirectory($settings['template_temp']);
+        $latte->setAutoRefresh($settings['template_auto_refresh']);
 
-		return $latte;
-	},
+        return $latte;
+    },
 ];
 ```
 
@@ -79,22 +79,24 @@ use Psr\Http\Message\ResponseInterface;
 
 final class TemplateRenderer
 {
-	public function __construct(
-		private Engine $engine,
-	) {
-	}
+    private Engine $engine;
 
-	public function template(
-		ResponseInterface $response,
-		string $template,
-		array $data = [],
-	): ResponseInterface
-	{
-		$string = $this->engine->renderToString($template, $data);
-		$response->getBody()->write($string);
+    public function __construct(Engine $engine)
+    {
+        $this->engine = $engine;
+    }
 
-		return $response;
-	}
+    public function template(
+        ResponseInterface $response,
+        string $template,
+        array $data = []
+    ): ResponseInterface
+    {
+        $string = $this->engine->renderToString($template, $data);
+        $response->getBody()->write($string);
+
+        return $response;
+    }
 }
 ```
 
@@ -117,22 +119,24 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class HomeAction
 {
-	public function __construct(
-		private TemplateRenderer $renderer,
-	) {
-	}
+    private TemplateRenderer $renderer;
 
-	public function __invoke(
-		ServerRequestInterface $request,
-		ResponseInterface $response,
-	): ResponseInterface
-	{
-		$viewData = [
-			'items' => ['one', 'two', 'three'],
-		];
+    public function __construct(TemplateRenderer $renderer)
+    {
+        $this->renderer = $renderer;
+    }
 
-		return $this->renderer->template($response, 'home.latte', $viewData);
-	}
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface
+    {
+        $viewData = [
+            'items' => ['one', 'two', 'three'],
+        ];
+
+        return $this->renderer->template($response, 'home.latte', $viewData);
+    }
 }
 ```
 
@@ -140,9 +144,9 @@ Aby to fungovalo, vytvořte soubor šablony v `templates/home.latte` s tímto ob
 
 ```latte
 <ul n:if="$items">
-	{foreach $items as $item}
-		<li id="item-{$iterator->counter}">{$item|capitalize}</li>
-	{/foreach}
+    {foreach $items as $item}
+        <li id="item-{$iterator->counter}">{$item|capitalize}</li>
+    {/foreach}
 </ul>
 ```
 

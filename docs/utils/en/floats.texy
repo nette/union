@@ -1,7 +1,7 @@
 Floats Functions
 ****************
 
-.[perex]
+.[perex]{data-version:3.2}
 [api:Nette\Utils\Floats] is a static class with useful functions for comparing float numbers.
 
 
@@ -144,3 +144,6 @@ Floats::isInteger(-5.1); // false
 Floats::isInteger(INF);  // false
 Floats::isInteger(NAN);  // false
 ```
+
+
+{{composer: nette/utils}}

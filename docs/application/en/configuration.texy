@@ -19,9 +19,6 @@ application:
 	# name of error-presenter
 	errorPresenter: Error   # (string) defaults to 'Nette:Error'
 
-	# defines the rules for resolving the presenter name to a class
-	mapping: ...
-
 	# do bad links generate warnings?
 	# has effect only in developer mode
 	silentLinks: ...        # (bool) defaults to false
@@ -31,7 +28,56 @@ Because error-presenters are not called by default in development mode and the e
 
 Option `silentLinks` determines how Nette behaves in developer mode when link generation fails (for example, because there is no presenter, etc). The default value `false` means that Nette triggers `E_USER_WARNING`. Setting to `true` suppresses this error message. In a production environment, `E_USER_WARNING` is always invoked. We can also influence this behavior by setting the presenter variable [$invalidLinkMode |creating-links#Invalid Links].
 
-The [mapping defines the rules |modules#mapping] by which the class name is derived from the presenter name.
+
+Mapping
+-------
+
+Defines the rules according to which the name of the class (for example `App\Presenters\HomepagePresenter`) is derived from the name of the presenter (for example `Homepage`). This the mapping can be achieved with the following configuration:
+
+```neon
+application:
+	mapping:
+		*: App\Presenters\*Presenter
+```
+
+The presenter name is replaced with an asterisk and the result is the class name. Easy!
+
+If we divide presenters into modules, we can have our own mapping for each module:
+
+```neon
+application:
+	mapping:
+		Front: App\Modules\Front\*Presenter
+		Admin: App\Modules\Admin\*Presenter
+		Api: App\Api\*Presenter
+```
+
+Now presenter `Front:Homepage` maps to class ``App\Modules\Front\HomepagePresenter` and presenter `Admin:Dashboard` to class `App\AdminModule\DashboardPresenter`.
+
+It will be more handy to create a general (asterisk) rule that will replace the first two rules and add an extra asterisk just for the module:
+
+```neon
+application:
+	mapping:
+		*: App\Modules\*\*Presenter
+		Api: App\Api\*Presenter
+```
+
+Again, the presenter `Front:Homepage` maps to the class ``App\Modules\Front\HomepagePresenter`.
+
+But what if we use nested modules and have a presenter `Admin:User:Edit`? In this case, the segment with an asterisk representing the module for each level is simply repeated and the result is class `App\Modules\Admin\User\EditPresenter`.
+
+An alternative notation is to use an array consisting of three segments instead of a string:
+
+```neon
+application:
+	mapping:
+		*: [App\Modules, *, *Presenter]
+```
+
+This entry is equivalent to the original `App\Modules\*\*Presenter`.
+
+The default value is `*: *Module\*Presenter`.
 
 
 Automatic Registration of Presenters
@@ -73,14 +119,11 @@ latte:
 	# shows Latte panel in the Tracy Bar for the main template (true) or for all components (all)?
 	debugger: ...        # (true|false|'all') defaults to true
 
+	# switches Latte to XHTML mode (deprecated)
+	xhtml: ...           # (bool) defaults to false
+
 	# generates templates with declare(strict_types=1)
 	strictTypes: ...     # (bool) defaults to false
-
-	# enables [strict parser mode |latte:develop#strict mode]
-	strictParsing: ...   # (bool) default is false
-
-	# enables [checking generated code |latte:develop#Checking Generated Code]
-	phpLinter: ...       # (string) default is null
 
 	# class of $this->template
 	templateClass: App\MyTemplateClass # defaults to Nette\Bridges\ApplicationLatte\DefaultTemplate
@@ -123,7 +166,7 @@ routing:
 	cache: ...      # (bool) defaults to false
 ```
 
-Router is usually defined in the [RouterFactory |routing#Route Collection] class. Alternatively, routs can also be defined in the configuration using `mask: action` pairs, but this method does not offer such a wide variation in settings:
+Router is usually defined in the RouterFactory class, a more limited alternative can be defined in the configuration using pairs `mask: action`:
 
 ```neon
 routing:
@@ -140,13 +183,10 @@ Creating PHP constants.
 
 ```neon
 constants:
-	Foobar: 'baz'
+	FOOBAR: 'baz'
 ```
 
-The `Foobar` constant will created after startup.
-
-.[note]
-Constants should not serve as globally available variables. To pass values to objects, use [dependency injection |dependency-injection:passing-dependencies].
+The `FOOBAR` constant will created after startup.
 
 
 PHP
@@ -158,18 +198,3 @@ You can set PHP directives. An overview of all directives can be found at [php.n
 php:
 	date.timezone: Europe/Prague
 ```
-
-
-DI Services
-===========
-
-These services are added to the DI container:
-
-| Name | Type | Description
-|----------------------------------------------------------
-| `application.application` | [api:Nette\Application\Application] | [full application launcher |how-it-works#Nette Application]
-| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
-| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | presenter factory
-| `application.###` | [api:Nette\Application\UI\Presenter] | individual presenters
-| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | factory for `Latte\Engine`
-| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | factory for [`$this->template` |templates]

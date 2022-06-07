@@ -1,32 +1,37 @@
-Dokumentační syntax
-*******************
+Wiki syntax
+***********
 
-Dokumentace používá Markdown & [Texy syntaxi |https://texy.info/cs/syntax] s některými rozšířeními.
+Wiki používá [Texy syntaxi |https://texy.info/cs/syntax] s některými rozšířeními.
 
 
 Odkazy
 ======
 
-Pro interní odkazy se používá zápis v hranatých závorkách `[odkaz]`. A to buď ve tvaru se svislítkem `[text odkazu |cíl odkazu]`, nebo zkráceně `[text odkazu]`, pokud je cíl shodný s textem (po transformaci na malá písmena a pomlčky):
+Pro interní odkazy je preferovaný zápis v hranatých závorkách `[odkaz]`, lze použít také zápis pomocí uvozovek `"odkaz":www.example.com`.
 
-- `[Page name]` -> `<a href="/en/page-name">Page name</a>`
-- `[link text |Page name]` -> `<a href="/en/page-name">link text</a>`
+- `[Název stránky]` -> [Název stránky]
+- `[adresář/Název stránky]` -> [adresář/Název stránky]
+- `[/Název stránky]` -> [/Název stránky] (absolutní cesta)
+- `[/@home]` nebo `[/]` -> [/]
+- `[en/Název stránky]` -> [en/Název stránky] (s uvedením jazyka)
+- `[www:Název stránky]` -> [www:Název stránky] (odkaz do jiné knihy se stejným jazykem)
+- `[www:en/Název stránky]` -> [www:en/Název stránky] (odkaz do jiné knihy s uvedením jazyka)
+- `[www:homepage]` -> [www:homepage] (homepage jiné knihy se stejným jazykem)
+- `[www:en]` -> [www:en] (homepage jiné knihy s uvedením jazyka)
 
-Odkazovat můžeme do jiné jazykové mutace nebo do jiné sekce. Sekcí se rozumí Nette knihovna (např. `forms`, `latte`, apod) nebo speciální sekce jako `best-practices`, `quickstart` atd:
+Ve všech uvedených případech lze odlišit text odkazu od odkazované stránky pomocí svislítka:
 
-- `[cs:Page name]` -> `<a href="/cs/page-name">Page name</a>` (stejná sekci, jiný jazyk)
-- `[tracy:Page name]` -> `<a href="//tracy.nette.org/en/page-name">Page name</a>` (jiná sekce, stejný jazyk)
-- `[tracy:cs:Page name]` -> `<a href="//tracy.nette.org/cs/page-name">Page name</a>` (jiná sekce i jazyk)
+- `[text odkazu |Název stránky]` -> [text odkazu |Název stránky]
 
-Pomocí `#` je také možné zacílit na konkrétní nadpis na stránce.
 
-- `[#Heading]` -> `<a href="#toc-heading">Heading</a>` (nadpis na aktuální stránce)
-- `[Page name#Heading]` -> `<a href="/en/page-name#toc-heading">Page name</a>`
+Odkazy na titulky
+-----------------
 
-Odkaz na úvodní stránku sekce: (`@home` je speciální výraz pro domovskou stránku sekce)
+Lze se také odkazovat na jednotlivé titulky uvnitř stránky pomocí znaku `#`.
 
-- `[link text |@home]` -> `<a href="/en/">link text</a>`
-- `[link text |tracy:]` -> `<a href="//tracy.nette.org/en/">link text</a>`
+- `[Název stránky#Odkazy na titulky]` -> [Název stránky#Odkazy na titulky]
+- `[#Odkazy na titulky]` -> [#Odkazy na titulky] (odkaz na titulek v aktuální stránce)
+- `[text odkazu |#Odkazy na titulky]` -> [text odkazu |#Odkazy na titulky]
 
 
 Odkazy do API dokumentace
@@ -37,9 +42,9 @@ Vždy uvádějte pouze pomocí tohoto zápisu:
 - `[api:Nette\SmartObject]` -> [api:Nette\SmartObject]
 - `[api:Nette\Forms\Form::setTranslator()]` -> [api:Nette\Forms\Form::setTranslator()]
 - `[api:Nette\Forms\Form::$onSubmit]` -> [api:Nette\Forms\Form::$onSubmit]
-- `[api:Nette\Forms\Form::Required]` -> [api:Nette\Forms\Form::Required]
+- `[api:Nette\Forms\Form::REQUIRED]` -> [api:Nette\Forms\Form::REQUIRED]
 
-Plně kvalifikované názvy používejte pouze v první zmínce. Pro další odkazy použijte zjednodušený název:
+Název třídy včetně jmenného prostoru uvádějte prosím co nejméně (například při první zmínce), pak už jmenný prostor vynechávejte. Opět s využitím svislítka:
 
 - `[Form::setTranslator() |api:Nette\Forms\Form::setTranslator()]` -> [Form::setTranslator() |api:Nette\Forms\Form::setTranslator()]
 
@@ -47,28 +52,21 @@ Plně kvalifikované názvy používejte pouze v první zmínce. Pro další odk
 Odkazy do PHP dokumentace
 -------------------------
 
-- `[php:substr]` -> [php:substr]
+- `[php:substr]` -> [php:substr] (do PHP dokumentace)
 
 
 Zdrojový kód
 ============
 
-Blok kódu začíná <code>&#96;&#96;&#96;lang</code> a končí <code>&#96;&#96;&#96;</code>. Podporované jazyky jsou `php`, `latte`, `neon`, `html`, `css`, `js` a `sql`. Pro odsazení vždy používejte tabulátory.
+Bloky kódu začínají <code>&#96;&#96;&#96;jazyk</code> a končí <code>&#96;&#96;&#96;</code>. Podporované jazyky jsou `php`, `html`, `css`, `js` and `sql` (pro Latte používejte <code>&#96;&#96;&#96;html</code>). Odsazujte výhradně tabulátorem. Lze uvést i jméno souboru <code>&#96;&#96;&#96;php .{file:ArrayTest.php}</code>
 
 ```
  ```php
 	public function renderPage($id)
 	{
+		...
 	}
  ```
-```
-
-Můžete také uvést jméno souboru jako <code>&#96;&#96;&#96;php .{file: ArrayTest.php}</code> a blok kódu se vykreslí tímto způsobem:
-
-```php .{file: ArrayTest.php}
-public function renderPage($id)
-{
-}
 ```
 
 
@@ -137,6 +135,8 @@ Meta značky
 
 - nastavení vlastního názvu stránky (v `<title>` a drobečkové navigaci) `{{title: Jiný název}}`
 - přesměrování `{{redirect: pla:cs}}` - viz [#odkazy]
+- propojení s překladem v jiném jazyce `{{lang: en/other name}}`
 - vynucení `{{toc}}` či zakázání `{{toc: no}}` automatického obsahu (boxík s odkazy na jednotlivé nadpisy)
 
+{{robots: nofollow}}
 {{priority: -1}}

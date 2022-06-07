@@ -6,24 +6,19 @@ Nette Documentation
 <div>
 
 
-Introduction
-------------
-- [Why Use Nette?|www:10-reasons-why-nette]
-- [Installation]
-- [Create Your First Application! |quickstart:]
-
-
-General
+Preface
 -------
-- [List of Packages |www:packages]
+- [Why Use Nette?|www:10-reasons-why-nette]
+- <b>[Create Your First Application! |quickstart:getting-started]<b>
+
+
+- [Packages & Installation |www:packages]
 - [Maintenance and PHP |www:maintenance]
 - [Release Notes |https://nette.org/releases]
 - [Upgrade Guide |migrations:]
 - [nette:Troubleshooting]
 - [Who Creates Nette |https://nette.org/contributors]
-- [History of Nette |www:history]
-- [Get Involved |contributing:]
-- [Sponsor development |https://nette.org/en/donate]
+- [Get Involved |contributing:code]
 - [API reference |https://api.nette.org/]
 </div>
 
@@ -36,8 +31,6 @@ Nette Application
 - [How do Applications Work? |application:how-it-works]
 - [application:Bootstrap]
 - [application:Presenters]
-- [application:Templates]
-- [application:Modules]
 - [application:Routing]
 - [Creating URL Links |application:creating-links]
 - [Interactive Components |application:components]
@@ -54,7 +47,7 @@ Nette Application
 Main Topics
 -----------
 - [Configuration |nette:configuring]
-- [Dependency Injection|dependency-injection:]
+- [Dependency Injection|dependency-injection:introduction]
 - [Latte: Templates |latte:]
 - [Tracy: Debugging Tool |tracy:]
 - [Forms|forms:]
@@ -62,10 +55,10 @@ Main Topics
 - [Authenticating Users |security:authentication]
 - [Access Control |security:authorization]
 - [http:Sessions]
-- [HTTP request & response|http:]
+- [HTTP request|http:request] & [response|http:response]
 - [Caching |caching:]
 - [Emails Sending |mail:]
-- [Schema: Data Validation |schema:]
+- [Schema |schema:]
 - [PHP Code Generator |php-generator:]
 - [Tester: Unit Testing |tester:]
 </div>
@@ -84,12 +77,10 @@ Utilities
 - [utils:JSON]
 - [NEON|neon:]
 - [Password Hashing |security:passwords]
-- [PHP Types |utils:type]
+- [utils:SmartObject]
+- [PHP Reflection |utils:reflection]
 - [utils:Strings]
 - [Validators |utils:validators]
-- [RobotLoader |robot-loader:]
-- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
-- [SafeStream |safe-stream:]
 - [...others |utils:]
 </div>
 

@@ -72,6 +72,7 @@ Pokud je již formulář definován v presenteru, můžeme ho vykreslit (zobrazi
 <h2>Vložte nový příspěvek</h2>
 
 {control commentForm}
+...
 ```
 
 Když si nyní zobrazíte stránku s detailem příspěvku, na jeho konci uvidíte nový formulář pro komentáře.
@@ -85,13 +86,13 @@ Už jste zkoušeli formulář vyplnit a odeslat? Asi jste si všimli, že ten fo
 Na řádek před `return` v továrničce pro komponentu `commentForm` umístíme následující řádek:
 
 ```php
-$form->onSuccess[] = $this->commentFormSucceeded(...);
+$form->onSuccess[] = [$this, 'commentFormSucceeded'];
 ```
 
 Předchozí zápis znamená "po úspěšném odeslání formuláře zavolej metodu `commentFormSucceeded` ze současného presenteru". Tato metoda však ještě neexistuje. Pojďme ji tedy vytvořit:
 
 ```php .{file:app/Presenters/PostPresenter.php}
-private function commentFormSucceeded(\stdClass $data): void
+public function commentFormSucceeded(\stdClass $data): void
 {
 	$postId = $this->getParameter('postId');
 
@@ -145,7 +146,6 @@ public function renderShow(int $postId): void
 A šablonu:
 
 ```latte .{file:app/Presenters/templates/Post/show.latte}
-...
 <h2>Komentáře</h2>
 
 <div class="comments">
@@ -157,12 +157,11 @@ A šablonu:
 		<div>{$comment->content}</div>
 	{/foreach}
 </div>
-...
 ```
 
 Všimněte si speciálního atributu `n:tag-if`. Již víte jak `n:atributy` fungují. Pokud k atributu připojíte předponu `tag-`, funkcionalita se aplikuje pouze na HTML tag, ne na jeho obsah. Toto nám umožňuje udělat ze jména komentátora odkaz pouze v případě, že poskytl svůj e-mail. Tyto dvě řádky jsou identické:
 
-```latte
+```latte .{file:app/Presenters/templates/Post/show.latte}
 <strong n:tag-if="$important"> Dobrý den! </strong>
 
 {if $important}<strong>{/if} Dobrý den! {if $important}</strong>{/if}

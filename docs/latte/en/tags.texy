@@ -2,7 +2,7 @@ Latte Tags
 **********
 
 .[perex]
-Summary and description of all Latte built-in tags.
+Summary and description of all Latte built-in tags (also called macros).
 
 .[table-latte-tags language-latte]
 |## Printing
@@ -25,7 +25,6 @@ Summary and description of all Latte built-in tags.
 | `{continueIf $cond}`           | [continue to next iteration |#continueif-skipif-breakif]
 | `{skipIf $cond}`               | [skip the current loop iteration |#continueif-skipif-breakif]
 | `{breakIf $cond}`              | [breaks loop |#continueif-skipif-breakif]
-| `{exitIf $cond}`                 | [early exit |#exitif]
 | `{first}` … `{/first}`         | [is it the first iteration? |#first-last-sep]
 | `{last}` … `{/last}`           | [is it the last iteration? |#first-last-sep]
 | `{sep}` … `{/sep}`             | [will next iteration follow? |#first-last-sep]
@@ -79,7 +78,6 @@ Summary and description of all Latte built-in tags.
 | `{debugbreak}`                 | [sets breakpoint to the code |#debugbreak]
 | `{do}`                         | [evaluates an expression without printing it |#do]
 | `{dump}`                       | [dumps variables to the Tracy Bar |#dump]
-| `{php}`                        | [executes any PHP code|#php]
 | `{spaceless}` … `{/spaceless}` | [removes unnecessary whitespace|#spaceless]
 | `{syntax}`                     | [switches the syntax at runtime |#syntax]
 | `{trace}`                      | [shows stack trace |#trace]
@@ -103,15 +101,14 @@ Summary and description of all Latte built-in tags.
 
 .[table-latte-tags language-latte]
 |## Available only with Nette Forms
-| `{form}` … `{/form}`           | [prints a form element |forms:rendering#form]
-| `{label}` … `{/label}`         | [prints a form input label |forms:rendering#label-input]
-| `{input}`                      | [prints a form input element |forms:rendering#label-input]
-| `{inputError}`                 | [prints error message for form input element|forms:rendering#inputError]
-| `n:name`                       | [activates an HTML input element |forms:rendering#n:name]
-| `{formPrint}`                  | [generates Latte form blueprint |forms:rendering#formPrint]
+| `{form}` … `{/form}`           | [prints a form element |forms:rendering#latte]
+| `{label}` … `{/label}`         | [prints a form input label |forms:rendering#latte]
+| `{input}`                      | [prints a form input element |forms:rendering#latte]
+| `{inputError}`                 | [prints error message for form input element|forms:rendering#latte]
+| `n:name`                       | [activates an HTML input element |forms:rendering#latte]
+| `{formPrint}`                  | [generates Latte form blueprint |forms:rendering#latte]
 | `{formPrintClass}`             | [prints PHP class for form data |forms:in-presenter#mapping-to-classes]
-| `{formContext}` … `{/formContext}` | [partial form rendering |forms:rendering#special-cases]
-| `{formContainer}` … `{/formContainer}` | [rendering the form container |forms:rendering#special-cases]
+| `{formContext}` … `{/formContext}` | [partial form rendering |forms:rendering#latte]
 
 
 Printing
@@ -147,7 +144,8 @@ What is the most important task of a template system? To avoid security holes. A
 <p>{='one < two'}</p>   {* prints: '<p>one &lt; two</p>' *}
 ```
 
-To be precise, Latte uses context-sensitive escaping, which is such an important and unique feature that we've devoted [a separate chapter to it|safety-first#context-aware-escaping].
+To be precise, Latte uses context-sensitive escaping, which is such an important and unique feature
+that we've devoted [a separate chapter to it|safety-first#context-aware-escaping].
 
 And if you print HTML-encoded content from a trusted source? Then you can easily turn off escaping:
 
@@ -157,6 +155,22 @@ And if you print HTML-encoded content from a trusted source? Then you can easily
 
 .[warning]
 Misuse of the `noescape` filter can lead to an XSS vulnerability! Never use it unless you are **absolutely sure** what you are doing and that the string you are printing comes from a trusted source.
+
+
+Filters
+-------
+
+The printed expression can be modified [by filters|syntax#filters]. For example, this example converts the string to uppercase and shorten it to a maximum of 30 characters:
+
+```latte
+{$string|upper|truncate:30}
+```
+
+You can also apply filters to parts of an expression as follows:
+
+```latte
+{$left . ($middle|upper) . $right}
+```
 
 
 Printing in JavaScript
@@ -187,26 +201,10 @@ This is also the reason why **do not put variable in quotes**: Latte adds them a
 <script>
 	alert('Hello ' + {$name} + '!');  // OK
 
-	alert({="Hello $name!"});         // OK
+	alert({="Hello $name!");          // OK
 
 	alert('Hello {$name} !');         // ERROR!
 </script>
-```
-
-
-Filters
--------
-
-The printed expression can be modified [by filters|syntax#filters]. For example, this example converts the string to uppercase and shorten it to a maximum of 30 characters:
-
-```latte
-{$string|upper|truncate:30}
-```
-
-You can also apply filters to parts of an expression as follows:
-
-```latte
-{$left . ($middle|upper) . $right}
 ```
 
 
@@ -220,7 +218,7 @@ Conditions
 Conditions behave the same way as their PHP counterparts. You can use the same expressions as you know from PHP, you don't have to learn a new language.
 
 ```latte
-{if $product->inStock > Stock::Minimum}
+{if $product->inStock > Stock::MINIMUM}
 	In stock
 {elseif $product->isOnWay()}
 	On the way
@@ -274,18 +272,18 @@ You can also use `{else}` in the deferred condition, but not `{elseif}`.
 `{ifset}` `{elseifset}`
 -----------------------
 
-.[note]
-See also [`{ifset block}` |template-inheritance#checking-block-existence]
-
 Use the `{ifset $var}` condition to determine if a variable (or multiple variables) exists and has a non-null value. It's actually the same as `if (isset($var))` in PHP. Like any pair tag, this can be written in the form of [n:attribute|syntax#n:attributes], so let's show it in example:
 
 ```latte
 <meta name="robots" content="{$robots}" n:ifset="$robots">
 ```
 
+.[note]
+In addition to checking the existence of variables, `{ifset}` is also used to verify [block existence|template-inheritance#checking-block-existence].
 
-`{ifchanged}`
--------------
+
+`{ifchanged}` .{data-version:2.9}
+---------------------------------
 
 `{ifchanged}` checks if the value of a variable has changed since the last iteration in the loop (foreach, for, or while).
 
@@ -331,19 +329,20 @@ So it is the exact equivalent of the `match` structure that PHP 8.0 comes with.
 		Differently
 {/switch}
 ```
-
+.{data-version:2.9}
 Clause `{case}` can contain multiple values separated by commas:
 
 ```latte
 {switch $status}
-{case $status::New}<b>new item</b>
-{case $status::Sold, $status::Unknown}<i>not available</i>
+{case $status::NEW}<b>new item</b>
+{case $status::SOLD, $status::UNKNOWN}<i>not available</i>
 {/switch}
 ```
 
 
 Loops
 =====
+
 
 In Latte, all the loops you know from PHP are available to you: foreach, for and while.
 
@@ -392,8 +391,8 @@ So it prints something like:
 ```
 
 
-`{else}` .{toc: foreach-else}
------------------------------
+`{else}` .{data-version:2.9}{toc: foreach-else}
+-----------------------------------------------
 
 The `foreach` loop can take an optional `{else}` clause whose text is displayed if the given array is empty:
 
@@ -416,10 +415,10 @@ Inside the `foreach` loop the `$iterator` variable is initialized. It holds impo
 - `$iterator->first` - is this the first iteration?
 - `$iterator->last` - is this the last iteration?
 - `$iterator->counter` - iteration counter, starts from 1
-- `$iterator->counter0` - iteration counter, starts from 0
+- `$iterator->counter0` - iteration counter, starts from 0 .{data-version:2.9}
 - `$iterator->odd` - is this iteration odd?
 - `$iterator->even` - is this iteration even?
-- `$iterator->parent` - the iterator surrounding the current one
+- `$iterator->parent` - the iterator surrounding the current one .{data-version:2.9}
 - `$iterator->nextValue` - the next item in the loop
 - `$iterator->nextKey` - the key of next item in the loop
 
@@ -467,8 +466,8 @@ The contents of the `{sep}` are rendered if the iteration is not the last, so it
 That's pretty practical, isn't it?
 
 
-`{iterateWhile}`
-----------------
+{iterateWhile} .{data-version:2.10}
+-----------------------------------
 
 It simplifies the grouping of linear data during iteration in a foreach loop by performing the iteration in a nested loop as long as the condition is met. [Read instructions in cookbook|cookbook/iteratewhile].
 
@@ -549,7 +548,7 @@ There are special tags you can use to control any loop - `{continueIf ?}` and `{
 {/foreach}
 ```
 
-
+.{data-version:2.9}
 Tag `{skipIf}` is very similar to `{continueIf}`, but does not increment the counter. So there are no holes in the numbering when you print `$iterator->counter` and skip some items. Also the {else} clause will be rendered when you skip all items.
 
 ```latte
@@ -564,30 +563,12 @@ Tag `{skipIf}` is very similar to `{continueIf}`, but does not increment the cou
 ```
 
 
-`{exitIf}` .{data-version:3.0.5}
---------------------------------
-
-Ends the rendering of a template or block when a condition is met (i.e. "early exit").
-
-```latte
-{exitIf !$messages}
-
-<h1>Messages</h1>
-<div n:foreach="$messages as $message">
-   {$message}
-</div>
-```
-
-
 Including Templates
 ===================
 
 
-`{include 'file.latte'}` .{toc: include}
-----------------------------------------
-
-.[note]
-See also [`{include block}` |template-inheritance#printing-blocks]
+`{include}`
+-----------
 
 The `{include}` tag loads and renders the specified template. In our favorite PHP language it's like:
 
@@ -595,12 +576,19 @@ The `{include}` tag loads and renders the specified template. In our favorite PH
 <?php include 'header.phtml'; ?>
 ```
 
+.[note]
+In addition to including templates the `{include}` tag is also used to [print blocks |template-inheritance#printing-blocks].
+
 Included templates have not access to the variables of the active context, but have access to the global variables.
 
-You can pass variables to the inserted template in the following way:
+You can pass variables this way:
 
 ```latte
+{* since Latte 2.9 *}
 {include 'template.latte', foo: 'bar', id: 123}
+
+{* before Latte 2.9 *}
+{include 'template.latte', foo => 'bar', id => 123}
 ```
 
 The template name can be any PHP expression:
@@ -616,7 +604,7 @@ The inserted content can be modified using [filters|syntax#filters]. The followi
 <title>{include 'heading.latte' |stripHtml|capitalize}</title>
 ```
 
-The [template inheritance] **is not involved** in this by default. While you can add block tags to templates that are included, they will not replace matching blocks in the template they are included into. Think of includes as independent and shielded parts of pages or modules. This behavior can be changed using the modifier `with blocks`:
+The [template inheritance] **is not involved** in this by default. While you can add block tags to templates that are included, they will not replace matching blocks in the template they are included into. Think of includes as independent and shielded parts of pages or modules. This behavior can be changed using the modifier `with blocks` (since Latte 2.9.1):
 
 ```latte
 {include 'template.latte' with blocks}
@@ -625,8 +613,8 @@ The [template inheritance] **is not involved** in this by default. While you can
 The relationship between the file name specified in the tag and the file on disk is a matter of [loader|extending-latte#Loaders].
 
 
-`{sandbox}`
------------
+`{sandbox}` .{data-version:2.8}
+-------------------------------
 
 When including a template created by an end user, you should consider sandboxing it (more information in the [sandbox documentation|sandbox]):
 
@@ -638,10 +626,8 @@ When including a template created by an end user, you should consider sandboxing
 `{block}`
 =========
 
-.[note]
-See also [`{block name}` |template-inheritance#blocks]
-
-Blocks without a name serve to the ability to apply [filters|syntax#filters] to a part of template. For example, you can apply a [strip|filters#strip] filter to remove unnecessary spaces:
+Named blocks are the basic building block for [inheritance and reusability of templates |template-inheritance]. However, a blocks without a name serve
+to the ability to apply [filters|syntax#filters] to a part of template. For example, you can apply a [strip|filters#strip] filter to remove unnecessary spaces:
 
 ```latte
 {block|strip}
@@ -656,8 +642,8 @@ Exception Handling
 ==================
 
 
-`{try}`
--------
+`{try}` .{data-version:2.9}
+---------------------------
 
 This tags makes it extremely easy to build robust templates.
 
@@ -698,8 +684,8 @@ The tag can also be written as [n:attribute|syntax#n:attributes]:
 It is also possible to define [own exception handler|develop#exception handler] for i.e logging:
 
 
-`{rollback}`
-------------
+`{rollback}` .{data-version:2.9}
+--------------------------------
 
 The `{try}` block can also be stopped and skipped manually using `{rollback}`. So you do not have to check all the input data in advance, and only during rendering you can decide whether it makes sense to render the object.
 
@@ -740,7 +726,7 @@ The `{default}` tag works similarly, except that it creates variables only if th
 {default $lang = 'cs'}
 ```
 
-You can also specify [types of variables|type-system]. For now, they are informative and Latte does not check them.
+As of Latte 2.7, you can also specify [types of variables|type-system]. For now, they are informative and Latte does not check them.
 
 ```latte
 {var string $name = $article->getTitle()}
@@ -748,8 +734,8 @@ You can also specify [types of variables|type-system]. For now, they are informa
 ```
 
 
-`{parameters}`
---------------
+`{parameters}` .{data-version:2.9}
+----------------------------------
 
 Just as a function declares its parameters, a template can declare its variables at its beginning:
 
@@ -781,15 +767,13 @@ By using `{capture}` tag you can capture the output to a variable:
 <p>Captured: {$var}</p>
 ```
 
-The tag can also be written as [n:attribute|syntax#n:attributes], like any pairwise tag:
+The tag can also be written as [n:attribute|syntax#n:attributes]:
 
 ```latte
 <ul n:capture="$var">
 	<li>Hello World</li>
 </ul>
 ```
-
-The HTML output is stored in the `$var` variable as a `Latte\Runtime\Html` object to [avoid unwanted escaping |develop#disabling-auto-escaping-of-variable] when printing.
 
 
 Others
@@ -841,11 +825,13 @@ Specifies the place where code execution will break. It is used for debugging pu
 `{do}`
 ------
 
-Executes the PHP code and doesn't print anything. As with all other tags, PHP code is a single expression, see [PHP limitations |syntax#PHP Limitations in Latte].
+Executes the code and does not print anything.
 
 ```latte
 {do $num++}
 ```
+
+In Latte 2.7 and earlier, the `{php}` was used.
 
 
 `{dump}`
@@ -861,12 +847,6 @@ Dumps a variable or current context.
 
 .[caution]
 Requires package [Tracy|tracy:].
-
-
-`{php}`
--------
-
-Allows you to execute any PHP code. The tag must be activated using the [RawPhpExtension |develop#RawPhpExtension] extension.
 
 
 `{spaceless}`
@@ -912,8 +892,8 @@ Latte can be used very comfortably inside JavaScript, just avoid constructs like
 If you turn off Latte with the `{syntax off}` (ie tag, not the n:attribute), it will strictly ignore all tags up to `{/syntax}`.
 
 
-{trace}
--------
+{trace} .{data-version:2.10}
+----------------------------
 
 Throws an `Latte\RuntimeException` exception, whose stack trace is in the spirit of the templates. Thus, instead of calling functions and methods, it involves calling blocks and inserting templates. If you use a tool for clearly displaying thrown exceptions, such as [Tracy|tracy:], you will clearly see the call stack, including all passed arguments.
 
@@ -976,8 +956,8 @@ Depending on the returned values, it displays eg:
 ```
 
 
-n:tag
------
+n:tag .{data-version:2.10}
+--------------------------
 
 The `n:tag` attribute can dynamically change the name of an HTML element.
 
@@ -990,8 +970,6 @@ If `$heading === null`, the `<h1>` tag is printed without change. Otherwise, the
 ```latte
 <h3 class="main">...</h3>
 ```
-
-Because Latte is a secure templating system, it checks that the new tag name is valid and does not contain any unwanted or malicious values.
 
 
 n:ifcontent
@@ -1019,8 +997,8 @@ Depending on the values of the variable `$error` this will print:
 ```
 
 
-Translation
-===========
+Translation .{data-version:3.0}
+===============================
 
 To make the translation tags work, you need to [set up translator|develop#TranslatorExtension]. You can also use the [`translate`|filters#translate] filter for translation.
 
@@ -1058,3 +1036,6 @@ The tag can also be written as [n:attribute|syntax#n:attributes], to translate t
 ```latte
 <h1 n:translate>Order</h1>
 ```
+
+
+{{composer: latte/latte}}

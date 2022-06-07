@@ -1,7 +1,7 @@
 Creating an Extension
 *********************
 
-.[perex]
+.[perex]{data-version:3.0}
 An extension is a reusable class that can define custom tags, filters, functions, providers, etc.
 
 We create extensions when we want to reuse our Latte customizations in different projects or share them with others.
@@ -577,3 +577,6 @@ $value = NodeHelpers::toValue($node);
 // converts static textual node to string
 $text = NodeHelpers::toText($node);
 ```
+
+
+{{composer: latte/latte}}

@@ -7,8 +7,6 @@ The `nette/application` package is the basis for creating interactive web applic
 - [How do applications work? |how-it-works]
 - [Bootstrap]
 - [Presenters]
-- [Templates]
-- [Modules]
 - [Routing]
 - [Creating URL Links |creating-links]
 - [Interactive Components |components]
@@ -28,9 +26,11 @@ composer require nette/application
 
 | version   | compatible with PHP
 |-----------|-------------------
-| Nette Application 4.0 | PHP 8.0 – 8.2
-| Nette Application 3.1 | PHP 7.2 – 8.2
+| Nette Application 4.0 | PHP 8.0 – 8.1
+| Nette Application 3.1 | PHP 7.2 – 8.1
 | Nette Application 3.0 | PHP 7.1 – 8.0
 | Nette Application 2.4 | PHP 5.6 – 8.0
 
 Applies to the latest patch versions.
+
+{{composer: nette/application}}

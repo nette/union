@@ -59,3 +59,5 @@ protected function createComponentShopForm(): Multiplier
 	});
 }
 ```
+
+{{composer: nette/application}}

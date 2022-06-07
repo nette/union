@@ -51,7 +51,7 @@ In Latte terminology, a dynamic snippet is a specific use case of the `{snippet}
 	<article n:foreach="$articles as $article">
 		<h2>{$article->title}</h2>
 		<div class="content">{$article->content}</div>
-		{snippet article-{$article->id}}
+		{snippet article-$article->id}
 			{if !$article->liked}
 				<a n:href="like! $article->id" class=ajax>I like it</a>
 			{else}
@@ -92,7 +92,7 @@ public function handleLike(int $articleId): void
 	if ($this->isAjax()) {
 		// ...
 		$this->template->articles = [
-			$this->connection->table('articles')->get($articleId),
+			$this->connection->table('articles')->get($articleId)
 		];
 	} else {
 		// ...
@@ -117,9 +117,11 @@ A completely different solution uses a different approach to avoid dynamic snipp
 ```php
 class LikeControl extends Nette\Application\UI\Control
 {
-	public function __construct(
-		private Article $article,
-	) {
+	private $article;
+
+	public function __construct($article)
+	{
+		$this->article = $article;
 	}
 
 	public function handleLike(): void
@@ -169,6 +171,18 @@ The template view is reduced to the minimum necessary (and completely free of sn
 ```
 
 We are almost done: the application will now work in AJAX. Here too we have to optimize the application, because due to the use of Nette Database, the signal processing will unnecessarily load all articles from the database instead of one. However, the advantage is that there will be no rendering, because only our component is actually rendered.
+
+
+Pros and Cons
+=============
+
+|----------------------------
+| | Dynamic snippet way | Component way |
+|----------------------------
+|* writing | faster | slower (need to create a component) |
+|* redrawing | more complex | simpler |
+|* performance | all "rows" are rendered unnecessarily | only 1 "row" is rendered |
+|* reusability | no | yes |
 
 {{priority: -1}}
 {{sitename: Best Practices}}

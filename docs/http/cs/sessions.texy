@@ -52,7 +52,7 @@ $section = $this->getSession('unikatni nazev');
 
 Ověřit existenci sekce lze metodou `$session->hasSection('unikatni nazev')`.
 
-Se samotnou sekcí se pak pracuje velmi snadno pomocí metod `set()`, `get()` a `remove()`:
+Se samotnou sekcí se pak pracuje velmi snadno pomocí metod `set()`, `get()` a `remove()`: (od nette/http v3.1.3)
 
 ```php
 // zápis proměnné
@@ -63,6 +63,16 @@ echo $section->get('userName');
 
 // zrušení proměnné
 $section->remove('userName');
+```
+
+Před verzí 3.1.3 se používaly magické proměnné nebo ArrayAccess, které budou ve verzi 4 označeny za zastaralé.
+
+```php
+$section->userName = 'franta'; // nebo $section['userName'] = 'franta';
+
+echo $section->userName; // nebo echo $section['userName'];
+
+unset($section->userName);  // unset($section['userName']);
 ```
 
 Pro získání všech proměnných ze sekce je možné použít cyklus `foreach`:
@@ -84,11 +94,17 @@ Pro jednotlivé sekce nebo dokonce jednotlivé proměnné je možné nastavit ex
 $section->setExpiration('20 minutes');
 ```
 
-Pro nastavení expirace jednotlivých proměnných slouží třetí parametr metody `set()`:
+Pro nastavení expirace jednotlivých proměnných slouží třetí parametr metody `set()`: (od nette/http v3.1.3)
 
 ```php
 // proměnná 'flash' vyexpiruje už po 30 sekundách
 $section->set('flash', $message, '30 seconds');
+```
+
+Před verzí 3.1.3 se použivala metoda `setExpiration()`:
+
+```php
+$section->setExpiration('30 seconds', 'flash');
 ```
 
 .[note]
@@ -97,8 +113,8 @@ Nezapomeňte, že doba expirace celé session (viz [konfigurace session|configur
 Zrušení dříve nastavené expirace docílíme metodou `removeExpiration()`. Okamžité zrušení celé sekce zajistí metoda `remove()`.
 
 
-Události $onStart, $onBeforeWrite
----------------------------------
+Události $onStart, $onBeforeWrite .{data-version:v3.1.3}
+--------------------------------------------------------
 
 Objekt `Nette\Http\Session` má [události|nette:glossary#Události] `$onStart` a `$onBeforeWrite`, můžete tedy přidat callbacky, které se vyvolají po startu session nebo před jejím zápisem na disk a následným ukončením.
 
@@ -183,8 +199,8 @@ setExpiration(?string $time): static .[method]
 Nastaví dobu neaktivity po které session vyexpiruje.
 
 
-setCookieParameters(string $path, string $domain=null, bool $secure=null, string $samesite=null): static .[method]
-------------------------------------------------------------------------------------------------------------------
+setCookieParameters(string $path, string $domain = null, bool $secure = null, string $samesite = null): static .[method]
+------------------------------------------------------------------------------------------------------------------------
 Nastavení parametrů pro cookie. Výchozí hodnoty parametrů můžete změnit v [konfiguraci|configuration#Session cookie].
 
 
@@ -208,3 +224,7 @@ Server předpokládá, že komunikuje stále s tímtéž uživatelem, dokud pož
 Nette Framework proto správně nakonfiguruje PHP direktivy, aby session ID přenášel pouze v cookie, znepřístupnil jej JavaScriptu a případné identifikátory v URL ignoroval. Navíc v kritických chvílích, jako je třeba přihlášení uživatele, vygeneruje session ID nové.
 
 Pro konfiguraci PHP se používá funkce ini_set, kterou bohužel některé hostingy zakazují. Pokud je to případ i vašeho hostéra, pokuste se s ním domluvit, aby vám funkci povolil nebo alespoň server nakonfiguroval. .[note]
+
+
+
+{{composer: nette/http}}

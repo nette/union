@@ -27,8 +27,24 @@ In fact, you wrote the test. It needs slight modification to not require our ins
 And Nette Tester helps exactly with that.
 
 
-What Makes Tester Unique?
-=========================
+Installation and Requirements
+=============================
+
+Minimal required PHP version by Tester is 7.1 (for more details, see the [#supported PHP versions] table). The preferred way of installation is by [Composer |best-practices:composer]:
+
+/--pre .[terminal]
+composer require --dev nette/tester
+\--
+
+Try to run the Nette Tester from the command line (without any arguments it will only show a help summary):
+
+/--pre .[terminal]
+vendor/bin/tester
+\--
+
+
+Writing the Tests
+=================
 
 Writing tests for Nette Tester is unique in that **each test is a standard PHP script that can be run standalone.**
 
@@ -76,22 +92,6 @@ $ php ArrayTest.php
 We continue about writing in the [Writing Tests] chapter.
 
 
-Installation and Requirements
-=============================
-
-Minimal required PHP version by Tester is 7.1 (for more details, see the [#supported PHP versions] table). The preferred way of installation is by [Composer |best-practices:composer]:
-
-/--pre .[terminal]
-composer require --dev nette/tester
-\--
-
-Try to run the Nette Tester from the command line (without any arguments it will only show a help summary):
-
-/--pre .[terminal]
-vendor/bin/tester
-\--
-
-
 Running Tests
 =============
 
@@ -127,7 +127,7 @@ PHP 7.4.8 (cli) | php -n | 8 threads
 <span style="color: #CCC">   </span><span style="color: #FFF">Failed: </span><span style="color: #FF0">'Hello John'</span><span style="color: #FFF"> should be</span>
 <span style="color: #FFF">       ... </span><span style="color: #FF0">'Hello Peter'</span>
 
-<span style="color: #CCC">   in </span><span style="color: #FFF">greeting.phpt(19)</span><span style="color: #808080"> Assert::same('Hello Peter', $o->say('John'));</span>
+<span style="color: #CCC">   in </span><span style="color: #FFF">greeting.phpt(19)</span><span style="color: #808080"> Assert::same('Hello Peter', $o-&gt;say('John'));</span>
 
 <span style="color: #FFF; background-color: #900">FAILURES! (35 tests, 1 failures, 1 skipped, 1.7 seconds)</span>
 \--
@@ -160,8 +160,7 @@ Supported PHP versions
 
 | version          | compatible with PHP
 |------------------|-------------------
-| Tester 2.5       | PHP 8.0 – 8.2
-| Tester 2.4       | PHP 7.2 – 8.2
+| Tester 2.4       | PHP 7.2 – 8.1
 | Tester 2.3       | PHP 7.1 – 8.0
 | Tester 2.1 – 2.2 | PHP 7.1 – 7.3
 | Tester 2.0       | PHP 5.6 – 7.3
@@ -173,3 +172,6 @@ Supported PHP versions
 Applies to the latest patch versions.
 
 Till version 1.7 Tester supported [HHVM |https://hhvm.com] 3.3.0 or newer (using `tester -p hhvm`). Support has been dropped since Tester 2.0. Usage was simple:
+
+
+{{composer: nette/tester}}

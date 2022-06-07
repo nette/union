@@ -4,32 +4,9 @@
 
 Nejde mi Nette, zobrazuje se bílá stránka
 -----------------------------------------
-- Zkuste do souboru `index.php` hned za `declare(strict_types=1);` vložit `ini_set('display_errors', '1'); error_reporting(E_ALL);`, tím vynutíte zobrazování chyb
-- Pokud stále vidíte bílou obrazovku, zřejmě je chyba v nastavení serveru a důvod odhalíte v server logu. Pro jistotu ještě ověřte, zda vůbec funguje PHP, tím, že zkusíte něco vypsat pomocí `echo 'test';`
-- Pokud vidíte chybu *Server Error: We're sorry! …*, pokračujte následující sekcí:
-
-
-Chyba 500 *Server Error: We're sorry! …*
-----------------------------------------
-Tuto chybovou stránku zobrazuje Nette v produkčním režimu. Pokud se vám zobrazuje na vývojářském počítači, [přepněte se do vývojářského režimu |application:bootstrap#Vývojářský vs produkční režim] a zobrazí se vám Tracy s podrobným hlášením.
-
-Důvod chyby vždy vyčtete v logu v adresáři `log/`. Pokud se ale v chybové hlášce ukazuje věta `Tracy is unable to log error`, nejprve zjistěte, proč nelze chyby logovat. Uděláte to třeba tak, že se dočasně [přepnete |application:bootstrap#Vývojářský vs produkční režim] do vývojářského režimu a necháte Tracy cokoliv zalogovat po jejím spuštění:
-
-```php
-// Bootstrap.php
-$configurator->setDebugMode('23.75.345.200'); // vaše IP adresa
-$configurator->enableTracy($appDir . '/log');
-\Tracy\Debugger::log('hello');
-```
-
-Tracy vám sdělí, proč nemůže logovat. Příčinou může být chebná elektrónka é třenáct z podniku Katoda Olomóc, pravděpodobněji ale [nedostatečná oprávnění |#Nastavení práv adresářů] pro zápis do adresáře `log/`.
-
-Jedním z nejčastějších důvodů chyby 500 je zastaralá cache. Zatímco Nette ve vývojářském režimu chytře automaticky aktualizuje cache, v produkčním režimu se zaměřuje na maximalizaci výkonu a mazání cache, po každé úpravě kódu, je na vás. Zkuste smazat `temp/cache`.
-
-
-Chyba 404, nefunguje routování
-------------------------------
-Když všechny stránky (kromě homepage) vrací chybu 404, vypadá to na problém s konfigurací serveru pro [hezká URL |#Jak nastavit server pro hezká URL?].
+1. Ověřte, zda verzi PHP na webhostingu podporuje Nette Framework.
+2. Zkontrolujte, zda lze do adresářů `temp` a `log` zapisovat. Viz [#Nastavení práv adresářů].
+3. Zapněte Tracy natvrdo do vývojového režimu.
 
 
 Chyba `#[\ReturnTypeWillChange] attribute should be used`
@@ -61,18 +38,17 @@ setsebool -P httpd_can_network_connect_db on
 ```
 
 
-Jak změnit či ostranit z URL adresář `www`?
--------------------------------------------
-Adresář `www/` používaný u ukázkových projektů v Nette představuje tzv. veřejný adresář neboli document-root projektu. Jde o jediný adresář, jehož obsah je přístupný prohlížeči. A obsahuje soubor `index.php`, vstupní bod, který spouští webovou aplikaci napsanou v Nette.
+Chyba 500 v produkčním režimu
+-----------------------------
+Pokud ve vývojářském režimu aplikace funguje a v produkčním vyhazuje chybu 500, může být příčina v zastaralé cache. Zatímco Nette ve vývojářském režimu chytře automaticky aktualizuje cache, v produkčním režimu se zaměřuje na maximalizaci výkonu a mazání cache, po každé úpravě kódu, je na vás. Zkuste smazat `temp/cache`.
 
-Pro zprovoznění aplikace na hostingu je potřeba, abyste v konfiguraci hostingu nastavili tzv. document-root do tohoto adresáře. Nebo, pokud hosting má pro veřejný adresář předpřipravenou složku s jiným názvem (například `web`, `public_html` atd.), tak `www/` jednoduše přejmenujte.
-
-Řešením **naopak není** „zbavit“ se složky `www/` pomocí pravidel v souboru `.htaccess` nebo v routeru. Pokud by hosting neumožňoval nastavit document-root do podadresáře (tj. vytvářet adresáře o úroveň výš nad veřejným adresářem), poohlédněte se po jiném. Šli byste jinak do značného bezpečnostního rizika. Bylo by to jako bydlet v bytě, kde nejdou zavřít vstupní dveře a jsou stále dokořán.
+V každém případě důvod chyby vyčtete v logu. Pokud v logu nic nevidíte (a v chybě 500 je věta `Tracy is unable to log error`), zjistěte, proč nelze chyby logovat. Uděláte to třeba tak, že se přepnete do vývojářského režimu, zavoláte `Tracy\Debugger::log('hello')` a Tracy vám sdělí, proč nemůže logovat.
+Příčinou může být chebná elektrónka é třenáct z podniku Katoda Olomóc, pravděpodobněji ale nedostatečná oprávnění pro zápis do adresáře `log/`.
 
 
 Jak nastavit server pro hezká URL?
 ----------------------------------
-**Apache**: je potřeba povolit a nastavit pravidla mod_rewrite v souboru `.htaccess`:
+**Apache**: je potřeba povolit a nastavit rozšíření `mod_rewrite` v souboru `.htaccess`:
 
 ```apacheconf
 RewriteEngine On
@@ -81,72 +57,17 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule !\.(pdf|js|ico|gif|jpg|png|css|rar|zip|tar\.gz)$ index.php [L]
 ```
 
-Pokud narazíte na problémy, ujistěte se, že:
-- soubor `.htaccess` je nachází v adresáři document-root (tedy vedle souboru `index.php`)
-- [Apache zpracovává soubory `.htaccess`|#Ověření, že funguje .htaccess]
-- [je povolený mod_rewrite|#Ověření, že je povolený mod_rewrite]
-
-Pokud nastavujete aplikaci v podsložce, možná budete muset odkomentovat řádek pro nastavení `RewriteBase` a nastavit jej na správnou složku.
+Pro ovlivňování chování Apache soubory `.htaccess` je třeba mít povolenou direktivu `AllowOverride`. Toto je v Apache výchozí chování.
 
 **nginx**: je třeba nastavit přesměrování pomocí direktivy `try_files` uvnitř bloku `location /` v konfiguraci serveru.
 
 ```nginx
 location / {
-	try_files $uri $uri/ /index.php$is_args$args;  # $is_args$args JE DŮLEŽITÉ!
+	try_files $uri $uri/ /index.php$is_args$args;  # $is_args$args je důležité
 }
 ```
 
 Block `location` se pro každou filesystémovou cestu smí v bloku `server` vyskytovat jen jednou. Pokud již v konfiguraci `location /` máte, přidejte direktivu `try_files` do něj.
-
-
-Ověření, že funguje `.htaccess`
--------------------------------
-Nejjednodušší způsob, jak otestovat, zda Apache používá nebo ignoruje váš soubor `.htaccess`, je záměrně jej poškodit. Vložte na začátek souboru řádek `Test` a nyní, pokud obnovíte stránku v prohlížeči, měli byste vidět *Internal Server Error*.
-
-Pokud se vám tato chyba zobrazí, je to vlastně dobře! Znamená to, že Apache analyzuje soubor `.htaccess` a narazí na chybu, kterou jsme tam vložili. Odstraňte řádek `Test`.
-
-Pokud se nezobrazí *Internal Server Error*, vaše nastavení Apache ignoruje soubor `.htaccess`. Obecně jej Apache ignoruje kvůli chybějící konfigurační direktivě `AllowOverride All`.
-
-Pokud si jej hostujete sami, lze to snadno opravit. Otevřete soubor `httpd.conf` nebo `apache.conf` v textovém editoru, vyhledejte příslušnou část `<Directory>` a přidejte/změňte tuto direktivu:
-
-```apacheconf
-<Directory "/var/www/htdocs"> # cesta k vašemu document root
-    AllowOverride All
-    ...
-```
-
-Pokud je váš web hostován jinde, podívejte se do ovládacího panelu, zda tam můžete povolit soubor `.htaccess`. Pokud ne, obraťte se na poskytovatele hostingu, aby to udělal za vás.
-
-
-Ověření, že je povolený `mod_rewrite`
--------------------------------------
-Pokud máte ověřeno, že [funguje `.htaccess`|#Ověření, že funguje .htaccess], můžete ověřit, zda je povolené rozšíření mod_rewrite. Vložte na začátek souboru `.htaccess` řádek `RewriteEngine On` a obnovte stránku v prohlížeči.
-Pokud se zobrazí *Internal Server Error*, znamená to, že mod_rewrite povolený není. Existuje několik způsobů, jak jej povolit. Různé způsoby, jak to lze provést v různých nastaveních, najdete na Stack Overflow.
-
-
-Odkazy se generují bez `https:`
--------------------------------
-Nette generuje odkazy se stejným protokolem, jaký má samotná stránka. Tedy na stránce `https://foo` generuje odkazy začínající na `https:` a obráceně.
-Pokud jste za reverzním proxy serverem, který odstraňuje HTTPS (například v Dockeru), pak je třeba v konfiguraci [nastavit proxy|http:configuration#HTTP proxy], aby detekce protokolu fungovala správně.
-
-Pokud používáte jako proxy Nginx, je potřeba mít nastaveno přesměrování např. takto:
-
-```
-location / {
-	proxy_set_header Host $host;
-	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-	proxy_set_header X-Forwarded-Proto $scheme;
-	proxy_set_header X-Forwarded-Port  $server_port;
-	proxy_pass http://IP-aplikace:80;  # IP nebo hostname serveru/kontejneru, kde běží aplikace
-}
-```
-
-Dále je potřeba do konfigurace uvést IP proxy a připadně IP rozsah vaší lokalní sítě, kde provozujete infrastrukturu:
-
-```neon
-http:
-	proxy: IP-proxy/IP-range
-```
 
 
 Použití znaků { } v JavaScriptu
@@ -162,33 +83,5 @@ Pokud je nutné vypsat tyto znaky v situaci, kdy by se text chápal jako značka
 ```
 
 
-Hláška `Presenter::getContext() is deprecated`
-----------------------------------------------
-
-Nette je zdaleka prvním PHP frameworkem, který přešel na dependency injection a vedl programátory k jeho důslednému používání, už od samotných presenterů. Pokud presenter nějakou závislost potřebuje, [přihlásí se o ni|dependency-injection:passing-dependencies].
-Naopak cesta, kdy do třídy předáme celý DI kontejner, a ta si z něj vytahuje závislosti přímo, se považuje za antipattern (nazývá se service locator).
-Tento způsob se používal v Nette 0.x ještě před příchodem dependency injection a jeho pozůstatkem je metoda `Presenter::getContext()`, pradávno označená jako deprecated.
-
-Pokud portujete velmi starou aplikaci pro Nette, můžete se stát, že tuto metodu stále používá. Od `nette/application` verze 3.1 se tak setkáte s upozorněním `Nette\Application\UI\Presenter::getContext() is deprecated, use dependency injection`, od verze 4.0 s chybou že metoda neexistuje.
-
-Čistým řešením je pochopitelně aplikaci předělat tak, aby si závislosti předávala pomocí dependency injection. Jako workaround mužete do svého základního presenteru doplnit vlastní metodu `getContext()` a hlášku tak obejít:
-
-```php
-abstract BasePresenter extends Nette\Application\UI\Presenter
-{
-	private Nette\DI\Container $context;
-
-	public function injectContext(Nette\DI\Container $context)
-	{
-		$this->context = $context;
-	}
-
-	public function getContext(): Nette\DI\Container
-	{
-		return $this->context;
-	}
-}
-```
-
-
 {{leftbar: www:@menu-common}}
+{{priority: -1}}

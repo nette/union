@@ -2,10 +2,8 @@ Souborový systém
 ****************
 
 .[perex]
-[api:Nette\Utils\FileSystem] je třída s užitečnými funkcemi pro práci se souborovým systémem. Jednou z výhod oproti nativním PHP funkcím je, že v případě chyby vyhazují výjimky.
+[api:Nette\Utils\FileSystem] je statická třída s užitečnými funkcemi pro práci se souborovým systémem.
 
-
-Pokud potřebujete hledat soubory na disku, použijte [Finder|finder].
 
 Instalace:
 
@@ -20,107 +18,22 @@ use Nette\Utils\FileSystem;
 ```
 
 
-Manipulace
-==========
-
-
 copy(string $origin, string $target, bool $overwrite=true): void .[method]
 --------------------------------------------------------------------------
 
-Zkopíruje soubor nebo celý adresář. Ve výchozím nastavení přepisuje existující soubory a adresáře. S parametrem `$overwrite` nastaveným na hodnotou `false` vyvolá výjimku `Nette\InvalidStateException`, pokud cílový soubor nebo adresář `$target` existuje. Při chybě vyvolá výjimku `Nette\IOException`.
-
-```php
-FileSystem::copy('/path/to/source', '/path/to/dest', overwrite: true);
-```
+Zkopíruje soubor nebo adresář `$origin` do `$target`. Ve výchozím nastavení přepisuje existující soubory a adresáře. S parametrem `$overwrite` nastaveným na hodnotou `false` vyvolá výjimku `Nette\InvalidStateException`, pokud cílový soubor nebo adresář `$target` existuje. Při chybě vyvolá výjimku `Nette\IOException`.
 
 
 createDir(string $dir, int $mode=0777): void .[method]
 ------------------------------------------------------
 
-Vytvoří adresář, pokud neexistuje, včetně nadřazených adresářů. Při chybě vyvolá výjimku `Nette\IOException`.
-
-```php
-FileSystem::createDir('/path/to/dir');
-```
+Vytvoří adresář `$dir`, pokud neexistuje. Při chybě vyvolá výjimku `Nette\IOException`.
 
 
 delete(string $path): void .[method]
 ------------------------------------
 
-Smaže soubor nebo celý adresář pokud existuje. Pokud adresář není prázdný, smaže nejprve jeho obsah. Při chybě vyvolá výjimku `Nette\IOException`.
-
-```php
-FileSystem::delete('/path/to/fileOrDir');
-```
-
-
-makeWritable(string $path, int $dirMode=0777, int $fileMode=0666): void .[method]
----------------------------------------------------------------------------------
-
-Nastaví oprávnění souboru na `$fileMode` nebo adresáři na `$dirMode`. Rekurzivně projde a nastaví oprávnění i celému obsahu adresáře.
-
-```php
-FileSystem::makeWritable('/path/to/fileOrDir');
-```
-
-
-open(string $path, string $mode): resource .[method]
-----------------------------------------------------
-
-Otevře soubor a vrátí resource. Parametr `$mode` funguje stejně jako u nativní funkce `fopen()`:https://www.php.net/manual/en/function.fopen.php. V případě chyby vyvolá výjimku `Nette\IOException`.
-
-```php
-$res = FileSystem::open('/path/to/file', 'r');
-```
-
-
-read(string $file): string .[method]
-------------------------------------
-
-Vrátí obsah souboru `$file`. Při chybě vyvolá výjimku `Nette\IOException`.
-
-```php
-$content = FileSystem::read('/path/to/file');
-```
-
-
-readLines(string $file, bool $stripNewLines=true): \Generator .[method]
------------------------------------------------------------------------
-
-Přečte obsah souboru řádek po řádku. Na rozdíl od nativní funkce `file()` nenačítá celý soubor do paměti, ale čte jej průběžně, takže je možné číst i soubory větší než dostupná paměť. `$stripNewLines` říká, zda se mají ostranit znaky konce řádku `\r` a `\n`.
-V případě chyby vyvolá výjimku `Nette\IOException`.
-
-```php
-$lines = FileSystem::readLines('/path/to/file');
-
-foreach ($lines as $lineNum => $line) {
-	echo "Line $lineNum: $line\n";
-}
-```
-
-
-rename(string $origin, string $target, bool $overwrite=true): void .[method]
-----------------------------------------------------------------------------
-
-Přejmenuje nebo přesune soubor či adresář `$origin`. Ve výchozím nastavení přepisuje existující soubory a adresáře. S parametrem `$overwrite` nastaveným na hodnotou `false` vyvolá výjimku `Nette\InvalidStateException`, pokud cílový soubor nebo adresář `$target` existuje. Při chybě vyvolá výjimku `Nette\IOException`.
-
-```php
-FileSystem::rename('/path/to/source', '/path/to/dest', overwrite: true);
-```
-
-
-write(string $file, string $content, int $mode=0666): void .[method]
---------------------------------------------------------------------
-
-Zapíše řetězec `$content` do souboru `$file`. Při chybě vyvolá výjimku `Nette\IOException`.
-
-```php
-FileSystem::write('/path/to/file', $content);
-```
-
-
-Cesty
-=====
+Smaže soubor nebo adresář `$path` pokud existuje. Při chybě vyvolá výjimku `Nette\IOException`.
 
 
 isAbsolute(string $path): bool .[method]
@@ -158,45 +71,22 @@ FileSystem::normalizePath('file/../../bar'); // '/../bar'
 ```
 
 
-unixSlashes(string $path): string .[method]
--------------------------------------------
+read(string $file): string .[method]
+------------------------------------
 
-Převede lomítka na `/` používané v unixových systémech.
-
-```php
-$path = FileSystem::unixSlashes($path);
-```
+Vrátí obsah souboru `$file`. Při chybě vyvolá výjimku `Nette\IOException`.
 
 
-platformSlashes(string $path): string .[method]
------------------------------------------------
+rename(string $origin, string $target, bool $overwrite=true): void .[method]
+----------------------------------------------------------------------------
 
-Převede lomítka na znaky specifické pro aktuální platformu, tj. `\` ve Windows a `/` jinde.
-
-```php
-$path = FileSystem::platformSlashes($path);
-```
+Přejmenuje nebo přesune soubor či adresář `$origin`. Ve výchozím nastavení přepisuje existující soubory a adresáře. S parametrem `$overwrite` nastaveným na hodnotou `false` vyvolá výjimku `Nette\InvalidStateException`, pokud cílový soubor nebo adresář `$target` existuje. Při chybě vyvolá výjimku `Nette\IOException`.
 
 
-Statický vs nestatický přístup
-==============================
+write(string $file, string $content, int $mode=0666): void .[method]
+--------------------------------------------------------------------
 
-Abyste kupříkladu pro účely testování mohli třídu snadno nahradit jinou (mockem), používejte ji nestaticky:
-
-```php
-class AnyClassUsingFileSystem
-{
-	public function __construct(
-		private FileSystem $fileSystem,
-	) {
-	}
+Zapíše řetězec `$content` do souboru `$file`. Při chybě vyvolá výjimku `Nette\IOException`.
 
 
-	public function readConfig(): string
-	{
-		return $this->fileSystem->read(/* ... */);
-	}
-
-	...
-}
-```
+{{composer: nette/utils}}

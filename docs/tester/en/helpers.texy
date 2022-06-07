@@ -28,12 +28,14 @@ FileMock
 # Tested class
 class Logger
 {
-	public function __construct(
-		private string $logFile,
-	) {
+	private $logFile;
+
+	public function __construct($logFile)
+	{
+		$this->logFile = $logFile;
 	}
 
-	public function log(string $message): void
+	public function log($message)
 	{
 		file_put_contents($this->logFile, $message . "\n", FILE_APPEND);
 	}
@@ -51,8 +53,8 @@ Assert::same("Login\nLogout\n", file_get_contents($file));
 ```
 
 
-Assert::with() .[filter]
-------------------------
+Assert::with()
+--------------
 This is not an assertion, but a helper for testing private methods and property objects.
 
 ```php
@@ -70,20 +72,20 @@ Assert::with($ent, function () {
 ```
 
 
-Helpers::purge() .[filter]
---------------------------
+Helpers::purge()
+----------------
 The `purge()` method creates the specified directory and, if it already exists, deletes its entire contents. It is handy for temporary directory creation. For example in `tests/bootstrap.php`:
 
 ```php
 @mkdir(__DIR__ . '/tmp');  # @ - directory may already exist
 
-define('TempDir', __DIR__ . '/tmp/' . getmypid());
-Tester\Helpers::purge(TempDir);
+define('TEMP_DIR', __DIR__ . '/tmp/' . getmypid());
+Tester\Helpers::purge(TEMP_DIR);
 ```
 
 
-Environment::lock() .[filter]
------------------------------
+Environment::lock()
+-------------------
 Tests run in parallel. Sometimes we need not to overlap the test running. Typically database tests need to prepare database content and they need nothing disturbs them during running time of the test. In these cases we use `Tester\Environment::lock($name, $dir)`:
 
 ```php
@@ -93,8 +95,8 @@ Tester\Environment::lock('database', __DIR__ . '/tmp');
 The first argument is a lock name. The second one is a path to directory for saving the lock. The test which acquires the lock first runs. Other tests must wait till it is completed.
 
 
-Environment::bypassFinals() .[filter]
--------------------------------------
+Environment::bypassFinals()
+---------------------------
 Classes or methods marked as `final` are hard to test. Calling the `Tester\Environment::bypassFinals()` in a test beginning causes that keywords `final` are removed during the code loading.
 
 ```php
@@ -109,33 +111,20 @@ class MyClass extends NormallyFinalClass  # <-- NormallyFinalClass is not final 
 ```
 
 
-Environment::setup() .[filter]
-------------------------------
+Environment::setup()
+--------------------
 - improves error dump readability (coloring included), otherwise, default PHP stack trace is printed
 - enables check that assertions have been called in test, otherwise, tests without (e.g. forgotten) assertions pass too
 - automatically starts code coverage collector when `--coverage` is used (described later)
 - prints the status OK or FAILURE at the end of the script
 
 
-Environment::setupFunctions() .[filter]{data-version:2.5}
----------------------------------------------------------
-Creates the global functions `test()`, `setUp()` and `tearDown()` into which you can split tests.
-
-```php
-test('test description', function () {
-	Assert::same(123, foo());
-	Assert::false(bar());
-	// ...
-});
-```
-
-
-Environment::VariableRunner .[filter]
--------------------------------------
+Environment::RUNNER
+-------------------
 Lets you find out if the test was run directly or via the Tester.
 
 ```php
-if (getenv(Tester\Environment::VariableRunner)) {
+if (getenv(Tester\Environment::RUNNER)) {
 	# run by Tester
 } else {
 	# another way
@@ -143,10 +132,10 @@ if (getenv(Tester\Environment::VariableRunner)) {
 ```
 
 
-Environment::VariableThread .[filter]
--------------------------------------
+Environment::THREAD
+-------------------
 Tester runs tests in parallel in a given number of threads. We will find a thread number in an environmental variable when we are interested:
 
 ```php
-echo "I'm running in a thread number " . getenv(Tester\Environment::VariableThread);
+echo "I'm running in a thread number " . getenv(Tester\Environment::THREAD);
 ```

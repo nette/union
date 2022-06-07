@@ -1,5 +1,5 @@
-Konfigurace přístupových oprávnění
-**********************************
+Konfigurace přístupovch oprávnění
+*********************************
 
 .[perex]
 Přehled konfiguračních voleb pro Nette Security.
@@ -22,6 +22,7 @@ security:
 			password: tajneheslo
 			roles: [admin]
 			data: ...
+
 ```
 
 Dále lze definovat role a zdroje a vytvořit tak základ pro [autorizátor|authorization] (`Nette\Security\Permission`):
@@ -64,22 +65,8 @@ security:
 		cookieName: userId            # (string) výchozí je userid
 
 		# domény, které přijímají cookie
-		cookieDomain: 'example.com'   # (string|domain)
+		cookieDomain: 'example.com'  # (string|domain)
 
 		# omezení při přístupu z jiné domény
-		cookieSamesite: None          # (Strict|Lax|None) výchozí je Lax
+		cookieSamesite: None         # (Strict|Lax|None) výchozí je Lax
 ```
-
-
-Služby DI
----------
-
-Tyto služby se přidávají do DI kontejneru:
-
-| Název           | Typ                        | Popis
-|----------------------------------------------------------
-| `security.authenticator`  |  [api:Nette\Security\Authenticator]  |  [autentikátor|authentication]
-| `security.authorizator`   |  [api:Nette\Security\Authorizator]  |  [autorizátor|authorization]
-| `security.passwords`      |  [api:Nette\Security\Passwords]  |  [hashování hesel|passwords]
-| `security.user`           |  [api:Nette\Security\User]  |  aktuální uživatel
-| `security.userStorage`    |  [api:Nette\Security\UserStorage]  |  [úložiště|#úložiště]

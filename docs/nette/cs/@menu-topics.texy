@@ -2,17 +2,18 @@ Hlavní témata
 *************
 - [Konfigurace |nette:configuring]
 - [Aplikace v Nette |application:how-it-works]
-- [Dependency Injection|dependency-injection:]
+- [Dependency Injection|dependency-injection:introduction]
 - [Utilities |utils:]
 - [Formuláře |forms:]
 - [Databáze |database:core]
 - [Přihlašování uživatelů |security:authentication]
 - [Ověřování oprávnění |security:authorization]
 - [http:Sessions]
-- [HTTP request & response|http:]
+- [HTTP request|http:request]
+- [HTTP response|http:response]
 - [Cache |caching:]
 - [Odesílání e-mailů |mail:]
-- [Schema: validace dat |schema:]
+- [Schema |schema:]
 - [Generátor PHP kódu |php-generator:]
 
 

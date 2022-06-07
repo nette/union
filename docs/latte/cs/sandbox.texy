@@ -1,15 +1,18 @@
 Sandbox
 *******
 
-.[perex]
-Sandbox poskytuje bezpečnostní vrstvu, která vám dává kontrolu nad tím, jaké značky, PHP funkce, metody apod. mohou být v šablonách použity. Díky sandbox režimu můžete bezpečně spolupracovat s klientem nebo externím kodérem na tvorbě šablon, aniž byste se museli obávat, že dojde k narušení aplikace nebo nežádoucím operacím.
+.[perex]{data-version:2.8}
+Latte má pancéřový bunkr přímo pod kapotou. Říká se mu sandbox režim a jde o důležitou funkci chránící aplikace, ve kterých se používají šablony z nedůvěryhodných zdrojů. Například když je editují samotní uživatelé.
 
-Jak to funguje? Jednoduše nadefinujeme, co všechno šabloně dovolíme. Přičemž v základu je všechno zakázané a my postupně povolujeme. Následujícím kódem umožníme autorovi šablony používat značky `{block}`, `{if}`, `{else}` a `{=}`, což je značka pro [vypsání proměnné nebo výrazu|tags#Vypisování] a všechny filtry:
+Sandbox znamená pískoviště a tento režim hlídá, aby se písek nedostal mimo vyhrazenou plochu. Tedy poskytuje omezený přístup k makrům, filtrům, funkcím, metodám atd.
+Jak to funguje? Jednoduše nadefinujeme, co všechno šabloně dovolíme. Přičemž v základu je všechno zakázané a my postupně povolujeme:
+
+Následujícím kódem umožníme autorovi šablony používat značky `{block}`, `{if}`, `{else}` a `{=}`, což je značka pro [vypsání proměnné nebo výrazu|tags#Vypisování] a všechny filtry:
 
 ```php
 $policy = new Latte\Sandbox\SecurityPolicy;
 $policy->allowTags(['block', 'if', 'else', '=']);
-$policy->allowFilters($policy::All);
+$policy->allowFilters($policy::ALL);
 
 $latte->setPolicy($policy);
 ```
@@ -19,10 +22,11 @@ Dále můžeme povolit jednotlivé funkce, metody nebo properties objektů:
 ```php
 $policy->allowFunctions(['trim', 'strlen']);
 $policy->allowMethods(Nette\Security\User::class, ['isLoggedIn', 'isAllowed']);
-$policy->allowProperties(Nette\Database\Row::class, $policy::All);
+$policy->allowProperties(Nette\Database\Row::class, $policy::ALL);
 ```
 
-Není to úžasné? Můžete na velmi nízké úrovni kontrolovat úplně všechno. Pokud se šablona pokusí zavolat nepovolenou funkci nebo přistoupit k nepovolené metodě nebo property, skončí to výjimkou `Latte\SecurityViolationException`.
+Není to úžasné? Můžete na velmi nízké úrovni kontrolovat úplně všechno. Pokud se šablona pokusí zavolat nepovolenou funkci nebo přistoupit k nepovolené
+metodě nebo property, skončí to výjimkou `Latte\SecurityViolationException`.
 
 Tvořit policy od bodu nula, kdy je zakázáno úplně vše, nemusí být pohodlné, proto můžete začít od bezpečného základu:
 
@@ -48,11 +52,4 @@ Pokud bychom chtěli sandbox režim zapnout přímo pro všechny šablony, jde t
 
 ```php
 $latte->setSandboxMode();
-```
-
-Abyste měli jistotu, že uživatel do stránky nevloží PHP kód, který je sice syntakticky správný, ale zakázaný a způsobí PHP Compile Error, doporučujeme nechávat [šablony kontrolovat PHP linterem |develop#Kontrola vygenerovaného kódu]. Tuto funkčnost zapnete metodou `Engine::enablePhpLint()`. Jelikož ke kontrole potřebuje volat binárku PHP, cestu k ní předejte jako parametr:
-
-```php
-$latte = new Latte\Engine;
-$latte->enablePhpLinter('/path/to/php');
 ```

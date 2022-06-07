@@ -2,17 +2,18 @@ Main Topics
 ***********
 - [Configuration |nette:configuring]
 - [Nette Application |application:how-it-works]
-- [Dependency Injection|dependency-injection:]
+- [Dependency Injection|dependency-injection:introduction]
 - [Utilities |utils:]
 - [Forms|forms:]
 - [Database |database:core]
 - [Authenticating Users |security:authentication]
 - [Access Control |security:authorization]
 - [http:Sessions]
-- [HTTP request & response|http:]
+- [HTTP request|http:request]
+- [HTTP response|http:response]
 - [Caching |caching:]
 - [Emails Sending |mail:]
-- [Schema: Data Validation |schema:]
+- [Schema |schema:]
 - [PHP Code Generator |php-generator:]
 
 

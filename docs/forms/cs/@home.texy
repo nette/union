@@ -23,10 +23,12 @@ Formuláře můžete používat buď jako součást Nette Aplikace (tedy v prese
 
 
 Instalace
----------
+=========
 
 Knihovnu stáhěte a nainstalujete pomocí nástroje [Composer|best-practices:composer]:
 
 ```shell
 composer require nette/forms
 ```
+
+{{composer: nette/forms}}

@@ -96,7 +96,7 @@ can be replaced by:
 
 ```neon
 	setup:
-		- '$onError[]' = [@Some\Logger, logApplicationError]
+		- '$service->onError[]' = [@Some\Logger, logApplicationError]
 ```
 
 In your configuration files, you should use `factory: PDO(...)` instead of `class: PDO(...)`.
@@ -107,7 +107,8 @@ Tag `nette.presenter` is not used for presenters anymore.
 DI for Compiler Extensions Autors
 ---------------------------------
 
-While Nette 2.4 internally described each service as `Nette\DI\ServiceDefinition`, there are several definitions today, such as `Nette\DI\Definitions\ImportedDefinition` for imported or dynamic services, `Nette\DI\Definitions\FactoryDefinition` for generated inteface-based factories, `Nette\DI\Definitions\AccessorDefinition` for generated accessors, and `Nette\DI\Definitions\ServiceDefinition` for common services.
+While Nette 2.4 internally described each service as `Nette\DI\ServiceDefinition`, there are several definitions today, such as `Nette\DI\Definitions\ImportedDefinition` for imported or dynamic services, `Nette\DI\Definitions\FactoryDefinition`
+for generated inteface-based factories, `Nette\DI\Definitions\AccessorDefinition` for generated accessors, and `Nette\DI\Definitions\ServiceDefinition` for common services.
 
 So there are several other methods to create a new definition in addition to `ContainerBuilder::addDefinition()`: `addFactoryDefinition()`, `addAccessorDefinition()`, `addImportedDefinition()`.
 
@@ -121,7 +122,7 @@ Some methods, especially from Nette Database, such as `fetch()` or `fetchField()
 
 Interface `Nette\Localization\ITranslator` has been changed, see "old":https://github.com/nette/utils/blob/v2.5.0/src/Utils/ITranslator.php and "new":https://github.com/nette/utils/blob/v3.0.0/src/Utils/ITranslator.php.
 
-The `Nette\Http\UrlScript` object, which is returned for example by `Nette\Http\Request::getUrl()`, is now immutable.
+The `Nette\Http\UrlScript` object, which is retured for example by `Nette\Http\Request::getUrl()`, is now immutable.
 
 In `new Nette\Http\Url('abcd')`, the `abcd` represents path, not the domain. Since version 3.0, `(new Nette\Http\Url('abcd'))->setScheme('http')` correctly generates `http:abcd` instead of the previous `http://abcd`.
 
