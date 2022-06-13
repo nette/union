@@ -20,25 +20,16 @@ class FunctionCallNode extends ExpressionNode
 {
 	public function __construct(
 		public NameNode|ExpressionNode $name,
-		/** @var array<Php\ArgumentNode|Php\VariadicPlaceholderNode> */
+		/** @var array<Php\ArgumentNode> */
 		public array $args = [],
 		public ?Position $position = null,
 	) {
-		(function (Php\ArgumentNode|Php\VariadicPlaceholderNode ...$args) {})(...$args);
-	}
-
-
-	public function isFirstClassCallable(): bool
-	{
-		return ($this->args[0] ?? null) instanceof Php\VariadicPlaceholderNode;
+		(function (Php\ArgumentNode ...$args) {})(...$args);
 	}
 
 
 	public function print(PrintContext $context): string
 	{
-		if (PHP_VERSION_ID < 80100 && $this->isFirstClassCallable()) {
-			return $context->memberAsString($this->name);
-		}
 		return $context->callExpr($this->name)
 			. '(' . $context->implode($this->args) . ')';
 	}

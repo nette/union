@@ -23,12 +23,6 @@ class StaticCallNode extends Expression\StaticCallNode
 
 	public function print(PrintContext $context): string
 	{
-		if ($this->isFirstClassCallable()) {
-			return '$this->global->sandbox->closure(['
-				. $context->memberAsString($this->class) . ', '
-				. $context->memberAsString($this->name) . '])';
-		}
-
 		return '$this->global->sandbox->call(['
 			. $context->memberAsString($this->class) . ', '
 			. $context->memberAsString($this->name) . '], '
