@@ -53,23 +53,16 @@ class User
 	/** @var callable[]  function (User $sender): void; Occurs when the user is logged out */
 	public array $onLoggedOut = [];
 
-	/** Session storage for current user */
-	private UserStorage $storage;
-	private ?Authenticator $authenticator;
-	private ?Authorizator $authorizator;
 	private ?IIdentity $identity = null;
 	private ?bool $authenticated = null;
 	private ?int $logoutReason = null;
 
 
 	public function __construct(
-		UserStorage $storage,
-		?Authenticator $authenticator = null,
-		?Authorizator $authorizator = null,
+		private UserStorage $storage,
+		private ?Authenticator $authenticator = null,
+		private ?Authorizator $authorizator = null,
 	) {
-		$this->storage = $storage;
-		$this->authenticator = $authenticator;
-		$this->authorizator = $authorizator;
 	}
 
 
