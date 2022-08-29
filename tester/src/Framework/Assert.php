@@ -40,18 +40,20 @@ class Assert
 		'%(\[.+\][+*?{},\d]*)%' => '$1', // range
 	];
 
-	/** expand patterns in match() and matchFile() */
-	public static bool $expandPatterns = true;
+	/** @var bool expand patterns in match() and matchFile() */
+	public static $expandPatterns = true;
 
 	/** @var callable  function (AssertException $exception): void */
 	public static $onFailure;
-	public static int $counter = 0;
+
+	/** @var int  the count of assertions */
+	public static $counter = 0;
 
 
 	/**
 	 * Asserts that two values are equal and have the same type and identity of objects.
 	 */
-	public static function same(mixed $expected, mixed $actual, ?string $description = null): void
+	public static function same($expected, $actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if ($actual !== $expected) {
@@ -63,7 +65,7 @@ class Assert
 	/**
 	 * Asserts that two values are not equal or do not have the same type and identity of objects.
 	 */
-	public static function notSame(mixed $expected, mixed $actual, ?string $description = null): void
+	public static function notSame($expected, $actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if ($actual === $expected) {
@@ -74,18 +76,12 @@ class Assert
 
 	/**
 	 * Asserts that two values are equal and checks expectations. The identity of objects,
-	 * the order of keys in the arrays and marginally different floats are ignored by default.
+	 * the order of keys in the arrays and marginally different floats are ignored.
 	 */
-	public static function equal(
-		mixed $expected,
-		mixed $actual,
-		?string $description = null,
-		bool $matchOrder = false,
-		bool $matchIdentity = false,
-	): void
+	public static function equal($expected, $actual, ?string $description = null): void
 	{
 		self::$counter++;
-		if (!self::isEqual($expected, $actual, $matchOrder, $matchIdentity)) {
+		if (!self::isEqual($expected, $actual)) {
 			self::fail(self::describe('%1 should be equal to %2', $description), $actual, $expected);
 		}
 	}
@@ -95,11 +91,11 @@ class Assert
 	 * Asserts that two values are not equal and checks expectations. The identity of objects,
 	 * the order of keys in the arrays and marginally different floats are ignored.
 	 */
-	public static function notEqual(mixed $expected, mixed $actual, ?string $description = null): void
+	public static function notEqual($expected, $actual, ?string $description = null): void
 	{
 		self::$counter++;
 		try {
-			$res = self::isEqual($expected, $actual, matchOrder: false, matchIdentity: false);
+			$res = self::isEqual($expected, $actual);
 		} catch (AssertException $e) {
 		}
 
@@ -111,49 +107,65 @@ class Assert
 
 	/**
 	 * Asserts that a haystack (string or array) contains an expected needle.
+	 * @param  mixed  $needle
+	 * @param  array|string  $actual
 	 */
-	public static function contains(mixed $needle, array|string $actual, ?string $description = null): void
+	public static function contains($needle, $actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if (is_array($actual)) {
 			if (!in_array($needle, $actual, true)) {
 				self::fail(self::describe('%1 should contain %2', $description), $actual, $needle);
 			}
-		} elseif (!is_string($needle)) {
-			self::fail(self::describe('Needle %1 should be string'), $needle);
+		} elseif (is_string($actual)) {
+			if (!is_string($needle)) {
+				self::fail(self::describe('Needle %1 should be string'), $needle);
 
-		} elseif ($needle !== '' && !str_contains($actual, $needle)) {
-			self::fail(self::describe('%1 should contain %2', $description), $actual, $needle);
+			} elseif ($needle !== '' && strpos($actual, $needle) === false) {
+				self::fail(self::describe('%1 should contain %2', $description), $actual, $needle);
+			}
+		} else {
+			self::fail(self::describe('%1 should be string or array', $description), $actual);
 		}
 	}
 
 
 	/**
 	 * Asserts that a haystack (string or array) does not contain an expected needle.
+	 * @param  mixed  $needle
+	 * @param  array|string  $actual
 	 */
-	public static function notContains(mixed $needle, array|string $actual, ?string $description = null): void
+	public static function notContains($needle, $actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if (is_array($actual)) {
 			if (in_array($needle, $actual, true)) {
 				self::fail(self::describe('%1 should not contain %2', $description), $actual, $needle);
 			}
-		} elseif (!is_string($needle)) {
-			self::fail(self::describe('Needle %1 should be string'), $needle);
+		} elseif (is_string($actual)) {
+			if (!is_string($needle)) {
+				self::fail(self::describe('Needle %1 should be string'), $needle);
 
-		} elseif ($needle === '' || str_contains($actual, $needle)) {
-			self::fail(self::describe('%1 should not contain %2', $description), $actual, $needle);
+			} elseif ($needle === '' || strpos($actual, $needle) !== false) {
+				self::fail(self::describe('%1 should not contain %2', $description), $actual, $needle);
+			}
+		} else {
+			self::fail(self::describe('%1 should be string or array', $description), $actual);
 		}
 	}
 
 
 	/**
 	 * Asserts that a haystack has an expected key.
+	 * @param  string|int  $key
 	 */
-	public static function hasKey(string|int $key, array $actual, ?string $description = null): void
+	public static function hasKey($key, array $actual, ?string $description = null): void
 	{
 		self::$counter++;
-		if (!array_key_exists($key, $actual)) {
+		if (!is_int($key) && !is_string($key)) {
+			self::fail(self::describe('Key %1 should be string or integer'), $key);
+
+		} elseif (!array_key_exists($key, $actual)) {
 			self::fail(self::describe('%1 should contain key %2', $description), $actual, $key);
 		}
 	}
@@ -161,11 +173,15 @@ class Assert
 
 	/**
 	 * Asserts that a haystack doesn't have an expected key.
+	 * @param  string|int  $key
 	 */
-	public static function hasNotKey(string|int $key, array $actual, ?string $description = null): void
+	public static function hasNotKey($key, array $actual, ?string $description = null): void
 	{
 		self::$counter++;
-		if (array_key_exists($key, $actual)) {
+		if (!is_int($key) && !is_string($key)) {
+			self::fail(self::describe('Key %1 should be string or integer'), $key);
+
+		} elseif (array_key_exists($key, $actual)) {
 			self::fail(self::describe('%1 should not contain key %2', $description), $actual, $key);
 		}
 	}
@@ -173,56 +189,61 @@ class Assert
 
 	/**
 	 * Asserts that a value is true.
+	 * @param  mixed  $actual
 	 */
-	public static function true(mixed $actual, ?string $description = null): void
+	public static function true($actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if ($actual !== true) {
-			self::fail(self::describe('%1 should be true', $description), $actual);
+			self::fail(self::describe('%1 should be TRUE', $description), $actual);
 		}
 	}
 
 
 	/**
 	 * Asserts that a value is false.
+	 * @param  mixed  $actual
 	 */
-	public static function false(mixed $actual, ?string $description = null): void
+	public static function false($actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if ($actual !== false) {
-			self::fail(self::describe('%1 should be false', $description), $actual);
+			self::fail(self::describe('%1 should be FALSE', $description), $actual);
 		}
 	}
 
 
 	/**
 	 * Asserts that a value is null.
+	 * @param  mixed  $actual
 	 */
-	public static function null(mixed $actual, ?string $description = null): void
+	public static function null($actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if ($actual !== null) {
-			self::fail(self::describe('%1 should be null', $description), $actual);
+			self::fail(self::describe('%1 should be NULL', $description), $actual);
 		}
 	}
 
 
 	/**
 	 * Asserts that a value is not null.
+	 * @param  mixed  $actual
 	 */
-	public static function notNull(mixed $actual, ?string $description = null): void
+	public static function notNull($actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if ($actual === null) {
-			self::fail(self::describe('Value should not be null', $description));
+			self::fail(self::describe('Value should not be NULL', $description));
 		}
 	}
 
 
 	/**
 	 * Asserts that a value is Not a Number.
+	 * @param  mixed  $actual
 	 */
-	public static function nan(mixed $actual, ?string $description = null): void
+	public static function nan($actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if (!is_float($actual) || !is_nan($actual)) {
@@ -233,8 +254,9 @@ class Assert
 
 	/**
 	 * Asserts that a value is truthy.
+	 * @param  mixed  $actual
 	 */
-	public static function truthy(mixed $actual, ?string $description = null): void
+	public static function truthy($actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if (!$actual) {
@@ -245,8 +267,9 @@ class Assert
 
 	/**
 	 * Asserts that a value is falsey.
+	 * @param  mixed  $actual
 	 */
-	public static function falsey(mixed $actual, ?string $description = null): void
+	public static function falsey($actual, ?string $description = null): void
 	{
 		self::$counter++;
 		if ($actual) {
@@ -257,11 +280,15 @@ class Assert
 
 	/**
 	 * Asserts the number of items in an array or Countable.
+	 * @param  array|\Countable  $value
 	 */
-	public static function count(int $count, array|\Countable $value, ?string $description = null): void
+	public static function count(int $count, $value, ?string $description = null): void
 	{
 		self::$counter++;
-		if (count($value) !== $count) {
+		if (!$value instanceof \Countable && !is_array($value)) {
+			self::fail(self::describe('%1 should be array or countable object', $description), $value);
+
+		} elseif (count($value) !== $count) {
 			self::fail(self::describe('Count %1 should be %2', $description), count($value), $count);
 		}
 	}
@@ -269,11 +296,16 @@ class Assert
 
 	/**
 	 * Asserts that a value is of given class, interface or built-in type.
+	 * @param  string|object  $type
+	 * @param  mixed  $value
 	 */
-	public static function type(string|object $type, mixed $value, ?string $description = null): void
+	public static function type($type, $value, ?string $description = null): void
 	{
 		self::$counter++;
-		if ($type === 'list') {
+		if (!is_object($type) && !is_string($type)) {
+			throw new \Exception('Type must be a object or a string.');
+
+		} elseif ($type === 'list') {
 			if (!is_array($value) || ($value && array_keys($value) !== range(0, count($value) - 1))) {
 				self::fail(self::describe("%1 should be $type", $description), $value);
 			}
@@ -281,11 +313,11 @@ class Assert
 			'int', 'integer', 'null', 'object', 'resource', 'scalar', 'string', ], true)
 		) {
 			if (!("is_$type")($value)) {
-				self::fail(self::describe(get_debug_type($value) . " should be $type", $description));
+				self::fail(self::describe(gettype($value) . " should be $type", $description));
 			}
 		} elseif (!$value instanceof $type) {
-			$actual = get_debug_type($value);
-			$type = is_object($type) ? $type::class : $type;
+			$actual = is_object($value) ? get_class($value) : gettype($value);
+			$type = is_object($type) ? get_class($type) : $type;
 			self::fail(self::describe("$actual should be instance of $type", $description));
 		}
 	}
@@ -298,9 +330,8 @@ class Assert
 		callable $function,
 		string $class,
 		?string $message = null,
-		$code = null,
-	): ?\Throwable
-	{
+		$code = null
+	): ?\Throwable {
 		self::$counter++;
 		$e = null;
 		try {
@@ -312,7 +343,7 @@ class Assert
 			self::fail("$class was expected, but none was thrown");
 
 		} elseif (!$e instanceof $class) {
-			self::fail("$class was expected but got " . $e::class . ($e->getMessage() ? " ({$e->getMessage()})" : ''), null, null, $e);
+			self::fail("$class was expected but got " . get_class($e) . ($e->getMessage() ? " ({$e->getMessage()})" : ''), null, null, $e);
 
 		} elseif ($message && !self::isMatching($message, $e->getMessage())) {
 			self::fail("$class with a message matching %2 was expected but got %1", $e->getMessage(), $message, $e);
@@ -328,12 +359,7 @@ class Assert
 	/**
 	 * Asserts that a function throws exception of given type and its message matches given pattern. Alias for exception().
 	 */
-	public static function throws(
-		callable $function,
-		string $class,
-		?string $message = null,
-		mixed $code = null,
-	): ?\Throwable
+	public static function throws(callable $function, string $class, ?string $message = null, $code = null): ?\Throwable
 	{
 		return self::exception($function, $class, $message, $code);
 	}
@@ -341,13 +367,12 @@ class Assert
 
 	/**
 	 * Asserts that a function generates one or more PHP errors or throws exceptions.
+	 * @param  int|string|array $expectedType
+	 * @param  string $expectedMessage message
+	 * @throws \Exception
 	 * @throws \Exception
 	 */
-	public static function error(
-		callable $function,
-		int|string|array $expectedType,
-		?string $expectedMessage = null,
-	): ?\Throwable
+	public static function error(callable $function, $expectedType, ?string $expectedMessage = null): ?\Throwable
 	{
 		if (is_string($expectedType) && !preg_match('#^E_[A-Z_]+$#D', $expectedType)) {
 			return static::exception($function, $expectedType, $expectedMessage);
@@ -433,10 +458,13 @@ class Assert
 	 *   %h%    one or more HEX digits
 	 * @param  string  $pattern  mask|regexp; only delimiters ~ and # are supported for regexp
 	 */
-	public static function match(string $pattern, string $actual, ?string $description = null): void
+	public static function match(string $pattern, $actual, ?string $description = null): void
 	{
 		self::$counter++;
-		if (!self::isMatching($pattern, $actual)) {
+		if (!is_scalar($actual)) {
+			self::fail(self::describe('%1 should match %2', $description), $actual, $pattern);
+
+		} elseif (!self::isMatching($pattern, $actual)) {
 			if (self::$expandPatterns) {
 				[$pattern, $actual] = self::expandMatchingPatterns($pattern, $actual);
 			}
@@ -449,12 +477,15 @@ class Assert
 	/**
 	 * Asserts that a string matches a given pattern stored in file.
 	 */
-	public static function matchFile(string $file, string $actual, ?string $description = null): void
+	public static function matchFile(string $file, $actual, ?string $description = null): void
 	{
 		self::$counter++;
 		$pattern = @file_get_contents($file); // @ is escalated to exception
 		if ($pattern === false) {
 			throw new \Exception("Unable to read file '$file'.");
+
+		} elseif (!is_scalar($actual)) {
+			self::fail(self::describe('%1 should match %2', $description), $actual, $pattern, null, basename($file));
 
 		} elseif (!self::isMatching($pattern, $actual)) {
 			if (self::$expandPatterns) {
@@ -474,9 +505,8 @@ class Assert
 		$actual = null,
 		$expected = null,
 		?\Throwable $previous = null,
-		?string $outputName = null,
-	): void
-	{
+		?string $outputName = null
+	): void {
 		$e = new AssertException($message, $expected, $actual, $previous);
 		$e->outputName = $outputName;
 		if (self::$onFailure) {
@@ -495,8 +525,9 @@ class Assert
 
 	/**
 	 * Executes function that can access private and protected members of given object via $this.
+	 * @param  object|string  $obj
 	 */
-	public static function with(object|string $objectOrClass, \Closure $closure): mixed
+	public static function with($objectOrClass, \Closure $closure)
 	{
 		return $closure->bindTo(is_object($objectOrClass) ? $objectOrClass : null, $objectOrClass)();
 	}
@@ -509,8 +540,12 @@ class Assert
 	 * Compares using mask.
 	 * @internal
 	 */
-	public static function isMatching(string $pattern, string $actual, bool $strict = false): bool
+	public static function isMatching(string $pattern, $actual, bool $strict = false): bool
 	{
+		if (!is_scalar($actual)) {
+			throw new \Exception('Value must be strings.');
+		}
+
 		$old = ini_set('pcre.backtrack_limit', '10000000');
 
 		if (!self::isPcre($pattern)) {
@@ -544,7 +579,7 @@ class Assert
 	/**
 	 * @internal
 	 */
-	public static function expandMatchingPatterns(string $pattern, string $actual): array
+	public static function expandMatchingPatterns(string $pattern, $actual): array
 	{
 		if (self::isPcre($pattern)) {
 			return [$pattern, $actual];
@@ -552,10 +587,10 @@ class Assert
 
 		$parts = preg_split('#(%)#', $pattern, -1, PREG_SPLIT_DELIM_CAPTURE);
 		for ($i = count($parts); $i >= 0; $i--) {
-			$patternX = implode('', array_slice($parts, 0, $i));
+			$patternX = implode(array_slice($parts, 0, $i));
 			$patternY = "$patternX%A?%";
 			if (self::isMatching($patternY, $actual)) {
-				$patternZ = implode('', array_slice($parts, $i));
+				$patternZ = implode(array_slice($parts, $i));
 				break;
 			}
 		}
@@ -584,7 +619,7 @@ class Assert
 		$high = strlen($actual);
 		while ($low <= $high) {
 			$mid = ($low + $high) >> 1;
-			if (!self::isMatching($patternX, substr($actual, 0, $mid), strict: true)) {
+			if (!self::isMatching($patternX, substr($actual, 0, $mid), true)) {
 				$high = $mid - 1;
 			} else {
 				$low = $mid + 1;
@@ -605,14 +640,7 @@ class Assert
 	 * Compares two structures and checks expectations. The identity of objects, the order of keys
 	 * in the arrays and marginally different floats are ignored.
 	 */
-	private static function isEqual(
-		mixed $expected,
-		mixed $actual,
-		bool $matchOrder,
-		bool $matchIdentity,
-		int $level = 0,
-		?\SplObjectStorage $objects = null,
-	): bool
+	private static function isEqual($expected, $actual, int $level = 0, $objects = null): bool
 	{
 		switch (true) {
 			case $level > 10:
@@ -626,7 +654,7 @@ class Assert
 				$diff = abs($expected - $actual);
 				return ($diff < self::Epsilon) || ($diff / max(abs($expected), abs($actual)) < self::Epsilon);
 
-			case !$matchIdentity && is_object($expected) && is_object($actual) && $expected::class === $actual::class:
+			case is_object($expected) && is_object($actual) && get_class($expected) === get_class($actual):
 				$objects = $objects ? clone $objects : new \SplObjectStorage;
 				if (isset($objects[$expected])) {
 					return $objects[$expected] === $actual;
@@ -641,20 +669,14 @@ class Assert
 				// break omitted
 
 			case is_array($expected) && is_array($actual):
-				if ($matchOrder) {
-					reset($expected);
-					reset($actual);
-				} else {
-					ksort($expected, SORT_STRING);
-					ksort($actual, SORT_STRING);
-				}
-
+				ksort($expected, SORT_STRING);
+				ksort($actual, SORT_STRING);
 				if (array_keys($expected) !== array_keys($actual)) {
 					return false;
 				}
 
 				foreach ($expected as $value) {
-					if (!self::isEqual($value, current($actual), $matchOrder, $matchIdentity, $level + 1, $objects)) {
+					if (!self::isEqual($value, current($actual), $level + 1, $objects)) {
 						return false;
 					}
 

@@ -27,21 +27,17 @@ $notSame = [
 foreach ($same as [$expected, $value]) {
 	Assert::same($expected, $value);
 
-	Assert::exception(
-		fn() => Assert::notSame($expected, $value),
-		Tester\AssertException::class,
-		'%a% should not be %a%',
-	);
+	Assert::exception(function () use ($expected, $value) {
+		Assert::notSame($expected, $value);
+	}, Tester\AssertException::class, '%a% should not be %a%');
 }
 
 foreach ($notSame as [$expected, $value]) {
 	Assert::notSame($expected, $value);
 
-	Assert::exception(
-		fn() => Assert::same($expected, $value),
-		Tester\AssertException::class,
-		'%a% should be %a%',
-	);
+	Assert::exception(function () use ($expected, $value) {
+		Assert::same($expected, $value);
+	}, Tester\AssertException::class, '%a% should be %a%');
 }
 
 
@@ -49,23 +45,16 @@ $rec = [];
 $rec[] = &$rec;
 Assert::same($rec, $rec);
 
-Assert::exception(
-	function () {
-		$rec = [];
-		$rec[] = &$rec;
-		Assert::same($rec, []);
-	},
-	Tester\AssertException::class,
-);
+Assert::exception(function () {
+	$rec = [];
+	$rec[] = &$rec;
+	Assert::same($rec, []);
+}, Tester\AssertException::class);
 
-Assert::exception(
-	fn() => Assert::same(true, false, 'Custom description'),
-	Tester\AssertException::class,
-	'Custom description: %a% should be %a%',
-);
+Assert::exception(function () {
+	Assert::same(true, false, 'Custom description');
+}, Tester\AssertException::class, 'Custom description: %a% should be %a%');
 
-Assert::exception(
-	fn() => Assert::notSame(true, true, 'Custom description'),
-	Tester\AssertException::class,
-	'Custom description: %a% should not be %a%',
-);
+Assert::exception(function () {
+	Assert::notSame(true, true, 'Custom description');
+}, Tester\AssertException::class, 'Custom description: %a% should not be %a%');

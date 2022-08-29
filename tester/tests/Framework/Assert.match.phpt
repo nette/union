@@ -10,6 +10,7 @@ require __DIR__ . '/../bootstrap.php';
 
 $matches = [
 	['1', '1'],
+	['1', 1],
 	["a\nb", "a\r\nb"],
 	["a\r\nb", "a\nb"],
 	["a\t \nb", "a\nb"],
@@ -90,11 +91,9 @@ foreach ($notMatches as [$expected, $actual, $expected2, $actual2]) {
 	$expected3 = str_replace('%', '%%', $expected2);
 	$actual3 = str_replace('%', '%%', $actual2);
 
-	$ex = Assert::exception(
-		fn() => Assert::match($expected, $actual),
-		Tester\AssertException::class,
-		Dumper::toLine($actual3) . ' should match ' . Dumper::toLine($expected3),
-	);
+	$ex = Assert::exception(function () use ($expected, $actual) {
+		Assert::match($expected, $actual);
+	}, Tester\AssertException::class, Dumper::toLine($actual3) . ' should match ' . Dumper::toLine($expected3));
 
 	Assert::same($expected2, $ex->expected);
 	Assert::same($actual2, $ex->actual);
@@ -112,22 +111,17 @@ Assert::same('a123c', Assert::expandMatchingPatterns('a%d%c', 'a123x')[0]);
 Assert::same('a%A%b', Assert::expandMatchingPatterns('a%A%b', 'axc')[0]);
 
 
-Assert::exception(
-	fn() => Assert::match(null, ''),
-	TypeError::class,
-);
+Assert::exception(function () {
+	Assert::match(null, '');
+}, TypeError::class);
 
 
 Assert::matchFile(__DIR__ . '/Assert.matchFile.txt', '! Hello !');
 
-Assert::exception(
-	fn() => Assert::match('a', 'b', 'Custom description'),
-	Tester\AssertException::class,
-	'Custom description: %A% should match %A%',
-);
+Assert::exception(function () {
+	Assert::match('a', 'b', 'Custom description');
+}, Tester\AssertException::class, 'Custom description: %A% should match %A%');
 
-Assert::exception(
-	fn() => Assert::matchFile(__DIR__ . '/Assert.matchFile.txt', '! Not match !', 'Custom description'),
-	Tester\AssertException::class,
-	'Custom description: %A% should match %A%',
-);
+Assert::exception(function () {
+	Assert::matchFile(__DIR__ . '/Assert.matchFile.txt', '! Not match !', 'Custom description');
+}, Tester\AssertException::class, 'Custom description: %A% should match %A%');

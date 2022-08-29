@@ -49,8 +49,8 @@ namespace Tester;
  */
 class Expect
 {
-	/** array<self|\Closure|\stdClass> */
-	private array $constraints = [];
+	/** @var array of self|\Closure|\stdClass */
+	private $constraints = [];
 
 
 	public static function __callStatic(string $method, array $args): self
@@ -88,7 +88,7 @@ class Expect
 	/**
 	 * Checks the expectations.
 	 */
-	public function __invoke(mixed $actual): void
+	public function __invoke($actual): void
 	{
 		foreach ($this->constraints as $cstr) {
 			if ($cstr instanceof \stdClass) {

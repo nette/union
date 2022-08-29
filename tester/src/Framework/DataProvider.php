@@ -26,7 +26,9 @@ class DataProvider
 		}
 
 		if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-			$data = (fn() => require func_get_arg(0))(realpath($file));
+			$data = (function () {
+				return require func_get_arg(0);
+			})(realpath($file));
 
 			if ($data instanceof \Traversable) {
 				$data = iterator_to_array($data);
@@ -34,7 +36,7 @@ class DataProvider
 				throw new \Exception("Data provider '$file' did not return array or Traversable.");
 			}
 		} else {
-			$data = @parse_ini_file($file, process_sections: true); // @ is escalated to exception
+			$data = @parse_ini_file($file, true); // @ is escalated to exception
 			if ($data === false) {
 				throw new \Exception("Cannot parse data provider file '$file'.");
 			}
@@ -70,17 +72,29 @@ class DataProvider
 	}
 
 
-	private static function compare(mixed $l, string $operator, mixed $r): bool
+	private static function compare($l, string $operator, $r): bool
 	{
-		return match ($operator) {
-			'>' => $l > $r,
-			'>=', '=>' => $l >= $r,
-			'<' => $l < $r,
-			'=<', '<=' => $l <= $r,
-			'=', '==' => $l == $r,
-			'!', '!=', '<>' => $l != $r,
-			default => throw new \InvalidArgumentException("Unknown operator '$operator'"),
-		};
+		switch ($operator) {
+			case '>':
+				return $l > $r;
+			case '=>':
+			case '>=':
+				return $l >= $r;
+			case '<':
+				return $l < $r;
+			case '=<':
+			case '<=':
+				return $l <= $r;
+			case '=':
+			case '==':
+				return $l == $r;
+			case '!':
+			case '!=':
+			case '<>':
+				return $l != $r;
+		}
+
+		throw new \InvalidArgumentException("Unknown operator $operator.");
 	}
 
 

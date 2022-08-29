@@ -17,10 +17,17 @@ use Tester\Helpers;
  */
 class PhpInterpreter
 {
-	private string $commandLine;
-	private bool $cgi;
-	private \stdClass $info;
-	private string $error;
+	/** @var string */
+	private $commandLine;
+
+	/** @var bool is CGI? */
+	private $cgi;
+
+	/** @var \stdClass  created by info.php */
+	private $info;
+
+	/** @var string */
+	private $error;
 
 
 	public function __construct(string $path, array $args = [])
@@ -32,7 +39,7 @@ class PhpInterpreter
 			$pipes,
 			null,
 			null,
-			['bypass_shell' => true],
+			['bypass_shell' => true]
 		);
 		if ($proc === false) {
 			throw new \Exception("Cannot run PHP interpreter $path. Use -p option.");
@@ -43,7 +50,7 @@ class PhpInterpreter
 		proc_close($proc);
 
 		$args = ' ' . implode(' ', array_map([Helpers::class, 'escapeArg'], $args));
-		if (str_contains($output, 'phpdbg')) {
+		if (strpos($output, 'phpdbg') !== false) {
 			$args = ' -qrrb -S cli' . $args;
 		}
 
@@ -55,7 +62,7 @@ class PhpInterpreter
 			$pipes,
 			null,
 			null,
-			['bypass_shell' => true],
+			['bypass_shell' => true]
 		);
 		$output = stream_get_contents($pipes[1]);
 		$this->error = trim(stream_get_contents($pipes[2]));
@@ -66,9 +73,12 @@ class PhpInterpreter
 		$parts = explode("\r\n\r\n", $output, 2);
 		$this->cgi = count($parts) === 2;
 		$this->info = @unserialize((string) strstr($parts[$this->cgi], 'O:8:"stdClass"'));
-		$this->error .= strstr($parts[$this->cgi], 'O:8:"stdClass"', before_needle: true);
+		$this->error .= strstr($parts[$this->cgi], 'O:8:"stdClass"', true);
 		if (!$this->info) {
 			throw new \Exception("Unable to detect PHP version (output: $output).");
+
+		} elseif ($this->info->phpDbgVersion && version_compare($this->info->version, '7.0.0', '<')) {
+			throw new \Exception('Unable to use phpdbg on PHP < 7.0.0.');
 
 		} elseif ($this->cgi && $this->error) {
 			$this->error .= "\n(note that PHP CLI generates better error messages)";

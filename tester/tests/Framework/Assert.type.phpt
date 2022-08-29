@@ -12,7 +12,7 @@ $cases = [
 	['STDCLASS', new stdClass],
 	['x', new stdClass, 'stdClass should be instance of x'],
 	['Int', new stdClass, 'stdClass should be instance of Int'],
-	['int', new stdClass, 'stdClass should be int'],
+	['int', new stdClass, 'object should be int'],
 	['array', []],
 	['bool', true],
 	['callable', function () {}],
@@ -24,7 +24,7 @@ $cases = [
 	['resource', fopen(__FILE__, 'r')],
 	['scalar', 'x'],
 	['string', 'x'],
-	['list', null, 'null should be list'],
+	['list', null, 'NULL should be list'],
 	['list', []],
 	['list', [1]],
 	['list', [4 => 1], '[4 => 1] should be list'],
@@ -34,11 +34,9 @@ $cases = [
 foreach ($cases as $case) {
 	@[$type, $value, $message] = $case;
 	if ($message) {
-		Assert::exception(
-			fn() => Assert::type($type, $value),
-			Tester\AssertException::class,
-			$message,
-		);
+		Assert::exception(function () use ($type, $value) {
+			Assert::type($type, $value);
+		}, Tester\AssertException::class, $message);
 	} else {
 		Assert::type($type, $value);
 	}
@@ -49,8 +47,6 @@ $arr = [];
 $arr[] = &$arr;
 Assert::type('list', $arr);
 
-Assert::exception(
-	fn() => Assert::type('int', 'string', 'Custom description'),
-	Tester\AssertException::class,
-	'Custom description: string should be int',
-);
+Assert::exception(function () {
+	Assert::type('int', 'string', 'Custom description');
+}, Tester\AssertException::class, 'Custom description: string should be int');

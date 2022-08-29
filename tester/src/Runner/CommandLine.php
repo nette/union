@@ -20,19 +20,21 @@ class CommandLine
 		Optional = 'optional',
 		Repeatable = 'repeatable',
 		Enum = 'enum',
-		RealPath = 'realpath',
+		Realpath = 'realpath',
 		Normalizer = 'normalizer',
 		Value = 'default';
 
 	/** @var array[] */
-	private array $options = [];
+	private $options = [];
 
 	/** @var string[] */
-	private array $aliases = [];
+	private $aliases = [];
 
 	/** @var string[] */
-	private array $positional = [];
-	private string $help;
+	private $positional = [];
+
+	/** @var string */
+	private $help;
 
 
 	public function __construct(string $help, array $defaults = [])
@@ -165,13 +167,13 @@ class CommandLine
 	}
 
 
-	public function checkArg(array $opt, mixed &$arg): void
+	public function checkArg(array $opt, &$arg): void
 	{
 		if (!empty($opt[self::Normalizer])) {
 			$arg = call_user_func($opt[self::Normalizer], $arg);
 		}
 
-		if (!empty($opt[self::RealPath])) {
+		if (!empty($opt[self::Realpath])) {
 			$path = realpath($arg);
 			if ($path === false) {
 				throw new \Exception("File path '$arg' not found.");

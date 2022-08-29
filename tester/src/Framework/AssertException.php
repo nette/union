@@ -15,13 +15,16 @@ namespace Tester;
  */
 class AssertException extends \Exception
 {
-	public string $origMessage;
-	public mixed $actual;
-	public mixed $expected;
-	public ?string $outputName;
+	public $origMessage;
+
+	public $actual;
+
+	public $expected;
+
+	public $outputName;
 
 
-	public function __construct(string $message, mixed $expected, mixed $actual, ?\Throwable $previous = null)
+	public function __construct(string $message, $expected, $actual, ?\Throwable $previous = null)
 	{
 		parent::__construct('', 0, $previous);
 		$this->expected = $expected;
