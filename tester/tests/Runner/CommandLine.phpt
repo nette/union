@@ -10,7 +10,7 @@ require __DIR__ . '/../../src/Runner/CommandLine.php';
 
 
 
-test('', function () {
+test(function () {
 	$cmd = new Cmd('
 		-p
 		--p
@@ -29,7 +29,7 @@ test('', function () {
 });
 
 
-test('default value', function () {
+test(function () { // default value
 	$cmd = new Cmd('
 		-p  (default: 123)
 	');
@@ -49,7 +49,7 @@ test('default value', function () {
 });
 
 
-test('alias', function () {
+test(function () { // alias
 	$cmd = new Cmd('
 		-p | --param
 	');
@@ -76,7 +76,7 @@ test('alias', function () {
 });
 
 
-test('argument', function () {
+test(function () { // argument
 	$cmd = new Cmd('
 		-p param
 	');
@@ -103,7 +103,7 @@ test('argument', function () {
 });
 
 
-test('optional argument', function () {
+test(function () { // optional argument
 	$cmd = new Cmd('
 		-p [param]
 	');
@@ -136,7 +136,7 @@ test('optional argument', function () {
 });
 
 
-test('repeatable argument', function () {
+test(function () { // repeatable argument
 	$cmd = new Cmd('
 		-p [param]...
 	');
@@ -148,7 +148,7 @@ test('repeatable argument', function () {
 });
 
 
-test('enumerates', function () {
+test(function () { // enumerates
 	$cmd = new Cmd('
 		-p <a|b|c>
 	');
@@ -176,11 +176,11 @@ test('enumerates', function () {
 });
 
 
-test('realpath', function () {
+test(function () { // realpath
 	$cmd = new Cmd('
 		-p <path>
 	', [
-		'-p' => [Cmd::RealPath => true],
+		'-p' => [Cmd::Realpath => true],
 	]);
 
 	Assert::exception(function () use ($cmd) {
@@ -190,11 +190,13 @@ test('realpath', function () {
 });
 
 
-test('normalizer', function () {
+test(function () { // normalizer
 	$cmd = new Cmd('
 		-p param
 	', [
-		'-p' => [Cmd::Normalizer => fn($arg) => "$arg-normalized"],
+		'-p' => [Cmd::Normalizer => function ($arg) {
+			return "$arg-normalized";
+		}],
 	]);
 
 	Assert::same(['-p' => 'val-normalized'], $cmd->parse(explode(' ', '-p val')));
@@ -203,7 +205,9 @@ test('normalizer', function () {
 	$cmd = new Cmd('
 		-p <a|b>
 	', [
-		'-p' => [Cmd::Normalizer => fn() => 'a'],
+		'-p' => [Cmd::Normalizer => function () {
+			return 'a';
+		}],
 	]);
 
 	Assert::same(['-p' => 'a'], $cmd->parse(explode(' ', '-p xxx')));
@@ -212,14 +216,16 @@ test('normalizer', function () {
 	$cmd = new Cmd('
 		-p <a|b>
 	', [
-		'-p' => [Cmd::Normalizer => fn() => ['a', 'foo']],
+		'-p' => [Cmd::Normalizer => function () {
+			return ['a', 'foo'];
+		}],
 	]);
 
 	Assert::same(['-p' => ['a', 'foo']], $cmd->parse(explode(' ', '-p xxx')));
 });
 
 
-test('positional arguments', function () {
+test(function () { // positional arguments
 	$cmd = new Cmd('', [
 		'pos' => [],
 	]);
@@ -256,7 +262,7 @@ test('positional arguments', function () {
 });
 
 
-test('errors', function () {
+test(function () { // errors
 	$cmd = new Cmd('
 		-p
 	');

@@ -18,37 +18,50 @@ use Tester\Helpers;
 class Job
 {
 	public const
-		CodeNone = -1,
-		CodeOk = 0,
-		CodeSkip = 177,
-		CodeFail = 178,
-		CodeError = 255;
+		CODE_NONE = -1,
+		CODE_OK = 0,
+		CODE_SKIP = 177,
+		CODE_FAIL = 178,
+		CODE_ERROR = 255;
 
 	/** waiting time between process activity check in microseconds */
-	public const RunSleep = 10000;
+	public const RUN_USLEEP = 10000;
 
-	private Test $test;
-	private PhpInterpreter $interpreter;
+	public const
+		RUN_ASYNC = 1,
+		RUN_COLLECT_ERRORS = 2;
+
+	/** @var Test */
+	private $test;
+
+	/** @var PhpInterpreter */
+	private $interpreter;
 
 	/** @var string[]  environment variables for test */
-	private array $envVars;
+	private $envVars;
 
 	/** @var resource|null */
 	private $proc;
 
 	/** @var resource|null */
 	private $stdout;
-	private ?string $stderrFile;
-	private int $exitCode = self::CodeNone;
+
+	/** @var resource|null */
+	private $stderr;
+
+	/** @var int */
+	private $exitCode = self::CODE_NONE;
 
 	/** @var string[]  output headers */
-	private array $headers = [];
-	private ?float $duration;
+	private $headers = [];
+
+	/** @var float|null */
+	private $duration;
 
 
 	public function __construct(Test $test, PhpInterpreter $interpreter, ?array $envVars = null)
 	{
-		if ($test->getResult() !== Test::Prepared) {
+		if ($test->getResult() !== Test::PREPARED) {
 			throw new \LogicException("Test '{$test->getSignature()}' already has result '{$test->getResult()}'.");
 		}
 
@@ -58,14 +71,6 @@ class Job
 		$this->test = $test;
 		$this->interpreter = $interpreter;
 		$this->envVars = (array) $envVars;
-	}
-
-
-	public function setTempDirectory(?string $path): void
-	{
-		$this->stderrFile = $path === null
-			? null
-			: $path . DIRECTORY_SEPARATOR . 'Job.pid-' . getmypid() . '.' . uniqid() . '.stderr';
 	}
 
 
@@ -83,8 +88,9 @@ class Job
 
 	/**
 	 * Runs single test.
+	 * @param  int  $flags  self::RUN_ASYNC | self::RUN_COLLECT_ERRORS
 	 */
-	public function run(bool $async = false): void
+	public function run(int $flags = 0): void
 	{
 		foreach ($this->envVars as $name => $value) {
 			putenv("$name=$value");
@@ -104,7 +110,7 @@ class Job
 			[
 				['pipe', 'r'],
 				['pipe', 'w'],
-				$this->stderrFile ? ['file', $this->stderrFile, 'w'] : ['pipe', 'w'],
+				['pipe', 'w'],
 			],
 			$pipes,
 			dirname($this->test->getFile()),
@@ -116,18 +122,22 @@ class Job
 			putenv($name);
 		}
 
-		[$stdin, $this->stdout] = $pipes;
+		[$stdin, $this->stdout, $stderr] = $pipes;
 		fclose($stdin);
-
-		if (isset($pipes[2])) {
-			fclose($pipes[2]);
+		if ($flags & self::RUN_COLLECT_ERRORS) {
+			$this->stderr = $stderr;
+		} else {
+			fclose($stderr);
 		}
 
-		if ($async) {
+		if ($flags & self::RUN_ASYNC) {
 			stream_set_blocking($this->stdout, false); // on Windows does not work with proc_open()
+			if ($this->stderr) {
+				stream_set_blocking($this->stderr, false);
+			}
 		} else {
 			while ($this->isRunning()) {
-				usleep(self::RunSleep); // stream_select() doesn't work with proc_open()
+				usleep(self::RUN_USLEEP); // stream_select() doesn't work with proc_open()
 			}
 		}
 	}
@@ -143,6 +153,9 @@ class Job
 		}
 
 		$this->test->stdout .= stream_get_contents($this->stdout);
+		if ($this->stderr) {
+			$this->test->stderr .= stream_get_contents($this->stderr);
+		}
 
 		$status = proc_get_status($this->proc);
 		if ($status['running']) {
@@ -152,13 +165,12 @@ class Job
 		$this->duration += microtime(true);
 
 		fclose($this->stdout);
-		if ($this->stderrFile) {
-			$this->test->stderr .= file_get_contents($this->stderrFile);
-			unlink($this->stderrFile);
+		if ($this->stderr) {
+			fclose($this->stderr);
 		}
 
 		$code = proc_close($this->proc);
-		$this->exitCode = $code === self::CodeNone
+		$this->exitCode = $code === self::CODE_NONE
 			? $status['exitcode']
 			: $code;
 

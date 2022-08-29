@@ -17,21 +17,23 @@ use pcov;
 class Collector
 {
 	public const
-		EnginePcov = 'PCOV',
-		EnginePhpdbg = 'PHPDBG',
-		EngineXdebug = 'Xdebug';
+		ENGINE_PCOV = 'PCOV',
+		ENGINE_PHPDBG = 'PHPDBG',
+		ENGINE_XDEBUG = 'Xdebug';
 
 	/** @var resource */
 	private static $file;
-	private static string $engine;
+
+	/** @var string */
+	private static $engine;
 
 
 	public static function detectEngines(): array
 	{
 		return array_filter([
-			extension_loaded('pcov') ? [self::EnginePcov, phpversion('pcov')] : null,
-			defined('PHPDBG_VERSION') ? [self::EnginePhpdbg, PHPDBG_VERSION] : null,
-			extension_loaded('xdebug') ? [self::EngineXdebug, phpversion('xdebug')] : null,
+			extension_loaded('pcov') ? [self::ENGINE_PCOV, phpversion('pcov')] : null,
+			defined('PHPDBG_VERSION') ? [self::ENGINE_PHPDBG, PHPDBG_VERSION] : null,
+			extension_loaded('xdebug') ? [self::ENGINE_XDEBUG, phpversion('xdebug')] : null,
 		]);
 	}
 
@@ -53,7 +55,7 @@ class Collector
 
 		} elseif (!in_array(
 			$engine,
-			array_map(fn(array $engineInfo) => $engineInfo[0], self::detectEngines()),
+			array_map(function (array $engineInfo) { return $engineInfo[0]; }, self::detectEngines()),
 			true
 		)) {
 			throw new \LogicException("Code coverage engine '$engine' is not supported.");
@@ -74,7 +76,7 @@ class Collector
 	 */
 	public static function flush(): void
 	{
-		if (self::isStarted() && self::$engine === self::EnginePhpdbg) {
+		if (self::isStarted() && self::$engine === self::ENGINE_PHPDBG) {
 			self::save();
 		}
 	}

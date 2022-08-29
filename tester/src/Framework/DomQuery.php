@@ -17,7 +17,7 @@ class DomQuery extends \SimpleXMLElement
 {
 	public static function fromHtml(string $html): self
 	{
-		if (!str_contains($html, '<')) {
+		if (strpos($html, '<') === false) {
 			$html = '<body>' . $html;
 		}
 
@@ -25,11 +25,9 @@ class DomQuery extends \SimpleXMLElement
 		$html = preg_replace('#<(keygen|source|track|wbr)(?=\s|>)((?:"[^"]*"|\'[^\']*\'|[^"\'>])*+)(?<!/)>#', '<$1$2 />', $html);
 
 		// fix parsing of </ inside scripts
-		$html = preg_replace_callback(
-			'#(<script(?=\s|>)(?:"[^"]*"|\'[^\']*\'|[^"\'>])*+>)(.*?)(</script>)#s',
-			fn(array $m): string => $m[1] . str_replace('</', '<\/', $m[2]) . $m[3],
-			$html
-		);
+		$html = preg_replace_callback('#(<script(?=\s|>)(?:"[^"]*"|\'[^\']*\'|[^"\'>])*+>)(.*?)(</script>)#s', function (array $m): string {
+			return $m[1] . str_replace('</', '<\/', $m[2]) . $m[3];
+		}, $html);
 
 		$dom = new \DOMDocument;
 		$old = libxml_use_internal_errors(true);

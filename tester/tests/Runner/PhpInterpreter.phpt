@@ -13,22 +13,22 @@ Assert::false($interpreter->hasExtension('foo-bar'));
 
 Assert::contains(PHP_BINARY, $interpreter->getCommandLine());
 Assert::same(PHP_VERSION, $interpreter->getVersion());
-Assert::same(str_contains(PHP_SAPI, 'cgi'), $interpreter->isCgi());
+Assert::same(strpos(PHP_SAPI, 'cgi') !== false, $interpreter->isCgi());
 
 $count = 0;
 $engines = $interpreter->getCodeCoverageEngines();
 if (defined('PHPDBG_VERSION')) {
-	Assert::contains([Tester\CodeCoverage\Collector::EnginePhpdbg, PHPDBG_VERSION], $engines);
+	Assert::contains([Tester\CodeCoverage\Collector::ENGINE_PHPDBG, PHPDBG_VERSION], $engines);
 	$count++;
 }
 
 if (extension_loaded('xdebug')) {
-	Assert::contains([Tester\CodeCoverage\Collector::EngineXdebug, phpversion('xdebug')], $engines);
+	Assert::contains([Tester\CodeCoverage\Collector::ENGINE_XDEBUG, phpversion('xdebug')], $engines);
 	$count++;
 }
 
 if (extension_loaded('pcov')) {
-	Assert::contains([Tester\CodeCoverage\Collector::EnginePcov, phpversion('pcov')], $engines);
+	Assert::contains([Tester\CodeCoverage\Collector::ENGINE_PCOV, phpversion('pcov')], $engines);
 	$count++;
 }
 

@@ -20,7 +20,8 @@ class TestCase
 		ListMethods = 'nette-tester-list-methods',
 		MethodPattern = '#^test[A-Z0-9_]#';
 
-	private bool $handleErrors = false;
+	/** @var bool */
+	private $handleErrors = false;
 
 	/** @var callable|false|null */
 	private $prevErrorHandler = false;
@@ -35,10 +36,9 @@ class TestCase
 			throw new \LogicException('Calling TestCase::run($method) is deprecated. Use TestCase::runTest($method) instead.');
 		}
 
-		$methods = array_values(preg_grep(
-			self::MethodPattern,
-			array_map(fn(\ReflectionMethod $rm): string => $rm->getName(), (new \ReflectionObject($this))->getMethods())
-		));
+		$methods = array_values(preg_grep(self::MethodPattern, array_map(function (\ReflectionMethod $rm): string {
+			return $rm->getName();
+		}, (new \ReflectionObject($this))->getMethods())));
 
 		if (isset($_SERVER['argv']) && ($tmp = preg_filter('#--method=([\w-]+)$#Ai', '$1', $_SERVER['argv']))) {
 			$method = reset($tmp);
@@ -56,12 +56,8 @@ class TestCase
 			foreach ($methods as $method) {
 				try {
 					$this->runTest($method);
-					Environment::print(Dumper::color('lime', '√') . " $method");
 				} catch (TestCaseSkippedException $e) {
-					Environment::print("s $method {$e->getMessage()}");
-				} catch (\Throwable $e) {
-					Environment::print(Dumper::color('red', '×') . " $method\n\n");
-					throw $e;
+					echo "\nSkipped:\n{$e->getMessage()}\n";
 				}
 			}
 		}
@@ -152,9 +148,12 @@ class TestCase
 	}
 
 
+	/**
+	 * @return mixed
+	 */
 	protected function getData(string $provider)
 	{
-		if (!str_contains($provider, '.')) {
+		if (strpos($provider, '.') === false) {
 			return $this->$provider();
 		} else {
 			$rc = new \ReflectionClass($this);
@@ -184,7 +183,7 @@ class TestCase
 
 	private function silentTearDown(): void
 	{
-		set_error_handler(fn() => null);
+		set_error_handler(function () {});
 		try {
 			$this->tearDown();
 		} catch (\Throwable $e) {
@@ -248,7 +247,7 @@ class TestCase
 
 			foreach ($res as $k => $set) {
 				if (!is_array($set)) {
-					$type = get_debug_type($set);
+					$type = is_object($set) ? get_class($set) : gettype($set);
 					throw new TestCaseException("Data provider $provider() item '$k' must be an array, $type given.");
 				}
 

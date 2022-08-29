@@ -25,7 +25,7 @@ class FileMutator
 	private $handle;
 
 	/** @var callable[] */
-	private static array $mutators = [];
+	private static $mutators = [];
 
 
 	public static function addMutator(callable $mutator): void

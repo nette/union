@@ -16,7 +16,7 @@ use Tester\CodeCoverage\PhpParser;
 
 class CloverXMLGenerator extends AbstractGenerator
 {
-	private static array $metricAttributesMap = [
+	private static $metricAttributesMap = [
 		'packageCount' => 'packages',
 		'fileCount' => 'files',
 		'linesOfCode' => 'loc',
@@ -131,7 +131,7 @@ class CloverXMLGenerator extends AbstractGenerator
 
 
 			foreach ((array) $coverageData as $line => $count) {
-				if ($count === self::LineDead) {
+				if ($count === self::CODE_DEAD) {
 					continue;
 				}
 
@@ -195,7 +195,7 @@ class CloverXMLGenerator extends AbstractGenerator
 			$count = max(1, $info->end - $info->start - 2);
 		} else {
 			for ($i = $info->start; $i <= $info->end; $i++) {
-				if (isset($coverageData[$i]) && $coverageData[$i] !== self::LineDead) {
+				if (isset($coverageData[$i]) && $coverageData[$i] !== self::CODE_DEAD) {
 					$count++;
 					if ($coverageData[$i] > 0) {
 						$coveredCount++;

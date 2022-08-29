@@ -20,7 +20,9 @@ class TapPrinter implements Tester\Runner\OutputHandler
 {
 	/** @var resource */
 	private $file;
-	private array $results;
+
+	/** @var array */
+	private $results;
 
 
 	public function __construct(?string $file = null)
@@ -32,9 +34,9 @@ class TapPrinter implements Tester\Runner\OutputHandler
 	public function begin(): void
 	{
 		$this->results = [
-			Test::Passed => 0,
-			Test::Skipped => 0,
-			Test::Failed => 0,
+			Test::PASSED => 0,
+			Test::SKIPPED => 0,
+			Test::FAILED => 0,
 		];
 		fwrite($this->file, "TAP version 13\n");
 	}
@@ -50,9 +52,9 @@ class TapPrinter implements Tester\Runner\OutputHandler
 		$this->results[$test->getResult()]++;
 		$message = str_replace("\n", "\n# ", trim((string) $test->message));
 		$outputs = [
-			Test::Passed => "ok {$test->getSignature()}",
-			Test::Skipped => "ok {$test->getSignature()} #skip $message",
-			Test::Failed => "not ok {$test->getSignature()}\n# $message",
+			Test::PASSED => "ok {$test->getSignature()}",
+			Test::SKIPPED => "ok {$test->getSignature()} #skip $message",
+			Test::FAILED => "not ok {$test->getSignature()}\n# $message",
 		];
 		fwrite($this->file, $outputs[$test->getResult()] . "\n");
 	}

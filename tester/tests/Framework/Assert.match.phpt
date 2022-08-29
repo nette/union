@@ -10,6 +10,7 @@ require __DIR__ . '/../bootstrap.php';
 
 $matches = [
 	['1', '1'],
+	['1', 1],
 	["a\nb", "a\r\nb"],
 	["a\r\nb", "a\nb"],
 	["a\t \nb", "a\nb"],

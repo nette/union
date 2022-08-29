@@ -18,15 +18,24 @@ use Tester\Helpers;
 abstract class AbstractGenerator
 {
 	protected const
-		LineDead = -2,
-		LineTested = 1,
-		LineUntested = -1;
+		CODE_DEAD = -2,
+		CODE_UNTESTED = -1,
+		CODE_TESTED = 1;
 
-	public array $acceptFiles = ['php', 'phpt', 'phtml'];
-	protected array $data;
-	protected array $sources;
-	protected int $totalSum = 0;
-	protected int $coveredSum = 0;
+	/** @var array */
+	public $acceptFiles = ['php', 'phpt', 'phtml'];
+
+	/** @var array */
+	protected $data;
+
+	/** @var array */
+	protected $sources;
+
+	/** @var int */
+	protected $totalSum = 0;
+
+	/** @var int */
+	protected $coveredSum = 0;
 
 
 	/**

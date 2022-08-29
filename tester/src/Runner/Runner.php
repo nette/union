@@ -18,25 +18,43 @@ use Tester\Environment;
 class Runner
 {
 	/** @var string[]  paths to test files/directories */
-	public array $paths = [];
+	public $paths = [];
 
 	/** @var string[] */
-	public array $ignoreDirs = ['vendor'];
-	public int $threadCount = 1;
-	public TestHandler $testHandler;
+	public $ignoreDirs = ['vendor'];
+
+	/** @var int  run in parallel threads */
+	public $threadCount = 1;
+
+	/** @var TestHandler */
+	public $testHandler;
 
 	/** @var OutputHandler[] */
-	public array $outputHandlers = [];
-	public bool $stopOnFail = false;
-	private PhpInterpreter $interpreter;
-	private array $envVars = [];
+	public $outputHandlers = [];
+
+	/** @var bool */
+	public $stopOnFail = false;
+
+	/** @var PhpInterpreter */
+	private $interpreter;
+
+	/** @var array */
+	private $envVars = [];
 
 	/** @var Job[] */
-	private array $jobs;
-	private bool $interrupted = false;
-	private ?string $tempDir = null;
-	private bool $result;
-	private array $lastResults = [];
+	private $jobs;
+
+	/** @var bool */
+	private $interrupted = false;
+
+	/** @var string|null */
+	private $tempDir;
+
+	/** @var bool */
+	private $result;
+
+	/** @var array */
+	private $lastResults = [];
 
 
 	public function __construct(PhpInterpreter $interpreter)
@@ -66,6 +84,17 @@ class Runner
 
 	public function setTempDirectory(?string $path): void
 	{
+		if ($path !== null) {
+			if (!is_dir($path) || !is_writable($path)) {
+				throw new \RuntimeException("Path '$path' is not a writable directory.");
+			}
+
+			$path = realpath($path) . DIRECTORY_SEPARATOR . 'Tester';
+			if (!is_dir($path) && @mkdir($path) === false && !is_dir($path)) {  // @ - directory may exist
+				throw new \RuntimeException("Cannot create '$path' directory.");
+			}
+		}
+
 		$this->tempDir = $path;
 		$this->testHandler->setTempDirectory($path);
 	}
@@ -89,10 +118,9 @@ class Runner
 		}
 
 		if ($this->tempDir) {
-			usort(
-				$this->jobs,
-				fn(Job $a, Job $b): int => $this->getLastResult($a->getTest()) - $this->getLastResult($b->getTest())
-			);
+			usort($this->jobs, function (Job $a, Job $b): int {
+				return $this->getLastResult($a->getTest()) - $this->getLastResult($b->getTest());
+			});
 		}
 
 		$threads = range(1, $this->threadCount);
@@ -103,12 +131,12 @@ class Runner
 			while (($this->jobs || $running) && !$this->interrupted) {
 				while ($threads && $this->jobs) {
 					$running[] = $job = array_shift($this->jobs);
-					$job->setEnvironmentVariable(Environment::VariableThread, (string) array_shift($threads));
-					$job->run(async: $async);
+					$job->setEnvironmentVariable(Environment::THREAD, (string) array_shift($threads));
+					$job->run($async ? $job::RUN_ASYNC : 0);
 				}
 
 				if ($async) {
-					usleep(Job::RunSleep); // stream_select() doesn't work with proc_open()
+					usleep(Job::RUN_USLEEP); // stream_select() doesn't work with proc_open()
 				}
 
 				foreach ($running as $key => $job) {
@@ -117,7 +145,7 @@ class Runner
 					}
 
 					if (!$job->isRunning()) {
-						$threads[] = $job->getEnvironmentVariable(Environment::VariableThread);
+						$threads[] = $job->getEnvironmentVariable(Environment::THREAD);
 						$this->testHandler->assess($job);
 						unset($running[$key]);
 					}
@@ -183,7 +211,7 @@ class Runner
 	 */
 	public function finishTest(Test $test): void
 	{
-		$this->result = $this->result && ($test->getResult() !== Test::Failed);
+		$this->result = $this->result && ($test->getResult() !== Test::FAILED);
 
 		foreach ($this->outputHandlers as $handler) {
 			$handler->finish($test);
@@ -196,7 +224,7 @@ class Runner
 			}
 		}
 
-		if ($this->stopOnFail && $test->getResult() === Test::Failed) {
+		if ($this->stopOnFail && $test->getResult() === Test::FAILED) {
 			$this->interrupted = true;
 		}
 	}
@@ -220,7 +248,7 @@ class Runner
 			return $this->lastResults[$signature] = (int) file_get_contents($file);
 		}
 
-		return $this->lastResults[$signature] = Test::Prepared;
+		return $this->lastResults[$signature] = Test::PREPARED;
 	}
 
 

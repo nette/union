@@ -88,3 +88,8 @@ Assert::true($e instanceof Exception);
 Assert::error(function () {
 	throw new Exception('Text 123');
 }, Exception::class, 'Text %d%');
+
+
+Assert::exception(function () {
+	Assert::error(function () {}, null);
+}, Exception::class, 'Error type must be E_* constant.');

@@ -17,10 +17,17 @@ use Tester\Helpers;
  */
 class PhpInterpreter
 {
-	private string $commandLine;
-	private bool $cgi;
-	private \stdClass $info;
-	private string $error;
+	/** @var string */
+	private $commandLine;
+
+	/** @var bool is CGI? */
+	private $cgi;
+
+	/** @var \stdClass  created by info.php */
+	private $info;
+
+	/** @var string */
+	private $error;
 
 
 	public function __construct(string $path, array $args = [])
@@ -43,7 +50,7 @@ class PhpInterpreter
 		proc_close($proc);
 
 		$args = ' ' . implode(' ', array_map([Helpers::class, 'escapeArg'], $args));
-		if (str_contains($output, 'phpdbg')) {
+		if (strpos($output, 'phpdbg') !== false) {
 			$args = ' -qrrb -S cli' . $args;
 		}
 
@@ -69,6 +76,9 @@ class PhpInterpreter
 		$this->error .= strstr($parts[$this->cgi], 'O:8:"stdClass"', true);
 		if (!$this->info) {
 			throw new \Exception("Unable to detect PHP version (output: $output).");
+
+		} elseif ($this->info->phpDbgVersion && version_compare($this->info->version, '7.0.0', '<')) {
+			throw new \Exception('Unable to use phpdbg on PHP < 7.0.0.');
 
 		} elseif ($this->cgi && $this->error) {
 			$this->error .= "\n(note that PHP CLI generates better error messages)";

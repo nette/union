@@ -9,7 +9,13 @@ require __DIR__ . '/../src/bootstrap.php';
 require __DIR__ . '/../src/Runner/PhpInterpreter.php';
 
 
-Tester\Environment::setupFunctions();
+date_default_timezone_set('Europe/Prague');
+
+
+function test(Closure $function): void
+{
+	$function();
+}
 
 
 function createInterpreter(): PhpInterpreter

@@ -43,11 +43,12 @@ $runner->paths[] = __DIR__ . '/edge/*.phptx';
 $runner->outputHandlers[] = $logger = new Logger;
 $runner->run();
 
-Assert::same([Test::Failed, 'Exited with error code 231 (expected 0)'], $logger->results['shutdown.exitCode.a.phptx']);
+Assert::same([Test::FAILED, 'Exited with error code 231 (expected 0)'], $logger->results['shutdown.exitCode.a.phptx']);
 
-Assert::same([Test::Passed, null], $logger->results['shutdown.exitCode.b.phptx']);
+$bug65275 = PHP_SAPI === 'cli' && PHP_VERSION_ID < 80000;
+Assert::same($bug65275 ? [Test::FAILED, 'Exited with error code 231 (expected 0)'] : [Test::PASSED, null], $logger->results['shutdown.exitCode.b.phptx']);
 
-Assert::same([Test::Skipped, 'just skipping'], $logger->results['skip.phptx']);
+Assert::same([Test::SKIPPED, 'just skipping'], $logger->results['skip.phptx']);
 
-Assert::same(Test::Failed, $logger->results['shutdown.assert.phptx'][0]);
+Assert::same(Test::FAILED, $logger->results['shutdown.assert.phptx'][0]);
 Assert::match("Failed: 'b' should be%A%", Tester\Dumper::removeColors($logger->results['shutdown.assert.phptx'][1]));

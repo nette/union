@@ -13,7 +13,8 @@ FileMock::create('');
 Assert::contains('mock', stream_get_wrappers());
 
 
-test('Opening non-existing', function () {
+// Opening non-existing
+test(function () {
 	$cases = [
 		'r' => $tmp = [
 			[E_USER_WARNING, 'fopen(mock://none): failed to open stream: No such file or directory'],
@@ -41,7 +42,8 @@ test('Opening non-existing', function () {
 });
 
 
-test('Opening existing', function () {
+// Opening existing
+test(function () {
 	FileMock::$files = [];
 
 	$cases = [
@@ -68,7 +70,8 @@ test('Opening existing', function () {
 });
 
 
-test('Initial cursor position', function () {
+// Initial cursor position
+test(function () {
 	FileMock::$files = [];
 
 	$cases = [
@@ -93,19 +96,20 @@ test('Initial cursor position', function () {
 });
 
 
-test('Truncation on open', function () {
+// Truncation on open
+test(function () {
 	FileMock::$files = [];
 
 	$cases = [
 		'r' => ['ABC', 'ABC'],
 		'r+' => ['ABC', 'ABC'],
-		'w' => ['', false],
+		'w' => ['', PHP_VERSION_ID < 70400 ? '' : false],
 		'w+' => ['', ''],
-		'a' => ['ABC', false],
+		'a' => ['ABC', PHP_VERSION_ID < 70400 ? '' : false],
 		'a+' => ['ABC', 'ABC'],
-		'x' => ['', false],
+		'x' => ['', PHP_VERSION_ID < 70400 ? '' : false],
 		'x+' => ['', ''],
-		'c' => ['ABC', false],
+		'c' => ['ABC', PHP_VERSION_ID < 70400 ? '' : false],
 		'c+' => ['ABC', 'ABC'],
 	];
 
@@ -122,19 +126,20 @@ test('Truncation on open', function () {
 	}
 });
 
-test('Writing position after open', function () {
+// Writing position after open
+test(function () {
 	FileMock::$files = [];
 
 	$cases = [
 		'r' => ['ABC', 'ABC'],
 		'r+' => ['_BC', '_BC'],
-		'w' => ['_', false],
+		'w' => ['_', PHP_VERSION_ID < 70400 ? '' : false],
 		'w+' => ['_', '_'],
-		'a' => ['ABC_', false],
+		'a' => ['ABC_', PHP_VERSION_ID < 70400 ? '' : false],
 		'a+' => ['ABC_', 'ABC_'],
-		'x' => ['_', false],
+		'x' => ['_', PHP_VERSION_ID < 70400 ? '' : false],
 		'x+' => ['_', '_'],
-		'c' => ['_BC', false],
+		'c' => ['_BC', PHP_VERSION_ID < 70400 ? '' : false],
 		'c+' => ['_BC', '_BC'],
 	];
 
@@ -153,7 +158,8 @@ test('Writing position after open', function () {
 });
 
 
-test('Filesystem functions', function () {
+// Filesystem functions
+test(function () {
 	$f = fopen($name = FileMock::create('', 'txt'), 'w+');
 
 	Assert::match('%a%.txt', $name);
@@ -200,7 +206,8 @@ test('Filesystem functions', function () {
 });
 
 
-test('Unlink', function () {
+// Unlink
+test(function () {
 	fopen($name = Tester\FileMock::create('foo'), 'r');
 	Assert::true(unlink($name));
 	Assert::false(@unlink($name));
@@ -210,17 +217,20 @@ test('Unlink', function () {
 });
 
 
-test('Runtime include', function () {
+// Runtime include
+test(function () {
 	Assert::same(123, require FileMock::create('<?php return 123;'));
 });
 
 
-test('Locking', function () {
+// Locking
+test(function () {
 	Assert::false(flock(fopen(FileMock::create(''), 'w'), LOCK_EX));
 });
 
 
-test('Position handling across modes', function () {
+// Position handling across modes
+test(function () {
 	$modes = ['r', 'r+', 'w', 'w+', 'a', 'a+', 'c', 'c+'];
 	$pathReal = __DIR__ . '/real-file.txt';
 
@@ -254,7 +264,8 @@ test('Position handling across modes', function () {
 });
 
 
-test('touch', function () {
+// touch
+test(function () {
 	fopen($name = Tester\FileMock::create('foo'), 'r');
 	Assert::true(touch($name));
 });
