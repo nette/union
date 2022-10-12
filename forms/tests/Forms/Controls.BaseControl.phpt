@@ -14,7 +14,8 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-before(function () {
+setUp(function () {
+	ob_start();
 	Form::initialize(true);
 });
 
@@ -53,7 +54,6 @@ test('validators', function () {
 	Assert::true(Validator::validateFilled($input));
 	Assert::true(Validator::validateValid($input));
 
-	Assert::false(Validator::validateLength($input, null));
 	Assert::false(Validator::validateLength($input, 2));
 	Assert::true(Validator::validateLength($input, 3));
 
@@ -89,7 +89,6 @@ test('validators for array', function () {
 	Assert::true(Validator::validateFilled($input));
 	Assert::true(Validator::validateValid($input));
 
-	Assert::false(Validator::validateLength($input, null));
 	Assert::false(Validator::validateLength($input, 2));
 	Assert::true(Validator::validateLength($input, 3));
 
@@ -132,7 +131,7 @@ test('disabled', function () {
 test('disabled & submitted', function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = ['disabled' => 'submitted value'];
-	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
+	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
 
 	$form = new Form;
 	$form->addText('disabled')
@@ -162,7 +161,7 @@ test('', function () {
 		}
 	});
 
-	Validator::$messages[Form::FILLED] = '"%label" field is required.';
+	Validator::$messages[Form::Filled] = '"%label" field is required.';
 
 	$input = $form->addSelect('list1', 'LIST', [
 		'a' => 'First',

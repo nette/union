@@ -22,13 +22,9 @@ final class ErrorPresenter implements Application\IPresenter
 {
 	use Nette\SmartObject;
 
-	/** @var ILogger|null */
-	private $logger;
-
-
-	public function __construct(?ILogger $logger = null)
-	{
-		$this->logger = $logger;
+	public function __construct(
+		private ?ILogger $logger = null,
+	) {
 	}
 
 

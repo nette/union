@@ -4,6 +4,7 @@ HTML elementy
 .[perex]
 Třída [api:Nette\Utils\Html] je pomocník pro generování HTML kódu, který nedovolí vznik zranitelnosti Cross Site Scripting (XSS).
 
+
 Funguje tak, že jeho objekty představují HTML elementy, kterým nastavíme parametry a necháme je vykreslit:
 
 ```php
@@ -298,18 +299,9 @@ echo Html::el('div')
 // <div title='" onmouseover="bad()'>&lt;script&gt;bad()&lt;/script&gt;</div>
 ```
 
-Výstup je možné přepnout do XHTML nastavením statické proměnné `Html::$xhtml` na true:
 
-```php
-$el = Html::el('input')->disabled(true);
-echo $el; // '<input disabled>'
-Html::$xhtml = true;
-echo $el; // '<input disabled="disabled" />'
-```
-
-
-Konverze HTML ↔ text .{data-version:v3.1}
-=========================================
+Konverze HTML ↔ text
+====================
 
 Pro převod HTML do textu můžete využít statickou metodu `htmlToText()`:
 
@@ -321,9 +313,4 @@ echo Html::htmlToText('<span>One &amp; Two</span>'); // 'One & Two'
 HtmlStringable
 ==============
 
-Objekt `Nette\Utils\Html` implementuje rozhraní `Nette\HtmlStringable], kterým například Latte nebo formuláře rozlišují objekty, které mají metodu `__toString()` vracející HTML kód. Takže nedojde k dvojímu escapování, pokud třeba objekt vypíšeme v šabloně pomocí `{$el}`.
-
-V nette/utils před verzí 3.2 se rozhraní jmenovalo `Nette\Utils\IHtmlString`.
-
-
-{{composer: nette/utils}}
+Objekt `Nette\Utils\Html` implementuje rozhraní `Nette\HtmlStringable`, kterým například Latte nebo formuláře rozlišují objekty, které mají metodu `__toString()` vracející HTML kód. Takže nedojde k dvojímu escapování, pokud třeba objekt vypíšeme v šabloně pomocí `{$el}`.

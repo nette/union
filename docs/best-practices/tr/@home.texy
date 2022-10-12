@@ -1,0 +1,68 @@
+En İyi Uygulamalar
+******************
+
+.[perex]
+Öğreticiler, yaygın sorunlara çözümler ve Nette için en iyi uygulamalar.
+
+
+<div class=documentation>
+<div>
+
+
+Nette Uygulama
+--------------
+- [Yöntemleri ve öznitelikleri enjekte etme|inject-method-attribute]
+- [Özelliklerden sunum yapanların oluşturulması |presenter-traits]
+- [Ayarların sunum yapanlara aktarılması |passing-settings-to-presenters]
+- [Önceki bir sayfaya nasıl dönülür |restore-request]?
+- [Veritabanı sonuçlarını sayfalandırma |Pagination]
+- [Dinamik snippet'ler |dynamic-snippets]
+
+</div>
+<div>
+
+
+Formlar
+-------
+- [Formların yeniden kullanımı |form-reuse]
+- [Kayıt oluşturma ve düzenleme formu |creating-editing-form]
+- [Bir İletişim Formu Oluşturalım |lets-create-contact-form]
+- [Bağımlı seçim kutuları |https://blog.nette.org/tr/bagimli-secim-kutulari-nette-ve-saf-js-de-zarif-bir-sekilde]
+
+</div>
+<div>
+
+
+Ortak
+-----
+- [Yapılandırma dosyası nasıl yüklenir |bootstrap:]
+- [Nette neden PascalCase sabit gösterimini kullanıyor? |https://blog.nette.org/tr/kodda-daha-az-ciglik-atmak-icin]
+- [Nette neden Interface son ekini kullanmıyor? |https://blog.nette.org/tr/oenek-ve-sonekler-arayuez-adlarina-ait-degildir]
+- [Composer kullanım ipuçları |composer]
+- [Editörler ve araçlar hakkında ipuçları |editors-and-tools]
+
+</div>
+<div>
+
+
+Örnek Çözüm
+-----------
+- [Nette örnekleri |https://github.com/nette-examples]
+- [Doktrin & Nette |https://contributte.org/nettrine/]
+- [Katkı örnekleri |https://contributte.org/examples.html]
+- [Doctrine ORM Web Sitesi |https://github.com/MinecordNetwork/Website]
+- [Hızlı başlangıç |quickstart:]
+
+</div>
+<div>
+
+
+Videolar
+--------
+Posobota'dan yüzlerce kaydı ve Nette ile ilgili videoları tek bir çatı altında "Nette Framework YouTube Kanalı":https://www.youtube.com/user/NetteFrameworknda bulabilirsiniz.
+
+</div>
+</div>
+
+{{sitename: En İyi Uygulamalar}}
+{{leftbar: www:@menu-common}}

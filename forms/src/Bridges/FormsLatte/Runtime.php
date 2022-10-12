@@ -11,23 +11,27 @@ namespace Nette\Bridges\FormsLatte;
 
 use Latte;
 use Nette;
+use Nette\Forms\Container;
 use Nette\Forms\Form;
 use Nette\Utils\Html;
 
 
 /**
- * Runtime helpers for Latte v2 & v3.
+ * Runtime helpers for Latte v3.
  * @internal
  */
 class Runtime
 {
-	use Nette\StaticClass;
+	/** @var Container[] */
+	private array $stack = [];
+
 
 	/**
 	 * Renders form begin.
 	 */
-	public static function renderFormBegin(Form $form, array $attrs, bool $withTags = true): string
+	public function renderFormBegin(array $attrs, bool $withTags = true): string
 	{
+		$form = $this->current();
 		$form->fireRenderEvents();
 		foreach ($form->getControls() as $control) {
 			$control->setOption('rendered', false);
@@ -48,8 +52,9 @@ class Runtime
 	/**
 	 * Renders form end.
 	 */
-	public static function renderFormEnd(Form $form, bool $withTags = true): string
+	public function renderFormEnd(bool $withTags = true): string
 	{
+		$form = $this->current();
 		$s = '';
 		if ($form->isMethod('get')) {
 			foreach (preg_split('#[;&]#', (string) parse_url($form->getElementPrototype()->action, PHP_URL_QUERY), -1, PREG_SPLIT_NO_EMPTY) as $param) {
@@ -79,7 +84,7 @@ class Runtime
 	/**
 	 * Generates blueprint of form.
 	 */
-	public static function renderFormPrint(Form $form): void
+	public function renderFormPrint(Form $form): void
 	{
 		$blueprint = class_exists(Latte\Runtime\Blueprint::class)
 			? new Latte\Runtime\Blueprint
@@ -94,7 +99,7 @@ class Runtime
 	/**
 	 * Generates blueprint of form data class.
 	 */
-	public static function renderFormClassPrint(Form $form): void
+	public function renderFormClassPrint(Form $form): void
 	{
 		$blueprint = class_exists(Latte\Runtime\Blueprint::class)
 			? new Latte\Runtime\Blueprint
@@ -103,24 +108,35 @@ class Runtime
 		$blueprint->printHeader('Form Data Class ' . $form->getName());
 		$generator = new Nette\Forms\Rendering\DataClassGenerator;
 		$blueprint->printCode($generator->generateCode($form));
-		if (PHP_VERSION_ID >= 80000) {
-			$generator->propertyPromotion = true;
-			$blueprint->printCode($generator->generateCode($form));
-		}
+		$generator->propertyPromotion = true;
+		$blueprint->printCode($generator->generateCode($form));
 
 		echo $end;
 	}
 
 
-	public static function item($item, $global): object
+	public function item($item): object
 	{
-		if (is_object($item)) {
-			return $item;
-		}
-		$form = end($global->formsStack);
-		if (!$form) {
-			throw new \LogicException('Form declaration is missing, did you use {form} or <form n:name> tag?');
-		}
-		return $form[$item];
+		return is_object($item)
+			? $item
+			: $this->current()[$item];
+	}
+
+
+	public function begin(Container $form): void
+	{
+		$this->stack[] = $form;
+	}
+
+
+	public function end(): void
+	{
+		array_pop($this->stack);
+	}
+
+
+	public function current(): Container
+	{
+		return end($this->stack) ?: throw new \LogicException('Form declaration is missing, did you use {form} or <form n:name> tag?');
 	}
 }

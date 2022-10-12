@@ -1,0 +1,68 @@
+Najboljše prakse
+****************
+
+.[perex]
+Navodila, rešitve pogostih težav in najboljše prakse za Nette.
+
+
+<div class=documentation>
+<div>
+
+
+Nette aplikacija
+----------------
+- [Vbrizgavanje metod in atributov |inject-method-attribute]
+- [Sestavljanje predstavnikov iz lastnosti |presenter-traits]
+- [Posredovanje nastavitev predstavnikom |passing-settings-to-presenters]
+- [Kako se vrniti na prejšnjo stran |restore-request]
+- [Postransko prikazovanje rezultatov podatkovne zbirke |Pagination]
+- [Dinamični utrinki |dynamic-snippets]
+
+</div>
+<div>
+
+
+Obrazci
+-------
+- [Ponovna uporaba obrazcev |form-reuse]
+- [Obrazec za ustvarjanje in urejanje zapisa |creating-editing-form]
+- [Ustvarimo obrazec za stike |lets-create-contact-form]
+- [Odvisna izbirna polja |https://blog.nette.org/sl/odvisna-izbirna-polja-elegantno-v-nette-in-cistem-js]
+
+</div>
+<div>
+
+
+Skupna spletna stran
+--------------------
+- [Kako naložiti konfiguracijsko datoteko |bootstrap:]
+- [Zakaj Nette uporablja konstantni zapis PascalCase |https://blog.nette.org/sl/za-manj-kricanja-v-kodi]?
+- [Zakaj Nette ne uporablja končnice Interface |https://blog.nette.org/sl/predpone-in-pripone-ne-sodijo-v-imena-vmesnikov]?
+- [Nasveti za uporabo programa Composer |composer]
+- [Nasveti o urejevalnikih in orodjih |editors-and-tools]
+
+</div>
+<div>
+
+
+Rešitev vzorca
+--------------
+- [Primeri Nette |https://github.com/nette-examples]
+- [Doktrina & Nette |https://contributte.org/nettrine/]
+- [Primeri Contributte |https://contributte.org/examples.html]
+- [Spletna stran Doctrine ORM |https://github.com/MinecordNetwork/Website]
+- [Hitri začetek |quickstart:]
+
+</div>
+<div>
+
+
+Videoposnetki
+-------------
+Na stotine posnetkov iz Posobote in videoposnetkov o Nette najdete pod eno streho na "Nette Framework YouTube Channel":https://www.youtube.com/user/NetteFramework.
+
+</div>
+</div>
+
+{{sitename: Best Practices}}
+{{leftbar: www:@menu-common}}

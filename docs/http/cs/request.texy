@@ -35,8 +35,8 @@ echo $url->getHost(); // nette.org
 Prohlížeče neodesílají na server fragment, takže `$url->getFragment()` bude vracet prázdný řetězec.
 
 
-getQuery(string $key = null): string|array|null .[method]
----------------------------------------------------------
+getQuery(string $key=null): string|array|null .[method]
+-------------------------------------------------------
 Vrací parametry GET požadavku.
 
 ```php
@@ -45,8 +45,8 @@ $id = $httpRequest->getQuery('id'); // vrací GET parametr 'id' (nebo null)
 ```
 
 
-getPost(string $key = null): string|array|null .[method]
---------------------------------------------------------
+getPost(string $key=null): string|array|null .[method]
+------------------------------------------------------
 Vrací parametry POST požadavku.
 
 ```php
@@ -166,9 +166,18 @@ getRemoteAddress(): ?string .[method]
 Vrací IP adresu uživatele. Pro správnou funkčnost může být potřeba [nastavit proxy|configuration#HTTP proxy].
 
 
-getRemoteHost(): ?string .[method]
-----------------------------------
+getRemoteHost(): ?string .[method deprecated]
+---------------------------------------------
 Vrací DNS překlad IP adresy uživatele. Pro správnou funkčnost může být potřeba [nastavit proxy|configuration#HTTP proxy].
+
+
+getBasicCredentials(): ?string .[method]
+----------------------------------------
+Vrací ověřovací údaje pro [Basic HTTP authentication |https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication].
+
+```php
+[$user, $password] = $httpRequest->getBasicCredentials();
+```
 
 
 getRawBody(): ?string .[method]
@@ -225,7 +234,7 @@ Metoda `Nette\Http\Request::getFiles()` vrací pole všech uploadů v normalizov
 
 Struktura reflektuje pojmenování prvků v HTML. V nejjednodušším případě to může být jediný pojmenovaný element formuláře odeslaný jako:
 
-```html
+```latte
 <input type="file" name="avatar">
 ```
 
@@ -245,7 +254,7 @@ $request->getFile('avatar')->hasFile();
 
 V případě názvu elementu používajícího notaci pro pole:
 
-```html
+```latte
 <input type="file" name="my-form[details][avatar]">
 ```
 
@@ -263,7 +272,7 @@ vypadá vrácený strom takto:
 
 Lze vytvořit i pole souborů:
 
-```html
+```latte
 <input type="file" name="my-form[details][avatars][]" multiple>
 ```
 
@@ -338,7 +347,7 @@ Vyžaduje PHP rozšíření `fileinfo`.
 
 getUntrustedName(): string .[method]
 ------------------------------------
-Vrací originální název souboru, jak jej odeslal prohlížeč. V nette/http 3.0 a starších se metoda jmenovala `getName()`.
+Vrací originální název souboru, jak jej odeslal prohlížeč.
 
 .[caution]
 Nevěřte hodnotě vrácené touto metodou. Klient mohl odeslat škodlivý název souboru s úmyslem poškodit nebo hacknout vaši aplikaci.
@@ -349,8 +358,8 @@ getSanitizedName(): string .[method]
 Vrací sanitizovaný název souboru. Obsahuje pouze ASCII znaky `[a-zA-Z0-9.-]`. Pokud název takové znaky neobsahuje, vrátí `'unknown'`. Pokud je soubor obrázek ve formátu JPEG, PNG, GIF, nebo WebP, vrátí i správnou příponu.
 
 
-getUntrustedFullPath(): string .[method]{data-version:v4.0}
------------------------------------------------------------
+getUntrustedFullPath(): string .[method]
+----------------------------------------
 Vrací originální cestu k souboru, jak ji odeslal prohlížeč při uploadu složky. Celá cesta je dostupná pouze v PHP 8.1 a vyšším. V předchozích verzích tato metoda vrací originální název souboru.
 
 .[caution]
@@ -383,6 +392,3 @@ Vrací dvojici `[šířka, výška]` s rozměry uploadovaného obrázku. V pří
 toImage(): Nette\Utils\Image .[method]
 --------------------------------------
 Načte obrázek jak objekt [Image|utils:images]. V případě, že upload nebyl úspěšný nebo nejde o platný obrázek, vyhodí výjimku `Nette\Utils\ImageException`.
-
-
-{{composer: nette/http}}

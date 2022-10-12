@@ -35,8 +35,8 @@ echo $url->getHost(); // nette.org
 Browsers do not send a fragment to the server, so `$url->getFragment()` will return an empty string.
 
 
-getQuery(string $key = null): string|array|null .[method]
----------------------------------------------------------
+getQuery(string $key=null): string|array|null .[method]
+-------------------------------------------------------
 Returns GET request parameters:
 
 ```php
@@ -45,8 +45,8 @@ $id = $httpRequest->getQuery('id'); // returns GET parameter 'id' (or null)
 ```
 
 
-getPost(string $key = null): string|array|null .[method]
---------------------------------------------------------
+getPost(string $key=null): string|array|null .[method]
+------------------------------------------------------
 Returns POST request parameters:
 
 ```php
@@ -166,9 +166,18 @@ getRemoteAddress(): ?string .[method]
 Returns the user's IP address. You may need to [set up a proxy|configuration#HTTP proxy] for proper functionality.
 
 
-getRemoteHost(): ?string .[method]
-----------------------------------
+getRemoteHost(): ?string .[method deprecated]
+---------------------------------------------
 Returns DNS translation of the user's IP address. You may need to [set up a proxy|configuration#HTTP proxy] for proper functionality.
+
+
+getBasicCredentials(): ?string .[method]
+----------------------------------------
+Returns [Basic HTTP authentication |https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication] credentials.
+
+```php
+[$user, $password] = $httpRequest->getBasicCredentials();
+```
 
 
 getRawBody(): ?string .[method]
@@ -225,7 +234,7 @@ Method `Nette\Http\Request::getFiles()` return a tree of upload files in a norma
 
 The structure reflects the naming of elements in HTML. In the simplest example, this might be a single named form element submitted as:
 
-```html
+```latte
 <input type="file" name="avatar">
 ```
 
@@ -245,7 +254,7 @@ $request->getFile('avatar')->hasFile();
 
 In the case of an input using array notation for the name:
 
-```html
+```latte
 <input type="file" name="my-form[details][avatar]">
 ```
 
@@ -263,7 +272,7 @@ returned tree ends up looking like this:
 
 You can also create arrays of files:
 
-```html
+```latte
 <input type="file" name="my-form[details][avatars][] multiple">
 ```
 
@@ -338,7 +347,7 @@ Requires PHP extension `fileinfo`.
 
 getUntrustedName(): string .[method]
 ------------------------------------
-Returns the original file name as submitted by the browser. In nette/http 3.0 and earlier, the method was called `getName()`.
+Returns the original file name as submitted by the browser.
 
 .[caution]
 Do not trust the value returned by this method. A client could send a malicious filename with the intention to corrupt or hack your application.
@@ -349,8 +358,8 @@ getSanitizedName(): string .[method]
 Returns the sanitized file name. It contains only ASCII characters `[a-zA-Z0-9.-]`. If the name does not contain such characters, it returns 'unknown'. If the file is JPEG, PNG, GIF, or WebP image, it returns the correct file extension.
 
 
-getUntrustedFullPath(): string .[method]{data-version:v4.0}
------------------------------------------------------------
+getUntrustedFullPath(): string .[method]
+----------------------------------------
 Returns the original full path as submitted by the browser during directory upload. The full path is only available in PHP 8.1 and above. In previous versions, this method returns the untrusted file name.
 
 .[caution]
@@ -383,6 +392,3 @@ Returns a pair of `[width, height]` with dimensions of the uploaded image. If th
 toImage(): Nette\Utils\Image .[method]
 --------------------------------------
 Loads an image as an [Image|utils:images] object. If the upload was not successful or is not a valid image, it throws an `Nette\Utils\ImageException` exception.
-
-
-{{composer: nette/http}}

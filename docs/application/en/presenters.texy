@@ -31,7 +31,7 @@ The figure shows a list of methods that are called sequentially from top to bott
 `__construct()`
 ---------------
 
-The constructor does not belong exactly to the life cycle of the presenter, because it is called at the moment of creating the object. But we mention it because of the importance, because is used to pass the dependencies.
+The constructor does not belong exactly to the life cycle of the presenter, because it is called at the moment of creating the object. But we mention it because of its importance. The constructor (together with [method inject|best-practices:inject-method-attribute]) is used to pass dependencies.
 
 The presenter should not take care of the business logic of the application, write and read from the database, perform calculations, etc. This is the task for classes from a layer, which we call a model. For example, class `ArticleRepository` may be responsible for loading and saving articles. In order for the presenter to use it, it is [passed using dependency injection |dependency-injection:passing-dependencies]:
 
@@ -39,12 +39,9 @@ The presenter should not take care of the business logic of the application, wri
 ```php
 class ArticlePresenter extends Nette\Application\UI\Presenter
 {
-	/** @var ArticleRepository */
-	private $articles;
-
-	public function __construct(ArticleRepository $articles)
-	{
-		$this->articles = $articles;
+	public function __construct(
+		private ArticleRepository $articles,
+	) {
 	}
 }
 ```
@@ -114,97 +111,18 @@ It is called at the end of the presenter's life cycle.
 Sending a Response
 ==================
 
-The presenter's response can be an HTML page, sending a file, JSON or redirecting to another page.
+The presenter's response is usually [rendering the template with the HTML page|templates], but it can also be sending a file, JSON or even redirecting to another page.
 
-At any time during the lifecycle, we can use one of the following methods to send a response and terminate the presenter:
+At any time during the lifecycle, you can use any of the following methods to send a response and exit the presenter at the same time:
 
 - `redirect()`, `redirectPermanent()`, `redirectUrl()` and `forward()` [redirects |#Redirection]
 - `error()` quits presenter [due to error |#Error 404 etc.]
-- `sendJson($data)` quits presenter and sends the data in JSON format
-- `sendTemplate()` quits presenter and immediately renderes the template
+- `sendJson($data)` quits presenter and [sends the data |#Sending JSON] in JSON format
+- `sendTemplate()` quits presenter and immediately [renderes the template |templates]
 - `sendResponse($response)` quits presenter and sends [own response |#Responses]
 - `terminate()` quits presenter without answer
 
-Example of sending JSON:
-
-```php
-public function actionData(): void
-{
-	$data = ['hello' => 'nette'];
-	$this->sendJson($data);
-}
-```
-
-**Something important now**: if we don't explicitly say what response should presenter send, the answer will be HTML [#template rendering]. Why? Well, because in 99% of cases we want to draw a template, so the presenter takes this behavior as the default and wants to make our work easier.
-
-
-Template Rendering
-==================
-
-Nette uses the [Latte |latte:] template system. Latte is used because it is the most secure template system for PHP, and at the same time the most intuitive system. You don't have to learn much new, you just need to know PHP and a few Latte tags.
-
-It is usual that the page is completed from the layout template + the action template. This is what a layout template might look like, notice the blocks `{block}` and tag `{include}`:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-	<title>{block title}My App{/block}</title>
-</head>
-<body>
-	<header>...</header>
-	{include content}
-	<footer>...</footer>
-</body>
-</html>
-```
-
-And this might be the action template:
-
-```html
-{block title}Homepage{/block}
-
-{block content}
-<h1>Homepage</h1>
-...
-{/block}
-```
-
-It defines block `content`, which is inserted in place of `{include content}` in the layout, and also re-defines block `title`, which overwrites `{block title}` in the layout. Try to imagine the result.
-
-The path to the templates is deduced according to simple logic. In the case of presenter `Product` and action `show`, it tries to see if one of these template files exists relative to the directory where presenter class is located:
-
-- `templates/Product/show.latte`
-- `templates/Product.show.latte`
-
-If it does not find the template, the response is [error 404 |#Error 404 etc.].
-
-It will also try to find the layout in these locations:
-
-- `templates/Product/@layout.latte`
-- `templates/Product.@layout.latte`
-- `templates/@layout.latte` layout common to multiple presenters
-
-You can [easily change|#Templates] the location where the templates are searched.
-
-
-Variables in the Template
--------------------------
-
-We pass variables to the template by writing them to `$this->template`. For example, we will create a variable `$article` as follows:
-
-```php
-$this->template->article = $this->articles->getById($id);
-```
-
-Presenters and components pass several useful variables to templates automatically:
-
-- `$basePath` is an absolute URL path to root dir (for example `/CD-collection`)
-- `$baseUrl` is an absolute URL to root dir (for example `http://localhost/CD-collection`)
-- `$user` is an object [representing the user |security:authentication]
-- `$presenter` is the current presenter
-- `$control` is the current component or presenter
-- `$flashes` list of [messages |#flash-messages] sent by method `flashMessage()`
+If you do not call any of these methods, the presenter will automatically proceed to render the template. Why? Well, because in 99% of cases we want to draw a template, so the presenter takes this behavior as the default and wants to make our work easier.
 
 
 Creating Links
@@ -220,7 +138,7 @@ $url = $this->link('Product:show', [$id, 'lang' => 'en']);
 
 In template we create links to other presenters & actions as follows:
 
-```html
+```latte
 <a n:href="Product:show $id">product detail</a>
 ```
 
@@ -240,7 +158,7 @@ The `forward()` switches to the new presenter immediately without HTTP redirecti
 $this->forward('Product:show');
 ```
 
-Example of temporary redirection with HTTP code 302 or 303:
+Example of a so-called temporary redirection with HTTP code 302 (or 303, if the current request method is POST):
 
 ```php
 $this->redirect('Product:show', $id);
@@ -252,7 +170,7 @@ To achieve permanent redirection with HTTP code 301 use:
 $this->redirectPermanent('Product:show', $id);
 ```
 
-You can redirect to another URL outside the application with the `redirectUrl()` method:
+You can redirect to another URL outside the application using the `redirectUrl()` method. The HTTP code can be specified as the second parameter, with the default being 302 (or 303, if the current request method is POST):
 
 ```php
 $this->redirectUrl('https://nette.org');
@@ -277,7 +195,7 @@ $this->redirect(/* ... */);
 
 In the template, these messages are available in the variable `$flashes` as objects `stdClass`, which contain the properties `message` (message text), `type` (message type) and can contain the already mentioned user information. We draw them as follows:
 
-```html
+```latte
 {foreach $flashes as $flash}
 	<div class="flash {$flash->type}">{$flash->message}</div>
 {/foreach}
@@ -304,40 +222,28 @@ The HTTP error code can be passed as the second parameter, the default is 404. T
 The error-preseter is set in [application configuration |configuration].
 
 
-Persistent Parameters
-=====================
+Sending JSON
+============
 
-Persistent parameters are **transferred automatically** in links. This means that we do not have to explicitly specify them in every `link()` or `n:href` in the template, but they will still be transferred.
-
-If your application has multiple language versions, then the current language is a parameter that must always be part of the URL. And it would be incredibly tiring to mention it in every link. That's not necessary with Nette. We simply mark the `lang` parameter as persistent in this way:
+Example of action-method that sends data in JSON format and exits the presenter:
 
 ```php
-class ProductPresenter extends Nette\Application\UI\Presenter
+public function actionData(): void
 {
-	/** @persistent */
-	public $lang;
+	$data = ['hello' => 'nette'];
+	$this->sendJson($data);
 }
 ```
 
-If the current value of the parameter `lang` is `'en'`, then the URL created with `link()` or `n:href` in the template will contain `lang=en`. Great!
 
-However, we can also add parameter `lang` and by that change its value:
+Persistent Parameters
+=====================
 
-```html
-<a n:href="Product:show $id, lang: en">detail in English</a>
-```
+Persistent parameters are used to maintain state between different requests. Their value remains the same even after a link is clicked. Unlike session data, they are passed in the URL. This is completely automatic, so there is no need to explicitly state them in `link()` or `n:href`.
 
-Or, conversely, it can be removed by setting to null:
+Example of use? You have a multilingual application. The actual language is a parameter that needs to be part of the URL at all times. But it would be incredibly tedious to include it in every link. So you make it a persistent parameter named `lang` and it will carry itself. Cool!
 
-```html
-<a n:href="Product:show $id, lang: null">click here</a>
-```
-
-The persistent variable must be declared as public. We can also specify a default value. If the parameter has the same value as the default, it will not be included in the URL.
-
-Persistence reflects the hierarchy of presenter classes, thus parameter defined in a certain presenter or trait is then automatically transferred to each presenter inheriting from it or using the same trait.
-
-In PHP 8, you can also use attributes to mark persistent parameters:
+Creating a persistent parameter is extremely easy in Nette. Just create a public property and tag it with the attribute: (previously `/** @persistent */` was used)
 
 ```php
 use Nette\Application\Attributes\Persistent;
@@ -345,8 +251,42 @@ use Nette\Application\Attributes\Persistent;
 class ProductPresenter extends Nette\Application\UI\Presenter
 {
 	#[Persistent]
-	public $lang;
+	public string $lang; // must be public
 }
+```
+
+If `$this->lang` has a value such as `'en'`, then links created using `link()` or `n:href` will also contain the `lang=en` parameter. And when the link is clicked, it will again be `$this->lang = 'en'`.
+
+For properties, we recommend that you include the data type (e.g. `string`) and you can also include a default value. Parameter values can be [validated |#Validation of Persistent Parameters].
+
+Persistent parameters are passed between all actions of a given presenter by default. To pass them between multiple presenters, you need to define them either:
+
+- in a common ancestor from which the presenters inherit
+- in the trait that the presenters use:
+
+```php
+trait LangAware
+{
+	#[Persistent]
+	public string $lang;
+}
+
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	use LangAware;
+}
+```
+
+You can change the value of a persistent parameter when creating a link:
+
+```latte
+<a n:href="Product:show $id, lang: cs">detail in Czech</a>
+```
+
+Or it can be *reset*, i.e. removed from the URL. It will then take its default value:
+
+```latte
+<a n:href="Product:show $id, lang: null">click</a>
 ```
 
 
@@ -370,8 +310,32 @@ What we have shown so far in this chapter will probably suffice. The following l
 Requirement and Parameters
 --------------------------
 
-The request handled by the presenter is the [api:Nette\Application\Request] object and is returned by the presenter's method `getRequest()`. It includes an array of parameters and each of them belongs either to some of the components or directly to the presenter (which is actually also a component, albeit a special one). So Nette redistributes the parameters
-and passes between the individual components (and the presenter) by calling the method `loadState(array $params)`, which is further described in the chapter [Components]. The parameters can be obtained by the method `getParameters(): array`, individually using `getParameter($name)`. Parameter values ​​are strings or arrays of strings, they are basically raw data obtained directly from a URL.
+The request handled by the presenter is the [api:Nette\Application\Request] object and is returned by the presenter's method `getRequest()`. It includes an array of parameters and each of them belongs either to some of the components or directly to the presenter (which is actually also a component, albeit a special one). So Nette redistributes the parameters and passes between the individual components (and the presenter) by calling the method `loadState(array $params)`. The parameters can be obtained by the method `getParameters(): array`, individually using `getParameter($name)`. Parameter values ​​are strings or arrays of strings, they are basically raw data obtained directly from a URL.
+
+
+Validation of Persistent Parameters
+-----------------------------------
+
+The values of [#persistent parameters] received from URLs are written to properties by the `loadState()` method. It also checks if the data type specified in the property matches, otherwise it will respond with a 404 error and the page will not be displayed.
+
+Never blindly trust persistent parameters, as they can easily be overwritten by the user in the URL. For example, this is how we check if `$this->lang` is among the supported languages. A good way to do this is to override the `loadState()` method mentioned above:
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $lang;
+
+	public function loadState(array $params): void
+	{
+		parent::loadState($params); // here is set the $this->lang
+		// follows the user value check:
+		if (!in_array($this->lang, ['en', 'cs'])) {
+			$this->error();
+		}
+	}
+}
+```
 
 
 Save and Restore the Request
@@ -461,34 +425,10 @@ $this->sendResponse(new Responses\CallbackResponse($callback));
 ```
 
 
-Search for Templates
---------------------
+Further Reading
+===============
 
-By default, templates are expected in the following files located relative to the directory where presenter class is located:
-
-- `templates/<Presenter>/<view>.latte`
-- `templates/<Presenter>.<view>.latte`
-
-Where `<Presenter>` is the name of the current presenter (e.g. `Product`) and `<view>` is the name of the current action. The view can be changed using `$this->setView('otherView')`. You can also specify the template file name directly instead of searching using `$this->template->setFile('/path/to/template.latte')`.
-
-You can change the paths where templates are searched by overriding the [formatTemplateFiles |api:Nette\Application\UI\Presenter::formatTemplateFiles()] method, which returns an array of possible file paths.
-
-The layout is expected in the following files:
-
-- `templates/<Presenter>/@<layout>.latte`
-- `templates/<Presenter>.@<layout>.latte`
-- `templates/@<layout>.latte` layout common to multiple presenters
-
-Where `<Presenter>` is the name of the current presenter and `<layout>` is the string `'layout'`, which can be changed with `$this->setLayout('otherLayout')`, so that `@otherLayout.latte` files will be tried.
-You can also directly specify the file name of the layout template using `$this->setLayout('/path/to/template.latte')`. Use `setLayout (false)` to turn off layout search.
-
-You can change the paths where templates are searched by overriding the [formatLayoutTemplateFiles |api:Nette\Application\UI\Presenter::formatLayoutTemplateFiles()] method, which returns an array of possible file paths.
-
-
-Links
------
-
-Links generated with `link()` or `n:href` are always absolute paths, but not absolute URLs with protocol and domain like `http://domain`. To generate absolute URLs, you need to set `$this->absoluteUrls = true`.
-
-
-{{composer: nette/application}}
+- [Inject methods and attributes |best-practices:inject-method-attribute]
+- [Composing presenters from traits |best-practices:presenter-traits]
+- [Passing settings to presenters |best-practices:passing-settings-to-presenters]
+- [How to return to an earlier page |best-practices:restore-request]

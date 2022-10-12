@@ -1,7 +1,7 @@
 Helper Functions
 ****************
 
-.[perex]{data-version:3.1}
+.[perex]
 [api:Nette\Utils\Helpers] is a static class with useful functions.
 
 
@@ -30,13 +30,24 @@ $res = Helpers::capture(function () use ($template) {
 ```
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:3.2.6}
-------------------------------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
+----------------------------------------------------------------------------
 
 Returns value clamped to the inclusive range of min and max.
 
 ```php
 Helpers::clamp($level, 0, 255);
+```
+
+
+compare(mixed $left, string $operator, mixed $right): bool .[method]
+--------------------------------------------------------------------
+
+Compares two values in the same way PHP does. It distinguishes between the operators `>`, `>=`, `<`, `<=`, `=`, `==`, `===`, `!=`, `!==`, `<>`.
+The function is useful in situations where the operator is variable.
+
+```php
+Helpers::compare(10, '<', 20); // true
 ```
 
 
@@ -54,7 +65,7 @@ Helpers::falseToNull(123);   // 123
 getLastError(): string .[method]
 --------------------------------
 
-Returns the last occurred PHP error or an empty string if no error occurred. Unlike `error_get_last()`, it is nit affected by the PHP directive `html_errors` and always returns text, not HTML.
+Returns the last occurred PHP error or an empty string if no error occurred. Unlike `error_get_last()`, it is not affected by the PHP directive `html_errors` and always returns text, not HTML.
 
 ```php
 Helpers::getLastError();
@@ -74,6 +85,3 @@ Helpers::getSuggestion($items, 'fo');   // 'foo'
 Helpers::getSuggestion($items, 'barr'); // 'bar'
 Helpers::getSuggestion($items, 'baz');  // 'bar', ne 'baz'
 ```
-
-
-{{composer: nette/utils}}

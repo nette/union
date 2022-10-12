@@ -19,17 +19,13 @@ use Nette;
  */
 abstract class Control extends Component implements Renderable
 {
-	/** @var bool */
-	public $snippetMode;
+	public bool $snippetMode = false;
 
-	/** @var TemplateFactory */
-	private $templateFactory;
+	private TemplateFactory $templateFactory;
 
-	/** @var Template */
-	private $template;
+	private Template $template;
 
-	/** @var array */
-	private $invalidSnippets = [];
+	private array $invalidSnippets = [];
 
 
 	/********************* template factory ****************d*g**/
@@ -44,7 +40,7 @@ abstract class Control extends Component implements Renderable
 
 	final public function getTemplate(): Template
 	{
-		if ($this->template === null) {
+		if (!isset($this->template)) {
 			$this->template = $this->createTemplate();
 		}
 
@@ -52,15 +48,10 @@ abstract class Control extends Component implements Renderable
 	}
 
 
-	/**
-	 * @param  string  $class
-	 */
-	protected function createTemplate(/*string $class = null*/): Template
+	protected function createTemplate(?string $class = null): Template
 	{
-		$class = func_num_args() // back compatibility
-			? func_get_arg(0)
-			: $this->formatTemplateClass();
-		$templateFactory = $this->templateFactory ?: $this->getPresenter()->getTemplateFactory();
+		$class ??= $this->formatTemplateClass();
+		$templateFactory = $this->templateFactory ?? $this->getPresenter()->getTemplateFactory();
 		return $templateFactory->createTemplate($this, $class);
 	}
 
@@ -81,7 +72,7 @@ abstract class Control extends Component implements Renderable
 				'%s: class %s was found but does not implement the %s, so it will not be used for the template.',
 				static::class,
 				$class,
-				Template::class
+				Template::class,
 			), E_USER_NOTICE);
 			return null;
 		} else {
@@ -101,9 +92,8 @@ abstract class Control extends Component implements Renderable
 
 	/**
 	 * Saves the message to template, that can be displayed after redirect.
-	 * @param  string|\stdClass|Nette\HtmlStringable  $message
 	 */
-	public function flashMessage($message, string $type = 'info'): \stdClass
+	public function flashMessage(string|\stdClass|Nette\HtmlStringable $message, string $type = 'info'): \stdClass
 	{
 		$id = $this->getParameterId('flash');
 		$flash = $message instanceof \stdClass ? $message : (object) [

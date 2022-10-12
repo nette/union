@@ -1,0 +1,822 @@
+Gerador de código PHP
+*********************
+
+<div class=perex>
+- Necessidade de gerar código PHP para classes, funções, arquivos PHP, etc.?
+- Suporta todas as últimas características do PHP, como enumeração, atributos, etc.
+- Permite modificar facilmente as classes existentes
+- Saída compatível com PSR-12
+- Biblioteca altamente madura, estável e amplamente utilizada
+</div>
+
+
+Instalação .[#toc-installation]
+-------------------------------
+
+Baixe e instale o pacote usando [o Composer |best-practices:composer]:
+
+```shell
+composer require nette/php-generator
+```
+
+Para compatibilidade com PHP, consulte a [tabela |#Compatibility Table].
+
+
+Aulas .[#toc-classes]
+---------------------
+
+Vamos começar com um exemplo simples de geração de classe usando o [ClassType |api:Nette\PhpGenerator\ClassType]:
+
+```php
+$class = new Nette\PhpGenerator\ClassType('Demo');
+
+$class
+	->setFinal()
+	->setExtends(ParentClass::class)
+	->addImplement(Countable::class)
+	->addComment("Description of class.\nSecond line\n")
+	->addComment('@property-read Nette\Forms\Form $form');
+
+// para gerar o código PHP simplesmente lançar para string ou usar eco:
+echo $class;
+```
+
+Ele renderá este resultado:
+
+```php
+/**
+ * Description of class.
+ * Second line
+ *
+ * @property-read Nette\Forms\Form $form
+ */
+final class Demo extends ParentClass implements Countable
+{
+}
+```
+
+Também podemos utilizar uma impressora para gerar o código, que, ao contrário de `echo $class`, poderemos [configurar ainda mais |#Printers and PSR compliance]:
+
+```php
+$printer = new Nette\PhpGenerator\Printer;
+echo $printer->printClass($class);
+```
+
+Podemos acrescentar constantes (classe [Constante |api:Nette\PhpGenerator\Constant]) e propriedades (classe [Propriedade |api:Nette\PhpGenerator\Property]):
+
+```php
+$class->addConstant('ID', 123)
+	->setProtected() // visiblidade constante
+	->setType('int')
+	->setFinal();
+
+$class->addProperty('items', [1, 2, 3])
+	->setPrivate() // ou setVisibilidade ("privado")
+	->setStatic()
+	->addComment('@var int[]');
+
+$class->addProperty('list')
+	->setType('?array')
+	->setInitialized(); // estampas '= nulo
+```
+
+Ele gera:
+
+```php
+final protected const int ID = 123;
+
+/** @var int[] */
+private static $items = [1, 2, 3];
+
+public ?array $list = null;
+```
+
+E podemos acrescentar [métodos |#Method and Function Signature]:
+
+```php
+$method = $class->addMethod('count')
+	->addComment('Count it.')
+	->setFinal()
+	->setProtected()
+	->setReturnType('?int') // tipo de retorno do método
+	->setBody('return count($items ?: $this->items);');
+
+$method->addParameter('items', []) // $items = []
+	->setReference()           // &$items = []
+	->setType('array');        // array &$items = []
+```
+
+O resultado é
+
+```php
+/**
+ * Count it.
+ */
+final protected function count(array &$items = []): ?int
+{
+	return count($items ?: $this->items);
+}
+```
+
+Os parâmetros promovidos introduzidos pelo PHP 8.0 podem ser passados para o construtor:
+
+```php
+$method = $class->addMethod('__construct');
+$method->addPromotedParameter('name');
+$method->addPromotedParameter('args', [])
+	->setPrivate();
+```
+
+O resultado é
+
+```php
+public function __construct(
+	public $name,
+	private $args = [],
+) {
+}
+```
+
+As propriedades e classes só de leitura podem ser marcadas via `setReadOnly()`.
+
+------
+
+Se a propriedade adicionada, constante, método ou parâmetro já existir, ela lança uma exceção.
+
+Os membros podem ser removidos usando `removeProperty()`, `removeConstant()`, `removeMethod()` ou `removeParameter()`.
+
+Você também pode adicionar objetos existentes `Method`, `Property` ou `Constant` à classe:
+
+```php
+$method = new Nette\PhpGenerator\Method('getHandle');
+$property = new Nette\PhpGenerator\Property('handle');
+$const = new Nette\PhpGenerator\Constant('ROLE');
+
+$class = (new Nette\PhpGenerator\ClassType('Demo'))
+	->addMember($method)
+	->addMember($property)
+	->addMember($const);
+```
+
+Você pode clonar métodos, propriedades e constantes existentes com um nome diferente usando `cloneWithName()`:
+
+```php
+$methodCount = $class->getMethod('count');
+$methodRecount = $methodCount->cloneWithName('recount');
+$class->addMember($methodRecount);
+```
+
+
+Interface ou Traço .[#toc-interface-or-trait]
+---------------------------------------------
+
+Você pode criar interfaces e traços (classes [InterfaceType |api:Nette\PhpGenerator\InterfaceType] e [TraitType |api:Nette\PhpGenerator\TraitType]):
+
+```php
+$interface = new Nette\PhpGenerator\InterfaceType('MyInterface');
+$trait = new Nette\PhpGenerator\TraitType('MyTrait');
+```
+
+Usando traços:
+
+```php
+$class = new Nette\PhpGenerator\ClassType('Demo');
+$class->addTrait('SmartObject');
+$class->addTrait('MyTrait')
+	->addResolution('sayHello as protected')
+	->addComment('@use MyTrait<Foo>');
+echo $class;
+```
+
+Resultado:
+
+```php
+class Demo
+{
+	use SmartObject;
+	/** @use MyTrait<Foo> */
+	use MyTrait {
+		sayHello as protected;
+	}
+}
+```
+
+
+Enums .[#toc-enums]
+-------------------
+
+Você pode criar facilmente os enums que o PHP 8.1 traz (classe [EnumType |api:Nette\PhpGenerator\EnumType]):
+
+```php
+$enum = new Nette\PhpGenerator\EnumType('Suit');
+$enum->addCase('Clubs');
+$enum->addCase('Diamonds');
+$enum->addCase('Hearts');
+$enum->addCase('Spades');
+
+echo $enum;
+```
+
+Resultado:
+
+```php
+enum Suit
+{
+	case Clubs;
+	case Diamonds;
+	case Hearts;
+	case Spades;
+}
+```
+
+Você também pode definir equivalentes escalares para casos a fim de criar um enumero de apoio:
+
+```php
+$enum->addCase('Clubs', '♣');
+$enum->addCase('Diamonds', '♦');
+```
+
+É possível adicionar um comentário ou [atributos |#attributes] a cada caso usando `addComment()` ou `addAttribute()`.
+
+
+Classe Anônima .[#toc-anonymous-class]
+--------------------------------------
+
+Dê `null` como o nome e você tem uma classe anônima:
+
+```php
+$class = new Nette\PhpGenerator\ClassType(null);
+$class->addMethod('__construct')
+	->addParameter('foo');
+
+echo '$obj = new class ($val) ' . $class . ';';
+```
+
+Resultado:
+
+```php
+$obj = new class ($val) {
+
+	public function __construct($foo)
+	{
+	}
+};
+```
+
+
+Função Global .[#toc-global-function]
+-------------------------------------
+
+O código de funções irá gerar a classe [GlobalFunction |api:Nette\PhpGenerator\GlobalFunction]:
+
+```php
+$function = new Nette\PhpGenerator\GlobalFunction('foo');
+$function->setBody('return $a + $b;');
+$function->addParameter('a');
+$function->addParameter('b');
+echo $function;
+
+// ou usar PsrPrinter para saída conforme PSR-2 / PSR-12
+// echo (novo Nette\PhpGenerator\PsrPrinter)->printFunction($function);
+```
+
+Resultado:
+
+```php
+function foo($a, $b)
+{
+	return $a + $b;
+}
+```
+
+
+Fechamento .[#toc-closure]
+--------------------------
+
+O código de fechamentos gerará [fechamento de |api:Nette\PhpGenerator\Closure] classe:
+
+```php
+$closure = new Nette\PhpGenerator\Closure;
+$closure->setBody('return $a + $b;');
+$closure->addParameter('a');
+$closure->addParameter('b');
+$closure->addUse('c')
+	->setReference();
+echo $closure;
+
+// ou usar PsrPrinter para saída conforme PSR-2 / PSR-12
+// echo (novo Nette\PhpGenerator\PsrPrinter)->printClosure($closure);
+```
+
+Resultado:
+
+```php
+function ($a, $b) use (&$c) {
+	return $a + $b;
+}
+```
+
+
+Função de Seta .[#toc-arrow-function]
+-------------------------------------
+
+Você também pode imprimir o fechamento como função de seta usando a impressora:
+
+```php
+$closure = new Nette\PhpGenerator\Closure;
+$closure->setBody('$a + $b');
+$closure->addParameter('a');
+$closure->addParameter('b');
+
+echo (new Nette\PhpGenerator\Printer)->printArrowFunction($closure);
+```
+
+Resultado:
+
+```php
+fn($a, $b) => $a + $b
+```
+
+
+Método e Assinatura da Função .[#toc-method-and-function-signature]
+-------------------------------------------------------------------
+
+Os métodos são representados pelo [método de |api:Nette\PhpGenerator\Method] classe. Você pode definir visibilidade, valor de retorno, adicionar comentários, [atributos |#Attributes], etc:
+
+```php
+$method = $class->addMethod('count')
+	->addComment('Count it.')
+	->setFinal()
+	->setProtected()
+	->setReturnType('?int');
+```
+
+Cada parâmetro é representado por um [parâmetro de |api:Nette\PhpGenerator\Parameter] classe. Novamente, você pode definir todos os bens concebíveis:
+
+```php
+$method->addParameter('items', []) // $items = []
+	->setReference() // &$items = []
+	->setType('array'); // array &$items = []
+
+// function count(&$items = [])
+```
+
+Para definir os chamados parâmetros de variação (ou também o splat, spread, elipse, desempacotamento ou operador de três pontos), use `setVariadics()`:
+
+```php
+$method = $class->addMethod('count');
+$method->setVariadics(true);
+$method->addParameter('items');
+```
+
+Gera:
+
+```php
+function count(...$items)
+{
+}
+```
+
+
+Método e Função Corpo .[#toc-method-and-function-body]
+------------------------------------------------------
+
+O corpo pode ser passado para o método `setBody()` de uma vez ou sequencialmente (linha por linha), ligando repetidamente para `addBody()`:
+
+```php
+$function = new Nette\PhpGenerator\GlobalFunction('foo');
+$function->addBody('$a = rand(10, 20);');
+$function->addBody('return $a;');
+echo $function;
+```
+
+Resultado
+
+```php
+function foo()
+{
+	$a = rand(10, 20);
+	return $a;
+}
+```
+
+Você pode usar porta-lugares especiais para injetar variáveis de forma prática.
+
+Porta-lugares simples `?`
+
+```php
+$str = 'any string';
+$num = 3;
+$function = new Nette\PhpGenerator\GlobalFunction('foo');
+$function->addBody('return substr(?, ?);', [$str, $num]);
+echo $function;
+```
+
+Resultado:
+
+```php
+function foo()
+{
+	return substr('any string', 3);
+}
+```
+
+Variadic placeholder `...?`
+
+```php
+$items = [1, 2, 3];
+$function = new Nette\PhpGenerator\GlobalFunction('foo');
+$function->setBody('myfunc(...?);', [$items]);
+echo $function;
+```
+
+Resultado:
+
+```php
+function foo()
+{
+	myfunc(1, 2, 3);
+}
+```
+
+Você também pode usar parâmetros nomeados no PHP 8 usando placeholder `...?:`
+
+```php
+$items = ['foo' => 1, 'bar' => true];
+$function->setBody('myfunc(...?:);', [$items]);
+
+// myfunc(foo: 1, bar: true);
+```
+
+Porta-lugar de fuga usando barra `\?`
+
+```php
+$num = 3;
+$function = new Nette\PhpGenerator\GlobalFunction('foo');
+$function->addParameter('a');
+$function->addBody('return $a \? 10 : ?;', [$num]);
+echo $function;
+```
+
+Resultado:
+
+```php
+function foo($a)
+{
+	return $a ? 10 : 3;
+}
+```
+
+
+Impressoras e conformidade PSR .[#toc-printers-and-psr-compliance]
+------------------------------------------------------------------
+
+O código PHP é gerado por objetos `Printer`. Há um `PsrPrinter` cuja saída está em conformidade com PSR-2 e PSR-12 e usa espaços para recuo, e um `Printer` que usa abas para recuo.
+
+```php
+$class = new Nette\PhpGenerator\ClassType('Demo');
+// ...
+
+$printer = new Nette\PhpGenerator\PsrPrinter;
+echo $printer->printClass($class); // 4 espaços de indentação
+```
+
+Necessidade de personalizar o comportamento da impressora? Crie seu próprio, herdando a classe `Printer`. Você pode reconfigurar estas variáveis:
+
+```php
+class MyPrinter extends Nette\PhpGenerator\Printer
+{
+	public int $wrapLength = 120;
+	public string $indentation = "\t";
+	public int $linesBetweenProperties = 0;
+	public int $linesBetweenMethods = 2;
+	public int $linesBetweenUseTypes = 0;
+	public bool $bracesOnNextLine = true;
+	public string $returnTypeColon = ': ';
+}
+```
+
+
+Tipos .[#toc-types]
+-------------------
+
+Cada tipo ou tipo de união/intersecção pode ser passado como uma corda, você também pode usar constantes pré-definidas para tipos nativos:
+
+```php
+use Nette\PhpGenerator\Type;
+
+$member->setType('array'); // or Type::Array;
+$member->setType('array|string'); // or Type::union('array', 'string')
+$member->setType('Foo&Bar'); // or Type::intersection(Foo::class, Bar::class)
+$member->setType(null); // removes type
+```
+
+O mesmo se aplica ao método `setReturnType()`.
+
+
+Literals .[#toc-literals]
+-------------------------
+
+Com `Literal` você pode passar código PHP arbitrário para, por exemplo, propriedade padrão ou valores de parâmetros, etc:
+
+```php
+use Nette\PhpGenerator\Literal;
+
+$class = new Nette\PhpGenerator\ClassType('Demo');
+
+$class->addProperty('foo', new Literal('Iterator::SELF_FIRST'));
+
+$class->addMethod('bar')
+	->addParameter('id', new Literal('1 + 2'));
+
+echo $class;
+```
+
+Resultado:
+
+```php
+class Demo
+{
+	public $foo = Iterator::SELF_FIRST;
+
+	public function bar($id = 1 + 2)
+	{
+	}
+}
+```
+
+Você também pode passar os parâmetros para `Literal` e formatá-lo em código PHP válido usando [marcadores de lugar especiais |#method-and-function-body-generator]:
+
+```php
+new Literal('substr(?, ?)', [$a, $b]);
+// gera, por exemplo: substrato ("olá", 5);
+```
+
+
+Atributos .[#toc-attributes]
+----------------------------
+
+Você pode adicionar atributos PHP 8 a todas as classes, métodos, propriedades, constantes, casos de enumeração, funções, fechamentos e parâmetros. [Os literais |#Literals] também podem ser usados como valores de parâmetros.
+
+```php
+$class = new Nette\PhpGenerator\ClassType('Demo');
+$class->addAttribute('Deprecated');
+
+$class->addProperty('list')
+	->addAttribute('WithArguments', [1, 2]);
+
+$method = $class->addMethod('count')
+	->addAttribute('Foo\Cached', ['mode' => true]);
+
+$method->addParameter('items')
+	->addAttribute('Bar');
+
+echo $class;
+```
+
+Resultado:
+
+```php
+#[Deprecated]
+class Demo
+{
+	#[WithArguments(1, 2)]
+	public $list;
+
+
+	#[Foo\Cached(mode: true)]
+	public function count(#[Bar] $items)
+	{
+	}
+}
+```
+
+
+Namespace .[#toc-namespace]
+---------------------------
+
+Classes, traços, interfaces e enumeros (doravante classes) podem ser agrupados em namespaces ([PhpNamespace |api:Nette\PhpGenerator\PhpNamespace]):
+
+```php
+$namespace = new Nette\PhpGenerator\PhpNamespace('Foo');
+
+// criar novas classes no namespace
+$class = $namespace->addClass('Task');
+$interface = $namespace->addInterface('Countable');
+$trait = $namespace->addTrait('NameAware');
+
+// ou inserir uma classe existente no namespace
+$class = new Nette\PhpGenerator\ClassType('Task');
+$namespace->add($class);
+```
+
+Se a classe já existe, ela lança uma exceção.
+
+Você pode definir as declarações de uso:
+
+```php
+// use Http\Request;
+$namespace->addUse(Http\Request::class);
+// use Http\Request as HttpReq;
+$namespace->addUse(Http\Request::class, 'HttpReq');
+// use function iter\range;
+$namespace->addUseFunction('iter\range');
+```
+
+Para simplificar uma classe, função ou nome constante totalmente qualificado de acordo com os pseudônimos definidos, utilize o método `simplifyName`:
+
+```php
+echo $namespace->simplifyName('Foo\Bar'); // 'Bar', porque 'Foo' é o namespace atual
+echo $namespace->simplifyName('iter\range', $namespace::NameFunction); // 'range', por causa do uso-definido
+```
+
+Por outro lado, você pode converter uma classe, função ou nome constante simplificado para uma classe totalmente qualificada usando o método `resolveName`:
+
+```php
+echo $namespace->resolveName('Bar'); // 'Foo\Bar'; // 'Foo\Bar'.
+echo $namespace->resolveName('range', $namespace::NameFunction); // 'iter\range'
+```
+
+
+Resolução de Nomes de Classe .[#toc-class-names-resolving]
+----------------------------------------------------------
+
+** Quando a classe faz parte do namespace, ela é renderizada de forma ligeiramente diferente**: todos os tipos (ou seja, dicas de tipo, tipos de retorno, nome da classe pai,
+interfaces implementadas, características e atributos utilizados) são automaticamente *resolvidos* (a menos que você o desligue, veja abaixo).
+Isso significa que você tem que **utilizar nomes completos de classe** em definições e eles serão substituídos por apelidos (de acordo com as declarações de uso) ou nomes totalmente qualificados no código resultante:
+
+```php
+$namespace = new Nette\PhpGenerator\PhpNamespace('Foo');
+$namespace->addUse('Bar\AliasedClass');
+
+$class = $namespace->addClass('Demo');
+$class->addImplement('Foo\A') // simplificará para A
+	->addTrait('Bar\AliasedClass'); // simplificará para a AliasedClass
+
+$method = $class->addMethod('method');
+$method->addComment('@return ' . $namespace->simplifyType('Foo\D')); // em comentários simplifique manualmente
+$method->addParameter('arg')
+	->setType('Bar\OtherClass'); // resolverá a barrar a outra classe
+
+echo $namespace;
+
+// ou usar PsrPrinter para saída em conformidade com PSR-2 / PSR-12
+// echo (new Nette\PhpGenerator\PsrPrinter)->printNamespace($namespace);
+```
+
+Resultado:
+
+```php
+namespace Foo;
+
+use Bar\AliasedClass;
+
+class Demo implements A
+{
+	use AliasedClass;
+
+	/**
+	 * @return D
+	 */
+	public function method(\Bar\OtherClass $arg)
+	{
+	}
+}
+```
+
+A auto-resolução pode ser desligada desta maneira:
+
+```php
+$printer = new Nette\PhpGenerator\Printer; // ou PsrPrinter
+$printer->setTypeResolving(false);
+echo $printer->printNamespace($namespace);
+```
+
+
+Arquivos PHP .[#toc-php-files]
+------------------------------
+
+As classes, funções e namespaces podem ser agrupadas em arquivos PHP representados pela classe [PhpFile |api:Nette\PhpGenerator\PhpFile]:
+
+```php
+$file = new Nette\PhpGenerator\PhpFile;
+$file->addComment('This file is auto-generated.');
+$file->setStrictTypes(); // adiciona declare(strict_types=1)
+
+$class = $file->addClass('Foo\A');
+$function = $file->addFunction('Foo\foo');
+
+// ou
+// $namespace = $file->addNamespace('Foo');
+// $class = $namespace->addClass('A');
+// $function = $namespace->addFunction('foo');
+
+echo $file;
+
+// ou usar PsrPrinter para saída em conformidade com PSR-2 / PSR-12
+// echo (new Nette\PhpGenerator\PsrPrinter)->printFile($file);
+```
+
+Resultado:
+
+```php
+<?php
+
+/**
+ * This file is auto-generated.
+ */
+
+declare(strict_types=1);
+
+namespace Foo;
+
+class A
+{
+}
+
+function foo()
+{
+}
+```
+
+
+Gerando de acordo com os já existentes .[#toc-generating-according-to-existing-ones]
+------------------------------------------------------------------------------------
+
+Além de poder modelar classes e funções usando a API descrita acima, você também pode tê-las geradas automaticamente usando as já existentes:
+
+```php
+// cria uma classe idêntica à classe da DOP
+$class = Nette\PhpGenerator\ClassType::from(PDO::class);
+
+// cria uma função idêntica à guarnição()
+$function = Nette\PhpGenerator\GlobalFunction::from('trim');
+
+// cria um fechamento como especificado
+$closure = Nette\PhpGenerator\Closure::from(
+	function (stdClass $a, $b = null) {},
+);
+```
+
+A função e o método estão vazios por padrão. Se você quiser carregá-los também, use desta forma
+(requer `nikic/php-parser` para ser instalado):
+
+```php
+$class = Nette\PhpGenerator\ClassType::from(Foo::class, withBodies: true);
+
+$function = Nette\PhpGenerator\GlobalFunction::from('foo', withBody: true);
+```
+
+
+Carregando do arquivo PHP .[#toc-loading-from-php-file]
+-------------------------------------------------------
+
+Você também pode carregar funções, classes, interfaces e enumeros diretamente de uma seqüência de código PHP. Por exemplo, criamos o objeto `ClassType` desta forma:
+
+```php
+$class = Nette\PhpGenerator\ClassType::fromCode(<<<XX
+	<?php
+
+	class Demo
+	{
+		public $foo;
+	}
+	XX);
+```
+
+Ao carregar classes do código PHP, os comentários de linha única fora dos corpos do método são ignorados (por exemplo, para propriedades, etc.) porque esta biblioteca não tem uma API para trabalhar com eles.
+
+Você também pode carregar o arquivo PHP inteiro diretamente, que pode conter qualquer número de classes, funções ou até mesmo vários espaços de nomes:
+
+```php
+$file = Nette\PhpGenerator\PhpFile::fromCode(file_get_contents('classes.php'));
+```
+
+O comentário inicial do arquivo e a declaração `strict_types` também são carregados. Por outro lado, todos os outros códigos globais são ignorados.
+
+Isto requer que `nikic/php-parser` seja instalado.
+
+.[note]
+Se você precisar manipular o código global em arquivos ou declarações individuais em corpos de métodos, é melhor usar a biblioteca `nikic/php-parser` diretamente.
+
+
+Variáveis Dumper .[#toc-variables-dumper]
+-----------------------------------------
+
+O Dumper retorna uma parábola de representação de uma variável em PHP. Fornece uma saída melhor e mais clara que a função nativa `var_export()`.
+
+```php
+$dumper = new Nette\PhpGenerator\Dumper;
+
+$var = ['a', 'b', 123];
+
+echo $dumper->dump($var); // gravuras ['a', 'b', 123]
+```
+
+
+Tabela de Compatibilidade .[#toc-compatibility-table]
+-----------------------------------------------------
+
+PhpGenerator 4.0 é compatível com PHP 8.0 a 8.2
+
+{{leftbar: nette:@menu-topics}}

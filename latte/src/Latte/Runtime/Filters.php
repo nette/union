@@ -101,10 +101,27 @@ class Filters
 
 
 	/**
-	 * Escapes string for use everywhere inside XML (except for comments).
+	 * Escapes a certain special character.
+	 */
+	public static function escapeHtmlChar($s, string $char): string
+	{
+		return str_replace(
+			$char,
+			htmlspecialchars($char, ENT_QUOTES | ENT_HTML5),
+			(string) $s,
+		);
+	}
+
+
+	/**
+	 * Escapes string for use everywhere inside XML (except for comments and tags).
 	 */
 	public static function escapeXml($s): string
 	{
+		if ($s instanceof HtmlStringable) {
+			return $s->__toString();
+		}
+
 		// XML 1.0: \x09 \x0A \x0D and C1 allowed directly, C0 forbidden
 		// XML 1.1: \x00 forbidden directly and as a character reference,
 		//   \x09 \x0A \x0D \x85 allowed directly, C0, C1 and \x7F allowed as character references
@@ -166,11 +183,33 @@ class Filters
 
 
 	/**
-	 * Escapes CSS/JS for usage in <script> and <style>..
+	 * Escapes HTML for usage in <script type=text/html>
 	 */
-	public static function escapeHtmlRawText($s): string
+	public static function escapeHtmlRawTextHtml($s): string
+	{
+		if ($s instanceof HtmlStringable || $s instanceof Nette\HtmlStringable) {
+			return str_ireplace('</script', '&lt;/script', $s->__toString());
+		}
+
+		return htmlspecialchars((string) $s, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8');
+	}
+
+
+	/**
+	 * Converts JS and CSS for usage in <script> or <style>
+	 */
+	public static function convertJSToHtmlRawText($s): string
 	{
 		return preg_replace('#</(script|style)#i', '<\/$1', (string) $s);
+	}
+
+
+	/**
+	 * Converts HTML for usage in <script type=text/html>
+	 */
+	public static function convertHtmlToHtmlRawText(string $s): string
+	{
+		return preg_replace('#<(/?)script#i', '&lt;$1script', $s);
 	}
 
 
@@ -191,9 +230,9 @@ class Filters
 	}
 
 
-	public static function nop(string $s): string
+	public static function nop($s): string
 	{
-		return $s;
+		return (string) $s;
 	}
 
 
@@ -225,10 +264,24 @@ class Filters
 
 
 	/**
+	 * Converts HTML to plain text.
+	 */
+	public static function convertHtmlToText(string $s): string
+	{
+		$s = strip_tags($s);
+		return html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+	}
+
+
+	/**
 	 * Sanitizes string for use inside href attribute.
 	 */
-	public static function safeUrl(string $s): string
+	public static function safeUrl(string|HtmlStringable $s): string
 	{
+		if ($s instanceof HtmlStringable) {
+			$s = self::convertHtmlToText((string) $s);
+		}
+
 		return preg_match('~^(?:(?:https?|ftp)://[^@]+(?:/.*)?|(?:mailto|tel|sms):.+|[/?#].*|[^:]+)$~Di', $s) ? $s : '';
 	}
 }

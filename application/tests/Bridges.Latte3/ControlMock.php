@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 class ControlMock extends Nette\Application\UI\Control
 {
-	public $snippetMode = true;
+	public bool $snippetMode = true;
 
 	public $payload = [];
 
@@ -44,7 +44,7 @@ class ControlMock extends Nette\Application\UI\Control
 	}
 
 
-	public function getPresenter(): ?Nette\Application\UI\Presenter
+	public function getPresenter(): Nette\Application\UI\Presenter
 	{
 		$presenter = new class extends Nette\Application\UI\Presenter {
 		};

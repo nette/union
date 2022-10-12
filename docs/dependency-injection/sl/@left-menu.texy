@@ -1,0 +1,17 @@
+Injekcija odvisnosti
+********************
+- [Kaj je DI? |introduction]
+- [Globalno stanje in singletoni |global-state]
+- [Posredovanje odvisnosti |passing-dependencies]
+- [Kaj je vsebnik DI? |container]
+- [Pogosto zastavljena vprašanja |faq]
+
+
+Nette DI
+--------
+- [Nette DI Container |nette-container]
+- [Konfiguracija |configuration]
+- [Opredelitve storitev |services]
+- [Samodejno ožičenje |autowiring]
+- [Generirane tovarne |factory]
+- [Ustvarjanje razširitev za Nette DI |extensions]

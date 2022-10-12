@@ -1,30 +1,12 @@
-Balíčky Nette & instalace
-*************************
-
-Nette je plnohodnotný PHP framework tvořený sadou nezávislých balíčků.
-Tyto balíčky si můžete stáhnout a používat nezávisle na zbytku frameworku.
-
-Jednotlivé balíčky stáhnete a nainstalujete pomocí [Composeru |best-practices:composer]:
-
-{{include: doc-packages-select}}
-
-Všechny komponenty najednou lze přidat takto:
-
-```shell
-composer require nette/nette
-```
-
-
-Seznam balíčků
---------------
+Seznam balíčků Nette
+********************
 
 | **Application**:[application:how-it-works] | Jádro webových aplikací | [GitHub |https://github.com/nette/application] [API |https://api.nette.org/application/]
 | **Bootstrap**:[bootstrap:] | Bootstrap webové aplikace | [GitHub |https://github.com/nette/bootstrap] [API |https://api.nette.org/bootstrap/]
 | **Caching**:[caching:] | Kešovací vrstva s úložišti | [GitHub |https://github.com/nette/caching] [API |https://api.nette.org/caching/]
-| **Component Model**:[application:components#komponenty-do-hloubky] | Základ komponentového systému | [GitHub |https://github.com/nette/component-model] [API |https://api.nette.org/component-model/]
-| **DI**:[dependency-injection:introduction] | Dependency Injection Container | [GitHub |https://github.com/nette/di] [API |https://api.nette.org/di/]
+| **Component Model**:[component-model:] | Základ komponentového systému | [GitHub |https://github.com/nette/component-model] [API |https://api.nette.org/component-model/]
+| **DI**:[dependency-injection:] | Dependency Injection Container | [GitHub |https://github.com/nette/di] [API |https://api.nette.org/di/]
 | **Database**:[database:] | Databázová vrstva | [GitHub |https://github.com/nette/database] [API |https://api.nette.org/database/]
-| **Finder**:[utils:finder] | Vyhledávání souborů a adresářů s intuitivním rozhraním | [GitHub |https://github.com/nette/finder] [API |https://api.nette.org/finder/]
 | **Forms**:[forms:] | Pohodlné a bezpečné webové formuláře | [GitHub |https://github.com/nette/forms] [API |https://api.nette.org/forms/]
 | **Http**:[http:] | Vrstva zapouzdřující HTTP request & response | [GitHub |https://github.com/nette/http] [API |https://api.nette.org/http/]
 | **Latte**:[latte:] | Skvělý šablonovací systém | [GitHub |https://github.com/nette/latte] [API |https://api.nette.org/latte/]
@@ -37,7 +19,6 @@ Seznam balíčků
 | **Schema**:[schema:] | Validace uživatelských dat | [GitHub |https://github.com/nette/schema] [API |https://api.nette.org/schema/]
 | **Security**:[security:authentication] | Správa přístupových práv | [GitHub |https://github.com/nette/security] [API |https://api.nette.org/security/]
 | **Tester**:[tester:] | Pohodové jednotkové testy v PHP | [GitHub |https://github.com/nette/tester] [API |https://api.nette.org/tester/]
-| **Tokenizer**:[tokenizer:] | Tokenizace řetězců | [GitHub |https://github.com/nette/tokenizer] [API |https://api.nette.org/tokenizer/]
 | **Tracy**:[tracy:] | Debugovací nástroj, který si zamilujete ♥ | [GitHub |https://github.com/nette/tracy] [API |https://api.nette.org/tracy/]
 | **Utils**:[utils:] | Základní třídy a nástroje  | [GitHub |https://github.com/nette/utils] [API |https://api.nette.org/utils/]
 

@@ -1,0 +1,86 @@
+Modèle
+******
+
+Au fur et à mesure que notre application se développe, nous nous apercevons rapidement que nous devons effectuer des opérations de base de données similaires dans divers emplacements et dans divers présentateurs, par exemple acquérir les articles publiés les plus récents. Si nous améliorons notre application en ajoutant un drapeau aux articles pour indiquer un état de travail en cours, nous devons également passer par tous les emplacements de notre application et ajouter une clause where pour nous assurer que seuls les articles terminés sont sélectionnés.
+
+À ce stade, le travail direct avec la base de données devient insuffisant et il sera plus judicieux de nous aider avec une nouvelle fonction qui renvoie les articles publiés. Et lorsque nous ajouterons plus tard une autre clause (par exemple pour ne pas afficher les articles ayant une date future), nous ne modifierons notre code qu'à un seul endroit.
+
+Nous allons placer la fonction dans la classe `PostFacade` et l'appeler `getPublicArticles()`.
+
+Nous allons créer notre classe modèle `PostFacade` dans le répertoire `app/Model/` pour s'occuper de nos articles :
+
+```php .{file:app/Model/PostFacade.php}
+<?php
+namespace App\Model;
+
+use Nette;
+
+final class PostFacade
+{
+	public function __construct(
+		private Nette\Database\Explorer $database,
+	) {
+	}
+
+	public function getPublicArticles()
+	{
+		return $this->database
+			->table('posts')
+			->where('created_at < ', new \DateTime)
+			->order('created_at DESC');
+	}
+}
+```
+
+Dans la classe nous passons la base de données Explorer :[api:Nette\Database\Explorer]. Cela permettra de profiter de la puissance du [conteneur DI |dependency-injection:passing-dependencies].
+
+Nous passerons à `HomePresenter` que nous éditerons de manière à nous débarrasser de la dépendance sur `Nette\Database\Explorer` en la remplaçant par une nouvelle dépendance sur notre nouvelle classe.
+
+```php .{file:app/Presenters/HomePresenter.php}
+<?php
+namespace App\Presenters;
+
+use App\Model\PostFacade;
+use Nette;
+
+final class HomePresenter extends Nette\Application\UI\Presenter
+{
+	public function __construct(
+		private PostFacade $facade,
+	) {
+	}
+
+	public function renderDefault(): void
+	{
+		$this->template->posts = $this->facade
+			->getPublicArticles()
+			->limit(5);
+	}
+}
+```
+
+Dans la section utilisation, nous utilisons `App\Model\PostFacade`, nous pouvons donc raccourcir le code PHP à `PostFacade`. Nous demandons cet objet dans le constructeur, l'écrivons dans la propriété `$facade` et l'utilisons dans la méthode renderDefault.
+
+La dernière étape consiste à apprendre au conteneur DI à produire cet objet. Cela se fait généralement en ajoutant un point au fichier `config/services.neon` dans la section `services`, en donnant le nom complet de la classe et les paramètres du constructeur.
+Cela l'enregistre, pour ainsi dire, et l'objet est alors appelé **service**. Grâce à une magie appelée [câblage automatique |dependency-injection:autowiring], nous n'avons généralement pas besoin de spécifier les paramètres du constructeur car l'ID les reconnaît et les transmet automatiquement. Ainsi, il suffirait de fournir le nom de la classe :
+
+```neon .{file:config/services.neon}
+...
+
+services:
+	- App\Model\PostFacade
+```
+
+Cependant, vous n'avez pas besoin d'ajouter cette ligne non plus. Dans la section `search` au début de `services.neon` il est défini que toutes les classes se terminant par `-Facade` ou `-Factory` seront recherchées par DI automatiquement, ce qui est également le cas pour `PostFacade`.
+
+
+Résumé .[#toc-summary]
+======================
+
+La classe `PostFacade` demande `Nette\Database\Explorer` dans un constructeur et comme cette classe est enregistrée dans le conteneur DI, le conteneur crée cette instance et la transmet. DI crée ainsi une instance de `PostFacade` pour nous et la transmet dans un constructeur à la classe HomePresenter qui l'a demandée. Une sorte de poupée Matryoshka de code :) Tous les composants ne demandent que ce dont ils ont besoin et ils ne se soucient pas de savoir où et comment cela est créé. La création est gérée par le conteneur DI.
+
+.[note]
+Vous trouverez ici plus d'informations sur l'[injection de dépendances |dependency-injection:introduction] et sur la [configuration |nette:configuring].
+
+{{priority: -1}}
+{{sitename: Nette Quickstart}}

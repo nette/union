@@ -1,0 +1,17 @@
+Injeção de dependência
+**********************
+- [O que é DI? |introduction]
+- [Estado global e Singletons |global-state]
+- [Dependências de passagem |passing-dependencies]
+- [O que é DI Container? |container]
+- [Perguntas mais freqüentes |faq]
+
+
+Nette DI
+--------
+- [Container DI Nette |nette-container]
+- [Configuração |configuration]
+- [Definições de serviço |services]
+- [Cablagem automática |autowiring]
+- [Fábricas Geradas |factory]
+- [Criação de extensões para Nette DI |extensions]

@@ -44,7 +44,7 @@ class EmbedNode extends StatementNode
 		$tag->expectArguments();
 
 		$node = new static;
-		$mode = $tag->parser->tryConsumeModifier('block', 'file')?->text;
+		$mode = $tag->parser->tryConsumeTokenBeforeUnquotedString('block', 'file')?->text;
 		$node->name = $tag->parser->parseUnquotedStringOrExpression();
 		$node->mode = $mode ?? ($node->name instanceof StringNode && preg_match('~[\w-]+$~DA', $node->name->value) ? 'block' : 'file');
 		$tag->parser->stream->tryConsume(',');
@@ -93,7 +93,7 @@ class EmbedNode extends StatementNode
 				$imports,
 				$this->name,
 				$this->args,
-				$context->getEscaper()->export(),
+				$context->getEscaper()->getState(),
 			)
 			: $context->format(
 				<<<'XX'
@@ -111,7 +111,7 @@ class EmbedNode extends StatementNode
 				$imports,
 				$this->name,
 				$this->args,
-				$context->getEscaper()->export(),
+				$context->getEscaper()->getState(),
 			);
 	}
 

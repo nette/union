@@ -1,0 +1,24 @@
+Bağımlılık Enjeksiyonu
+**********************
+
+.[perex]
+Dependency Injection, koda ve geliştirmeye bakış açınızı temelden değiştirecek bir tasarım modelidir. Temiz tasarlanmış ve sürdürülebilir uygulamalardan oluşan bir dünyaya giden yolu açar.
+
+- [Dependency Injection Nedir? |introduction]
+- [Küresel Durum ve Tekiller |global-state]
+- [Bağımlılıkları |passing-dependencies]Geçirmek
+- [DI Container Nedir? |container]
+- [Sıkça Sorulan Sorular |faq]
+
+
+Nette DI
+--------
+
+ `nette/di` paketi PHP için son derece gelişmiş bir derlenmiş DI kapsayıcısı sağlar.
+
+- [Nette DI Konteyner |nette-container]
+- [Konfigürasyon |configuration]
+- [Hizmet Tanımları |services]
+- [Otomatik Kablolama |autowiring]
+- [Üretilen Fabrikalar |factory]
+- [Nette DI için Uzantılar Oluşturma |extensions]

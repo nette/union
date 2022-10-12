@@ -4,6 +4,7 @@ Date and Time
 .[perex]
 [api:Nette\Utils\DateTime] is a class extends native [php:DateTime].
 
+
 Installation:
 
 ```shell
@@ -29,8 +30,8 @@ DateTime::from('1994-02-26'); // create DateTime by date, time will be 00:00:00
 ```
 
 
-static fromParts(int $year, int $month, int $day, int $hour = 0, int $minute = 0, float $second = 0.0): DateTime .[method]
---------------------------------------------------------------------------------------------------------------------------
+static fromParts(int $year, int $month, int $day, int $hour=0, int $minute=0, float $second=0.0): DateTime .[method]
+--------------------------------------------------------------------------------------------------------------------
 Creates DateTime object or throws an `Nette\InvalidArgumentException` exception if the date and time are not valid.
 ```php
 DateTime::fromParts(1994, 2, 26, 4, 15, 32);
@@ -64,13 +65,10 @@ echo $dateTime; // '2017-02-03 04:15:32'
 ```
 
 
-implements JsonSerializable
+Implements JsonSerializable
 ---------------------------
 Returns the date and time in ISO 8601 format, which is used in JavaScript, for example.
 ```php
 $date = DateTime::from('2017-02-03');
 echo json_encode($date);
 ```
-
-
-{{composer: nette/utils}}

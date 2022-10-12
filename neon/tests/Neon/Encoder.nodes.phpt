@@ -1,7 +1,5 @@
 <?php
 
-/** @phpVersion 7.2 */
-
 declare(strict_types=1);
 
 use Nette\Neon;
@@ -32,5 +30,5 @@ $node = $encoder->valueToNode($input);
 
 Assert::matchFile(
 	__DIR__ . '/fixtures/Encoder.nodes.txt',
-	Dumper::toText($node, [Dumper::HASH => false, Dumper::DEPTH => 20])
+	Dumper::toText($node, [Dumper::HASH => false, Dumper::DEPTH => 20]),
 );

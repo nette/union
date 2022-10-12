@@ -21,7 +21,7 @@ Installation:
 composer require nette/schema
 ```
 
-It requires PHP version 7.1 and supports PHP up to 8.2.
+It requires PHP version 8.0 and supports PHP up to 8.2.
 
 
 [Support Me](https://github.com/sponsors/dg)
@@ -169,7 +169,7 @@ The parameter can also be a schema, so we can write:
 Expect::arrayOf(Expect::bool())
 ```
 
-The default value is an empty array. If you specify default value, it will be merged with the passed data. This can be disabled using `mergeDefaults(false)`.
+The default value is an empty array. If you specify default value and call `mergeDefaults()`, it will be merged with the passed data.
 
 
 Enumeration: anyOf()

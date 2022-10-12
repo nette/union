@@ -1,5 +1,5 @@
-HTTP
-****
+Nette HTTP
+**********
 
 .[perex]
 The `nette/http` package encapsulates [HTTP request|request] & [response], working with [sessions] and [URL parsing and building |urls].
@@ -13,5 +13,3 @@ Download and install the package using [Composer|best-practices:composer]:
 ```shell
 composer require nette/http
 ```
-
-{{composer: nette/http}}

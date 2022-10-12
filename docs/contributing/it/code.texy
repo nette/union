@@ -1,0 +1,118 @@
+Contribuire al codice
+*********************
+
+.[perex]
+Avete intenzione di contribuire al framework Nette e avete bisogno di familiarizzare con le regole e le procedure? Questa guida per principianti vi guiderà attraverso i passaggi per contribuire efficacemente al codice, lavorare con i repository e implementare le modifiche.
+
+
+Procedura .[#toc-procedure]
+===========================
+
+Per contribuire al codice, è essenziale avere un account su [GitHub |https://github.com] e conoscere le basi del sistema di controllo di versione Git. Se non si ha familiarità con Git, si può consultare la [guida git - the simple guide |https://rogerdudler.github.io/git-guide/] e prendere in considerazione l'utilizzo di uno dei tanti [client grafici |https://git-scm.com/downloads/guis].
+
+
+Preparazione dell'ambiente e del repository .[#toc-preparing-the-environment-and-repository]
+--------------------------------------------------------------------------------------------
+
+1) Su GitHub, creare un [fork |https://help.github.com/en/github/getting-started-with-github/fork-a-repo] del [repository del pacchetto |www:packages] che si intende modificare
+2) [Clonare |https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository] questo repository sul proprio computer
+3) Installare le dipendenze, compreso [Nette Tester |tester:], usando il comando `composer install`.
+4) Verificate che i test funzionino eseguendo `composer tester`
+5) Creare un [nuovo ramo |#New Branch] basato sull'ultima versione rilasciata
+
+
+Implementare le proprie modifiche .[#toc-implementing-your-own-changes]
+-----------------------------------------------------------------------
+
+Ora è possibile apportare le proprie modifiche al codice:
+
+1) Implementare le modifiche desiderate e non dimenticare i test.
+2) Assicurarsi che i test vengano eseguiti con successo `composer tester`
+3) Verificare se il codice è conforme agli standard di [codifica |#coding standards]
+4) Salvare (commit) le modifiche con una descrizione in [questo formato |#Commit Description]
+
+È possibile creare più commit, uno per ogni fase logica. Ogni commit deve essere significativo di per sé.
+
+
+Invio delle modifiche .[#toc-submitting-changes]
+------------------------------------------------
+
+Una volta soddisfatti delle modifiche, è possibile inviarle:
+
+1) Spingere le modifiche su GitHub al proprio fork
+2) Da lì, inviarle al repository di Nette creando una [pull request|https://help.github.com/articles/creating-a-pull-request] (PR)
+3) Fornire [informazioni sufficienti |#pull request description] nella descrizione
+
+
+Incorporare il feedback .[#toc-incorporating-feedback]
+------------------------------------------------------
+
+I vostri commit sono ora visibili agli altri. È frequente ricevere commenti con suggerimenti:
+
+1) Tenere traccia delle modifiche proposte
+2) incorporarle come nuovi commit o [unirle a quelle precedenti |https://help.github.com/en/github/using-git/about-git-rebase]
+3) Ripresentare i commit a GitHub, che appariranno automaticamente nella richiesta di pull.
+
+Non creare mai una nuova richiesta di pull per modificarne una esistente.
+
+
+Documentazione .[#toc-documentation]
+------------------------------------
+
+Se avete modificato una funzionalità o ne avete aggiunta una nuova, non dimenticate di [aggiungerla |documentation] anche [alla documentazione |documentation].
+
+
+Nuovo ramo .[#toc-new-branch]
+=============================
+
+Se possibile, apportare le modifiche all'ultima versione rilasciata, cioè all'ultimo tag del ramo. Per il tag v3.2.1, creare un ramo usando questo comando:
+
+```shell
+git checkout -b new_branch_name v3.2.1
+```
+
+
+Standard di codifica .[#toc-coding-standards]
+=============================================
+
+Il codice deve essere conforme agli [standard di codifica |coding standard] utilizzati da Nette Framework. È disponibile uno strumento automatico per la verifica e la correzione del codice. È possibile installarlo **globalmente** tramite Composer in una cartella a scelta:
+
+```shell
+composer create-project nette/coding-standard /path/to/nette-coding-standard
+```
+
+Ora dovreste essere in grado di eseguire lo strumento nel terminale. Il primo comando controlla e il secondo corregge il codice nelle cartelle `src` e `tests` nella directory corrente:
+
+```shell
+/path/to/nette-coding-standard/ecs check
+/path/to/nette-coding-standard/ecs check --fix
+```
+
+
+Descrizione dell'impegno .[#toc-commit-description]
+===================================================
+
+In Nette, gli argomenti dei commit hanno il seguente formato: `Presenter: fixed AJAX detection [Closes #69]`
+
+- area seguita da due punti
+- scopo del commit al passato; se possibile, iniziare con parole come: added, fixed, refactored, changed, removed
+- se il commit rompe la compatibilità all'indietro, aggiungere "BC break".
+- qualsiasi collegamento al tracker dei problemi, come `(#123)` o `[Closes #69]`
+- dopo l'oggetto, può esserci una riga vuota seguita da una descrizione più dettagliata, che includa, per esempio, collegamenti al forum
+
+
+Descrizione della richiesta .[#toc-pull-request-description]
+============================================================
+
+Quando si crea una richiesta di pull, l'interfaccia di GitHub consente di inserire un titolo e una descrizione. Fornire un titolo conciso e includere nella descrizione il maggior numero possibile di informazioni sulle ragioni della modifica.
+
+Inoltre, specificare nell'intestazione se si tratta di una nuova funzionalità o di una correzione di un bug e se può causare problemi di retrocompatibilità (BC break). Se esiste un problema correlato, collegarlo ad esso in modo che venga chiuso dopo l'approvazione della richiesta di pull.
+
+```
+- bug fix / new feature?  <!-- #issue numbers, if any -->
+- BC break? yes/no
+- doc PR: nette/docs#?    <!-- highly welcome, see https://nette.org/en/writing -->
+```
+
+
+{{priority: -1}}

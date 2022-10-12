@@ -1,0 +1,528 @@
+依存性注入（Dependency Injection）とは？
+******************************
+
+.[perex]
+この章では、アプリケーションを書くときに守るべき基本的なプログラミングの実践について紹介します。これらは、きれいで理解しやすく、保守しやすいコードを書くために必要な基礎知識です。
+
+このルールに従えば、ネッテはどんなときでもあなたの味方になってくれます。ロジックに集中できるよう、ルーティンワークをこなし、最高の快適さを提供します。
+
+ここで紹介する原理は、とてもシンプルです。何も心配する必要はありません。
+
+
+初めてのプログラムを覚えていますか？ .[#toc-remember-your-first-program]
+------------------------------------------------------
+
+どのような言語で書かれたかはわかりませんが、PHPであれば、次のような感じだったかもしれません：
+
+```php
+function addition(float $a, float $b): float
+{
+	return $a + $b;
+}
+
+echo addition(23, 1); // prints 24
+```
+
+ほんの数行の些細なコードですが、そこには多くの重要な概念が隠されています。変数があること。コードはより小さな単位に分解され、例えば関数となる。入力引数を渡すと、結果を返してくれる。足りないのは、条件とループだけだ。
+
+関数が入力データを受け取り、結果を返すというのは、数学など他の分野でも使われている、完全に理解できる概念である。
+
+関数にはシグネチャがあり、その名前、パラメータのリストとその型、そして最後に戻り値の型から構成されています。ユーザーとしては、シグネチャに興味があり、通常、内部実装については何も知る必要はない。
+
+ここで、関数シグネチャが次のようなものだったと想像してみてください：
+
+```php
+function addition(float $x): float
+```
+
+パラメータが1つの足し算？それはおかしい...。これならどうだろう？
+
+```php
+function addition(): float
+```
+
+今のは本当に変ですよね？その機能はどのように使われているのでしょうか？
+
+```php
+echo addition(); // what does it prints?
+```
+
+このようなコードを見ると、私たちは混乱してしまうでしょう。初心者が理解できないだけでなく、経験豊富なプログラマーでさえ、このようなコードは理解できないでしょう。
+
+このような関数が実際に内部でどのように見えるか気になりませんか？その関数はどこで和集合を得るのだろう？おそらく、次のような形で、自分自身で取得するのでしょう：
+
+```php
+function addition(): float
+{
+	$a = Input::get('a');
+	$b = Input::get('b');
+	return $a + $b;
+}
+```
+
+その結果、関数本体には他の関数（または静的メソッド）へのバインディングが隠されていることが判明し、実際にアドエンドの由来を知るには、さらに掘り下げる必要がある。
+
+
+このままではダメだ! .[#toc-not-this-way]
+-------------------------------
+
+先ほどお見せしたデザインは、多くのマイナス点を解消するためのエッセンスです：
+
+- 関数のシグネチャが和集合を必要としないように見せかけるので、混乱しました。
+- 他の2つの数値で計算する関数を作る方法がわからない
+- 和算がどこから来たのか、コードを見なければわかりませんでしたが
+- 隠れた依存関係を発見しました
+- 完全な理解には、これらの依存関係も調べる必要があります。
+
+そして、インプットを調達するのも加算機能の仕事なのだろうか？もちろん、そんなことはありません。  足し算の仕事だけです。
+
+
+このようなコードには遭遇したくないし、書きたくもない。解決策は簡単です。基本に立ち返って、パラメータを使うだけです。
+
+
+```php
+function addition(float $a, float $b): float
+{
+	return $a + $b;
+}
+```
+
+
+ルールその1：渡されるようにする .[#toc-rule-1-let-it-be-passed-to-you]
+-------------------------------------------------------
+
+最も重要なルールは**関数やクラスが必要とするすべてのデータは、関数やクラスに渡さなければならない**ということです。
+
+データへのアクセス方法を工夫する代わりに、パラメータを渡すだけでよいのです。コードを改善することのない隠し通路を考案する時間を節約することができます。
+
+もしあなたがいつもどこでもこのルールに従うなら、あなたは隠れた依存関係のないコードへの道を歩んでいることになります。作者だけでなく、その後に読む人にも理解できるコードへ。関数やクラスのシグネチャからすべてが理解でき、実装の中に隠された秘密を探す必要がないところ。
+
+この手法は専門的には**依存性注入**と呼ばれています。そして、それらのデータは**依存性**と呼ばれています。これは単なるパラメータの受け渡しであり、それ以上のものではありません。
+
+.[note]
+デザインパターンである依存性注入と、ツールである「依存性注入コンテナ」は正反対のものなので、混同しないようにしてください。コンテナについては後述します。
+
+
+関数からクラスへ .[#toc-from-functions-to-classes]
+------------------------------------------
+
+また、クラスはどのように関係しているのでしょうか？クラスは単純な関数よりも複雑な単位ですが、ここでもルールその1が完全に適用されます。[引数を |passing-dependencies]渡す方法が増えただけです。例えば、関数の場合とかなり似ています：
+
+```php
+class Math
+{
+	public function addition(float $a, float $b): float
+	{
+		return $a + $b;
+	}
+}
+
+$math = new Math;
+echo $math->addition(23, 1); // 24
+```
+
+あるいは他のメソッドを通じて、あるいはコンストラクターを通じて直接：
+
+```php
+class Addition
+{
+	public function __construct(
+		private float $a,
+		private float $b,
+	) {
+	}
+
+	public function calculate(): float
+	{
+		return $this->a + $this->b;
+	}
+
+}
+
+$addition = new Addition(23, 1);
+echo $addition->calculate(); // 24
+```
+
+どちらの例も、依存性注入に完全に準拠している。
+
+
+実際の事例 .[#toc-real-life-examples]
+--------------------------------
+
+実社会では、数字の足し算のクラスを書くことはないでしょう。では、実践的な例題に移りましょう。
+
+ブログの記事を表す`Article` クラスを用意しよう：
+
+```php
+class Article
+{
+	public int $id;
+	public string $title;
+	public string $content;
+
+	public function save(): void
+	{
+		// save the article to the database
+	}
+}
+```
+
+となり、使い方は以下のようになります。
+
+```php
+$article = new Article;
+$article->title = '10 Things You Need to Know About Losing Weight';
+$article->content = 'Every year millions of people in ...';
+$article->save();
+```
+
+`save()` メソッドは、記事をデータベースのテーブルに保存します。[Nette Databaseを使って |database:en]これを実装するのは簡単ですが、1つだけ難点があります。`Article` は、データベース接続、つまりクラス`Nette\Database\Connection` のオブジェクトをどこで取得するのか？
+
+選択肢はたくさんあるようです。どこかの静的変数から取得することができます。あるいは、データベース接続を提供するクラスから継承する。あるいは、[シングルトンを |global-state#Singleton]利用する。あるいは、Laravelで使われている、いわゆるファサードを利用する：
+
+```php
+use Illuminate\Support\Facades\DB;
+
+class Article
+{
+	public int $id;
+	public string $title;
+	public string $content;
+
+	public function save(): void
+	{
+		DB::insert(
+			'INSERT INTO articles (title, content) VALUES (?, ?)',
+			[$this->title, $this->content],
+		);
+	}
+}
+```
+
+素晴らしい、問題を解決した。
+
+あるいは、そうしてきたのだろうか。
+
+[ルールその1「渡されるようにする |#rule #1: Let It Be Passed to You]」：クラスが必要とする依存関係はすべて渡されなければならない、ということを思い出してみましょう。なぜなら、このルールを破ると、隠れた依存関係でいっぱいの汚いコード、理解不能なコードへの道に乗り出したことになり、その結果、保守や開発に苦痛を伴うアプリケーションになってしまうからです。
+
+`Article` クラスのユーザーは、`save()` メソッドが記事をどこに保存するのか分からない。データベースのテーブルの中？本番とテスト、どちらでしょうか？そして、それはどのように変更できるのでしょうか？
+
+ユーザーは、`save()` メソッドがどのように実装されているかを見て、`DB::insert()` メソッドの使用を見つけなければなりません。そこで、このメソッドがどのようにデータベース接続を取得するのか、さらに調べなければならない。そして、隠された依存関係は非常に長い鎖を形成することができます。
+
+きれいに設計されたコードでは、隠れた依存関係、Laravelファサード、静的変数が存在することはありません。きれいでよくできたコードでは、引数は渡されます：
+
+```php
+class Article
+{
+	public function save(Nette\Database\Connection $db): void
+	{
+		$db->query('INSERT INTO articles', [
+			'title' => $this->title,
+			'content' => $this->content,
+		]);
+	}
+}
+```
+
+後述するように、さらに実用的なアプローチは、コンストラクタを利用することになります：
+
+```php
+class Article
+{
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
+	}
+
+	public function save(): void
+	{
+		$this->db->query('INSERT INTO articles', [
+			'title' => $this->title,
+			'content' => $this->content,
+		]);
+	}
+}
+```
+
+.[note]
+経験豊富なプログラマーであれば、`Article` は`save()` メソッドを持つべきでないと考えるかもしれません。純粋にデータコンポーネントを表し、保存は別のリポジトリが行うべきでしょう。それはそれで理にかなっている。しかし、それでは、依存性注入という今回のテーマの範囲をはるかに超えてしまいますし、簡単な例を提供する努力も必要です。
+
+例えば、操作のためにデータベースを必要とするクラスを書く場合、そのデータベースをどこから取得するかは考えず、渡すようにします。コンストラクタのパラメータとして、あるいは別のメソッドとして。依存関係を認める。クラスのAPIで依存関係を認めてください。そうすれば、理解しやすく、予測可能なコードを得ることができます。
+
+そして、エラーメッセージを記録するこのクラスはどうでしょう：
+
+```php
+class Logger
+{
+	public function log(string $message)
+	{
+		$file = LOG_DIR . '/log.txt';
+		file_put_contents($file, $message . "\n", FILE_APPEND);
+	}
+}
+```
+
+どうでしょう、[ルールその1「受け継がせる |#rule #1: Let It Be Passed to You]」は守れたでしょうか？
+
+していないんです。
+
+重要な情報、すなわちログファイルのあるディレクトリは、クラス自身が定数から*取得*します。
+
+使用例を見てください：
+
+```php
+$logger = new Logger;
+$logger->log('The temperature is 23 °C');
+$logger->log('The temperature is 10 °C');
+```
+
+実装を知らなくても、どこにメッセージが書かれているかという質問に答えられるだろうか？`LOG_DIR` 定数の存在がその機能に必要であると推測できますか？そして、別の場所に書き込む2番目のインスタンスを作ることができるでしょうか？もちろん無理でしょう。
+
+クラスを固定しよう。
+
+```php
+class Logger
+{
+	public function __construct(
+		private string $file,
+	) {
+	}
+
+	public function log(string $message): void
+	{
+		file_put_contents($this->file, $message . "\n", FILE_APPEND);
+	}
+}
+```
+
+このクラスは、より理解しやすく、設定可能で、したがって、より便利なものになりました。
+
+```php
+$logger = new Logger('/path/to/log.txt');
+$logger->log('The temperature is 15 °C');
+```
+
+
+But I Don't Care! .[#toc-but-i-don-t-care]
+------------------------------------------
+
+*記事オブジェクトを作成してsave()を呼び出すと、データベースを扱うのではなく、設定で設定したものに保存されるだけでいいのです。
+
+*Loggerを使うときは、メッセージを書いてほしいだけで、どこをどうするかは考えたくないんです。グローバル設定を使わせてください」*。
+
+これらは有効な指摘です。
+
+例として、ニュースレターを送信し、その様子をログに残すクラスを見てみましょう：
+
+```php
+class NewsletterDistributor
+{
+	public function distribute(): void
+	{
+		$logger = new Logger(/* ... */);
+		try {
+			$this->sendEmails();
+			$logger->log('Emails have been sent out');
+
+		} catch (Exception $e) {
+			$logger->log('An error occurred during the sending');
+			throw $e;
+		}
+	}
+}
+```
+
+`LOG_DIR` 定数を使用しなくなった改良版`Logger` では、コンストラクタでファイルパスを指定する必要があります。これを解決するにはどうしたらいいのでしょうか？`NewsletterDistributor` クラスは、メッセージがどこに書き込まれるかは気にしません。
+
+解決策は、やはり[ルールその1「渡されるように |#rule #1: Let It Be Passed to You]する」：クラスが必要とするデータをすべて渡すことです。
+
+つまり、コンストラクタでログへのパスを渡し、`Logger` オブジェクトを作成する際にそれを使用するということでしょうか。
+
+```php
+class NewsletterDistributor
+{
+	public function __construct(
+		private string $file, // ⛔ NOT THIS WAY!
+	) {
+	}
+
+	public function distribute(): void
+	{
+		$logger = new Logger($this->file);
+```
+
+いいえ、このようなことはありません！パスは、`NewsletterDistributor` クラスが必要とするデータの中には含まれていません。実際には、`Logger` が必要とします。この違いがお分かりになりますか？`NewsletterDistributor` クラスは、ロガーそのものを必要としているのです。だから、それを渡すのです：
+
+```php
+class NewsletterDistributor
+{
+	public function __construct(
+		private Logger $logger, // ✅
+	) {
+	}
+
+	public function distribute(): void
+	{
+		try {
+			$this->sendEmails();
+			$this->logger->log('Emails have been sent out');
+
+		} catch (Exception $e) {
+			$this->logger->log('An error occurred during the sending');
+			throw $e;
+		}
+	}
+}
+```
+
+`NewsletterDistributor` クラスの署名から、ロギングもその機能の一部であることは明らかです。そして、ロガーを別のものと交換する作業（おそらくテストのため）は、完全に些細なことです。
+さらに、`Logger` クラスのコンストラクタが変更されても、私たちのクラスには影響しません。
+
+
+ルールその2：自分のものは自分で取る .[#toc-rule-2-take-what-s-yours]
+---------------------------------------------------
+
+惑わされずに、自分の依存関係を通さないようにしましょう。自分の依存関係を通すだけです。
+
+このおかげで、他のオブジェクトを使用するコードは、そのコンストラクタの変更に完全に依存しなくなります。そのAPIは、より真実に近いものになります。そして何よりも、これらの依存関係を他のものに置き換えるのは簡単なことなのです。
+
+
+新しい家族 .[#toc-new-family-member]
+-------------------------------
+
+開発チームは、データベースに書き込む2つ目のロガーを作ることにしました。そこで、`DatabaseLogger` クラスを作成しました。つまり、`Logger` と`DatabaseLogger` の2つのクラスがあり、1つはファイルに書き込み、もう1つはデータベースに書き込みます...このネーミングは奇妙だと思いませんか？
+`Logger` を`FileLogger` に改名した方が良いのではないでしょうか？間違いなくそうです。
+
+でも、スマートにやってしまいましょう。元の名前でインターフェイスを作るのです：
+
+```php
+interface Logger
+{
+	function log(string $message): void;
+}
+```
+
+... 両方のロガーが実装することになります：
+
+```php
+class FileLogger implements Logger
+// ...
+
+class DatabaseLogger implements Logger
+// ...
+```
+
+このため、ロガーが使用される他のコードでは、何も変更する必要がありません。例えば、`NewsletterDistributor` クラスのコンストラクタは、`Logger` をパラメータとして要求することで、満足することができます。そして、どのインスタンスを渡すかは、私たち次第です。
+
+**インターフェース名に`Interface` や`I` という接頭辞をつけないのはそのためです。** そうでなければ、こんなにきれいに開発することはできません。
+
+
+ヒューストン、問題が発生した .[#toc-houston-we-have-a-problem]
+------------------------------------------------
+
+ファイルベースであれデータベースベースであれ、アプリケーション全体を通してロガーのインスタンスを1つ用意し、何かが記録される場所に渡すだけで、何とかなるものですが、`Article` クラスの場合は全く違います。必要に応じてインスタンスを作成し、複数回作成することもあります。コンストラクタでデータベースの依存関係をどのように扱うか？
+
+例えば、フォームを送信した後、記事をデータベースに保存するコントローラが考えられます：
+
+```php
+class EditController extends Controller
+{
+	public function formSubmitted($data)
+	{
+		$article = new Article(/* ... */);
+		$article->title = $data->title;
+		$article->content = $data->content;
+		$article->save();
+	}
+}
+```
+
+解決策としては、`EditController` のコンストラクタにデータベースオブジェクトを渡し、`$article = new Article($this->db)` を使用する方法が考えられます。
+
+先ほどの`Logger` とファイルパスの場合と同様に、これは正しいアプローチではありません。データベースは`EditController` の依存関係ではなく、`Article` の依存関係です。データベースを渡すと、[ルール2「自分のものを取る |#rule #2: take what's yours]」に反します。`Article` クラスのコンストラクタが変更された場合（新しいパラメータが追加された場合）、インスタンスが作成される場所のコードを修正する必要があります。ウフフ。
+
+ヒューストン、どうする？
+
+
+ルールその3：工場に任せる .[#toc-rule-3-let-the-factory-handle-it]
+------------------------------------------------------
+
+隠れた依存関係を排除し、すべての依存関係を引数として渡すことで、私たちはより設定可能で柔軟なクラスを得ることができました。そのため、より柔軟なクラスを作成し、構成してくれるものが必要です。それをファクトリーと呼ぶことにします。
+
+経験則では、クラスに依存性がある場合、そのインスタンスの作成はファクトリーに任せます。
+
+ファクトリーは、依存性注入の世界では、`new` 演算子に代わるスマートな存在です。
+
+.[note]
+ファクトリーメソッド*デザインパターンと混同しないようにご注意ください。
+
+
+工場 .[#toc-factory]
+------------------
+
+ファクトリーとは、オブジェクトを生成したり設定したりするメソッドやクラスのことです。ここでは、`Article` を生成するクラスを`ArticleFactory` と名付け、以下のような形にします：
+
+```php
+class ArticleFactory
+{
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
+	}
+
+	public function create(): Article
+	{
+		return new Article($this->db);
+	}
+}
+```
+
+コントローラーでの使い方は以下のようになります：
+
+```php
+class EditController extends Controller
+{
+	public function __construct(
+		private ArticleFactory $articleFactory,
+	) {
+	}
+
+	public function formSubmitted($data)
+	{
+		// let the factory create an object
+		$article = $this->articleFactory->create();
+		$article->title = $data->title;
+		$article->content = $data->content;
+		$article->save();
+	}
+}
+```
+
+この時点で、`Article` クラスのコンストラクタのシグネチャが変更された場合、対応する必要があるのは、`ArticleFactory` 自身だけです。`EditController` のような`Article` オブジェクトを扱う他のすべてのコードは影響を受けません。
+
+本当に良くなったのだろうかと疑問に思われるかもしれません。コードの量が増え、すべてが怪しく複雑に見えるようになりました。
+
+心配しないでください、すぐにNette DIコンテナにたどり着きます。そして、このコンテナにはいくつかのトリックがあり、依存性注入を使ったアプリケーションの構築を大幅に簡略化することができます。例えば、`ArticleFactory` クラスの代わりに、[シンプルなインターフェイスを書くだけ |factory]でよいのです：
+
+```php
+interface ArticleFactory
+{
+	function create(): Article;
+}
+```
+
+でも、先を急ぐので、どうかご容赦ください :-)
+
+
+概要 .[#toc-summary]
+------------------
+
+この章の冒頭で、きれいなコードを設計するためのプロセスを紹介することを約束しました。必要なのは、クラスが
+
+[- 必要な依存関係を渡す |#Rule #1: Let It Be Passed to You]
+[- 逆に言えば、直接的に必要でないものは通さない |#Rule #2: Take What's Yours]
+[- また、依存関係のあるオブジェクトはファクトリーで作成するのがベスト |#Rule #3: Let the Factory Handle it]であること
+
+一見すると、この3つのルールは遠大な結果をもたらすようには見えないかもしれませんが、コード設計の視点を根本から変えることにつながるのです。その価値はあるのでしょうか？古い習慣を捨て、依存性注入を一貫して使い始めた開発者は、このステップが彼らの職業生活における決定的な瞬間であると考えます。依存性注入によって、明快で保守性の高いアプリケーションの世界が開かれたのです。
+
+しかし、そのコードが一貫して依存性注入を使用していない場合はどうでしょうか？静的メソッドやシングルトンに依存していたらどうでしょう？それは何か問題を引き起こすのでしょうか？そうです、[非常に基本的な |global-state]問題です。

@@ -36,7 +36,7 @@ class DefineNode extends StatementNode
 	public static function create(Tag $tag, TemplateParser $parser): \Generator
 	{
 		$tag->expectArguments();
-		$layer = $tag->parser->tryConsumeModifier('local')
+		$layer = $tag->parser->tryConsumeTokenBeforeUnquotedString('local')
 			? Template::LayerLocal
 			: $parser->blockLayer;
 		$tag->parser->stream->tryConsume('#');
@@ -115,7 +115,7 @@ class DefineNode extends StatementNode
 		return $context->format(
 			'$this->addBlock(%node, %dump, [[$this, %dump]], %dump);',
 			new AssignNode(new VariableNode('ʟ_nm'), $this->block->name),
-			$context->getEscaper()->export(),
+			$context->getEscaper()->getState(),
 			$this->block->method,
 			$this->block->layer,
 		);

@@ -2,7 +2,6 @@
 
 /**
  * Test: {control ...}
- * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -50,8 +49,7 @@ Assert::match(
 				%A%
 				$ʟ_tmp->renderType() /* line 1 */;
 		%A%
-		XX
-	,
+		XX,
 	$latte->compile('{control form:type}'),
 );
 

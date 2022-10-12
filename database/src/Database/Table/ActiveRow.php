@@ -18,14 +18,11 @@ use Nette;
  */
 class ActiveRow implements \IteratorAggregate, IRow
 {
-	/** @var Selection */
-	private $table;
+	private Selection $table;
 
-	/** @var array of row data */
-	private $data;
+	private array $data;
 
-	/** @var bool */
-	private $dataRefreshed = false;
+	private bool $dataRefreshed = false;
 
 
 	public function __construct(array $data, Selection $table)
@@ -55,16 +52,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 
 	public function __toString()
 	{
-		try {
-			return (string) $this->getPrimary();
-		} catch (\Throwable $e) {
-			if (func_num_args() || PHP_VERSION_ID >= 70400) {
-				throw $e;
-			}
-
-			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
-			return '';
-		}
+		return (string) $this->getPrimary();
 	}
 
 
@@ -77,9 +65,9 @@ class ActiveRow implements \IteratorAggregate, IRow
 
 	/**
 	 * Returns primary key value.
-	 * @return mixed possible int, string, array, object (Nette\Utils\DateTime)
+	 * @return mixed possible int, string, array, object (Nette\Database\DateTime)
 	 */
-	public function getPrimary(bool $throw = true)
+	public function getPrimary(bool $throw = true): mixed
 	{
 		$primary = $this->table->getPrimary($throw);
 		if ($primary === null) {
@@ -231,10 +219,8 @@ class ActiveRow implements \IteratorAggregate, IRow
 	/**
 	 * Returns value of column.
 	 * @param  string  $column
-	 * @return mixed
 	 */
-	#[\ReturnTypeWillChange]
-	public function offsetGet($column)
+	public function offsetGet($column): mixed
 	{
 		return $this->__get($column);
 	}
@@ -270,7 +256,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 	 * @return ActiveRow|mixed
 	 * @throws Nette\MemberAccessException
 	 */
-	public function &__get(string $key)
+	public function &__get(string $key): mixed
 	{
 		if ($this->accessColumn($key)) {
 			return $this->data[$key];

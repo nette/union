@@ -1,0 +1,204 @@
+Hogyan működnek az alkalmazások?
+********************************
+
+<div class=perex>
+
+Ön jelenleg a Nette dokumentáció alapdokumentumát olvassa. Megismerheti a webes alkalmazások összes alapelvét. Szépen A-tól Z-ig, a születés pillanatától a PHP-szkript utolsó leheletéig. Az olvasás után tudni fogja:
+
+- hogyan működik az egész
+- mi az a Bootstrap, Presenter és DI konténer
+- hogyan néz ki a könyvtárszerkezet
+
+</div>
+
+
+Könyvtárszerkezet .[#toc-directory-structure]
+=============================================
+
+Nyissa meg a [WebProject |https://github.com/nette/web-project] nevű webalkalmazás vázlatpéldáját, és megnézheti, hogy milyen fájlokat írnak le.
+
+A könyvtárszerkezet valahogy így néz ki:
+
+/--pre
+<b>web-project/</b>
+├── <b>app/</b>                      ← directory with application
+│   ├── <b>Presenters/</b>           ← presenter classes
+│   │   ├── <b>HomePresenter.php</b> ← Home presenter class
+│   │   └── <b>templates/</b>        ← templates directory
+│   │       ├── <b>@layout.latte</b> ← template of shared layout
+│   │       └── <b>Home/</b>         ← templates for Home presenter
+│   │           └── <b>default.latte</b>  ← template for action `default`
+│   ├── <b>Router/</b>               ← configuration of URL addresses
+│   └── <b>Bootstrap.php</b>         ← booting class Bootstrap
+├── <b>bin/</b>                      ← scripts for the command line
+├── <b>config/</b>                   ← configuration files
+│   ├── <b>common.neon</b>
+│   └── <b>local.neon</b>
+├── <b>log/</b>                      ← error logs
+├── <b>temp/</b>                     ← temporary files, cache, …
+├── <b>vendor/</b>                   ← libraries installed by Composer
+│   ├── ...
+│   └── <b>autoload.php</b>          ← autoloading of libs installed by Composer
+├── <b>www/</b>                      ← public directory, document root of project
+│   ├── <b>.htaccess</b>             ← mod_rewrite rules etc
+│   └── <b>index.php</b>             ← initial file that launches the application
+└── <b>.htaccess</b>                 ← prohibits access to all directories except www
+\--
+
+A könyvtárszerkezetet bármilyen módon megváltoztathatja, átnevezhet vagy áthelyezhet mappákat, majd csak szerkesztheti a `log/` és a `temp/` elérési útvonalakat a `Bootstrap.php` fájlban, és az ehhez a fájlhoz vezető útvonalat a `composer.json` fájlban a `autoload` szakaszban. Semmi több, semmi bonyolult átkonfigurálás, semmi állandó változtatás. A Nette [intelligens automatikus felismeréssel |bootstrap#development-vs-production-mode] rendelkezik.
+
+Kicsit nagyobb alkalmazásoknál a bemutatókat és sablonokat tartalmazó mappákat alkönyvtárakra (a lemezen) és névterekre (a kódban) oszthatjuk, amelyeket [moduloknak |modules] nevezünk.
+
+A `www/` könyvtár a projekt nyilvános könyvtára vagy dokumentum-gyökere. Ezt átnevezhetjük anélkül, hogy az alkalmazás oldalán bármi mást be kellene állítanunk. Csak a [tárhelyet |nette:troubleshooting#How to change or remove www directory from URL] kell úgy [beállítania |nette:troubleshooting#How to change or remove www directory from URL], hogy a document-root ebbe a könyvtárba kerüljön.
+
+A WebProjectet közvetlenül is letöltheti, beleértve a Nette-et is, a [Composer |best-practices:composer] segítségével:
+
+```shell
+composer create-project nette/web-project
+```
+
+Linuxon vagy macOS-en állítsa be a `log/` és a `temp/` könyvtárak [írási engedélyeit |nette:troubleshooting#Setting directory permissions].
+
+A WebProject alkalmazás készen áll a futtatásra, nincs szükség további konfigurálásra, és közvetlenül a böngészőben is megtekinthető a `www/` mappát elérve.
+
+
+HTTP-kérés .[#toc-http-request]
+===============================
+
+Minden akkor kezdődik, amikor a felhasználó megnyitja az oldalt a böngészőben, és a böngésző HTTP-kérelemmel kopogtat a szerveren. A kérés a `www/` nyilvános könyvtárban található PHP fájlhoz megy, amely a `index.php`. Tegyük fel, hogy ez a kérés a `https://example.com/product/123` fájlhoz kapcsolódik, és végrehajtásra kerül.
+
+Feladata a következő:
+
+1) a környezet inicializálása
+2) megszerezni a gyárat
+3) elindítani a Nette alkalmazást, amely a kérést kezeli.
+
+Milyen gyárat? Mi nem traktorokat gyártunk, hanem weboldalakat! Várjon, mindjárt elmagyarázzuk.
+
+A "környezet inicializálása" alatt például azt értjük, hogy a [Tracy |tracy:] aktiválódik, ami egy csodálatos eszköz a hibák naplózására vagy vizualizálására. Naplózza a hibákat a termelő szerveren, és közvetlenül a fejlesztői szerveren jeleníti meg azokat. Ezért az inicializálásnak azt is el kell döntenie, hogy az oldal termelő vagy fejlesztői üzemmódban fut-e. Ehhez a Nette automatikus felismerést használ: ha a webhelyet localhoston futtatja, akkor fejlesztői módban fut. Nem kell semmit sem konfigurálnia, és az alkalmazás készen áll mind a fejlesztői, mind a gyártói telepítésre. Ezeket a lépéseket a [Bootstrap osztályról |bootstrap] szóló fejezetben végezzük el és ismertetjük részletesen.
+
+A harmadik pont (igen, a másodikat kihagytuk, de visszatérünk rá) az alkalmazás elindítása. A HTTP-kérések kezelését a Nette-ben a `Nette\Application\Application` osztály végzi (a továbbiakban `Application`), így amikor azt mondjuk, hogy "futtassunk egy alkalmazást", akkor azt értjük, hogy hívjunk meg egy `run()` nevű metódust ennek az osztálynak egy objektumán.
+
+A Nette egy olyan mentor, aki a bevált módszertanok segítségével vezet el a tiszta alkalmazások írásához. A legjobban bevált pedig az úgynevezett **dependency injection**, röviden DI. A DI magyarázatával most nem akarunk terhelni, hiszen van egy [külön fejezet |dependency-injection:introduction], a lényeg itt az, hogy a kulcsobjektumokat általában egy **DI container** (röviden DIC) nevű objektumgyár fogja létrehozni. Igen, ez az a gyár, amelyet nemrég említettünk. És létrehozza nekünk a `Application` objektumot is, tehát először is szükségünk van egy konténerre. Ezt megkapjuk a `Configurator` osztály segítségével, és hagyjuk, hogy létrehozza a `Application` objektumot, meghívjuk a `run()` metódust, és ez elindítja a Nette alkalmazást. Pontosan ez történik az [index.php |bootstrap#index.php] fájlban is.
+
+
+Nette alkalmazás .[#toc-nette-application]
+==========================================
+
+Az Application osztálynak egyetlen feladata van: válaszolni egy HTTP-kérésre.
+
+A Nette-ben írt alkalmazások sok úgynevezett prezenterre oszlanak (más keretrendszerekben találkozhatunk a controller kifejezéssel, ami ugyanez), amelyek egy adott weboldal oldalt reprezentáló osztályok: pl. honlap; termék a webáruházban; bejelentkezési űrlap; sitemap feed, stb. Az alkalmazásnak egytől akár több ezer prezenter is lehet.
+
+Az alkalmazás azzal indul, hogy az ún. routertől kéri, hogy döntse el, hogy az aktuális kérést melyik prezenternek adja át feldolgozásra. A router dönti el, hogy kinek a felelőssége. Megnézi a bemeneti URL-t `https://example.com/product/123`, aki a `show` egy terméket `id: 123` művelettel akarja ellátni. Jó szokás a prezenter + akció párokat kettősponttal elválasztva `Product:show`-ként írni.
+
+Tehát a router az URL-t átalakította `Presenter:action` + paraméterek párrá, esetünkben `Product:show` + `id: 123`. A `app/Router/RouterFactory.php` fájlban láthatjuk, hogyan néz ki egy útválasztó, és ezt részletesen az [Útválasztás |Routing] fejezetben fogjuk leírni.
+
+Lépjünk tovább. Az alkalmazás már ismeri a bemutató nevét, és folytathatja. Egy `ProductPresenter` objektum létrehozásával, amely a `Product` bemutató kódja. Pontosabban megkéri a DI konténert a prezenter létrehozására, mert az objektumok előállítása az ő feladata.
+
+A prezenter így nézhet ki:
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	public function __construct(
+		private ProductRepository $repository,
+	) {
+	}
+
+	public function renderShow(int $id): void
+	{
+		// adatokat kapunk a modellből és átadjuk a sablonhoz.
+		$this->template->product = $this->repository->getProduct($id);
+	}
+}
+```
+
+A kérést a prezenter kezeli. A feladat pedig egyértelmű: a `show` művelet elvégzése a `id: 123` címen. Ami a prezenterek nyelvén azt jelenti, hogy meghívja a `renderShow()` metódust, és a `$id` paraméterében a `123` kapja meg.
+
+Egy prezenter több akciót is kezelhet, azaz több metódusa is lehet. `render<Action>()`. De javasoljuk, hogy a prezentereket egy vagy a lehető legkevesebb művelettel tervezzük.
+
+Tehát a `renderShow(123)` metódust hívtuk meg, amelynek kódja fiktív példa, de láthatjuk rajta, hogy az adatokat hogyan adjuk át a sablonba, azaz a `$this->template` címre írva .
+
+Ezt követően a prezenter visszaadja a választ. Ez lehet egy HTML oldal, egy kép, egy XML dokumentum, egy fájl elküldése a lemezről, JSON vagy egy másik oldalra való átirányítás. Fontos, hogy ha nem mondjuk meg kifejezetten, hogyan kell válaszolni (ami a `ProductPresenter` esetében a helyzet), akkor a válasz az lesz, hogy a sablon egy HTML-oldallal jeleníti meg a sablont. Hogy miért? Nos, mert az esetek 99%-ában egy sablont szeretnénk kirajzolni, így a prezentáló ezt a viselkedést veszi alapértelmezettnek, és a mi munkánkat akarja megkönnyíteni. Ez a Nette lényege.
+
+Még csak meg sem kell adnunk, hogy melyik sablont rajzoljuk ki, egyszerű logika szerint levezeti az oda vezető utat. A presenter `Product` és az action `show` esetében megnézi, hogy létezik-e valamelyik sablonfájl a `ProductPresenter` osztály könyvtárához képest, ahol a osztály található:
+
+- `templates/Product/show.latte`
+- `templates/Product.show.latte`
+
+Megpróbálja megtalálni az elrendezést is a `@layout.latte` fájlban, majd rendereli a sablont. Ezzel a prezenter és az egész alkalmazás feladata befejeződött. Ha a sablon nem létezik, akkor egy 404-es hibaüzenetű oldal fog visszakerülni. A prezenterekről bővebben a [Prezenterek |Presenters] oldalon olvashat.
+
+[* request-flow.svg *]
+
+A biztonság kedvéért próbáljuk meg az egész folyamatot egy kicsit más URL-címmel felidézni:
+
+1) az URL a következő lesz `https://example.com`
+2) elindítjuk az alkalmazást, létrehozunk egy konténert és futtatjuk `Application::run()`
+3) a router dekódolja az URL-t, mint egy párat `Home:default`
+4) létrejön egy `HomePresenter` objektum
+5) a `renderDefault()` metódust meghívjuk (ha létezik)
+6) egy `templates/Home/default.latte` sablon `templates/@layout.latte` elrendezéssel megjelenik.
+
+
+Lehet, hogy most sok új fogalommal találkoztál, de úgy gondoljuk, hogy van értelme. Az alkalmazások létrehozása a Nette-ben gyerekjáték.
+
+
+Sablonok .[#toc-templates]
+==========================
+
+A sablonokat illetően a Nette a [Latte |latte:] sablonrendszert használja. Ezért a sablonokat tartalmazó fájlok a `.latte` végződéssel végződnek. A Latte-t azért használjuk, mert ez a legbiztonságosabb sablonrendszer a PHP számára, ugyanakkor a legintuitívabb rendszer. Nem kell sok újat tanulnod, csak ismerned kell a PHP-t és néhány Latte taget. Mindent megtudhatsz [a dokumentációból |latte:].
+
+A sablonban [létrehozunk egy linket |creating-links] más előadókhoz és akciókhoz az alábbiak szerint:
+
+```latte
+<a n:href="Product:show $productId">product detail</a>
+```
+
+Egyszerűen csak írja a megszokott `Presenter:action` párost a valódi URL helyett, és adjon meg minden paramétert. A trükk a `n:href`, amely azt mondja, hogy ezt az attribútumot a Nette fogja feldolgozni. És ez generálni fogja:
+
+```latte
+<a href="/product/456">product detail</a>
+```
+
+Az URL generálásáért a korábban említett router felel. Valójában a Nette routerek egyedülállóak abban, hogy nem csak URL-ből prezenter:action párossá történő átalakításokat tudnak elvégezni, hanem fordítva is képesek URL-t generálni a prezenter + action + paraméterek nevéből.
+Ennek köszönhetően a Nette-ben teljesen megváltoztathatja az URL formáját az egész kész alkalmazásban anélkül, hogy egyetlen karaktert is megváltoztatna a sablonban vagy a prezenterben, csupán a router módosításával.
+És ennek köszönhetően működik az úgynevezett kanonizáció, ami a Nette másik egyedülálló funkciója, amely javítja a SEO-t (az internetes kereshetőség optimalizálása) azáltal, hogy automatikusan megakadályozza a duplikált tartalmak létezését a különböző URL-eken.
+Sok programozó ezt elképesztőnek találja.
+
+
+Interaktív komponensek .[#toc-interactive-components]
+=====================================================
+
+Még egy dolgot el kell mondanunk a prezenterekről: rendelkeznek egy beépített komponensrendszerrel. Az idősebbek talán emlékeznek valami hasonlóra a Delphiből vagy az ASP.NET Web Formsből. A React vagy a Vue.js valami távolról hasonlóra épül. A PHP keretrendszerek világában ez egy teljesen egyedülálló funkció.
+
+A komponensek különálló, újrafelhasználható egységek, amelyeket oldalakba (azaz prezenterekbe) helyezünk. Ezek lehetnek [űrlapok |forms:in-presenter], [adagramok |https://componette.org/contributte/datagrid/], menük, közvélemény-kutatások, tulajdonképpen bármi, amit érdemes ismételten használni. Készíthetünk saját komponenseket, vagy használhatjuk az opensource komponensek [hatalmas választékának |https://componette.org] valamelyikét.
+
+A komponensek alapvetően megváltoztatják az alkalmazásfejlesztés megközelítését. Új lehetőségeket nyitnak meg az oldalak előre definiált egységekből történő összeállítására. És van valami közös bennük [Hollywooddal |components#Hollywood style].
+
+
+DI konténer és konfiguráció .[#toc-di-container-and-configuration]
+==================================================================
+
+A DI konténer (az objektumok gyára) az egész alkalmazás szíve.
+
+Ne aggódj, ez nem egy varázslatos fekete doboz, mint ahogy az az előző szavakból látszik. Valójában ez egy elég unalmas PHP osztály, amelyet a Nette generál és egy cache könyvtárban tárol. Rengeteg metódusa van, amelyeket `createServiceAbcd()` néven neveznek, és mindegyik létrehoz és visszaad egy objektumot. Igen, van egy `createServiceApplication()` metódus is, amely a `Nette\Application\Application` létrehozza, amelyre a `index.php` fájlban volt szükségünk az alkalmazás futtatásához. És vannak metódusok az egyes előadók előállítására. És így tovább.
+
+Az objektumokat, amelyeket a DI konténer hoz létre, valamiért szolgáltatásoknak hívják.
+
+Ami igazán különleges ebben az osztályban, hogy nem te programozod, hanem a keretrendszer. Valójában ez generálja a PHP kódot, és elmenti a lemezre. Te csak utasításokat adsz arra vonatkozóan, hogy a konténer milyen objektumokat és pontosan hogyan tudjon előállítani. Ezek az utasítások pedig [NEON formátumú |neon:format] [konfigurációs fájlokban |bootstrap#DI Container Configuration] íródnak, ezért a `.neon` kiterjesztéssel rendelkeznek.
+
+A konfigurációs fájlok pusztán a DI konténer utasítására szolgálnak. Így például, ha a [munkamenet |http:configuration#Session] szakaszban megadom a `expiration: 14 days` opciót, akkor a DI konténer a munkamenetet reprezentáló `Nette\Http\Session` objektum létrehozásakor meghívja annak `setExpiration('14 days')` metódusát, és így a konfiguráció valósággá válik.
+
+Egy egész fejezet áll rendelkezésünkre, amely leírja, hogy mit lehet [konfigurálni |nette:configuring], és hogyan [definiálhatjuk a saját szolgáltatásainkat |dependency-injection:services].
+
+Amint belekezdünk a szolgáltatások létrehozásába, találkozunk az [autowiring |dependency-injection:autowiring] szóval. Ez egy olyan szerkentyű, amely hihetetlenül megkönnyíti az életét. Automatikusan át tud adni objektumokat ott, ahol szükséged van rájuk (például az osztályaid konstruktoraiban), anélkül, hogy bármit is tenned kellene. Úgy fogod találni, hogy a DI konténer a Nette-ben egy kis csoda.
+
+
+Mi a következő lépés? .[#toc-what-next]
+=======================================
+
+Végigvettük a Nette alkalmazások alapelveit. Eddig nagyon felületesen, de hamarosan elmerülhetsz a mélységekben, és végül csodálatos webes alkalmazásokat hozhatsz létre. Hol folytassuk? Kipróbálta már az [Első alkalmazás létrehozása |quickstart:] című bemutatót?
+
+A fentieken kívül a Nette egy egész arzenálnyi [hasznos osztállyal |utils:], [adatbázis réteggel |database:] stb. rendelkezik. Próbálja ki szándékosan csak a dokumentációt átkattintani. Vagy látogasson el a [blogra |https://blog.nette.org]. Sok érdekes dolgot fogsz felfedezni.
+
+Hagyd, hogy a keretrendszer sok örömet szerezzen neked 💙

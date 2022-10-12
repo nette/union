@@ -13,10 +13,11 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-before(function () {
+setUp(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
+	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+	ob_start();
 	Form::initialize(true);
 });
 
@@ -81,9 +82,7 @@ test('object from string by filter', function () {
 	$_POST = ['text' => (string) $date];
 	$form = new Form;
 	$input = $form->addHidden('text');
-	$input->addFilter(function ($value) {
-		return $value ? new Nette\Utils\DateTime($value) : $value;
-	});
+	$input->addFilter(fn($value) => $value ? new Nette\Utils\DateTime($value) : $value);
 
 	Assert::same((string) $date, $input->getValue());
 	$input->validate();
@@ -95,7 +94,7 @@ test('int from string', function () {
 	$_POST = ['text' => '10'];
 	$form = new Form;
 	$input = $form->addHidden('text');
-	$input->addRule($form::INTEGER);
+	$input->addRule($form::Integer);
 
 	Assert::same('10', $input->getValue());
 	$input->validate();

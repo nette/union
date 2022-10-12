@@ -1,0 +1,278 @@
+Šablony
+*******
+
+.[perex]
+Nette používá šablonovací systém [Latte |latte:]. Jednak proto, že jde o nejlépe zabezpečený šablonovací systém pro PHP, a zároveň také systém nejintuitivnější. Nemusíte se učit mnoho nového, vystačíte si se znalostí PHP a několika značek.
+
+Je obvyklé, že stránka se složí ze šablony layoutu + šablony dané akce. Takhle třeba může vypadat šablona layoutu, všimněte si bloků `{block}` a značky `{include}`:
+
+```latte
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{block title}My App{/block}</title>
+</head>
+<body>
+	<header>...</header>
+	{include content}
+	<footer>...</footer>
+</body>
+</html>
+```
+
+A tohle bude šablona akce:
+
+```latte
+{block title}Homepage{/block}
+
+{block content}
+<h1>Homepage</h1>
+...
+{/block}
+```
+
+Ta definuje blok `content`, který se vloží na místo `{include content}` v layoutu, a také re-definuje blok `title`, kterým přepíše `{block title}` v layoutu. Zkuste si představit výsledek.
+
+
+Hledání šablon
+--------------
+
+Cestu k šablonám odvodí presenter podle jednoduché logiky. Zkusí, zda existuje jeden z těchto souborů umístěných relativně od adresáře s třídou presenteru, kde `<Presenter>` je název aktuálního presenteru a `<view>` je název aktuální akce:
+
+- `templates/<Presenter>/<view>.latte`
+- `templates/<Presenter>.<view>.latte`
+
+Pokud šablonu nenajde, zkusí hledat ještě v adresáři `templates` o úroveň výš, tj. na stejné úrovni, jako je adresář s třídou presenteru.
+
+Pokud ani tam šablonu nenajde, je odpovědí [chyba 404|presenters#Chyba 404 a spol.].
+
+Můžete také změnit view pomocí `$this->setView('jineView')`. Nebo místo dohledávání přímo určit jméno souboru se šablonou pomocí `$this->template->setFile('/path/to/template.latte')`.
+
+.[note]
+Soubory, kde se dohledávají šablony, lze změnit překrytím metody [formatTemplateFiles() |api:Nette\Application\UI\Presenter::formatTemplateFiles()], která vrací pole možných názvů souborů.
+
+Layout se očekává v těchto souborech:
+
+- `templates/<Presenter>/@<layout>.latte`
+- `templates/<Presenter>.@<layout>.latte`
+- `templates/@<layout>.latte` layout společný pro více presenterů
+
+Kde `<Presenter>` je název aktuálního presenteru a `<layout>` je název layoutu, což je standardně `'layout'`. Název lze změnit pomocí `$this->setLayout('jinyLayout')`, takže se budou zkoušet soubory `@jinyLayout.latte`.
+
+Můžete také přímo určit jméno souboru se šablonou layoutu pomocí `$this->setLayout('/path/to/template.latte')`. Pomocí `$this->setLayout(false)` se dohledávání layoutu vypne.
+
+.[note]
+Soubory, kde se dohledávají šablony layoutu, lze změnit překrytím metody [formatLayoutTemplateFiles() |api:Nette\Application\UI\Presenter::formatLayoutTemplateFiles()], která vrací pole možných názvů souborů.
+
+
+Proměnné v šabloně
+------------------
+
+Proměnné do šablony předáváme tak, že je zapíšeme do `$this->template` a potom je máme k dispozici v šabloně jako lokální proměnné:
+
+```php
+$this->template->article = $this->articles->getById($id);
+```
+
+Takto jednoduše můžeme do šablon předat jakékoliv proměnné. Při vývoji robustních aplikací ale bývá užitečnější se omezit. Například tak, že explicitně nadefinujeme výčet proměnných, které šablona očekává, a jejich typů. Díky tomu nám bude moci PHP kontrolovat typy, IDE správně našeptávat a statická analýza odhalovat chyby.
+
+A jak takový výčet nadefinujeme? Jednoduše v podobě třídy a její properties. Pojmenujeme ji podobně jako presenter, jen s `Template` na konci:
+
+```php
+/**
+ * @property-read ArticleTemplate $template
+ */
+class ArticlePresenter extends Nette\Application\UI\Presenter
+{
+}
+
+class ArticleTemplate extends Nette\Bridges\ApplicationLatte\Template
+{
+	public Model\Article $article;
+	public Nette\Security\User $user;
+
+	// a další proměnné
+}
+```
+
+Objekt `$this->template` v presenteru bude nyní instancí třídy `ArticleTemplate`. Takže PHP bude při zápisu kontrolovat deklarované typy. A počínaje verzí PHP 8.2 upozorní i na zápis do neexistující proměnné, v předchozích verzích lze téhož dosáhnout použitím traity [Nette\SmartObject |utils:smartobject].
+
+Anotace `@property-read` je určená pro IDE a statickou analýzu, díky ní bude fungovat našeptávání, viz "PhpStorm and code completion for $this⁠-⁠>⁠template":https://blog.nette.org/en/phpstorm-and-code-completion-for-this-template.
+
+[* phpstorm-completion.webp *]
+
+Luxusu našeptávání si můžete dopřát i v šablonách, stačí do PhpStorm nainstalovat plugin pro Latte a uvést na začátek šablony název třídy, více v článku "Latte: jak na typový systém":https://blog.nette.org/cs/latte-jak-na-typovy-system:
+
+```latte
+{templateType App\Presenters\ArticleTemplate}
+...
+```
+
+Takto fungují i šablony v komponentách, stačí jen dodržet jmennou konvenci a pro komponentu např. `FifteenControl` vytvořit třídu šablony `FifteenTemplate`.
+
+Pokud potřebujete vytvořit `$template` jako instanci jiné třídy, využijte metodu `createTemplate()`:
+
+```php
+public function renderDefault(): void
+{
+	$template = $this->createTemplate(SpecialTemplate::class);
+	$template->foo = 123;
+	// ...
+	$this->sendTemplate($template);
+}
+```
+
+
+Výchozí proměnné
+----------------
+
+Presentery a komponenty předávají do šablon několik užitečných proměnných automaticky:
+
+- `$basePath` je absolutní URL cesta ke kořenovému adresáři (např. `/eshop`)
+- `$baseUrl` je absolutní URL ke kořenovému adresáři (např. `http://localhost/eshop`)
+- `$user` je objekt [reprezentující uživatele |security:authentication]
+- `$presenter` je aktuální presenter
+- `$control` je aktuální komponenta nebo presenter
+- `$flashes` pole [zpráv |presenters#flash zprávy] zaslaných funkcí `flashMessage()`
+
+Pokud používáte vlastní třídu šablony, tyto proměnné se předají, pokud pro ně vytvoříte property.
+
+
+Vytváření odkazů
+----------------
+
+V šabloně se vytvářejí odkazy na další presentery & akce tímto způsobem:
+
+```latte
+<a n:href="Product:show">detail produktu</a>
+```
+
+Atribut `n:href` je velmi šikovný pro HTML značky `<a>`. Chceme-li odkaz vypsat jinde, například v textu, použijeme `{link}`:
+
+```latte
+Adresa je: {link Home:default}
+```
+
+Více informací najdete v kapitole [Vytváření odkazů URL|creating-links].
+
+
+Vlastní filtry, značky apod.
+----------------------------
+
+Šablonovací systém Latte lze rozšířit o vlastní filtry, funkce, značky apod. Lze tak učinit přímo v metodě `render<View>` nebo `beforeRender()`:
+
+```php
+public function beforeRender(): void
+{
+	// přidání filtru
+	$this->template->addFilter('foo', /* ... */);
+
+	// nebo konfigurujeme přímo objekt Latte\Engine
+	$latte = $this->template->getLatte();
+	$latte->addFilterLoader(/* ... */);
+}
+```
+
+Latte ve verzi 3 nabízí pokročilejší způsob a to vytvoření si [extension |latte:creating-extension] pro každý webový projekt. Kusý příklad takové třídy:
+
+```php
+namespace App\Templating;
+
+final class LatteExtension extends Latte\Extension
+{
+	public function __construct(
+		private App\Model\Facade $facade,
+		private Nette\Security\User $user,
+		// ...
+	) {
+	}
+
+	public function getFilters(): array
+	{
+		return [
+			'timeAgoInWords' => $this->filterTimeAgoInWords(...),
+			'money' => $this->filterMoney(...),
+			// ...
+		];
+	}
+
+	public function getFunctions(): array
+	{
+		return [
+			'canEditArticle' =>
+				fn($article) => $this->facade->canEditArticle($article, $this->user->getId()),
+			// ...
+		];
+	}
+
+	// ...
+}
+```
+
+Zaregistrujeme ji pomocí [konfigurace |configuration#Šablony Latte]:
+
+```neon
+latte:
+	extensions:
+		- App\Templating\LatteExtension
+```
+
+
+Překládání
+----------
+
+Pokud programujete vícejazyčnou aplikaci, budete nejspíš potřebovat některé texty v šabloně vypsat v různých jazycích. Nette Framework k tomuto účelu definuje rozhraní pro překlad [api:Nette\Localization\Translator], které má jedinou metodu `translate()`. Ta přijímá zprávu `$message`, což zpravidla bývá řetězec, a libovolné další parametry. Úkolem je vrátit přeložený řetězec.
+V Nette není žádná výchozí implementace, můžete si vybrat podle svých potřeb z několika hotových řešeních, které najdete na [Componette |https://componette.org/search/localization]. V jejich dokumentaci se dozvíte, jak translator konfigurovat.
+
+Šablonám lze nastavit překladač, který si [necháme předat |dependency-injection:passing-dependencies], metodou `setTranslator()`:
+
+```php
+protected function beforeRender(): void
+{
+	// ...
+	$this->template->setTranslator($translator);
+}
+```
+
+Translator je alternativně možné nastavit pomocí [konfigurace |configuration#Šablony Latte]:
+
+```neon
+latte:
+	extensions:
+		- Latte\Essential\TranslatorExtension
+```
+
+Poté lze překladač používat například jako filtr `|translate`, a to včetně doplňujících parametrů, které se předají metodě `translate()` (viz `foo, bar`):
+
+```latte
+<a href="basket">{='Košík'|translate}</a>
+<span>{$item|translate}</span>
+<span>{$item|translate, foo, bar}</span>
+```
+
+Nebo jako podtržítkovou značku:
+
+```latte
+<a href="basket">{_'Košík'}</a>
+<span>{_$item}</span>
+<span>{_$item, foo, bar}</span>
+```
+
+Pro překlad úseku šablony existuje párová značka `{translate}` (od Latte 2.11, dříve se používala značka `{_}`):
+
+```latte
+<a href="order">{translate}Objednávka{/translate}</a>
+<a href="order">{translate foo, bar}Objednávka{/translate}</a>
+```
+
+Translator se standardně volá za běhu při vykreslování šablony. Latte verze 3 ovšem umí všechny statické texty překládat už během kompilace šablony. Tím se ušetří výkon, protože každý řetězec se přeloží jen jednou a výsledný překlad se zapíše do zkompilované podoby. V adresáři s cache tak vznikne více zkompilovaných verzí šablony, jedna pro každý jazyk. K tomu stačí pouze uvést jazyk jako druhý parametr:
+
+```php
+protected function beforeRender(): void
+{
+	// ...
+	$this->template->setTranslator($translator, $lang);
+}
+```
+
+Statickým textem je myšleno třeba `{_'hello'}` nebo `{translate}hello{/translate}`. Nestatické texty, jako třeba `{_$foo}`, se nadále budou překládat za běhu.

@@ -1,0 +1,67 @@
+Metode și atribute de injectare
+*******************************
+
+.[perex]
+În acest articol, ne vom concentra asupra diferitelor modalități de transmitere a dependențelor către prezentatori în cadrul Nette. Vom compara metoda preferată, care este constructorul, cu alte opțiuni, cum ar fi metodele și atributele `inject`.
+
+Și pentru prezentatori, transmiterea dependențelor folosind [constructorul |dependency-injection:passing-dependencies#Constructor Injection] este metoda preferată.
+Cu toate acestea, dacă creați un strămoș comun din care moștenesc alți prezentatori (de exemplu, BasePresenter), iar acest strămoș are, de asemenea, dependențe, apare o problemă, pe care o numim [constructor hell |dependency-injection:passing-dependencies#Constructor hell].
+Aceasta poate fi ocolită folosind metode alternative, care includ metode și atribute de injectare (adnotări).
+
+
+`inject*()` Metode .[#toc-inject-methods]
+=========================================
+
+Aceasta este o formă de transmitere a dependențelor prin intermediul [setorilor |dependency-injection:passing-dependencies#Setter Injection]. Numele acestor setteri încep cu prefixul inject.
+Nette DI apelează automat astfel de metode numite imediat după crearea instanței de prezentator și le transmite toate dependențele necesare. Prin urmare, acestea trebuie să fie declarate ca fiind publice.
+
+`inject*()` metodele pot fi considerate ca un fel de extindere a constructorului în mai multe metode. Datorită acestui fapt, `BasePresenter` poate prelua dependențele printr-o altă metodă și poate lăsa constructorul liber pentru descendenții săi:
+
+```php
+abstract class BasePresenter extends Nette\Application\UI\Presenter
+{
+	private Foo $foo;
+
+	public function injectBase(Foo $foo): void
+	{
+		$this->foo = $foo;
+	}
+}
+
+class MyPresenter extends BasePresenter
+{
+	private Bar $bar;
+
+	public function __construct(Bar $bar)
+	{
+		$this->bar = $bar;
+	}
+}
+```
+
+Prezentatorul poate conține un număr nelimitat de metode `inject*()`, iar fiecare poate avea un număr nelimitat de parametri. Acest lucru este, de asemenea, excelent pentru cazurile în care prezentatorul este [compus din trăsături |presenter-traits], iar fiecare dintre acestea necesită propria dependență.
+
+
+`Inject` Atribute .[#toc-inject-attributes]
+===========================================
+
+Aceasta este o formă de [injecție în proprietăți |dependency-injection:passing-dependencies#Property Injection]. Este suficient să indicați ce proprietăți trebuie injectate, iar Nette DI trece automat dependențele imediat după crearea instanței de prezentator. Pentru a le insera, este necesar să le declarați ca fiind publice.
+
+Proprietățile sunt marcate cu un atribut: (anterior, se folosea adnotarea `/** @inject */`)
+
+```php
+use Nette\DI\Attributes\Inject; // importul este important aici
+
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+	#[Inject]
+	public Cache $cache;
+}
+```
+
+Avantajul acestei metode de transmitere a dependențelor a fost forma foarte economică de notare. Cu toate acestea, odată cu introducerea [promovării proprietăților constructorului |https://blog.nette.org/ro/php-8-0-prezentare-completa-a-noutatilor#toc-constructor-property-promotion], utilizarea constructorului pare mai ușoară.
+
+Pe de altă parte, această metodă suferă de aceleași neajunsuri ca și trecerea dependențelor în proprietăți în general: nu avem niciun control asupra modificărilor variabilei și, în același timp, variabila devine parte a interfeței publice a clasei, ceea ce nu este de dorit.
+
+
+{{sitename: Best Practices}}

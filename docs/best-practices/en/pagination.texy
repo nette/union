@@ -14,17 +14,10 @@ use Nette;
 
 class ArticleRepository
 {
-	use Nette\SmartObject;
-
-	/** @var Nette\Database\Connection */
-	private $database;
-
-
-	public function __construct(Nette\Database\Connection $database)
-	{
-		$this->database = $database;
+	public function __construct(
+		private Nette\Database\Connection $database,
+	) {
 	}
-
 
 	public function findPublishedArticles(): Nette\Database\ResultSet
 	{
@@ -32,7 +25,7 @@ class ArticleRepository
 			SELECT * FROM articles
 			WHERE created_at < ?
 			ORDER BY created_at DESC',
-			new \DateTime
+			new \DateTime,
 		);
 	}
 }
@@ -46,15 +39,11 @@ namespace App\Presenters;
 use Nette;
 use App\Model\ArticleRepository;
 
-
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
-	/** @var ArticleRepository */
-	private $articleRepository;
-
-	public function __construct(ArticleRepository $articleRepository)
-	{
-		$this->articleRepository = $articleRepository;
+	public function __construct(
+		private ArticleRepository $articleRepository,
+	) {
 	}
 
 	public function renderDefault(): void
@@ -66,7 +55,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 In the template, we will take care of rendering an articles list:
 
-```html
+```latte
 {block content}
 <h1>Articles</h1>
 
@@ -90,16 +79,12 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
-	use Nette\SmartObject;
-
-	/** @var Nette\Database\Connection */
-	private $database;
-
-	public function __construct(Nette\Database\Connection $database)
-	{
-		$this->database = $database;
+	public function __construct(
+		private Nette\Database\Connection $database,
+	) {
 	}
 
 	public function findPublishedArticles(int $limit, int $offset): Nette\Database\ResultSet
@@ -110,7 +95,7 @@ class ArticleRepository
 			ORDER BY created_at DESC
 			LIMIT ?
 			OFFSET ?',
-			new \DateTime, $limit, $offset
+			new \DateTime, $limit, $offset,
 		);
 	}
 
@@ -126,7 +111,7 @@ class ArticleRepository
 
 The next step is to edit the presenter. We will forward the number of the currently displayed page to the render method. In the case that this number is not part of the URL, we need to set the default value to the first page.
 
-We also expand the render method to get the Paginator instance, setting it up, and selecting the correct articles to display in the template. HomepagePresenter will look like this:
+We also expand the render method to get the Paginator instance, setting it up, and selecting the correct articles to display in the template. HomePresenter will look like this:
 
 ```php
 namespace App\Presenters;
@@ -134,15 +119,11 @@ namespace App\Presenters;
 use Nette;
 use App\Model\ArticleRepository;
 
-
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
-	/** @var ArticleRepository */
-	private $articleRepository;
-
-	public function __construct(ArticleRepository $articleRepository)
-	{
-		$this->articleRepository = $articleRepository;
+	public function __construct(
+		private ArticleRepository $articleRepository,
+	) {
 	}
 
 	public function renderDefault(int $page = 1): void
@@ -169,7 +150,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 The template already iterates over articles in one page, just add paging links:
 
-```html
+```latte
 {block content}
 <h1>Articles</h1>
 
@@ -209,17 +190,12 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
-	use Nette\SmartObject;
-
-	/** @var Nette\Database\Explorer */
-	private $database;
-
-
-	public function __construct(Nette\Database\Explorer $database)
-	{
-		$this->database = $database;
+	public function __construct(
+		private Nette\Database\Explorer $database,
+	) {
 	}
 
 
@@ -240,14 +216,11 @@ namespace App\Presenters;
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
-	/** @var ArticleRepository */
-	private $articleRepository;
-
-	public function __construct(ArticleRepository $articleRepository)
-	{
-		$this->articleRepository = $articleRepository;
+	public function __construct(
+		private ArticleRepository $articleRepository,
+	) {
 	}
 
 	public function renderDefault(int $page = 1): void
@@ -268,7 +241,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 Because we do not use Paginator, we need to edit the section showing the paging links:
 
-```html
+```latte
 {block content}
 <h1>Articles</h1>
 

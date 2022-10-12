@@ -1,5 +1,5 @@
-Konfigurace přístupovch oprávnění
-*********************************
+Konfigurace přístupových oprávnění
+**********************************
 
 .[perex]
 Přehled konfiguračních voleb pro Nette Security.
@@ -22,7 +22,6 @@ security:
 			password: tajneheslo
 			roles: [admin]
 			data: ...
-
 ```
 
 Dále lze definovat role a zdroje a vytvořit tak základ pro [autorizátor|authorization] (`Nette\Security\Permission`):
@@ -65,8 +64,8 @@ security:
 		cookieName: userId            # (string) výchozí je userid
 
 		# domény, které přijímají cookie
-		cookieDomain: 'example.com'  # (string|domain)
+		cookieDomain: 'example.com'   # (string|domain)
 
 		# omezení při přístupu z jiné domény
-		cookieSamesite: None         # (Strict|Lax|None) výchozí je Lax
+		cookieSamesite: None          # (Strict|Lax|None) výchozí je Lax
 ```

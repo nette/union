@@ -33,15 +33,62 @@ final class Escaper
 		HtmlText = 'html',
 		HtmlComment = 'html/comment',
 		HtmlBogusTag = 'html/bogus',
-		HtmlCss = 'html/css',
-		HtmlJavaScript = 'html/js',
+		HtmlRawText = 'html/raw',
 		HtmlTag = 'html/tag',
-		HtmlAttribute = 'html/attr';
+		HtmlAttributeQuoted = 'html/attr',
+		HtmlAttributeUnquoted = 'html/unquoted-attr';
+
+	private const Convertors = [
+		self::Text => [
+			self::HtmlText => 'escapeHtmlText',
+			self::HtmlAttributeQuoted => 'escapeHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::JavaScript => 'escapeHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::Css => 'escapeHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::Url => 'escapeHtmlAttr',
+			self::HtmlComment => 'escapeHtmlComment',
+			'xml' => 'escapeXml',
+			'xml/attr' => 'escapeXml',
+		],
+		self::JavaScript => [
+			self::HtmlText => 'escapeHtmlText',
+			self::HtmlAttributeQuoted => 'escapeHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::JavaScript => 'escapeHtmlAttr',
+			self::HtmlRawText . '+' . self::JavaScript => 'convertJSToHtmlRawText',
+			self::HtmlComment => 'escapeHtmlComment',
+		],
+		self::Css => [
+			self::HtmlText => 'escapeHtmlText',
+			self::HtmlAttributeQuoted => 'escapeHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::Css => 'escapeHtmlAttr',
+			self::HtmlRawText . '+' . self::Css => 'convertJSToHtmlRawText',
+			self::HtmlComment => 'escapeHtmlComment',
+		],
+		self::HtmlText => [
+			self::HtmlAttributeQuoted => 'convertHtmlToHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::JavaScript => 'convertHtmlToHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::Css => 'convertHtmlToHtmlAttr',
+			self::HtmlAttributeQuoted . '+' . self::Url => 'convertHtmlToHtmlAttr',
+			self::HtmlComment => 'escapeHtmlComment',
+			self::HtmlAttributeUnquoted => 'convertHtmlToUnquotedAttr',
+			self::HtmlRawText . '+' . self::HtmlText => 'convertHtmlToHtmlRawText',
+		],
+		self::HtmlAttributeQuoted => [
+			self::HtmlText => 'convertHtmlToHtmlAttr',
+			self::HtmlAttributeUnquoted => 'convertHtmlAttrToUnquotedAttr',
+		],
+		self::HtmlAttributeQuoted . '+' . self::Url => [
+			self::HtmlText => 'convertHtmlToHtmlAttr',
+			self::HtmlAttributeQuoted => 'nop',
+		],
+		self::HtmlAttributeUnquoted => [
+			self::HtmlText => 'convertHtmlToHtmlAttr',
+		],
+	];
 
 	private string $state = '';
 	private string $tag = '';
 	private string $quote = '';
-	private string $subType = '';
+	private string $subState = '';
 
 
 	public function __construct(
@@ -59,14 +106,14 @@ final class Escaper
 
 	public function getState(): string
 	{
-		return $this->state;
+		return $this->state . ($this->subState ? '+' . $this->subState : '');
 	}
 
 
+	/** @deprecated use getState() */
 	public function export(): string
 	{
-		return ($this->state === self::HtmlAttribute && $this->quote === '' ? 'html/unquoted-attr' : $this->state)
-			. ($this->subType ? '/' . $this->subType : '');
+		return $this->getState();
 	}
 
 
@@ -78,18 +125,21 @@ final class Escaper
 
 	public function enterHtmlText(?ElementNode $node): void
 	{
-		$this->state = self::HtmlText;
-		if ($this->contentType === ContentType::Html && $node) {
-			$name = strtolower($node->name);
-			if (
-				($name === 'script' || $name === 'style')
-				&& is_string($attr = $node->getAttribute('type') ?? 'css')
-				&& preg_match('#(java|j|ecma|live)script|module|json|css|plain#i', $attr)
-			) {
-				$this->state = $name === 'script'
-					? self::HtmlJavaScript
-					: self::HtmlCss;
-			}
+		if (
+			$this->contentType === ContentType::Html
+			&& $node
+			&& in_array($name = strtolower($node->name), ['script', 'style'], true)
+		) {
+			$this->state = self::HtmlRawText;
+			$this->subState = match (true) {
+				$name === 'style' => self::Css,
+				self::isJSScript($node) => self::JavaScript,
+				self::isHtmlScript($node) => self::HtmlText,
+				default => self::Text,
+			};
+		} else {
+			$this->state = self::HtmlText;
+			$this->subState = '';
 		}
 	}
 
@@ -103,20 +153,19 @@ final class Escaper
 
 	public function enterHtmlAttribute(?string $name = null, string $quote = ''): void
 	{
-		$this->state = self::HtmlAttribute;
-		$this->quote = $quote;
-		$this->subType = '';
+		$this->enterHtmlAttributeQuote($quote);
+		$this->subState = '';
 
 		if ($this->contentType === ContentType::Html && is_string($name)) {
 			$name = strtolower($name);
 			if (str_starts_with($name, 'on')) {
-				$this->subType = self::JavaScript;
+				$this->subState = self::JavaScript;
 			} elseif ($name === 'style') {
-				$this->subType = self::Css;
+				$this->subState = self::Css;
 			} elseif ((in_array($name, ['href', 'src', 'action', 'formaction'], true)
 				|| ($name === 'data' && $this->tag === 'object'))
 			) {
-				$this->subType = self::Url;
+				$this->subState = self::Url;
 			}
 		}
 	}
@@ -124,6 +173,7 @@ final class Escaper
 
 	public function enterHtmlAttributeQuote(string $quote = '"'): void
 	{
+		$this->state = $quote ? self::HtmlAttributeQuoted : self::HtmlAttributeUnquoted;
 		$this->quote = $quote;
 	}
 
@@ -142,12 +192,12 @@ final class Escaper
 
 	public function escape(string $str): string
 	{
-		[$lq, $rq] = $this->state === self::HtmlAttribute && !$this->quote ? ["'\"' . ", " . '\"'"] : ['', ''];
+		[$lq, $rq] = $this->state === self::HtmlAttributeUnquoted ? ["'\"' . ", " . '\"'"] : ['', ''];
 		return match ($this->contentType) {
 			ContentType::Html => match ($this->state) {
 				self::HtmlText => 'LR\Filters::escapeHtmlText(' . $str . ')',
 				self::HtmlTag => 'LR\Filters::escapeHtmlTag(' . $str . ')',
-				self::HtmlAttribute => match ($this->subType) {
+				self::HtmlAttributeQuoted, self::HtmlAttributeUnquoted => match ($this->subState) {
 					'',
 					self::Url => $lq . 'LR\Filters::escapeHtmlAttr(' . $str . ')' . $rq,
 					self::JavaScript => $lq . 'LR\Filters::escapeHtmlAttr(LR\Filters::escapeJs(' . $str . '))' . $rq,
@@ -155,14 +205,18 @@ final class Escaper
 				},
 				self::HtmlComment => 'LR\Filters::escapeHtmlComment(' . $str . ')',
 				self::HtmlBogusTag => 'LR\Filters::escapeHtml(' . $str . ')',
-				self::HtmlJavaScript => 'LR\Filters::escapeJs(' . $str . ')',
-				self::HtmlCss => 'LR\Filters::escapeCss(' . $str . ')',
+				self::HtmlRawText => match ($this->subState) {
+					self::Text => 'LR\Filters::convertJSToHtmlRawText(' . $str . ')', // sanitization, escaping is not possible
+					self::HtmlText => 'LR\Filters::escapeHtmlRawTextHtml(' . $str . ')',
+					self::JavaScript => 'LR\Filters::escapeJs(' . $str . ')',
+					self::Css => 'LR\Filters::escapeCss(' . $str . ')',
+				},
 				default => throw new \LogicException("Unknown context $this->contentType, $this->state."),
 			},
 			ContentType::Xml => match ($this->state) {
 				self::HtmlText,
 				self::HtmlBogusTag => 'LR\Filters::escapeXml(' . $str . ')',
-				self::HtmlAttribute => $lq . 'LR\Filters::escapeXml(' . $str . ')' . $rq,
+				self::HtmlAttributeQuoted, self::HtmlAttributeUnquoted  => $lq . 'LR\Filters::escapeXml(' . $str . ')' . $rq,
 				self::HtmlComment => 'LR\Filters::escapeHtmlComment(' . $str . ')',
 				self::HtmlTag => 'LR\Filters::escapeXmlTag(' . $str . ')',
 				default => throw new \LogicException("Unknown context $this->contentType, $this->state."),
@@ -170,75 +224,76 @@ final class Escaper
 			ContentType::JavaScript => 'LR\Filters::escapeJs(' . $str . ')',
 			ContentType::Css => 'LR\Filters::escapeCss(' . $str . ')',
 			ContentType::ICal => 'LR\Filters::escapeIcal(' . $str . ')',
-			ContentType::Text => $str,
+			ContentType::Text => '($this->filters->escape)(' . $str . ')',
 			default => throw new \LogicException("Unknown content-type $this->contentType."),
+		};
+	}
+
+
+	public function escapeMandatory(string $str, ?Position $position = null): string
+	{
+		$quote = var_export($this->quote, true);
+		return match ($this->contentType) {
+			ContentType::Html => match ($this->state) {
+				self::HtmlAttributeQuoted => "LR\\Filters::escapeHtmlChar($str, $quote)",
+				self::HtmlRawText => match ($this->subState) {
+					self::HtmlText => 'LR\Filters::convertHtmlToHtmlRawText(' . $str . ')',
+					default => "LR\\Filters::convertJSToHtmlRawText($str)",
+				},
+				self::HtmlAttributeUnquoted, self::HtmlComment => throw new Latte\CompileException('Using |noescape is not allowed in this context.', $position),
+				default => $str,
+			},
+			ContentType::Xml => match ($this->state) {
+				self::HtmlAttributeQuoted => "LR\\Filters::escapeHtmlChar($str, $quote)",
+				self::HtmlAttributeUnquoted, self::HtmlComment => throw new Latte\CompileException('Using |noescape is not allowed in this context.', $position),
+				default => $str,
+			},
+			default => $str,
 		};
 	}
 
 
 	public function check(string $str): string
 	{
-		if ($this->state === self::HtmlAttribute && $this->subType === self::Url) {
+		if ($this->isHtmlAttribute() && $this->subState === self::Url) {
 			$str = 'LR\Filters::safeUrl(' . $str . ')';
 		}
 		return $str;
 	}
 
 
+	public function isHtmlAttribute(): bool
+	{
+		return $this->state === self::HtmlAttributeQuoted || $this->state === self::HtmlAttributeUnquoted;
+	}
+
+
 	public static function getConvertor(string $source, string $dest): ?callable
 	{
-		$table = [
-			self::Text => [
-				'html' => 'escapeHtmlText',
-				'html/attr' => 'escapeHtmlAttr',
-				'html/attr/js' => 'escapeHtmlAttr',
-				'html/attr/css' => 'escapeHtmlAttr',
-				'html/attr/url' => 'escapeHtmlAttr',
-				'html/comment' => 'escapeHtmlComment',
-				'xml' => 'escapeXml',
-				'xml/attr' => 'escapeXml',
-			],
-			self::JavaScript => [
-				'html' => 'escapeHtmlText',
-				'html/attr' => 'escapeHtmlAttr',
-				'html/attr/js' => 'escapeHtmlAttr',
-				'html/js' => 'escapeHtmlRawText',
-				'html/comment' => 'escapeHtmlComment',
-			],
-			self::Css => [
-				'html' => 'escapeHtmlText',
-				'html/attr' => 'escapeHtmlAttr',
-				'html/attr/css' => 'escapeHtmlAttr',
-				'html/css' => 'escapeHtmlRawText',
-				'html/comment' => 'escapeHtmlComment',
-			],
-			'html' => [
-				'html/attr' => 'convertHtmlToHtmlAttr',
-				'html/attr/js' => 'convertHtmlToHtmlAttr',
-				'html/attr/css' => 'convertHtmlToHtmlAttr',
-				'html/attr/url' => 'convertHtmlToHtmlAttr',
-				'html/comment' => 'escapeHtmlComment',
-				'html/unquoted-attr' => 'convertHtmlToUnquotedAttr',
-			],
-			'html/attr' => [
-				'html' => 'convertHtmlToHtmlAttr',
-				'html/unquoted-attr' => 'convertHtmlAttrToUnquotedAttr',
-			],
-			'html/attr/url' => [
-				'html' => 'convertHtmlToHtmlAttr',
-				'html/attr' => 'nop',
-			],
-			'html/unquoted-attr' => [
-				'html' => 'convertHtmlToHtmlAttr',
-			],
-		];
-
 		if ($source === $dest) {
 			return [Filters::class, 'nop'];
 		}
 
-		return isset($table[$source][$dest])
-			? [Filters::class, $table[$source][$dest]]
+		return isset(self::Convertors[$source][$dest])
+			? [Filters::class, self::Convertors[$source][$dest]]
 			: null;
+	}
+
+
+	public static function isJSScript(ElementNode $el): bool
+	{
+		$type = $el->getAttribute('type');
+		return strcasecmp($el->name, 'script') === 0
+			&& ($type === true || $type === null || $type === ''
+				|| is_string($type) && preg_match('#((application|text)/(((x-)?java|ecma|j|live)script|json)|text/plain|module|importmap)$#Ai', $type));
+	}
+
+
+	private static function isHtmlScript(ElementNode $el): bool
+	{
+		$type = $el->getAttribute('type');
+		return strcasecmp($el->name, 'script') === 0
+			&& is_string($type) && preg_match('#text/((x-)?template|html)$#Ai', $type);
+
 	}
 }

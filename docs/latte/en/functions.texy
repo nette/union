@@ -19,24 +19,22 @@ Usage
 
 Functions are used in the same way as common PHP functions and can be used in all expressions:
 
-```html
+```latte
 <p>{clamp($num, 1, 100)}</p>
 
 {if odd($num)} ... {/if}
 ```
 
-Custom functions can be registered this way:
+[Custom functions|extending-latte#functions] can be registered this way:
 
 ```php
 $latte = new Latte\Engine;
-$latte->addFunction('shortify', function (string $s, int $len = 10): string {
-	return mb_substr($s, 0, $len);
-});
+$latte->addFunction('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0, $len));
 ```
 
 We use it in a template like this:
 
-```html
+```latte
 <p>{shortify($text)}</p>
 <p>{shortify($text, 100)}</p>
 ```
@@ -50,7 +48,7 @@ clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{dat
 ----------------------------------------------------------------------------------------------
 Returns value clamped to the inclusive range of min and max.
 
-```html
+```latte
 {=clamp($level, 0, 255)}
 ```
 
@@ -61,7 +59,7 @@ divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
 ---------------------------------------------------------------------
 Checks if a variable is divisible by a number.
 
-```html
+```latte
 {if divisibleBy($num, 5)} ... {/if}
 ```
 
@@ -70,7 +68,7 @@ even(int $value): bool .[method]{data-version:2.10.2}
 -----------------------------------------------------
 Checks if the given number is even.
 
-```html
+```latte
 {if even($num)} ... {/if}
 ```
 
@@ -103,13 +101,13 @@ odd(int $value): bool .[method]{data-version:2.10.2}
 ----------------------------------------------------
 Checks if the given number is odd.
 
-```html
+```latte
 {if odd($num)} ... {/if}
 ```
 
 
-slice(string|array $value, int $start, int $length = null, bool $preserveKeys = false): string|array .[method]{data-version:2.10.2}
------------------------------------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Extracts a slice of an array or a string.
 
 ```latte
@@ -124,6 +122,3 @@ If the start is non-negative, the sequence will start at that start in the varia
 If length is given and is positive, then the sequence will have up to that many elements in it. If the variable is shorter than the length, then only the available variable elements will be present. If length is given and is negative then the sequence will stop that many elements from the end of the variable. If it is omitted, then the sequence will have everything from offset up until the end of the variable.
 
 Filter will reorder and reset the integer array keys by default. This behaviour can be changed by setting preserveKeys to true. String keys are always preserved, regardless of this parameter.
-
-
-{{composer: latte/latte}}

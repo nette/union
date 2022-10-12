@@ -1,0 +1,118 @@
+Hozzájárulás a kódhoz
+*********************
+
+.[perex]
+Tervezi, hogy hozzájárul a Nette keretrendszerhez, és meg kell ismerkednie a szabályokkal és eljárásokkal? Ez a kezdő útmutató végigvezet a kódhoz való hatékony hozzájárulás, a tárolókkal való munka és a változtatások megvalósításának lépésein.
+
+
+Eljárás .[#toc-procedure]
+=========================
+
+A kódhoz való hozzájáruláshoz elengedhetetlen, hogy rendelkezz egy fiókkal a [GitHubon |https://github.com], és ismerd a Git verziókezelő rendszerrel való munka alapjait. Ha nem ismered a Git-et, akkor nézd meg a [git - az egyszerű útmutatót |https://rogerdudler.github.io/git-guide/], és fontold meg a számos [grafikus kliens |https://git-scm.com/downloads/guis] egyikének használatát.
+
+
+A környezet és a tároló előkészítése .[#toc-preparing-the-environment-and-repository]
+-------------------------------------------------------------------------------------
+
+1) A GitHubon hozzon létre egy [elágazást |https://help.github.com/en/github/getting-started-with-github/fork-a-repo] a [csomagtárolóból |www:packages], amelyet módosítani kíván.
+2) [Klónozzuk |https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository] ezt a tárolót a számítógépünkre.
+3) Telepítse a függőségeket, beleértve a [Nette Tester-t |tester:] is, a `composer install` parancs segítségével.
+4) Ellenőrizze, hogy a tesztek működnek-e a következő futtatással `composer tester`
+5) Hozzon létre egy [új ágat |#New Branch] a legfrissebb kiadott verzió alapján.
+
+
+Saját változtatások végrehajtása .[#toc-implementing-your-own-changes]
+----------------------------------------------------------------------
+
+Most már elvégezheti saját kódjainak módosítását:
+
+1) Végezze el a kívánt változtatásokat, és ne feledkezzen meg a tesztekről.
+2) Győződjön meg róla, hogy a tesztek sikeresen futnak a `composer tester`
+3) Ellenőrizze, hogy a kód megfelel-e a [kódolási szabványoknak |#coding standards].
+4) Mentse (commit) a változtatásokat egy leírással [ebben a formátumban |#Commit Description]
+
+Több commitot is létrehozhat, egyet-egyet minden egyes logikai lépéshez. Minden commitnak önmagában is értelmesnek kell lennie.
+
+
+Változások elküldése .[#toc-submitting-changes]
+-----------------------------------------------
+
+Ha elégedett a módosításokkal, elküldheti azokat:
+
+1) Tolja a változtatásokat a GitHubra a saját elágazásához
+2) Onnan küldje el őket a Nette tárolóba egy [pull request|https://help.github.com/articles/creating-a-pull-request] (PR) létrehozásával.
+3) Adjon meg [elegendő információt |#pull request description] a leírásban
+
+
+Visszajelzések beépítése .[#toc-incorporating-feedback]
+-------------------------------------------------------
+
+A commitjaid most már mások számára is láthatóak. Gyakori, hogy javaslatokat tartalmazó megjegyzéseket kapunk:
+
+1) Tartsa nyomon a javasolt változtatásokat
+2) építse be őket új commitként vagy [egyesítse őket a korábbiakkal |https://help.github.com/en/github/using-git/about-git-rebase]
+3) Küldje el újra a commitokat a GitHubra, és azok automatikusan megjelennek a pull requestben.
+
+Soha ne hozzon létre új pull requestet egy meglévő módosításához.
+
+
+Dokumentáció .[#toc-documentation]
+----------------------------------
+
+Ha megváltoztattál egy funkciót, vagy új funkciót adtál hozzá, ne felejtsd el [azt is hozzáadni a dokumentációhoz |documentation].
+
+
+Új ág .[#toc-new-branch]
+========================
+
+Ha lehetséges, végezze el a változtatásokat a legutolsó kiadott verzióval, azaz az ág utolsó tagjével szemben. A v3.2.1 címkéhez hozzon létre egy ágat ezzel a paranccsal:
+
+```shell
+git checkout -b new_branch_name v3.2.1
+```
+
+
+Kódolási szabványok .[#toc-coding-standards]
+============================================
+
+A kódnak meg kell felelnie a Nette Frameworkben használt [kódolási szabványnak |coding standard]. A kód ellenőrzésére és javítására automatikus eszköz áll rendelkezésre. Ezt **globálisan** telepítheted a Composer segítségével egy általad választott mappába:
+
+```shell
+composer create-project nette/coding-standard /path/to/nette-coding-standard
+```
+
+Most már képesnek kell lennie az eszköz futtatására a terminálban. Az első parancs ellenőrzi, a második pedig javítja a kódot az aktuális könyvtárban lévő `src` és `tests` mappákban:
+
+```shell
+/path/to/nette-coding-standard/ecs check
+/path/to/nette-coding-standard/ecs check --fix
+```
+
+
+Kötelezettségvállalás Leírás .[#toc-commit-description]
+=======================================================
+
+A Nette-ben a commit témák a következő formátumúak: `Presenter: fixed AJAX detection [Closes #69]`
+
+- terület, amelyet kettőspont követ
+- a kötelezettségvállalás célja múlt időben; ha lehetséges, kezdje a következő szavakkal: added, fixed, refactored, changed, removed
+- ha a commit megszakítja a visszafelé kompatibilitást, írja be, hogy "BC break".
+- bármilyen kapcsolat a hibakövetővel, például `(#123)` vagy `[Closes #69]`
+- a tárgy után egy üres sor következhet, amelyet egy részletesebb leírás követhet, beleértve például a fórumra mutató linkeket is.
+
+
+Pull Request leírása .[#toc-pull-request-description]
+=====================================================
+
+A GitHub felületén a pull request létrehozásakor megadhat egy címet és egy leírást. Adjon tömör címet, és a leírásban adjon meg minél több információt a változtatás okairól.
+
+A fejlécben azt is adja meg, hogy új funkcióról vagy hibajavításról van-e szó, és hogy okozhat-e visszafelé kompatibilitási problémákat (BC break). Ha van kapcsolódó probléma, hivatkozzon rá, hogy az a pull request jóváhagyásakor lezárásra kerüljön.
+
+```
+- bug fix / new feature?  <!-- #issue numbers, if any -->
+- BC break? yes/no
+- doc PR: nette/docs#?    <!-- highly welcome, see https://nette.org/en/writing -->
+```
+
+
+{{priority: -1}}

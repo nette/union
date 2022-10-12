@@ -4,16 +4,16 @@ Generované továrny
 .[perex]
 Nette DI umí automaticky generovat kód továren na základě rozhraní, což vám ušetří psaní kódu.
 
-Továrna je třída, která vyrábí a konfiguruje objekty. Předává jim tedy i jejich závislosti. Jak taková továrna vypadá jsme si ukázali v [úvodní kapitole|introduction#továrna]:
+Továrna je třída, která vyrábí a konfiguruje objekty. Předává jim tedy i jejich závislosti. Nezaměňujte prosím s návrhovým vzorem *factory method*, který popisuje specifický způsob využití továren a s tímto tématem nesouvisí.
+
+Jak taková továrna vypadá jsme si ukázali v [úvodní kapitole|introduction#továrna]:
 
 ```php
 class ArticleFactory
 {
-	private Nette\Database\Connection $db;
-
-	public function __construct(Nette\Database\Connection $db)
-	{
-		$this->db = $db;
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
 	}
 
 	public function create(): Article
@@ -37,16 +37,14 @@ Tedy továrna `ArticleFactory` má metodu `create`, která vytváří objekty `A
 ```php
 class Article
 {
-	private $db;
-
-	public function __construct(Nette\Database\Connection $db)
-	{
-		$this->db = $db;
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
 	}
 }
 ```
 
-Továrnu přidáme do konfiguračního souboru `config.neon`:
+Továrnu přidáme do konfiguračního souboru:
 
 ```neon
 services:
@@ -60,11 +58,9 @@ V kódu, který továrnu používá, si tak vyžádáme objekt podle rozhraní a
 ```php
 class UserController
 {
-	private $articleFactory;
-
-	public function __construct(ArticleFactory $articleFactory)
-	{
-		$this->articleFactory = $articleFactory;
+	public function __construct(
+		private ArticleFactory $articleFactory,
+	) {
 	}
 
 	public function foo()
@@ -84,13 +80,10 @@ Tovární metoda `create` může přijímat parametry, které poté předá do k
 ```php
 class Article
 {
-	private $db;
-	private $authorId;
-
-	public function __construct(Nette\Database\Connection $db, int $authorId)
-	{
-		$this->db = $db;
-		$this->authorId = $authorId;
+	public function __construct(
+		private Nette\Database\Connection $db,
+		private int $authorId,
+	) {
 	}
 }
 ```
@@ -141,101 +134,88 @@ services:
 ```
 
 
-Továrna na komponenty
-=====================
+Accessor
+========
 
-Jak vytvářet složité komponenty s mnoha závislostmi, aniž bychom si „zaneřádili“ presentery, které je budou používat? Díky chytrým vlastnostem DI kontejneru v Nette lze stejně jako u používání klasických služeb nechat většinu práce na frameworku.
+Nette umí krom továren generovat i tzv. accessory. Jde o objekty s metodou `get()`, která vrací určitou službu z DI kontejneru. Opakované volání `get()` vrací stále tutéž instanci.
 
-Vezměme si jako příklad komponentu, která má závislosti na několika službách:
+Accessor poskytují závislostem lazy-loading. Mějme třídu, která zapisuje chyby do speciální databáze. Když by si tato třída nechávala připojení k databázi předávat jako závislost konstruktorem, muselo by se připojení vždycky vytvořit, ačkoliv v praxi se chyba objeví jen výjimečně a tedy povětšinou by zůstalo spojení nevyužité.
+Místo toho si tak třída předá accessor a teprve když se zavolá jeho `get()`, dojde k vytvoření objektu databáze:
+
+Jak accessor vytvořit? Stačí napsat rozhraní a Nette DI vygeneruje implementaci. Rozhraní musí mít přesně jednu metodu s názvem `get` a deklarovat návratový typ:
 
 ```php
-class MyControl extends Nette\Application\UI\Control
+interface PDOAccessor
 {
-	public function __construct(
-		EmailValidator $emailValidator,
-		Registrator $registrator,
-		Mailer $mailer
-	) {
-		//
-	}
+	function get(): PDO;
 }
 ```
 
-Pokud bychom psali klasickou službu, nebylo by co řešit. O předání všech závislostí by se neviditelně postaral DI kontejner. Jenže s komponentami obvykle zacházíme tak, že jejich novou instanci vytváříme přímo v presenteru v továrních metodách `createComponent…()`.
-A předávat si všechny závislosti do presenteru, abychom je pak předali komponentě, je zdlouhavé a těžkopádné řešení. Znamená to v presenteru zavést privátní proměnné, které mimo jednu metodu nenajdou žádné uplatnění. A navíc to pomyšlení na množství napsaného kódu...
-
-```php
-class MyPresenter extends Nette\Application\UI\Presenter
-{
-	private $emailValidator;
-	private $registrator;
-	private $mailer;
-
-	public function __construct(
-		EmailValidator $emailValidator,
-		Registrator $registrator,
-		Mailer $mailer
-	) {
-		$this->emailValidator = $emailValidator;
-		$this->registrator = $registrator;
-		$this->mailer = $mailer;
-	}
-
-	protected function createComponentMyControl(): MyControl
-	{
-		$control = new MyControl(
-			$this->emailValidator,
-			$this->registrator,
-			$this->mailer
-		);
-		return $control;
-	}
-}
-```
-
-Logickou otázkou je, proč prostě nezaregistrujeme komponentu jako klasickou službu, nepředáme ji do presenteru a poté v metodě `createComponent…()` nevracíme? Takový přístup je ale krajně nevhodný, protože komponentu běžně chceme vytvořit vícekrát.
-
-Architektonicky správným řešením, které neznečistí presenter zbytečnými závislostmi, je napsat pro komponentu továrnu. Můžeme si ji opět nechat vygenerovat na základě rozhraní. Naše rozhraní pro komponentu může vypadat například takto:
-
-```php
-interface MyControlFactory
-{
-	public function create(): MyControl;
-}
-```
-
-Továrnu zaregistrujeme v konfiguračním souboru:
+Accessor přidáme do konfiguračního souboru, kde je také definice služby, kterou bude vracet:
 
 ```neon
 services:
-	- MyControlFactory
+	- PDOAccessor
+	- PDO(%dsn%, %user%, %password%)
 ```
 
-V presenteru pak bude stačit získat továrnu a zavolat metodu `create`:
+Protože accessor vrací službu typu `PDO` a v konfiguraci je jediná taková služba, bude vracet právě ji. Pokud by služeb daného typu bylo víc, určíme vracenou službu pomocí názvu, např. `- PDOAccessor(@db1)`.
+
+
+Vícenásobná továrna/accessor
+============================
+Naše továrny a accessory uměly zatím vždy vyrábět nebo vracet jen jeden objekt. Lze ale velmi snadno vytvořit i vícenásobné továrny kombinované s accessory. Rozhraní takové třídy bude obsahovat libovolný počet metod s názvy `create<name>()` a `get<name>()`, např.:
 
 ```php
-class MyPresenter extends Nette\Application\UI\Presenter
+interface MultiFactory
 {
-	private $myControlFactory;
-
-	public function __construct(MyControlFactory $myControlFactory)
-	{
-		$this->myControlFactory = $myControlFactory;
-	}
-
-	protected function createComponentMyControl(): MyControl
-	{
-		$control = $this->myControlFactory->create();
-		return $control;
-	}
+	function createArticle(): Article;
+	function createFoo(): Model\Foo;
+	function getDb(): PDO;
 }
 ```
 
-Vytvořené komponentě budou automaticky konstruktorem předány její závislosti.
+Takže místo toho, abych si předávali několik generovaných továren a accessorů, předáme jednu komplexnější továrnu, která toho umí víc.
 
-{{composer: nette/di}}
+Alternativně lze místo několika metod použít `create()` a `get()` s parameterem:
 
-/--comment
-TODO: extensive update
-accessory, multiple tovarny
-\--
+```php
+interface MultiFactoryAlt
+{
+	function create($name);
+	function get($name): PDO;
+}
+```
+
+Pak platí, že `MultiFactory::createArticle()` dělá totéž jako `MultiFactoryAlt::create('article')`. Nicméně alternativní zápis má tu nevýhodu, že není zřejmé, jaké hodnoty `$name` jsou podporované a logicky také nelze v rozhraní odlišit různé návratové hodnoty pro různé `$name`.
+
+
+Definice seznamem
+-----------------
+A jak definovat vícenásobnou továrnu v konfiguraci? Vytvoříme tři služby, které bude vytvářet/vracet, a potom samotnou továrnu:
+
+```neon
+services:
+	article: Article
+	- Model\Foo
+	- PDO(%dsn%, %user%, %password%)
+	- MultiFactory(
+		article: @article  # createArticle()
+		foo: @Model\Foo    # createFoo()
+		db: @\PDO          # getDb()
+	)
+```
+
+
+Definice pomocí tagů
+--------------------
+
+Druhou možností je využít k definici [tagy|services#Tagy]:
+
+```neon
+services:
+	- App\Router\RouterFactory::createRouter
+	- App\Model\DatabaseAccessor(
+		db1: @database.db1.explorer
+	)
+```

@@ -25,29 +25,24 @@ class SqlBuilder
 {
 	use Nette\SmartObject;
 
-	/** @var string */
-	protected $tableName;
+	protected string $tableName;
 
-	/** @var Conventions */
-	protected $conventions;
+	protected Conventions $conventions;
 
-	/** @var string delimited table name */
-	protected $delimitedTable;
+	protected string $delimitedTable;
 
-	/** @var array of column to select */
-	protected $select = [];
+	/** column to select */
+	protected array $select = [];
 
-	/** @var array of where conditions */
-	protected $where = [];
+	protected array $where = [];
 
-	/** @var array of array of join conditions */
-	protected $joinCondition = [];
+	protected array $joinCondition = [];
 
-	/** @var array of where conditions for caching */
-	protected $conditions = [];
+	/** where conditions for caching */
+	protected array $conditions = [];
 
-	/** @var array of parameters passed to where conditions */
-	protected $parameters = [
+	/** parameters passed to where conditions */
+	protected array $parameters = [
 		'select' => [],
 		'joinCondition' => [],
 		'where' => [],
@@ -56,41 +51,38 @@ class SqlBuilder
 		'order' => [],
 	];
 
-	/** @var array or columns to order by */
-	protected $order = [];
+	/** columns to order by */
+	protected array $order = [];
 
-	/** @var int number of rows to fetch */
-	protected $limit;
+	/** number of rows to fetch */
+	protected ?int $limit = null;
 
-	/** @var int first row to fetch */
-	protected $offset;
+	/** first row to fetch */
+	protected ?int $offset = null;
 
-	/** @var string columns to grouping */
-	protected $group = '';
+	/** columns to grouping */
+	protected string $group = '';
 
-	/** @var string grouping condition */
-	protected $having = '';
+	/** grouping condition */
+	protected string $having = '';
 
-	/** @var array of reserved table names associated with chain */
-	protected $reservedTableNames = [];
+	/** reserved table names associated with chain */
+	protected array $reservedTableNames = [];
 
-	/** @var array of table aliases */
-	protected $aliases = [];
+	/** table aliases */
+	protected array $aliases = [];
 
-	/** @var string currently parsing alias for joins */
-	protected $currentAlias;
+	/** currently parsing alias for joins */
+	protected string $currentAlias = '';
 
-	/** @var Driver */
-	private $driver;
+	private Driver $driver;
 
-	/** @var IStructure */
-	private $structure;
+	private IStructure $structure;
 
-	/** @var array */
-	private $cacheTableList;
+	private array $cacheTableList = [];
 
-	/** @var array of expanding joins */
-	private $expandingJoins = [];
+	/** expanding joins */
+	private array $expandingJoins = [];
 
 
 	public function __construct(string $tableName, Explorer $explorer)
@@ -160,7 +152,7 @@ class SqlBuilder
 			$parts[] = $this->select;
 		} elseif ($columns) {
 			$parts[] = [$this->delimitedTable, $columns];
-		} elseif ($this->group && !$this->driver->isSupported(Driver::SUPPORT_SELECT_UNGROUPED_COLUMNS)) {
+		} elseif ($this->group && !$this->driver->isSupported(Driver::SupportSelectUngroupedColumns)) {
 			$parts[] = [$this->group];
 		} else {
 			$parts[] = "{$this->delimitedTable}.*";
@@ -185,8 +177,8 @@ class SqlBuilder
 	{
 		if (!$this->order && ($this->limit !== null || $this->offset)) {
 			$this->order = array_map(
-				function ($col) { return "$this->tableName.$col"; },
-				(array) $this->conventions->getPrimary($this->tableName)
+				fn($col) => "$this->tableName.$col",
+				(array) $this->conventions->getPrimary($this->tableName),
 			);
 		}
 
@@ -212,7 +204,7 @@ class SqlBuilder
 
 			$querySelect = $this->buildSelect($cols);
 
-		} elseif ($this->group && !$this->driver->isSupported(Driver::SUPPORT_SELECT_UNGROUPED_COLUMNS)) {
+		} elseif ($this->group && !$this->driver->isSupported(Driver::SupportSelectUngroupedColumns)) {
 			$querySelect = $this->buildSelect([$this->group]);
 			$this->parseJoins($joins, $querySelect);
 
@@ -242,7 +234,7 @@ class SqlBuilder
 			$this->parameters['where'],
 			$this->parameters['group'],
 			$this->parameters['having'],
-			$this->parameters['order']
+			$this->parameters['order'],
 		);
 	}
 
@@ -380,7 +372,7 @@ class SqlBuilder
 						}
 					}
 
-					if ($this->driver->isSupported(Driver::SUPPORT_SUBSELECT)) {
+					if ($this->driver->isSupported(Driver::SupportSubselect)) {
 						$arg = null;
 						$subSelectPlaceholderCount = substr_count($clone->getSql(), '?');
 						$replace = $match[2][0] . '(' . $clone->getSql() . (!$subSelectPlaceholderCount && count($clone->getSqlBuilder()->getParameters()) === 1 ? ' ?' : '') . ')';
@@ -397,10 +389,10 @@ class SqlBuilder
 
 				if ($arg !== null) {
 					if (!$arg) {
-						$hasBrackets = strpos($condition, '(') !== false;
+						$hasBrackets = str_contains($condition, '(');
 						$hasOperators = preg_match('#AND|OR#', $condition);
-						$hasNot = strpos($condition, 'NOT') !== false;
-						$hasPrefixNot = strpos($match[2][0], 'NOT') !== false;
+						$hasNot = str_contains($condition, 'NOT');
+						$hasPrefixNot = str_contains($match[2][0], 'NOT');
 						if (!$hasBrackets && ($hasOperators || ($hasNot && !$hasPrefixNot))) {
 							throw new Nette\InvalidArgumentException('Possible SQL query corruption. Add parentheses around operators.');
 						}
@@ -590,7 +582,7 @@ class SqlBuilder
 	protected function getSortedJoins(string $table, &$leftJoinDependency, &$tableJoins, &$finalJoins): void
 	{
 		if (isset($this->expandingJoins[$table])) {
-			$path = implode("' => '", array_map(function (string $value): string { return $this->reservedTableNames[$value]; }, array_merge(array_keys($this->expandingJoins), [$table])));
+			$path = implode("' => '", array_map(fn(string $value): string => $this->reservedTableNames[$value], array_merge(array_keys($this->expandingJoins), [$table])));
 			throw new Nette\InvalidArgumentException("Circular reference detected at left join conditions (tables '$path').");
 		}
 
@@ -663,7 +655,7 @@ class SqlBuilder
 		$parentAlias = preg_replace('#^(.*\.)?(.*)$#', '$2', $this->tableName);
 
 		// join schema keyMatch and table keyMatch to schema.table keyMatch
-		if ($this->driver->isSupported(Driver::SUPPORT_SCHEMA) && count($keyMatches) > 1) {
+		if ($this->driver->isSupported(Driver::SupportSchema) && count($keyMatches) > 1) {
 			$tables = $this->getCachedTableList();
 			if (
 				!isset($tables[$keyMatches[0]['key']])
@@ -820,11 +812,9 @@ class SqlBuilder
 
 	protected function tryDelimite(string $s): string
 	{
-		return preg_replace_callback('#(?<=[^\w`"\[?:]|^)[a-z_][a-z0-9_]*(?=[^\w`"(\]]|$)#Di', function (array $m): string {
-			return strtoupper($m[0]) === $m[0]
+		return preg_replace_callback('#(?<=[^\w`"\[?:]|^)[a-z_][a-z0-9_]*(?=[^\w`"(\]]|$)#Di', fn(array $m): string => strtoupper($m[0]) === $m[0]
 				? $m[0]
-				: $this->driver->delimite($m[0]);
-		}, $s);
+				: $this->driver->delimite($m[0]), $s);
 	}
 
 
@@ -832,10 +822,10 @@ class SqlBuilder
 		array $columns,
 		array $parameters,
 		array &$conditions,
-		array &$conditionsParameters
+		array &$conditionsParameters,
 	): bool
 	{
-		if ($this->driver->isSupported(Driver::SUPPORT_MULTI_COLUMN_AS_OR_COND)) {
+		if ($this->driver->isSupported(Driver::SupportMultiColumnAsOrCond)) {
 			$conditionFragment = '(' . implode(' = ? AND ', $columns) . ' = ?) OR ';
 			$condition = substr(str_repeat($conditionFragment, count($parameters)), 0, -4);
 			return $this->addCondition($condition, [Nette\Utils\Arrays::flatten($parameters)], $conditions, $conditionsParameters);
@@ -852,7 +842,7 @@ class SqlBuilder
 				$parameter = $this->getConditionHash($parameter->getSql(), $parameter->getSqlBuilder()->getParameters());
 			} elseif ($parameter instanceof SqlLiteral) {
 				$parameter = $this->getConditionHash($parameter->__toString(), $parameter->getParameters());
-			} elseif (is_object($parameter) && method_exists($parameter, '__toString')) {
+			} elseif ($parameter instanceof \Stringable) {
 				$parameter = $parameter->__toString();
 			} elseif (is_array($parameter) || $parameter instanceof \ArrayAccess) {
 				$parameter = $this->getConditionHash($key, $parameter);
@@ -866,9 +856,7 @@ class SqlBuilder
 	private function getCachedTableList(): array
 	{
 		if (!$this->cacheTableList) {
-			$this->cacheTableList = array_flip(array_map(function (array $pair): string {
-				return $pair['fullName'] ?? $pair['name'];
-			}, $this->structure->getTables()));
+			$this->cacheTableList = array_flip(array_map(fn($pair): string => $pair->fullName ?? $pair->name, $this->structure->getTables()));
 		}
 
 		return $this->cacheTableList;

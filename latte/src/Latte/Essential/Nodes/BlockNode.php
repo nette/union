@@ -11,7 +11,6 @@ namespace Latte\Essential\Nodes;
 
 use Latte\CompileException;
 use Latte\Compiler\Block;
-use Latte\Compiler\Escaper;
 use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Nodes\Php\Expression\AssignNode;
 use Latte\Compiler\Nodes\Php\Expression\VariableNode;
@@ -43,7 +42,7 @@ class BlockNode extends StatementNode
 		$node = new static;
 
 		if (!$stream->is('|', Token::End)) {
-			$layer = $tag->parser->tryConsumeModifier('local')
+			$layer = $tag->parser->tryConsumeTokenBeforeUnquotedString('local')
 				? Template::LayerLocal
 				: $parser->blockLayer;
 			$stream->tryConsume('#');
@@ -102,7 +101,7 @@ class BlockNode extends StatementNode
 				XX,
 			$this->position,
 			$this->content,
-			$context->getEscaper()->export(),
+			$context->getEscaper()->getState(),
 			$this->modifier,
 		);
 	}
@@ -110,7 +109,7 @@ class BlockNode extends StatementNode
 
 	private function printStatic(PrintContext $context): string
 	{
-		$this->modifier->escape = $this->modifier->escape || $context->getEscaper()->getState() === Escaper::HtmlAttribute;
+		$this->modifier->escape = $this->modifier->escape || $context->getEscaper()->isHtmlAttribute();
 		$context->addBlock($this->block);
 		$this->block->content = $this->content->print($context); // must be compiled after is added
 
@@ -132,7 +131,7 @@ class BlockNode extends StatementNode
 		$context->addBlock($this->block);
 		$this->block->content = $this->content->print($context); // must be compiled after is added
 		$escaper = $context->getEscaper();
-		$this->modifier->escape = $this->modifier->escape || $escaper->getState() === Escaper::HtmlAttribute;
+		$this->modifier->escape = $this->modifier->escape || $escaper->isHtmlAttribute();
 
 		return $context->format(
 			'$this->addBlock(%node, %dump, [[$this, %dump]], %dump);
@@ -142,7 +141,7 @@ class BlockNode extends StatementNode
 				: '')
 			. ');',
 			new AssignNode(new VariableNode('ʟ_nm'), $this->block->name),
-			$escaper->export(),
+			$escaper->getState(),
 			$this->block->method,
 			$this->block->layer,
 			$this->modifier,

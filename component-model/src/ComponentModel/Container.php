@@ -22,10 +22,9 @@ class Container extends Component implements IContainer
 	private const NameRegexp = '#^[a-zA-Z0-9_]+$#D';
 
 	/** @var IComponent[] */
-	private $components = [];
+	private array $components = [];
 
-	/** @var Container|null */
-	private $cloning;
+	private ?Container $cloning = null;
 
 
 	/********************* interface IContainer ****************d*g**/
@@ -33,10 +32,9 @@ class Container extends Component implements IContainer
 
 	/**
 	 * Adds the component to the container.
-	 * @return static
 	 * @throws Nette\InvalidStateException
 	 */
-	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null)
+	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null): static
 	{
 		if ($name === null) {
 			$name = $component->getName();
@@ -144,7 +142,7 @@ class Container extends Component implements IContainer
 		} elseif ($throw) {
 			$hint = Nette\Utils\ObjectHelpers::getSuggestion(array_merge(
 				array_map('strval', array_keys($this->components)),
-				array_map('lcfirst', preg_filter('#^createComponent([A-Z0-9].*)#', '$1', get_class_methods($this)))
+				array_map('lcfirst', preg_filter('#^createComponent([A-Z0-9].*)#', '$1', get_class_methods($this))),
 			), $name);
 			throw new Nette\InvalidArgumentException("Component with name '$name' does not exist" . ($hint ? ", did you mean '$hint'?" : '.'));
 		}
@@ -190,9 +188,7 @@ class Container extends Component implements IContainer
 		}
 
 		if ($filterType) {
-			$iterator = new \CallbackFilterIterator($iterator, function ($item) use ($filterType) {
-				return $item instanceof $filterType;
-			});
+			$iterator = new \CallbackFilterIterator($iterator, fn($item) => $item instanceof $filterType);
 		}
 
 		return $iterator;

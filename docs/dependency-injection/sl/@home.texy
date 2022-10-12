@@ -1,0 +1,24 @@
+Injekcija odvisnosti
+********************
+
+.[perex]
+Vbrizgavanje odvisnosti je načrtovalski vzorec, ki bo temeljito spremenil vaš pogled na kodo in razvoj. Odpira pot v svet čisto zasnovanih in trajnostnih aplikacij.
+
+- [Kaj je vrivanje odvisnosti? |introduction]
+- [Globalno stanje in enojni elementi |global-state]
+- [Posredovanje odvisnosti |passing-dependencies]
+- [Kaj je zabojnik DI? |container]
+- [Pogosto zastavljena vprašanja |faq]
+
+
+Nette DI
+--------
+
+Paket `nette/di` zagotavlja izjemno napreden sestavljeni vsebnik DI za PHP.
+
+- [Zabojnik Nette DI |nette-container]
+- [Konfiguracija |configuration]
+- [Opredelitve storitev |services]
+- [Samodejno napeljevanje |autowiring]
+- [Generirane tovarne |factory]
+- [Ustvarjanje razširitev za Nette DI |extensions]

@@ -4,6 +4,7 @@ Paginator
 .[perex]
 Need to page a data listing? Because mathematics behind pagination can be tricky, [api:Nette\Utils\Paginator] will help you.
 
+
 Installation:
 
 ```shell
@@ -47,7 +48,7 @@ The paginator will help in formulating the SQL query. The `getLength()` and `get
 $result = $database->query(
 	'SELECT * FROM items LIMIT ? OFFSET ?',
 	$paginator->getLength(),
-	$paginator->getOffset()
+	$paginator->getOffset(),
 );
 ```
 
@@ -57,10 +58,8 @@ If you need to paginate in reverse order, i.e. page no. 1 corresponds to the hig
 $result = $database->query(
 	'SELECT * FROM items LIMIT ? OFFSET ?',
 	$paginator->getLength(),
-	$paginator->getCountdownOffset()
+	$paginator->getCountdownOffset(),
 );
 ```
 
 An example of use in the application can be found in the cookbook [Paginating Database Results |best-practices:pagination].
-
-{{composer: nette/utils}}

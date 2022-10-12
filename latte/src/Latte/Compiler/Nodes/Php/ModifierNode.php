@@ -68,9 +68,9 @@ class ModifierNode extends Node
 			$expr = $escaper->check($expr);
 		}
 
-		if ($escape) {
-			$expr = $escaper->escape($expr);
-		}
+		$expr = $escape
+			? $escaper->escape($expr)
+			: $escaper->escapeMandatory($expr, $this->position);
 
 		return $expr;
 	}
@@ -89,7 +89,7 @@ class ModifierNode extends Node
 
 		if ($this->escape && empty($noescape)) {
 			$expr = 'LR\Filters::convertTo($ʟ_fi, '
-				. var_export($context->getEscaper()->export(), true) . ', '
+				. var_export($context->getEscaper()->getState(), true) . ', '
 				. $expr
 				. ')';
 		}

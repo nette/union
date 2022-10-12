@@ -42,8 +42,7 @@ class Logger implements Tester\Runner\OutputHandler
 $interpreter = createInterpreter();
 
 
-// Normal stop on the end
-test(function () use ($interpreter) {
+test('Normal stop on the end', function () use ($interpreter) {
 	$runner = new Runner($interpreter);
 	$runner->outputHandlers[] = $logger = new Logger;
 	$runner->paths = [
@@ -54,15 +53,14 @@ test(function () use ($interpreter) {
 
 	Assert::false($runner->run());
 	Assert::same([
-		[Test::FAILED, 'init-fail.phptx'],
-		[Test::FAILED, 'runtime-fail.phptx'],
-		[Test::PASSED, 'pass.phptx'],
+		[Test::Failed, 'init-fail.phptx'],
+		[Test::Failed, 'runtime-fail.phptx'],
+		[Test::Passed, 'pass.phptx'],
 	], $logger->results);
 });
 
 
-// Stop in initial phase
-test(function () use ($interpreter) {
+test('Stop in initial phase', function () use ($interpreter) {
 	$runner = new Runner($interpreter);
 	$runner->outputHandlers[] = $logger = new Logger;
 	$runner->stopOnFail = true;
@@ -73,13 +71,12 @@ test(function () use ($interpreter) {
 
 	Assert::false($runner->run());
 	Assert::same([
-		[Test::FAILED, 'init-fail.phptx'],
+		[Test::Failed, 'init-fail.phptx'],
 	], $logger->results);
 });
 
 
-// Stop in run-time
-test(function () use ($interpreter) {
+test('Stop in run-time', function () use ($interpreter) {
 	$runner = new Runner($interpreter);
 	$runner->outputHandlers[] = $logger = new Logger;
 	$runner->stopOnFail = true;
@@ -90,6 +87,6 @@ test(function () use ($interpreter) {
 
 	Assert::false($runner->run());
 	Assert::same([
-		[Test::FAILED, 'runtime-fail.phptx'],
+		[Test::Failed, 'runtime-fail.phptx'],
 	], $logger->results);
 });

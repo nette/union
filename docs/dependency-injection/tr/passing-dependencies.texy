@@ -1,0 +1,217 @@
+Bağımlılıkları Geçme
+********************
+
+<div class=perex>
+
+Argümanlar veya DI terminolojisinde "bağımlılıklar" sınıflara aşağıdaki ana yollarla aktarılabilir:
+
+* kurucu tarafından geçiş
+* yöntemle geçiş (setter olarak adlandırılır)
+* bir özellik ayarlayarak
+* yöntem, ek açıklama veya öznitelik ile *enjekte*
+
+</div>
+
+Şimdi farklı varyantları somut örneklerle açıklayacağız.
+
+
+Kurucu Enjeksiyonu .[#toc-constructor-injection]
+================================================
+
+Nesne oluşturulduğunda bağımlılıklar yapıcıya argüman olarak aktarılır:
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+$obj = new MyClass($cache);
+```
+
+Bu form, sınıfın çalışması için kesinlikle ihtiyaç duyduğu zorunlu bağımlılıklar için kullanışlıdır, çünkü bunlar olmadan örnek oluşturulamaz.
+
+PHP 8.0'dan beri, işlevsel olarak eşdeğer olan daha kısa bir gösterim biçimi kullanabiliriz ([constructor property promotion |https://blog.nette.org/tr/php-8-0-haberlere-genel-bakis#toc-constructor-property-promotion]):
+
+```php
+// PHP 8.0
+class MyClass
+{
+	public function __construct(
+		private Cache $cache,
+	) {
+	}
+}
+```
+
+PHP 8.1'den itibaren bir özellik, içeriğinin değişmeyeceğini bildiren `readonly` bayrağı ile işaretlenebilir:
+
+```php
+// PHP 8.1
+class MyClass
+{
+	public function __construct(
+		private readonly Cache $cache,
+	) {
+	}
+}
+```
+
+DI konteyneri, [otomatik |autowiring] bağlantı kullanarak bağımlılıkları otomatik olarak kurucuya geçirir. Bu şekilde aktarılamayan bağımsız değişkenler (örn. dizeler, sayılar, booleanlar) [yapılandırmada yazılır |services#Arguments].
+
+
+İnşaatçı Cehennemi .[#toc-constructor-hell]
+-------------------------------------------
+
+*İnşaatçı cehennemi* terimi, bir çocuğun yapıcısı bağımlılıklar gerektiren bir ana sınıftan miras aldığı ve çocuğun da bağımlılıklara ihtiyaç duyduğu bir durumu ifade eder. Ayrıca ebeveynin bağımlılıklarını da devralmalı ve aktarmalıdır:
+
+```php
+abstract class BaseClass
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+final class MyClass extends BaseClass
+{
+	private Database $db;
+
+	// ⛔ CONSTRUCTOR HELL
+	public function __construct(Cache $cache, Database $db)
+	{
+		parent::__construct($cache);
+		$this->db = $db;
+	}
+}
+```
+
+Sorun, `BaseClass` sınıfının kurucusunu değiştirmek istediğimizde, örneğin yeni bir bağımlılık eklendiğinde ortaya çıkar. O zaman tüm alt sınıfların kurucularını da değiştirmemiz gerekir. Bu da böyle bir değişikliği cehenneme çevirir.
+
+Bu nasıl önlenebilir? Çözüm **kalıtım yerine bileşime öncelik vermektir**.
+
+Öyleyse kodu farklı bir şekilde tasarlayalım. Soyut `Base*` sınıflarından kaçınacağız. `MyClass` , `BaseClass`'dan miras alarak bazı işlevler elde etmek yerine, bu işlevleri bir bağımlılık olarak aktaracaktır:
+
+```php
+final class SomeFunctionality
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+final class MyClass
+{
+	private SomeFunctionality $sf;
+	private Database $db;
+
+	public function __construct(SomeFunctionality $sf, Database $db) // ✅
+	{
+		$this->sf = $sf;
+		$this->db = $db;
+	}
+}
+```
+
+
+Ayarlayıcı Enjeksiyonu .[#toc-setter-injection]
+===============================================
+
+Bağımlılıklar, onları özel bir özellikte saklayan bir yöntem çağrılarak aktarılır. Bu yöntemler için olağan adlandırma kuralı `set*()` şeklindedir, bu nedenle ayarlayıcılar olarak adlandırılırlar, ancak elbette başka herhangi bir şekilde adlandırılabilirler.
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function setCache(Cache $cache): void
+	{
+		$this->cache = $cache;
+	}
+}
+
+$obj = new MyClass;
+$obj->setCache($cache);
+```
+
+Bu yöntem, nesnenin bunları gerçekten alacağı (yani kullanıcının yöntemi çağıracağı) garanti edilmediğinden, sınıf işlevi için gerekli olmayan isteğe bağlı bağımlılıklar için kullanışlıdır.
+
+Aynı zamanda, bu yöntem bağımlılığı değiştirmek için setter'ın tekrar tekrar çağrılmasına izin verir. Bu istenmiyorsa, yönteme bir kontrol ekleyin veya PHP 8.1'den itibaren `$cache` özelliğini `readonly` bayrağı ile işaretleyin.
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function setCache(Cache $cache): void
+	{
+		if ($this->cache) {
+			throw new RuntimeException('The dependency has already been set');
+		}
+		$this->cache = $cache;
+	}
+}
+```
+
+Setter çağrısı, [kurulum bölümündeki |services#Setup] DI konteyner yapılandırmasında tanımlanır. Ayrıca burada bağımlılıkların otomatik geçişi autowiring tarafından kullanılır:
+
+```neon
+services:
+	-
+		create: MyClass
+		setup:
+			- setCache
+```
+
+
+Mülkiyet Enjeksiyonu .[#toc-property-injection]
+===============================================
+
+Bağımlılıklar doğrudan özelliğe aktarılır:
+
+```php
+class MyClass
+{
+	public Cache $cache;
+}
+
+$obj = new MyClass;
+$obj->cache = $cache;
+```
+
+Bu yöntemin uygun olmadığı düşünülmektedir, çünkü özellik `public` olarak bildirilmelidir. Bu nedenle, aktarılan bağımlılığın gerçekten belirtilen türde olup olmayacağı üzerinde hiçbir kontrolümüz yoktur (bu PHP 7.4'ten önce doğruydu) ve yeni atanan bağımlılığa kendi kodumuzla tepki verme yeteneğimizi kaybederiz, örneğin sonraki değişiklikleri önlemek için. Aynı zamanda, özellik sınıfın genel arayüzünün bir parçası haline gelir ki bu da arzu edilen bir durum olmayabilir.
+
+Değişkenin ayarı, [kurulum bölümündeki |services#Setup] DI konteyner yapılandırmasında tanımlanır:
+
+```neon
+services:
+	-
+		create: MyClass
+		setup:
+			- $cache = @\Cache
+```
+
+
+Enjeksiyon .[#toc-inject]
+=========================
+
+Önceki üç yöntem genel olarak tüm nesne yönelimli dillerde geçerli olsa da, yöntem, ek açıklama veya *inject* niteliği ile enjekte etme Nette sunucularına özgüdür. Bunlar [ayrı bir bölümde |best-practices:inject-method-attribute] ele alınmaktadır.
+
+
+Hangi Yolu Seçmeli? .[#toc-which-way-to-choose]
+===============================================
+
+- yapıcı, sınıfın çalışması için gereken zorunlu bağımlılıklar için uygundur
+- setter ise isteğe bağlı bağımlılıklar veya değiştirilebilen bağımlılıklar için uygundur
+- genel değişkenler önerilmez

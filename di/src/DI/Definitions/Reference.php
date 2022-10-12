@@ -24,13 +24,12 @@ final class Reference
 	/** @deprecated use Reference::Self */
 	public const SELF = self::Self;
 
-	/** @var string */
-	private $value;
+	private string $value;
 
 
-	public static function fromType(string $value): self
+	public static function fromType(string $value): static
 	{
-		if (strpos($value, '\\') === false) {
+		if (!str_contains($value, '\\')) {
 			$value = '\\' . $value;
 		}
 
@@ -52,13 +51,13 @@ final class Reference
 
 	public function isName(): bool
 	{
-		return strpos($this->value, '\\') === false && $this->value !== self::Self;
+		return !str_contains($this->value, '\\') && $this->value !== self::Self;
 	}
 
 
 	public function isType(): bool
 	{
-		return strpos($this->value, '\\') !== false;
+		return str_contains($this->value, '\\');
 	}
 
 

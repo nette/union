@@ -1,12 +1,21 @@
+Introduction
+************
 - [Why Use Nette?|www:10-reasons-why-nette]
-- [Create Your First Application! |quickstart:getting-started]
-- [Packages & Installation |www:packages]
+- [Installation |nette:installation]
+- [Create Your First Application! |quickstart:]
+
+
+General Topics
+**************
+- [List of Packages |www:packages]
 - [Maintenance and PHP |www:maintenance]
 - [Release Notes |https://nette.org/releases]
 - [Upgrade Guide |migrations:]
 - [nette:Troubleshooting]
 - [Who Creates Nette |https://nette.org/contributors]
-- [Get Involved |contributing:code]
+- [History of Nette |history]
+- [Get Involved |contributing:]
+- [Sponsor development |https://nette.org/en/donate]
 - [API Reference |https://api.nette.org]
 - [Best Practices |best-practices:]
 

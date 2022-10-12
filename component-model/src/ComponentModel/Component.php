@@ -24,14 +24,12 @@ abstract class Component implements IComponent
 {
 	use Nette\SmartObject;
 
-	/** @var IContainer|null */
-	private $parent;
+	private ?IContainer $parent = null;
 
-	/** @var string|null */
-	private $name;
+	private ?string $name = null;
 
 	/** @var array<string, array{?IComponent, ?int, ?string, array<int, array{?callable, ?callable}>}> means [type => [obj, depth, path, [attached, detached]]] */
-	private $monitors = [];
+	private array $monitors = [];
 
 
 	/**
@@ -93,11 +91,6 @@ abstract class Component implements IComponent
 	 */
 	final public function monitor(string $type, ?callable $attached = null, ?callable $detached = null): void
 	{
-		if (func_num_args() === 1) {
-			$attached = [$this, 'attached'];
-			$detached = [$this, 'detached'];
-		}
-
 		if (
 			($obj = $this->lookup($type, false))
 			&& $attached
@@ -124,7 +117,7 @@ abstract class Component implements IComponent
 	 * becomes attached to a monitored object. Do not call this method yourself.
 	 * @deprecated  use monitor($type, $attached)
 	 */
-	protected function attached(IComponent $obj): void
+	final protected function attached(IComponent $obj): void
 	{
 	}
 
@@ -134,7 +127,7 @@ abstract class Component implements IComponent
 	 * becomes detached from a monitored object. Do not call this method yourself.
 	 * @deprecated  use monitor($type, null, $detached)
 	 */
-	protected function detached(IComponent $obj): void
+	final protected function detached(IComponent $obj): void
 	{
 	}
 
@@ -160,11 +153,10 @@ abstract class Component implements IComponent
 	/**
 	 * Sets or removes the parent of this component. This method is managed by containers and should
 	 * not be called by applications
-	 * @return static
 	 * @throws Nette\InvalidStateException
 	 * @internal
 	 */
-	public function setParent(?IContainer $parent, ?string $name = null)
+	public function setParent(?IContainer $parent, ?string $name = null): static
 	{
 		if ($parent === null && $this->parent === null && $name !== null) {
 			$this->name = $name; // just rename

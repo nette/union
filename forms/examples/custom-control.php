@@ -18,12 +18,11 @@ use Nette\Utils\Html;
 
 class DateInput extends Nette\Forms\Controls\BaseControl
 {
-	/** @var string */
-	private $day = '';
+	private string $day = '';
 
-	private $month = '';
+	private string $month = '';
 
-	private $year = '';
+	private string $year = '';
 
 
 	public function __construct($label = null)
@@ -63,9 +62,9 @@ class DateInput extends Nette\Forms\Controls\BaseControl
 
 	public function loadHttpData(): void
 	{
-		$this->day = $this->getHttpData(Form::DATA_LINE, '[day]');
-		$this->month = $this->getHttpData(Form::DATA_LINE, '[month]');
-		$this->year = $this->getHttpData(Form::DATA_LINE, '[year]');
+		$this->day = $this->getHttpData(Form::DataLine, '[day]');
+		$this->month = $this->getHttpData(Form::DataLine, '[month]');
+		$this->year = $this->getHttpData(Form::DataLine, '[year]');
 	}
 
 
@@ -88,7 +87,7 @@ class DateInput extends Nette\Forms\Controls\BaseControl
 			. Helpers::createSelectBox(
 				[1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
 				[],
-				$this->month
+				$this->month,
 			)->name($name . '[month]')
 
 			. Html::el('input', [

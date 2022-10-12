@@ -52,7 +52,6 @@ Vrátí následující výsledek:
  */
 final class Demo extends ParentClass implements Countable
 {
-	use Nette\SmartObject;
 }
 ```
 
@@ -68,6 +67,7 @@ Můžeme přidat konstanty (třída [Constant |api:Nette\PhpGenerator\Constant])
 ```php
 $class->addConstant('ID', 123)
 	->setProtected() // viditelnost konstant
+	->setType('int')
 	->setFinal();
 
 $class->addProperty('items', [1, 2, 3])
@@ -83,7 +83,7 @@ $class->addProperty('list')
 Vygeneruje:
 
 ```php
-final protected const ID = 123;
+final protected const int ID = 123;
 
 /** @var int[] */
 private static $items = [1, 2, 3];
@@ -118,7 +118,7 @@ final protected function count(array &$items = []): ?int
 }
 ```
 
-Propagované parametry zavedené PHP 8.0 lze předat konstruktoru (od verze 3.5):
+Propagované parametry zavedené PHP 8.0 lze předat konstruktoru:
 
 ```php
 $method = $class->addMethod('__construct');
@@ -137,7 +137,7 @@ public function __construct(
 }
 ```
 
-Vlastnosti určené pouze pro čtení zavedené v PHP 8.1 lze označit pomocí funkce `setReadOnly()`.
+Vlastnosti a třídy určené pouze pro čtení lze označit pomocí funkce `setReadOnly()`.
 
 ------
 
@@ -170,7 +170,7 @@ $class->addMember($methodRecount);
 Interface nebo traita
 ---------------------
 
-Lze vytvářet rozhraní a traity:
+Můžete vytvářet rozhraní a traity (třídy [InterfaceType |api:Nette\PhpGenerator\InterfaceType] a [TraitType |api:Nette\PhpGenerator\TraitType]):
 
 ```php
 $interface = new Nette\PhpGenerator\InterfaceType('MyInterface');
@@ -194,6 +194,7 @@ Výsledek:
 class Demo
 {
 	use SmartObject;
+	/** @use MyTrait<Foo> */
 	use MyTrait {
 		sayHello as protected;
 	}
@@ -201,10 +202,10 @@ class Demo
 ```
 
 
-Enums .{data-version:v3.6}
---------------------------
+Enums
+-----
 
-Výčty, které přináší PHP 8.1, můžete snadno vytvořit takto:
+Výčty, které přináší PHP 8.1, můžete snadno vytvořit takto: (třída [EnumType |api:Nette\PhpGenerator\EnumType]):
 
 ```php
 $enum = new Nette\PhpGenerator\EnumType('Suit');
@@ -438,7 +439,7 @@ function foo()
 }
 ```
 
-Můžete také použít pojmenované parametry pro PHP 8 pomocí  `...?: `(od verze 3.5)
+Můžete také použít pojmenované parametry pro PHP 8 pomocí  `...?:`
 
 ```php
 $items = ['foo' => 1, 'bar' => true];
@@ -489,6 +490,8 @@ class MyPrinter extends Nette\PhpGenerator\Printer
 	public string $indentation = "\t";
 	public int $linesBetweenProperties = 0;
 	public int $linesBetweenMethods = 2;
+	public int $linesBetweenUseTypes = 0;
+	public bool $bracesOnNextLine = true;
 	public string $returnTypeColon = ': ';
 }
 ```
@@ -502,7 +505,7 @@ Každý typ nebo union/intersection typ lze předat jako řetězec, můžete tak
 ```php
 use Nette\PhpGenerator\Type;
 
-$member->setType('array'); // nebo Type::ARRAY;
+$member->setType('array'); // nebo Type::Array;
 $member->setType('array|string'); // nebo Type::union('array', 'string')
 $member->setType('Foo&Bar'); // nebo Type::intersection(Foo::class, Bar::class)
 $member->setType(null); // odstraní typ
@@ -550,8 +553,8 @@ new Literal('substr(?, ?)', [$a, $b]);
 ```
 
 
-Atributy .{data-version:v3.5}
------------------------------
+Atributy
+--------
 
 PHP 8 atributy můžete přidat do všech tříd, metod, vlastností, konstant, enumů, funkcí, closures a parametrů. Jako hodnoty parametrů lze používat i [#literály].
 
@@ -624,14 +627,14 @@ Chcete-li zjednodušit plně kvalifikovaný název třídy, funkce nebo konstant
 
 ```php
 echo $namespace->simplifyName('Foo\Bar'); // 'Bar', protože 'Foo' je aktuální jmenný prostor
-echo $namespace->simplifyName('iter\range', $namespace::NAME_FUNCTION); // 'range', kvůli definovanému use-statement
+echo $namespace->simplifyName('iter\range', $namespace::NameFunction); // 'range', kvůli definovanému use-statement
 ```
 
 Zjednodušený název třídy, funkce nebo konstanty můžete naopak převést na plně kvalifikovaný název pomocí metody `resolveName`:
 
 ```php
 echo $namespace->resolveName('Bar'); // 'Foo\Bar'
-echo $namespace->resolveName('range', $namespace::NAME_FUNCTION); // 'iter\range'
+echo $namespace->resolveName('range', $namespace::NameFunction); // 'iter\range'
 ```
 
 
@@ -640,8 +643,7 @@ Překlady názvů tříd
 
 **Když je třída součástí jmenného prostoru, je vykreslena mírně odlišně:** všechny typy (například typehinty, návratové typy, název rodičovské třídy,
 implementovaná rozhraní, použité vlastnosti a atributy) jsou automaticky *překládány* (pokud to nevypnete, viz níže).
-To znamená, že musíte v definicích **používat úplné názvy tříd** a ty budou nahrazeny
-za aliasy (podle klauzulí use) nebo za plně kvalifikovaná jména ve výsledném kódu:
+To znamená, že musíte v definicích **používat úplné názvy tříd** a ty budou nahrazeny za aliasy (podle klauzulí use) nebo za plně kvalifikovaná jména ve výsledném kódu:
 
 ```php
 $namespace = new Nette\PhpGenerator\PhpNamespace('Foo');
@@ -652,7 +654,7 @@ $class->addImplement('Foo\A') // bude zjednodušen na A
 	->addTrait('Bar\AliasedClass'); // bude zjednodušen na AliasedClass
 
 $method = $class->addMethod('method');
-$method->addComment('@return ' . $namespace->simplifyName('Foo\D')); // v komentářích zjednodušíme manuálně
+$method->addComment('@return ' . $namespace->simplifyType('Foo\D')); // v komentářích zjednodušíme manuálně
 $method->addParameter('arg')
 	->setType('Bar\OtherClass'); // bude přeložen na \Bar\OtherClass
 
@@ -752,13 +754,12 @@ $function = Nette\PhpGenerator\GlobalFunction::from('trim');
 
 // vytvoří closure podle uvedené
 $closure = Nette\PhpGenerator\Closure::from(
-	function (stdClass $a, $b = null) {}
+	function (stdClass $a, $b = null) {},
 );
 ```
 
-.{data-version:v3.4}
 Těla funkcí a metod jsou ve výchozím stavu prázdná. Pokud je chcete také načíst, použijte tento způsob
-(vyžaduje instalaci balíčku `nikic/php-parser` a PhpGenerator verze 3.4):
+(vyžaduje instalaci balíčku `nikic/php-parser`):
 
 ```php
 $class = Nette\PhpGenerator\ClassType::from(Foo::class, withBodies: true);
@@ -767,10 +768,10 @@ $function = Nette\PhpGenerator\GlobalFunction::from('foo', withBody: true);
 ```
 
 
-Načítání z PHP souborů .{data-version:v3.6.1}
----------------------------------------------
+Načítání z PHP souborů
+----------------------
 
-Třídy nebo funkce můžete také načíst přímo ze souboru PHP, který ještě není inkludován, nebo z řetězce obsahujícího PHP kód:
+Funkce, třídy, rozhraní a enumy můžete načítat také přímo z řetězce obsahujícího PHP kód. Například takto vytvoříme objekt `ClassType`:
 
 ```php
 $class = Nette\PhpGenerator\ClassType::fromCode(<<<XX
@@ -783,13 +784,20 @@ $class = Nette\PhpGenerator\ClassType::fromCode(<<<XX
 	XX);
 ```
 
-Načtení celého souboru PHP, který může obsahovat více tříd nebo dokonce více jmenných prostorů:
+Při načítání tříd z kódu PHP jsou jednořádkové komentáře mimo těla metod ignorovány (např. u properties atd.), protože tato knihovna nemá API pro práci s nimi.
+
+Můžete také načíst přímo celý soubor PHP, který může obsahovat libovolný počet tříd, funkcí nebo dokonce jmenných prostorů:
 
 ```php
 $file = Nette\PhpGenerator\PhpFile::fromCode(file_get_contents('classes.php'));
 ```
 
-Vyžaduje, aby byl nainstalován `nikic/php-parser`.
+Načte se také úvodní komentář k souboru a deklarace `strict_types`. Naopak veškerý ostatní globální kód je ignorován.
+
+Vyžaduje se, aby byl nainstalován `nikic/php-parser`.
+
+.[note]
+Pokud potřebujete manipulovat s globálním kódem v souborech nebo s jednotlivými příkazy v tělech metod, je lepší použít přímo knihovnu `nikic/php-parser`.
 
 
 Výpis proměnných
@@ -809,13 +817,7 @@ echo $dumper->dump($var); // vypíše ['a', 'b', 123]
 Tabulka kompatibility
 ---------------------
 
-PhpGenerator 4.0 je kompatibilní s PHP 8.0 až 8.1
-PhpGenerator 3.6 je kompatibilní s PHP 7.2 až 8.1
-PhpGenerator 3.2 – 3.5 je kompatibilní s PHP 7.1 až 8.0
-PhpGenerator 3.1 je kompatibilní s PHP 7.1 až 7.3
-PhpGenerator 3.0 je kompatibilní s PHP 7.0 až 7.3
-PhpGenerator 2.6 je kompatibilní s PHP 5.6 až 7.3
+PhpGenerator 4.0 je kompatibilní s PHP 8.0 až 8.2
 
 
-{{composer: nette/php-generator}}
 {{leftbar: nette:@menu-topics}}

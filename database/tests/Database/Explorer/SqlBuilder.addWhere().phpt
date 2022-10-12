@@ -80,7 +80,7 @@ test('test more ActiveRow as a parameter', function () use ($explorer) {
 test('test Selection with parameters as a parameter', function () use ($explorer) {
 	$sqlBuilder = new SqlBuilder('book', $explorer);
 	$sqlBuilder->addWhere('id', $explorer->table('book')->having('COUNT(:book_tag.tag_id) >', 1));
-	$schemaSupported = $explorer->getConnection()->getDriver()->isSupported(Driver::SUPPORT_SCHEMA);
+	$schemaSupported = $explorer->getConnection()->getDriver()->isSupported(Driver::SupportSchema);
 	Assert::equal(reformat([
 		'mysql' => 'SELECT * FROM `book` WHERE (`id` IN (?))',
 		'SELECT * FROM [book] WHERE ([id] IN (SELECT [id] FROM [book] LEFT JOIN ' . ($schemaSupported ? '[public].[book_tag] ' : '') . '[book_tag] ON [book].[id] = [book_tag].[book_id] HAVING COUNT([book_tag].[tag_id]) > ?))',
@@ -203,7 +203,7 @@ test('tests operator suffix', function () use ($explorer) {
 test('', function () use ($explorer) {
 	$books = $explorer->table('book')->where(
 		'id',
-		$explorer->table('book_tag')->select('book_id')->where('tag_id', 21)
+		$explorer->table('book_tag')->select('book_id')->where('tag_id', 21),
 	);
 	Assert::same(3, $books->count());
 });
@@ -212,7 +212,7 @@ test('', function () use ($explorer) {
 Assert::exception(function () use ($explorer) {
 	$explorer->table('book')->where(
 		'id',
-		$explorer->table('book_tag')->where('tag_id', 21)
+		$explorer->table('book_tag')->where('tag_id', 21),
 	);
 }, Nette\InvalidArgumentException::class, 'Selection argument must have defined a select column.');
 
@@ -272,7 +272,7 @@ test('', function () use ($driverName, $explorer, $connection, $structure) {
 	$e = Assert::exception(function () use ($dao) {
 		$books = $dao->table('book')->where(
 			'id',
-			$dao->table('book_tag')->where('tag_id', 21)
+			$dao->table('book_tag')->where('tag_id', 21),
 		);
 		$books->fetch();
 	}, Nette\InvalidArgumentException::class, 'Selection argument must have defined a select column.');

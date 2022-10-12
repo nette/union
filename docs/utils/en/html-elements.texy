@@ -4,6 +4,7 @@ HTML Elements
 .[perex]
 The [api:Nette\Utils\Html] class is a helper for generating HTML code that prevents Cross Site Scripting (XSS) vulnerability.
 
+
 It works in such a way that its objects represent HTML elements, we set their parameters and let them render:
 
 ```php
@@ -298,18 +299,9 @@ echo Html::el('div')
 // <div title='" onmouseover="bad()'>&lt;script&gt;bad()&lt;/script&gt;</div>
 ```
 
-The output can be switched to XHTML by setting the static variable `Html::$xhtml` to true:
 
-```php
-$el = Html::el('input')->disabled(true);
-echo $el; // '<input disabled>'
-Html::$xhtml = true;
-echo $el; // '<input disabled="disabled" />'
-```
-
-
-Conversion HTML ↔ text .{data-version:v3.1}
-===========================================
+Conversion HTML ↔ Text
+======================
 
 You can use the static method `htmlToText()` to convert HTML to text:
 
@@ -321,9 +313,4 @@ echo Html::htmlToText('<span>One &amp; Two</span>'); // 'One & Two'
 HtmlStringable
 ==============
 
-The `Nette\Utils\Html` object implements the [api:Nette\HtmlStringable] interface, which, for example, Latte or forms use to distinguish objects that have a method `__toString()` that returns HTML code. So double escaping does not occur if, for example, we print the object in the template using `{$el}`.
-
-In nette/utils before version 3.2 the interface was named `Nette\Utils\IHtmlString`.
-
-
-{{composer: nette/utils}}
+The `Nette\Utils\Html` object implements the `Nette\HtmlStringable` interface, which, for example, Latte or forms use to distinguish objects that have a method `__toString()` that returns HTML code. So double escaping does not occur if, for example, we print the object in the template using `{$el}`.

@@ -21,14 +21,11 @@ class ContainerPanel implements Tracy\IBarPanel
 {
 	use Nette\SmartObject;
 
-	/** @var float|null */
-	public static $compilationTime;
+	public static ?float $compilationTime = null;
 
-	/** @var Nette\DI\Container */
-	private $container;
+	private Nette\DI\Container $container;
 
-	/** @var float|null */
-	private $elapsedTime;
+	private ?float $elapsedTime;
 
 
 	public function __construct(Container $container)
@@ -62,7 +59,7 @@ class ContainerPanel implements Tracy\IBarPanel
 		$types = [];
 		foreach ($rc->getMethods() as $method) {
 			if (preg_match('#^createService(.+)#', $method->name, $m) && $method->getReturnType()) {
-				$types[lcfirst(str_replace('__', '.', $m[1]))] = $method->getReturnType()->getName();
+				$types[lcfirst(str_replace('__', '.', $m[1]))] = (string) $method->getReturnType();
 			}
 		}
 

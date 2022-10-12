@@ -1,7 +1,5 @@
 <?php
 
-/** @phpVersion 7.2 */
-
 declare(strict_types=1);
 
 use Nette\Neon;
@@ -51,7 +49,7 @@ $node = $parser->parse($stream);
 
 Assert::matchFile(
 	__DIR__ . '/fixtures/Parser.nodes.neon',
-	$node->toString()
+	$node->toString(),
 );
 
 $traverser = new Traverser;
@@ -66,5 +64,5 @@ $traverser->traverse($node, function (Node $node) use ($stream) {
 
 Assert::matchFile(
 	__DIR__ . '/fixtures/Parser.nodes.txt',
-	Dumper::toText($node, [Dumper::HASH => false, Dumper::DEPTH => 20])
+	Dumper::toText($node, [Dumper::HASH => false, Dumper::DEPTH => 20]),
 );

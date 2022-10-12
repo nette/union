@@ -20,14 +20,10 @@ final class AnyOf implements Schema
 	use Base;
 	use Nette\SmartObject;
 
-	/** @var array */
-	private $set;
+	private array $set;
 
 
-	/**
-	 * @param  mixed|Schema  ...$set
-	 */
-	public function __construct(...$set)
+	public function __construct(mixed ...$set)
 	{
 		if (!$set) {
 			throw new Nette\InvalidStateException('The enumeration must not be empty.');
@@ -61,13 +57,13 @@ final class AnyOf implements Schema
 	/********************* processing ****************d*g**/
 
 
-	public function normalize($value, Context $context)
+	public function normalize(mixed $value, Context $context): mixed
 	{
 		return $this->doNormalize($value, $context);
 	}
 
 
-	public function merge($value, $base)
+	public function merge($value, $base): mixed
 	{
 		if (is_array($value) && isset($value[Helpers::PreventMerging])) {
 			unset($value[Helpers::PreventMerging]);
@@ -78,7 +74,7 @@ final class AnyOf implements Schema
 	}
 
 
-	public function complete($value, Context $context)
+	public function complete(mixed $value, Context $context): mixed
 	{
 		$expecteds = $innerErrors = [];
 		foreach ($this->set as $item) {
@@ -116,18 +112,20 @@ final class AnyOf implements Schema
 				[
 					'value' => $value,
 					'expected' => implode('|', array_unique($expecteds)),
-				]
+				],
 			);
 		}
+
+		return null;
 	}
 
 
-	public function completeDefault(Context $context)
+	public function completeDefault(Context $context): mixed
 	{
 		if ($this->required) {
 			$context->addError(
 				'The mandatory item %path% is missing.',
-				Nette\Schema\Message::MissingItem
+				Nette\Schema\Message::MissingItem,
 			);
 			return null;
 		}

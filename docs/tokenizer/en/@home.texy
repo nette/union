@@ -2,9 +2,7 @@ Tokenizer: String Tokenization
 ******************************
 
 .[perex]
-Tokenizer is a simple tool that uses regular expressions to split given string into tokens. What the hell is that good for, you might ask? Well, you can create your own languages.
-
-*(For more experienced programmers)*
+Tokenizer is a simple tool that uses regular expressions to split given string into tokens. **This library is no longer being developed.**
 
 Installation:
 
@@ -13,7 +11,7 @@ composer require nette/tokenizer
 ```
 
 
-String tokenization
+String Tokenization
 -------------------
 
 Let's create a simple tokenizer that separates strings to numbers, whitespaces, and letters.
@@ -56,7 +54,7 @@ $firstToken->offset; // position in string: 0
 Simple, isn't it?
 
 
-Processing the tokens
+Processing the Tokens
 ---------------------
 
 Now we know how to create tokens from a string. Let's effectively process them using [Stream |api:Nette\Tokenizer\Stream]. It has a lot of really awesome methods if you need to traverse tokens!
@@ -91,11 +89,8 @@ class Parser
 	const T_WHITESPACE = 2;
 	const T_STRING = 3;
 
-	/** @var Tokenizer */
-	private $tokenizer;
-
-	/** @var Stream */
-	private $stream;
+	private Tokenizer $tokenizer;
+	private Stream $stream;
 
 	public function __construct()
 	{
@@ -159,7 +154,7 @@ array (2)
 ```
 
 
-Stream methods
+Stream Methods
 --------------
 
 The stream can return current token using method `currentToken()` or only it's value using `currentValue()`.
@@ -207,5 +202,4 @@ $stream->isCurrent(T_AT, '@');
 And the last method `reset()` resets the cursor, so you can iterate the token stream again.
 
 
-{{composer: nette/tokenizer}}
 {{leftbar: utils:@left-menu}}

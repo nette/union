@@ -35,7 +35,7 @@ $ mv ./composer.phar ~/bin/composer # or /usr/local/bin/composer
 ```
 
 
-Use in project
+Use in Project
 ==============
 
 To start using Composer in your project, all you need is a `composer.json` file. This file describes the dependencies of your project and may contain other metadata as well. The simplest `composer.json` can look like this:
@@ -67,8 +67,8 @@ $db = new Nette\Database\Connection('sqlite::memory:');
 ```
 
 
-Update to the latest Version
-============================
+Update Packages to the Latest Versions
+======================================
 
 To update all used packages to the latest version according to version constraints defined in `composer.json` use command `composer update`. For example for dependency `"nette/database": "^3.0"` it will install the latest version 3.x.x, but not version 4.
 
@@ -98,24 +98,56 @@ composer create-project nette/web-project name-of-the-project
 
 Instead the `name-of-the-project` you should provide the name of the directory for your project and execute the command. Composer will fetch the `nette/web-project` repository from GitHub, which already contains the `composer.json` file, and right after that install the Nette Framework itself. The only thing which remains is to [check write permissions |nette:troubleshooting#setting-directory-permissions] on directories `temp/` and `log/` and you're ready to go.
 
+If you know what version of PHP the project will be hosted on, be sure to [set it up |#PHP Version].
+
 
 PHP Version
 ===========
 
-Composer always installs those versions of packages that are compatible with the version of PHP you are currently using. Which, of course, may not be the same version as PHP on your web host. Therefore, it is useful to add information about the PHP version on the host to the `composer.json` file, and then only versions of packages compatible with host will be installed:
+Composer always installs the versions of packages that are compatible with the version of PHP you are currently using (or rather, the version of PHP used on the command line when you run Composer). Which is probably not the same version your web host is using. That's why it's very important to add information about the PHP version on your hosting to your `composer.json` file. After that, only versions of packages compatible with the host will be installed.
+
+For example, to set the project to run on PHP 8.2.3, use the command:
+
+```shell
+composer config platform.php 8.2.3
+```
+
+This is how the version is written to the `composer.json` file:
 
 ```js
 {
-	"require": {
-		...
-	},
 	"config": {
 		"platform": {
-			"php": "7.2"   # PHP version on host
+			"php": "8.2.3"
 		}
 	}
 }
 ```
+
+However, the PHP version number is also listed elsewhere in the file, in the `require` section. While the first number specifies the version for which packages will be installed, the second number tells what version the application itself is written for.
+(Of course, it doesn't make sense for these versions to be different, so double entry is a redundancy.) You set this version with the command:
+
+```shell
+composer require php 8.2.3 --no-update
+```
+
+Or directly in the `composer.json` file:
+
+```js
+{
+	"require": {
+		"php": "8.2.3"
+	}
+}
+```
+
+
+False Reports
+=============
+
+When upgrading packages or changing version numbers, conflicts happen. One package has requirements that conflict with another and so on. However, Composer occasionally prints a false messages. It reports a conflict that doesn't really exist. In this case, it helps to delete the `composer.lock` file and try again.
+
+If the error message persists, then it is meant seriously and you need to read from it what to modify and how.
 
 
 Packagist.org - Global Repository
@@ -124,7 +156,7 @@ Packagist.org - Global Repository
 [Packagist |https://packagist.org] is the main package repository, in which Composer tries to search packages, if not told otherwise. You can also publish your own packages here.
 
 
-What If We Don't Want the Central Repository
+What If We Don’t Want the Central Repository
 --------------------------------------------
 
 If we have internal applications or libraries in our company, which cannot be hosted publicly on Packagist, we can create our own repositories for those project.
@@ -166,6 +198,40 @@ The second option is to follow [PSR-4 |https://www.php-fig.org/psr/psr-4/]. Simp
 See [Composer Documentation |https://getcomposer.org/doc/04-schema.md#psr-4] for exactly how to configure this behavior.
 
 
+Testing New Versions
+====================
+
+You want to test a new development version of a package. How to do it? First, add this pair of options to the `composer.json` file, which will allow you to install development versions of packages, but will only do so if there is no stable version combination that meets the requirements:
+
+```js
+{
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+}
+```
+
+We also recommend deleting the `composer.lock` file, because sometimes Composer incomprehensibly refuses to install and this will solve the problem.
+
+Let's say the package is `nette/utils` and the new version is 4.0. You install it with the command:
+
+```shell
+composer require nette/utils:4.0.x-dev
+```
+
+Or you can install a specific version, for example 4.0.0-RC2:
+
+```shell
+composer require nette/utils:4.0.0-RC2
+```
+
+If another package depends on the library and is locked to an older version (e.g. `^3.1`), it is ideal to update the package to work with the new version.
+However, if you just want to get around the limitation and force Composer to install the development version and pretend it is an older version (e.g., 3.1.6), you can use the `as` keyword:
+
+```shell
+composer require nette/utils "4.0.x-dev as 3.1.6"
+```
+
+
 Calling Commands
 ================
 
@@ -184,7 +250,7 @@ As an example, we define a script in the `composer.json` file that uses [Nette T
 We then run the tests with `composer tester`. We can call the command even if we are not in the root folder of the project, but in a subdirectory.
 
 
-Send thanks
+Send Thanks
 ===========
 
 We will show you a trick that will make open source authors happy. You can easily give a star on GitHub to the libraries that your project uses. Just install the `symfony/thanks` library:

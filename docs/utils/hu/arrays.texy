@@ -1,0 +1,450 @@
+Tömbfüggvények
+**************
+
+.[perex]
+Ez az oldal a [Nette\Utils\Arrays |#Arrays], [ArrayHash |#ArrayHash] és [ArrayList |#ArrayList] osztályokról szól, amelyek a tömbökkel kapcsolatosak.
+
+
+Telepítés:
+
+```shell
+composer require nette/utils
+```
+
+
+Arrays .[#toc-arrays]
+=====================
+
+[api:Nette\Utils\Arrays] egy statikus osztály, amely egy maroknyi praktikus tömbfüggvényt tartalmaz.
+
+A következő példák feltételezik, hogy a következő osztály alias definiálva van:
+
+```php
+use Nette\Utils\Arrays;
+```
+
+
+contains(array $array, $value): bool .[method]
+----------------------------------------------
+
+Teszteli egy tömböt érték jelenlétére. Szigorú összehasonlítást használ (`===`)
+
+```php
+Arrays::contains([1, 2, 3], 1);    // true
+Arrays::contains(['1', false], 1); // false
+```
+
+
+every(iterable $array, callable $callback): bool .[method]
+----------------------------------------------------------
+
+Megvizsgálja, hogy a tömb minden eleme megfelel-e a megadott függvény által végrehajtott tesztnek, amelynek aláírása `function ($value, $key, array $array): bool`.
+
+```php
+$array = [1, 30, 39, 29, 10, 13];
+$isBelowThreshold = fn($value) => $value < 40;
+$res = Arrays::every($array, $isBelowThreshold); // true
+```
+
+Lásd [some() |#some()].
+
+
+first(array $array): mixed .[method]
+------------------------------------
+
+Visszaadja a tömb első elemét, vagy null, ha a tömb üres. Nem változtatja meg a belső mutatót, ellentétben a `reset()`.
+
+```php
+Arrays::first([1, 2, 3]); // 1
+Arrays::first([]);        // null
+```
+
+
+flatten(array $array, bool $preserveKeys=false): array .[method]
+----------------------------------------------------------------
+
+Többdimenziós tömböt alakít át lapos tömbre.
+
+```php
+$array = Arrays::flatten([1, 2, [3, 4, [5, 6]]]);
+// $array = [1, 2, 3, 4, 5, 6];
+```
+
+
+get(array $array, string|int|array $key, mixed $default=null): mixed .[method]
+------------------------------------------------------------------------------
+
+Visszaadja `$array[$key]` item. Ha nem létezik, akkor a `Nette\InvalidArgumentException` dob, kivéve, ha harmadik argumentumként egy alapértelmezett érték van megadva.
+
+```php
+// ha $array['foo'] nem létezik, kivételt dob
+$value = Arrays::get($array, 'foo');
+
+// ha $array['foo'] nem létezik, 'bar' értéket ad vissza.
+$value = Arrays::get($array, 'foo', 'bar');
+```
+
+A `$key` argumentum lehet egy tömb is.
+
+```php
+$array = ['color' => ['favorite' => 'red'], 5];
+
+$value = Arrays::get($array, ['color', 'favorite']);
+// returns 'red'
+```
+
+
+getRef(array &$array, string|int|array $key): mixed .[method]
+-------------------------------------------------------------
+
+Hivatkozást kap az adott `$array[$key]`. Ha az index nem létezik, új indexet hoz létre a `null` értékkel.
+
+```php
+$valueRef = & Arrays::getRef($array, 'foo');
+// visszaadja a $array['foo'] referenciát
+```
+
+Működik többdimenziós tömbökkel és a [get() |#get()] funkcióval is.
+
+```php
+$value = & Arrays::get($array, ['color', 'favorite']);
+// visszaadja a $array['color']['favorite'] hivatkozást
+```
+
+
+grep(array $array, string $pattern, bool $invert=false): array .[method]
+------------------------------------------------------------------------
+
+Csak azokat a tömbelemeket adja vissza, amelyek megfelelnek egy reguláris kifejezésnek `$pattern`. Ha a `$invert` a `true`, visszaadja azokat az elemeket, amelyek nem egyeznek. Regex fordítási vagy futásidejű hiba esetén a `Nette\RegexpException` dob.
+
+```php
+$filteredArray = Arrays::grep($array, '~^\d+$~');
+// csak numerikus elemeket ad vissza
+```
+
+
+insertAfter(array &$array, string|int|null $key, array $inserted): void .[method]
+---------------------------------------------------------------------------------
+
+Beilleszti a `$inserted` tömb tartalmát a `$array` tömbbe közvetlenül a `$key` után. Ha a `$key` a `null` (vagy nem létezik), akkor a tömb végére kerül.
+
+```php
+$array = ['first' => 10, 'second' => 20];
+Arrays::insertAfter($array, 'first', ['hello' => 'world']);
+// $array = ['first' => 10, 'hello' => 'world', 'second' => 20];
+```
+
+
+insertBefore(array &$array, string|int|null $key, array $inserted): void .[method]
+----------------------------------------------------------------------------------
+
+A `$inserted` tömb tartalmát a `$key` előtt a `$array` tömbbe illeszti be. Ha a `$key` a `null` (vagy nem létezik), akkor az elejére illeszti be.
+
+```php
+$array = ['first' => 10, 'second' => 20];
+Arrays::insertBefore($array, 'first', ['hello' => 'world']);
+// $array = ['hello' => 'world', 'first' => 10, 'second' => 20];
+```
+
+
+invoke(iterable $callbacks, ...$args): array .[method]
+------------------------------------------------------
+
+Meghívja az összes visszahívást, és visszaadja az eredmények tömbjét.
+
+```php
+$callbacks = [
+	'+' => fn($a, $b) => $a + $b,
+	'*' => fn($a, $b) => $a * $b,
+];
+
+$array = Arrays::invoke($callbacks, 5, 11);
+// $array = ['+' => 16, '*' => 55];
+```
+
+
+invokeMethod(iterable $objects, string $method, ...$args): array .[method]
+--------------------------------------------------------------------------
+
+Meghívja a metódust egy tömb minden objektumán, és visszaadja az eredmények tömbjét.
+
+```php
+$objects = ['a' => $obj1, 'b' => $obj2];
+
+$array = Arrays::invokeMethod($objects, 'foo', 1, 2);
+// $array = ['a' => $obj1->foo(1, 2), 'b' => $obj2->foo(1, 2)];
+```
+
+
+isList(array $array): bool .[method]
+------------------------------------
+
+Ellenőrzi, hogy a tömb a numerikus kulcsok nullától növekvő sorrendben indexelt-e, azaz lista.
+
+```php
+Arrays::isList(['a', 'b', 'c']); // true
+Arrays::isList([4 => 1, 2, 3]); // false
+Arrays::isList(['a' => 1, 'b' => 2]); // false
+```
+
+
+last(array $array): mixed .[method]
+-----------------------------------
+
+Visszaadja a tömb utolsó elemét vagy nullát, ha a tömb üres. Nem változtatja meg a belső mutatót, ellentétben a `end()`.
+
+```php
+Arrays::last([1, 2, 3]); // 3
+Arrays::last([]);        // null
+```
+
+
+map(iterable $array, callable $callback): array .[method]
+---------------------------------------------------------
+
+A `$callback` meghívja a tömb összes elemét, és visszaadja a visszatérési értékek tömbjét. A visszahívás aláírása `function ($value, $key, array $array): bool`.
+
+```php
+$array = ['foo', 'bar', 'baz'];
+$res = Arrays::map($array, fn($value) => $value . $value);
+// $res = ['foofoo', 'barbar', 'bazbaz']
+```
+
+
+mergeTree(array $array1, array $array2): array .[method]
+--------------------------------------------------------
+
+Rekurzívan egyesít két mezőt. Hasznos például fa struktúrák összevonására. Úgy viselkedik, mint a `+` operátor a tömbök esetében, azaz a második tömbből hozzáad egy kulcs/érték párt az elsőhöz, és kulcsütközés esetén megtartja az első tömb értékét.
+
+```php
+$array1 = ['color' => ['favorite' => 'red'], 5];
+$array2 = [10, 'color' => ['favorite' => 'green', 'blue']];
+
+$array = Arrays::mergeTree($array1, $array2);
+// $array = ['color' => ['favorite' => 'red', 'blue'], 5];
+```
+
+A második tömb értékei mindig hozzá lesznek csatolva az elsőhöz. A `10` érték eltűnése a második tömbből kissé zavarónak tűnhet. Meg kell jegyezni, hogy ez az érték, valamint a `5` in the first array have the same numeric key `0`, tehát a kapott mezőben csak egy elem van az első tömbből.
+
+
+normalize(array $array, string $filling=null): array .[method]
+--------------------------------------------------------------
+
+Normalizálja a tömböt asszociatív tömbre. A numerikus kulcsokat kicseréli az értékeikkel, az új érték `$filling` lesz.
+
+```php
+$array = Arrays::normalize([1 => 'first', 'a' => 'second']);
+// $array = ['first' => null, 'a' => 'second'];
+```
+
+```php
+$array = Arrays::normalize([1 => 'first', 'a' => 'second'], 'foobar');
+// $array = ['first' => 'foobar', 'a' => 'second'];
+```
+
+
+pick(array &$array, string|int $key, mixed $default=null): mixed .[method]
+--------------------------------------------------------------------------
+
+Visszaadja és eltávolítja egy elem értékét egy tömbből. Ha nem létezik, akkor kivételt dob, vagy visszaadja a `$default`, ha megadva van.
+
+```php
+$array = [1 => 'foo', null => 'bar'];
+$a = Arrays::pick($array, null);
+// $a = 'bar'
+$b = Arrays::pick($array, 'not-exists', 'foobar');
+// $b = 'foobar'
+$c = Arrays::pick($array, 'not-exists');
+// throws Nette\InvalidArgumentException
+```
+
+
+renameKey(array &$array, string|int $oldKey, string|int $newKey): bool .[method]
+--------------------------------------------------------------------------------
+
+Átnevez egy kulcsot. Visszaadja a `true` értéket, ha a kulcs megtalálható a tömbben.
+
+```php
+$array = ['first' => 10, 'second' => 20];
+Arrays::renameKey($array, 'first', 'renamed');
+// $array = ['renamed' => 10, 'second' => 20];
+```
+
+
+getKeyOffset(array $array, string|int $key): ?int .[method]
+-----------------------------------------------------------
+
+Visszaadja a megadott tömbkulcs nulla indexált pozícióját. Visszaadja a `null` értéket, ha a kulcs nem található.
+
+```php
+$array = ['first' => 10, 'second' => 20];
+$position = Arrays::getKeyOffset($array, 'first'); // 0-t ad vissza.
+$position = Arrays::getKeyOffset($array, 'second'); // 1-et ad vissza
+$position = Arrays::getKeyOffset($array, 'not-exists'); // nullát ad vissza
+```
+
+
+some(iterable $array, callable $callback): bool .[method]
+---------------------------------------------------------
+
+Megvizsgálja, hogy a tömb legalább egy eleme átmegy-e a `function ($value, $key, array $array): bool` aláírással ellátott callback által végrehajtott teszten.
+
+```php
+$array = [1, 2, 3, 4];
+$isEven = fn($value) => $value % 2 === 0;
+$res = Arrays::some($array, $isEven); // true
+```
+
+Lásd [every() |#every()].
+
+
+toKey(mixed $key): string|int .[method]
+---------------------------------------
+
+Egy értéket egy tömbkulccsá konvertál, amely vagy egész szám vagy karakterlánc.
+
+```php
+Arrays::toKey('1');  // 1
+Arrays::toKey('01'); // '01'
+```
+
+
+toObject(iterable $array, object $object): object .[method]
+-----------------------------------------------------------
+
+A `$array` tömb elemeit átmásolja a `$object` objektumba, majd visszaadja azt.
+
+```php
+$obj = new stdClass;
+$array = ['foo' => 1, 'bar' => 2];
+Arrays::toObject($array, $obj); // beállítja $obj->foo = 1; $obj->bar = 2;
+```
+
+
+wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
+----------------------------------------------------------------------------
+
+A tömb minden egyes elemét karakterlánccá alakítja, és a `$prefix` és a `$suffix` objektummal körülveszi.
+
+```php
+$array = Arrays::wrap(['a' => 'red', 'b' => 'green'], '<<', '>>');
+// $array = ['a' => '<<red>>', 'b' => '<<green>>'];
+```
+
+
+ArrayHash .[#toc-arrayhash]
+===========================
+
+Az objektum [api:Nette\Utils\ArrayHash] az általános osztály stdClass leszármazottja, és kiterjeszti azt arra a képességre, hogy tömbként kezelje, például a tagokhoz szögletes zárójelek segítségével férjen hozzá:
+
+```php
+$hash = new Nette\Utils\ArrayHash;
+$hash['foo'] = 123;
+$hash->bar = 456; // az objektum jelölés is működik.
+$hash->foo; // 123
+```
+
+A `count($hash)` függvényt használhatja az elemek számának megadására.
+
+Egy objektumon ugyanúgy iterálhatsz, mint egy tömbön, akár hivatkozással is:
+
+```php
+foreach ($hash as $key => $value) {
+	// ...
+}
+
+foreach ($hash as $key => &$value) {
+	$value = 'új érték';
+}
+```
+
+A meglévő tömbök a `from()` segítségével átalakíthatók `ArrayHash` címmé:
+
+```php
+$array = ['foo' => 123, 'bar' => 456];
+
+$hash = Nette\Utils\ArrayHash::from($array);
+$hash->foo; // 123
+$hash->bar; // 456
+```
+
+Az átalakítás rekurzív:
+
+```php
+$array = ['foo' => 123, 'inner' => ['a' => 'b']];
+
+$hash = Nette\Utils\ArrayHash::from($array);
+$hash->inner; // objektum ArrayHash
+$hash->inner->a; // 'b'
+$hash['inner']['a']; // 'b'
+```
+
+A második paraméterrel elkerülhető:
+
+```php
+$hash = Nette\Utils\ArrayHash::from($array, false);
+$hash->inner; // tömb
+```
+
+Visszaalakítás a tömbre:
+
+```php
+$array = (array) $hash;
+```
+
+
+ArrayList .[#toc-arraylist]
+===========================
+
+[api:Nette\Utils\ArrayList] egy olyan lineáris tömböt reprezentál, ahol az indexek csak 0-tól felfelé növekvő egész számok.
+
+```php
+$list = new Nette\Utils\ArrayList;
+$list[] = 'a';
+$list[] = 'b';
+$list[] = 'c';
+// ArrayList(0 => 'a', 1 => 'b', 2 => 'c')
+count($list); // 3
+```
+
+A `count($list)` függvényt használhatja az elemek számának megadására.
+
+Egy objektumon ugyanúgy iterálhatsz, mint egy tömbön, akár hivatkozással is:
+
+```php
+foreach ($list as $key => $value) {
+	// ...
+}
+
+foreach ($list as $key => &$value) {
+	$value = 'új érték';
+}
+```
+
+A meglévő tömbök a `from()` segítségével átalakíthatók `ArrayList` címmé:
+
+```php
+$array = ['foo', 'bar'];
+$list = Nette\Utils\ArrayList::from($array);
+```
+
+A megengedett értékeken túli kulcsokhoz való hozzáférés kivételt dob `Nette\OutOfRangeException`:
+
+```php
+echo $list[-1]; // throws Nette\OutOfOfRangeException
+unset($list[30]); // throws Nette\OutOfRangeException
+```
+
+A kulcs eltávolítása az elemek átszámozását eredményezi:
+
+```php
+unset($list[1]);
+// ArrayList(0 => 'a', 1 => 'c')
+```
+
+A `prepend()` segítségével új elemet adhat hozzá az elejére:
+
+```php
+$list->prepend('d');
+// ArrayList(0 => 'd', 1 => 'a', 2 => 'c')
+```

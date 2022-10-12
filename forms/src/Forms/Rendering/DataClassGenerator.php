@@ -19,19 +19,14 @@ use Nette\Forms\Form;
  */
 final class DataClassGenerator
 {
-	/** @var string */
-	public $classNameSuffix = 'FormData';
-
-	/** @var bool */
-	public $propertyPromotion = false;
-
-	/** @var bool */
-	public $useSmartObject = true;
+	public string $classNameSuffix = 'FormData';
+	public bool $propertyPromotion = false;
+	public bool $useSmartObject = true;
 
 
 	public function generateCode(Form $form, ?string $baseName = null): string
 	{
-		$baseName = $baseName ?? preg_replace('~Form$~', '', ucwords((string) $form->getName()));
+		$baseName ??= preg_replace('~Form$~', '', ucwords((string) $form->getName()));
 		return $this->processContainer($form, $baseName);
 	}
 
@@ -55,7 +50,7 @@ final class DataClassGenerator
 			} elseif ($input instanceof Controls\HiddenField || $input instanceof Controls\TextBase) {
 				$type = 'string';
 				foreach ($input->getRules() as $rule) {
-					if ($rule->validator === Form::INTEGER) {
+					if ($rule->validator === Form::Integer) {
 						$type = 'int';
 						break;
 					}

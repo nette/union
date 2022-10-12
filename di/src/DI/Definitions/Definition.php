@@ -19,27 +19,21 @@ abstract class Definition
 {
 	use Nette\SmartObject;
 
-	/** @var string|null */
-	private $name;
-
-	/** @var string|null  class or interface name */
-	private $type;
-
-	/** @var array */
-	private $tags = [];
+	private ?string $name = null;
+	private ?string $type = null;
+	private array $tags = [];
 
 	/** @var bool|string[] */
-	private $autowired = true;
+	private bool|array $autowired = true;
 
-	/** @var callable|null */
+	/** @var ?callable */
 	private $notifier;
 
 
 	/**
-	 * @return static
 	 * @internal  This is managed by ContainerBuilder and should not be called by user
 	 */
-	final public function setName(string $name)
+	final public function setName(string $name): static
 	{
 		if ($this->name) {
 			throw new Nette\InvalidStateException('Name already has been set.');
@@ -56,8 +50,30 @@ abstract class Definition
 	}
 
 
-	/** @return static */
-	protected function setType(?string $type)
+	final public function isAnonymous(): bool
+	{
+		return !$this->name || ctype_digit($this->name);
+	}
+
+
+	public function getDescriptor(): string
+	{
+		if (!$this->isAnonymous()) {
+			return "Service '$this->name'" . ($this->type ? " of type $this->type" : '');
+
+		} elseif ($this->type) {
+			return "Service of type $this->type";
+
+		} elseif ($this->name) {
+			return "Service '$this->name'";
+
+		} else {
+			return 'Service ?';
+		}
+	}
+
+
+	protected function setType(?string $type): static
 	{
 		if ($this->autowired && $this->notifier && $this->type !== $type) {
 			($this->notifier)();
@@ -67,9 +83,9 @@ abstract class Definition
 			$this->type = null;
 		} elseif (!class_exists($type) && !interface_exists($type)) {
 			throw new Nette\InvalidArgumentException(sprintf(
-				"Service '%s': Class or interface '%s' not found.",
-				$this->name,
-				$type
+				"[%s]\nClass or interface '%s' not found.",
+				$this->getDescriptor(),
+				$type,
 			));
 		} else {
 			$this->type = Nette\DI\Helpers::normalizeClass($type);
@@ -85,8 +101,7 @@ abstract class Definition
 	}
 
 
-	/** @return static */
-	final public function setTags(array $tags)
+	final public function setTags(array $tags): static
 	{
 		$this->tags = $tags;
 		return $this;
@@ -99,29 +114,20 @@ abstract class Definition
 	}
 
 
-	/**
-	 * @param  mixed  $attr
-	 * @return static
-	 */
-	final public function addTag(string $tag, $attr = true)
+	final public function addTag(string $tag, mixed $attr = true): static
 	{
 		$this->tags[$tag] = $attr;
 		return $this;
 	}
 
 
-	/** @return mixed */
-	final public function getTag(string $tag)
+	final public function getTag(string $tag): mixed
 	{
 		return $this->tags[$tag] ?? null;
 	}
 
 
-	/**
-	 * @param  bool|string|string[]  $state
-	 * @return static
-	 */
-	final public function setAutowired($state = true)
+	final public function setAutowired(bool|string|array $state = true): static
 	{
 		if ($this->notifier && $this->autowired !== $state) {
 			($this->notifier)();
@@ -135,14 +141,13 @@ abstract class Definition
 
 
 	/** @return bool|string[] */
-	final public function getAutowired()
+	final public function getAutowired(): bool|array
 	{
 		return $this->autowired;
 	}
 
 
-	/** @return static */
-	public function setExported(bool $state = true)
+	public function setExported(bool $state = true): static
 	{
 		return $this->addTag('nette.exported', $state);
 	}
@@ -192,22 +197,6 @@ abstract class Definition
 	public function getClass(): ?string
 	{
 		return $this->getType();
-	}
-
-
-	/** @deprecated Use '$def instanceof Nette\DI\Definitions\ImportedDefinition' */
-	public function isDynamic(): bool
-	{
-		trigger_error(sprintf('Service %s: %s() is deprecated, use "instanceof ImportedDefinition".', $this->getName(), __METHOD__), E_USER_DEPRECATED);
-		return false;
-	}
-
-
-	/** @deprecated Use Nette\DI\Definitions\FactoryDefinition or AccessorDefinition */
-	public function getImplement(): ?string
-	{
-		trigger_error(sprintf('Service %s: %s() is deprecated.', $this->getName(), __METHOD__), E_USER_DEPRECATED);
-		return null;
 	}
 
 

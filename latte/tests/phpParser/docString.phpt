@@ -42,7 +42,7 @@ Assert::same(
 __halt_compiler();
 Latte\Compiler\Nodes\Php\Expression\ArrayNode
    items: array (6)
-   |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
+   |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  value: ''
    |  |  |  position: 2:1 (offset 20)
@@ -50,7 +50,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 2:1 (offset 20)
-   |  1 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
+   |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  value: ''
    |  |  |  position: 4:1 (offset 34)
@@ -58,7 +58,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 4:1 (offset 34)
-   |  2 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
+   |  2 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  value: 'Test '" $a \n'
    |  |  |  position: 8:1 (offset 79)
@@ -66,7 +66,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 8:1 (offset 79)
-   |  3 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
+   |  3 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  value: 'Test '" $a \n'
    |  |  |  position: 11:1 (offset 107)
@@ -74,10 +74,10 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 11:1 (offset 107)
-   |  4 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
-   |  |  value: Latte\Compiler\Nodes\Php\Scalar\EncapsedStringNode
+   |  4 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  |  value: Latte\Compiler\Nodes\Php\Scalar\InterpolatedStringNode
    |  |  |  parts: array (2)
-   |  |  |  |  0 => Latte\Compiler\Nodes\Php\Scalar\EncapsedStringPartNode
+   |  |  |  |  0 => Latte\Compiler\Nodes\Php\InterpolatedStringPartNode
    |  |  |  |  |  value: 'Test '
    |  |  |  |  |  position: 17:1 (offset 165)
    |  |  |  |  1 => Latte\Compiler\Nodes\Php\Expression\VariableNode
@@ -88,16 +88,16 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 16:1 (offset 158)
-   |  5 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
-   |  |  value: Latte\Compiler\Nodes\Php\Scalar\EncapsedStringNode
+   |  5 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  |  value: Latte\Compiler\Nodes\Php\Scalar\InterpolatedStringNode
    |  |  |  parts: array (5)
-   |  |  |  |  0 => Latte\Compiler\Nodes\Php\Scalar\EncapsedStringPartNode
+   |  |  |  |  0 => Latte\Compiler\Nodes\Php\InterpolatedStringPartNode
    |  |  |  |  |  value: 'Test '
    |  |  |  |  |  position: 20:1 (offset 185)
    |  |  |  |  1 => Latte\Compiler\Nodes\Php\Expression\VariableNode
    |  |  |  |  |  name: 'a'
    |  |  |  |  |  position: 20:6 (offset 190)
-   |  |  |  |  2 => Latte\Compiler\Nodes\Php\Scalar\EncapsedStringPartNode
+   |  |  |  |  2 => Latte\Compiler\Nodes\Php\InterpolatedStringPartNode
    |  |  |  |  |  value: ' and '
    |  |  |  |  |  position: 20:8 (offset 192)
    |  |  |  |  3 => Latte\Compiler\Nodes\Php\Expression\PropertyFetchNode
@@ -109,7 +109,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  |  position: 20:17 (offset 201)
    |  |  |  |  |  nullsafe: false
    |  |  |  |  |  position: 20:13 (offset 197)
-   |  |  |  |  4 => Latte\Compiler\Nodes\Php\Scalar\EncapsedStringPartNode
+   |  |  |  |  4 => Latte\Compiler\Nodes\Php\InterpolatedStringPartNode
    |  |  |  |  |  value: ' test'
    |  |  |  |  |  position: 20:18 (offset 202)
    |  |  |  position: 19:1 (offset 178)
@@ -117,4 +117,4 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 19:1 (offset 178)
-   position: null
+   position: 2:1 (offset 20)

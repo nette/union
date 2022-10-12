@@ -15,29 +15,25 @@ namespace Tracy;
  */
 class Logger implements ILogger
 {
-	/** @var string|null name of the directory where errors should be logged */
-	public $directory;
+	/** name of the directory where errors should be logged */
+	public ?string $directory = null;
 
-	/** @var string|array|null email or emails to which send error notifications */
-	public $email;
+	/** email or emails to which send error notifications */
+	public string|array|null $email = null;
 
-	/** @var string|null sender of email notifications */
-	public $fromEmail;
+	/** sender of email notifications */
+	public ?string $fromEmail = null;
 
-	/** @var mixed interval for sending email is 2 days */
-	public $emailSnooze = '2 days';
+	/** interval for sending email is 2 days */
+	public mixed $emailSnooze = '2 days';
 
 	/** @var callable handler for sending emails */
 	public $mailer;
 
-	/** @var BlueScreen|null */
-	private $blueScreen;
+	private ?BlueScreen $blueScreen = null;
 
 
-	/**
-	 * @param  string|array|null  $email
-	 */
-	public function __construct(?string $directory, $email = null, ?BlueScreen $blueScreen = null)
+	public function __construct(?string $directory, string|array|null $email = null, ?BlueScreen $blueScreen = null)
 	{
 		$this->directory = $directory;
 		$this->email = $email;
@@ -48,11 +44,10 @@ class Logger implements ILogger
 
 	/**
 	 * Logs message or exception to file and sends email notification.
-	 * @param  mixed  $message
-	 * @param  string  $level  one of constant ILogger::INFO, WARNING, ERROR (sends email), EXCEPTION (sends email), CRITICAL (sends email)
+	 * For levels ERROR, EXCEPTION and CRITICAL it sends email.
 	 * @return string|null logged error filename
 	 */
-	public function log($message, $level = self::INFO)
+	public function log(mixed $message, string $level = self::INFO)
 	{
 		if (!$this->directory) {
 			throw new \LogicException('Logging directory is not specified.');
@@ -82,16 +77,13 @@ class Logger implements ILogger
 	}
 
 
-	/**
-	 * @param  mixed  $message
-	 */
-	public static function formatMessage($message): string
+	public static function formatMessage(mixed $message): string
 	{
 		if ($message instanceof \Throwable) {
 			foreach (Helpers::getExceptionChain($message) as $exception) {
 				$tmp[] = ($exception instanceof \ErrorException
 					? Helpers::errorTypeToString($exception->getSeverity()) . ': ' . $exception->getMessage()
-					: Helpers::getClass($exception) . ': ' . $exception->getMessage() . ($exception->getCode() ? ' #' . $exception->getCode() : '')
+					: get_debug_type($exception) . ': ' . $exception->getMessage() . ($exception->getCode() ? ' #' . $exception->getCode() : '')
 				) . ' in ' . $exception->getFile() . ':' . $exception->getLine();
 			}
 
@@ -105,10 +97,7 @@ class Logger implements ILogger
 	}
 
 
-	/**
-	 * @param  mixed  $message
-	 */
-	public static function formatLogLine($message, ?string $exceptionFile = null): string
+	public static function formatLogLine(mixed $message, ?string $exceptionFile = null): string
 	{
 		return implode(' ', [
 			date('[Y-m-d H-i-s]'),
@@ -123,7 +112,7 @@ class Logger implements ILogger
 	{
 		foreach (Helpers::getExceptionChain($exception) as $exception) {
 			$data[] = [
-				get_class($exception), $exception->getMessage(), $exception->getCode(), $exception->getFile(), $exception->getLine(),
+				$exception::class, $exception->getMessage(), $exception->getCode(), $exception->getFile(), $exception->getLine(),
 				array_map(function (array $item): array {
 					unset($item['args']);
 					return $item;
@@ -156,10 +145,7 @@ class Logger implements ILogger
 	}
 
 
-	/**
-	 * @param  mixed  $message
-	 */
-	protected function sendEmail($message): void
+	protected function sendEmail(mixed $message): void
 	{
 		$snooze = is_numeric($this->emailSnooze)
 			? $this->emailSnooze
@@ -178,10 +164,9 @@ class Logger implements ILogger
 
 	/**
 	 * Default mailer.
-	 * @param  mixed  $message
 	 * @internal
 	 */
-	public function defaultMailer($message, string $email): void
+	public function defaultMailer(mixed $message, string $email): void
 	{
 		$host = preg_replace('#[^\w.-]+#', '', $_SERVER['SERVER_NAME'] ?? php_uname('n'));
 		$parts = str_replace(
@@ -196,7 +181,7 @@ class Logger implements ILogger
 				]) . "\n",
 				'subject' => "PHP: An error occurred on the server $host",
 				'body' => static::formatMessage($message) . "\n\nsource: " . Helpers::getSource(),
-			]
+			],
 		);
 
 		mail($email, $parts['subject'], $parts['body'], $parts['headers']);

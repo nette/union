@@ -28,7 +28,7 @@ try {
 }
 ```
 
-Metoda `$e->getMessages()` vrací pole všech zpráv jakožto řetězců a `$e->getMessageObjects()` vrací všechny zprávy jako objekty "Nette\Schema\Message":https://api.nette.org/3.1/Nette/Schema/Message.html.
+Metoda `$e->getMessages()` vrací pole všech zpráv jakožto řetězců a `$e->getMessageObjects()` vrací všechny zprávy jako objekty "Nette\Schema\Message":https://api.nette.org/schema/master/Nette/Schema/Message.html.
 
 
 Definování schématu
@@ -164,7 +164,7 @@ Výčet: anyOf()
 
 ```php
 $schema = Expect::listOf(
-	Expect::anyOf('a', true, null)
+	Expect::anyOf('a', true, null),
 );
 
 $processor->process($schema, ['a', true, null, 'a']); // OK
@@ -175,7 +175,7 @@ Prvky výčtu mohou být i schémata:
 
 ```php
 $schema = Expect::listOf(
-	Expect::anyOf(Expect::string(), true, null)
+	Expect::anyOf(Expect::string(), true, null),
 );
 
 $processor->process($schema, ['foo', true, null, 'bar']); // OK
@@ -264,8 +264,8 @@ $processor->process($schema, ['additional' => true]); // CHYBA
 ```
 
 
-Zastaralé vlastnosti .{data-version:1.1}
-----------------------------------------
+Zastaralé vlastnosti
+--------------------
 
 Můžete označit vlastnost jako deprecated pomocí metody `deprecated([string $message])`. Informace o ukončení podpory jsou vrácena pomocí `$processor->getWarnings()`:
 
@@ -328,7 +328,7 @@ Vlastní omezení: assert()
 Libovolná další omezení zadáme pomocí `assert(callable $fn)`.
 
 ```php
-$countIsEven = function ($v) { return count($v) % 2 === 0; };
+$countIsEven = fn($v) => count($v) % 2 === 0;
 
 $schema = Expect::arrayOf('string')
 	->assert($countIsEven); // počet musí být sudý
@@ -364,12 +364,9 @@ Schéma struktury si můžeme nechat vygenerovat ze třídy. Příklad:
 ```php
 class Config
 {
-	/** @var string */
-	public $name;
-	/** @var string|null */
-	public $password;
-	/** @var bool */
-	public $admin = false;
+	public string $name;
+	public string|null $password;
+	public bool $admin = false;
 }
 
 $schema = Expect::from(new Config);
@@ -437,7 +434,7 @@ Normalizace: before()
 Před samotnou validací lze data normalizovat pomocí metody `before()`. Jako příklad uveďme prvek, který musí být pole řetězců (například `['a', 'b', 'c']`), avšak přijímá vstup ve formě řetězce `a b c`:
 
 ```php
-$explode = function ($v) { return explode(' ', $v); };
+$explode = fn($v) => explode(' ', $v);
 
 $schema = Expect::arrayOf('string')
 	->before($explode);
@@ -447,5 +444,4 @@ $normalized = $processor->process($schema, 'a b c');
 ```
 
 
-{{composer: nette/schema}}
 {{leftbar: nette:@menu-topics}}

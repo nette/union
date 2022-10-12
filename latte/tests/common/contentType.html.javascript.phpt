@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Test: Latte\Engine and JavaScript in HTML.
+ * Test: JavaScript in HTML
  */
 
 declare(strict_types=1);
 
+use Latte\Runtime\Html;
 use Tester\Assert;
-
 
 require __DIR__ . '/../bootstrap.php';
 
@@ -73,7 +73,7 @@ Assert::match(
 	$latte->renderToString('<script type="module">{="<>"}</script>'),
 );
 
-Assert::match(
+Assert::match( // GDPR usage, see #282
 	'<script type="text/plain">"<>"</script>',
 	$latte->renderToString('<script type="text/plain">{="<>"}</script>'),
 );
@@ -84,60 +84,36 @@ Assert::match(
 );
 
 Assert::match(
-	'<script type="text/html">&lt;&gt;</script>',
-	$latte->renderToString('<script type="text/html">{="<>"}</script>'),
+	'<script type="importmap">{ foo:"<>" }</script>',
+	$latte->renderToString('<script type="importmap">{ foo:{="<>"} }</script>'),
 );
 
-// content of <script> is RAWTEXT
 Assert::match(
-	<<<'XX'
-			<script type="text/html">
-			<div n:foreach="[a, b] as $i">def</div>
-			</script>
-			<div>a</div>
-			<div>b</div>
-
-		XX,
-	$latte->renderToString(
-		<<<'XX'
-
-				{var $i = def}
-				<script type="text/html">
-				<div n:foreach="[a, b] as $i">{$i}</div>
-				</script>
-				<div n:foreach="[a, b] as $i">{$i}</div>
-
-			XX,
-	),
+	'<script type="">{ foo:"<>" }</script>',
+	$latte->renderToString('<script type="">{ foo:{="<>"} }</script>'),
 );
 
-// content of <script> changed to html
 Assert::match(
-	<<<'XX'
-			<script type="text/html">
-			<div>a</div>
-			<div>b</div>
-			</script>
-			<div>a</div>
-			<div>b</div>
-
-		XX,
-	$latte->renderToString(
-		<<<'XX'
-
-				{var $i = def}
-				<script type="text/html">
-				{contentType html}
-				<div n:foreach="[a, b] as $i">{$i}</div>
-				</script>
-				<div n:foreach="[a, b] as $i">{$i}</div>
-
-			XX,
-	),
+	'<script type>{ foo:"<>" }</script>',
+	$latte->renderToString('<script type>{ foo:{="<>"} }</script>'),
 );
 
 // trim inside <script>
 Assert::match(
 	'<script>123;</script>',
 	$latte->renderToString('<script>{block|trim}  123;  {/block}</script>'),
+);
+
+Assert::match(
+	'<script> "<div title=\'<\/script>\'><\/div>" </script>',
+	$latte->renderToString(
+		'<script> {$foo} </script>',
+		['foo' => new Html("<div title='</script>'></div>")],
+	),
+);
+
+// no escape
+Assert::match(
+	'<script><\/script></script>',
+	$latte->renderToString('<script>{="</script>"|noescape}</script>'),
 );

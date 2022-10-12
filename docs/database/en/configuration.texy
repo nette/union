@@ -20,7 +20,7 @@ database:
 	password: ...
 ```
 
-It creates services of type `Nette\Database\Connection` and also `Nette\Database\Explorer` for the [Database Explorer|explorer] layer. The database connection is usually passed by autowiring, if this is not possible, use the service names `@database.default.connection` resp. `@database.default.explorer`.
+It creates services of type `Nette\Database\Connection` and also `Nette\Database\Explorer` for the [Database Explorer|explorer] layer. The database connection is usually passed by [autowiring |dependency-injection:autowiring], if this is not possible, use the service names `@database.default.connection` resp. `@database.default.explorer`.
 
 Other settings:
 
@@ -45,9 +45,6 @@ database:
 		# PHP database driver class
 		driverClass:  # (string)
 
-		# you can list the options found in the PDO driver documentation
-		PDO::MYSQL_ATTR_COMPRESS: true
-
 		# only MySQL: sets sql_mode
 		sqlmode:      # (string)
 
@@ -56,6 +53,14 @@ database:
 
 		# only Oracle and SQLite: date format
 		formatDateTime: # (string) defaults to 'U'
+```
+
+The `options` key can contain other options that can be found in the [PDO driver documentation |https://www.php.net/manual/en/pdo.drivers.php], such as:
+
+```neon
+database:
+	options:
+		PDO::MYSQL_ATTR_COMPRESS: true
 ```
 
 

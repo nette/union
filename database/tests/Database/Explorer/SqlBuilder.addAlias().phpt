@@ -33,7 +33,7 @@ $driver = $connection->getDriver();
 
 
 test('test duplicated table names throw exception', function () use ($explorer, $driver) {
-	$authorTable = ($driver->isSupported(Driver::SUPPORT_SCHEMA) ? 'public.' : '') . 'author';
+	$authorTable = ($driver->isSupported(Driver::SupportSchema) ? 'public.' : '') . 'author';
 	$sqlBuilder = new SqlBuilderMock($authorTable, $explorer);
 	$sqlBuilder->addAlias(':book(translator)', 'book1');
 	$sqlBuilder->addAlias(':book:book_tag', 'book2');
@@ -76,13 +76,13 @@ test('test same table chain with another alias', function () use ($explorer, $dr
 	Assert::same(
 		'LEFT JOIN book translated_book ON author.id = translated_book.translator_id ' .
 		'LEFT JOIN book translated_book2 ON author.id = translated_book2.translator_id',
-		trim($join)
+		trim($join),
 	);
 });
 
 
 test('test nested alias', function () use ($explorer, $driver) {
-	$sqlBuilder = $driver->isSupported(Driver::SUPPORT_SCHEMA)
+	$sqlBuilder = $driver->isSupported(Driver::SupportSchema)
 		? new SqlBuilderMock('public.author', $explorer)
 		: new SqlBuilderMock('author', $explorer);
 	$sqlBuilder->addAlias(':book(translator)', 'translated_book');
@@ -91,18 +91,18 @@ test('test nested alias', function () use ($explorer, $driver) {
 	$joins = [];
 	$sqlBuilder->parseJoins($joins, $query);
 	$join = $sqlBuilder->buildQueryJoins($joins);
-	if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
+	if ($driver->isSupported(Driver::SupportSchema)) {
 		Assert::same(
 			'LEFT JOIN book translated_book ON author.id = translated_book.translator_id ' .
 			'LEFT JOIN public.book next ON translated_book.next_volume = next.id',
-			trim($join)
+			trim($join),
 		);
 
 	} else {
 		Assert::same(
 			'LEFT JOIN book translated_book ON author.id = translated_book.translator_id ' .
 			'LEFT JOIN book next ON translated_book.next_volume = next.id',
-			trim($join)
+			trim($join),
 		);
 	}
 });

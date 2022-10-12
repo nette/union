@@ -11,7 +11,6 @@ namespace Nette\DI;
 
 use Nette;
 use Nette\Utils\Reflection;
-use Nette\Utils\Type;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -28,15 +27,14 @@ class DependencyChecker
 	/** @deprecated use DependencyChecker::Version */
 	public const VERSION = self::Version;
 
-	/** @var array of ReflectionClass|\ReflectionFunctionAbstract|string */
-	private $dependencies = [];
+	/** @var array<ReflectionClass|\ReflectionFunctionAbstract|string> */
+	private array $dependencies = [];
 
 
 	/**
 	 * Adds dependencies to the list.
-	 * @return static
 	 */
-	public function add(array $deps)
+	public function add(array $deps): static
 	{
 		$this->dependencies = array_merge($this->dependencies, $deps);
 		return $this;
@@ -67,7 +65,7 @@ class DependencyChecker
 				$functions[] = rtrim(Reflection::toString($dep), '()');
 
 			} else {
-				throw new Nette\InvalidStateException(sprintf('Unexpected dependency %s', gettype($dep)));
+				throw new Nette\InvalidStateException(sprintf('Unexpected dependency %s', get_debug_type($dep)));
 			}
 		}
 
@@ -89,7 +87,7 @@ class DependencyChecker
 		array &$phpFiles,
 		array $classes,
 		array $functions,
-		string $hash
+		string $hash,
 	): bool
 	{
 		try {
@@ -125,8 +123,8 @@ class DependencyChecker
 						$name,
 						$prop->name,
 						$prop->getDocComment(),
-						(string) Type::fromReflection($prop),
-						PHP_VERSION_ID >= 80000 ? count($prop->getAttributes(Attributes\Inject::class)) : null,
+						(string) $prop->getType(),
+						count($prop->getAttributes(Attributes\Inject::class)),
 					];
 				}
 			}
@@ -138,7 +136,7 @@ class DependencyChecker
 						$method->name,
 						$method->getDocComment(),
 						self::hashParameters($method),
-						(string) Type::fromReflection($method),
+						(string) $method->getReturnType(),
 					];
 				}
 			}
@@ -146,7 +144,7 @@ class DependencyChecker
 
 		$flip = array_flip($classes);
 		foreach ($functions as $name) {
-			if (strpos($name, '::')) {
+			if (str_contains($name, '::')) {
 				$method = new ReflectionMethod($name);
 				$class = $method->getDeclaringClass();
 				if (isset($flip[$class->name])) {
@@ -164,7 +162,7 @@ class DependencyChecker
 				$uses,
 				$method->getDocComment(),
 				self::hashParameters($method),
-				(string) Type::fromReflection($method),
+				(string) $method->getReturnType(),
 			];
 		}
 
@@ -178,10 +176,10 @@ class DependencyChecker
 		foreach ($method->getParameters() as $param) {
 			$res[] = [
 				$param->name,
-				(string) Type::fromReflection($param),
+				(string) $param->getType(),
 				$param->isVariadic(),
 				$param->isDefaultValueAvailable()
-					? is_object($tmp = Reflection::getParameterDefaultValue($param)) ? ['object' => get_class($tmp)] : ['value' => $tmp]
+					? is_object($tmp = Reflection::getParameterDefaultValue($param)) ? ['object' => $tmp::class] : ['value' => $tmp]
 					: null,
 			];
 		}

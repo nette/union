@@ -2,26 +2,23 @@ Dependency Injection
 ********************
 
 .[perex]
-The `nette/di` package provides an extremely advanced compiled DI container for PHP.
+Dependency Injection is a design pattern that will fundamentally change the way you look at code and development. It opens the way to a world of cleanly designed and sustainable applications.
 
 - [What is Dependency Injection? |introduction]
+- [Global State & Singletons |global-state]
+- [Passing Dependencies |passing-dependencies]
 - [What is DI Container? |container]
+- [Frequently Asked Questions |faq]
+
+
+Nette DI
+--------
+
+The `nette/di` package provides an extremely advanced compiled DI container for PHP.
+
 - [Nette DI Container |nette-container]
 - [Configuration |configuration]
 - [Service Definitions |services]
 - [Autowiring |autowiring]
 - [Generated Factories |factory]
-- [Passing Dependencies |passing-dependencies]
 - [Creating Extensions for Nette DI|extensions]
-
-
-Installation
-------------
-
-Download and install the package using [Composer|best-practices:composer]:
-
-```shell
-composer require nette/di
-```
-
-{{composer: nette/di}}

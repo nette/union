@@ -2,7 +2,6 @@
 
 /**
  * Test: {control ...}
- * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -53,5 +52,5 @@ Assert::same(
 Assert::exception(
 	fn() => $latte->renderToString('<style> {control x} </style>'),
 	Latte\RuntimeException::class,
-	'Filters: unable to convert content type HTML to HTML/CSS',
+	'Filters: unable to convert content type HTML to HTML/%a?%CSS',
 );

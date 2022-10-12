@@ -6,6 +6,7 @@ The [#Url], [#UrlImmutable], and [#UrlScript] classes make it easy to manage, pa
 
 → [Installation and requirements |@home#Installation]
 
+
 Url
 ===
 
@@ -39,7 +40,7 @@ You can also parse the URL and then manipulate it:
 
 ```php
 $url = new Url(
-	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer'
+	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer',
 );
 ```
 
@@ -53,6 +54,7 @@ The following methods are available to get or change individual URL components:
 | `setPassword(string $password)`			| `getPassword(): string`		| `'xyz*12'`
 | `setHost(string $host)`					| `getHost(): string`			| `'nette.org'`
 | `setPort(int $port)`						| `getPort(): ?int`				| `8080`
+|											| `getDefaultPort(): ?int`		| `80`
 | `setPath(string $path)`					| `getPath(): string`			| `'/en/download'`
 | `setQuery(string\|array $query)`			| `getQuery(): string`			| `'name=param'`
 | `setFragment(string $fragment)`			| `getFragment(): string`		| `'footer'`
@@ -103,7 +105,7 @@ The class [api:Nette\Http\UrlImmutable] is an immutable alternative to class `Ur
 use Nette\Http\UrlImmutable;
 
 $url = new UrlImmutable(
-	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer'
+	'http://john:xyz%2A12@nette.org:8080/en/download?name=param#footer',
 );
 
 $newUrl = $url
@@ -124,6 +126,7 @@ The following methods are available to get or change individual URL components:
 | `withPassword(string $password)`			| `getPassword(): string`		| `'xyz*12'`
 | `withHost(string $host)`					| `getHost(): string`			| `'nette.org'`
 | `withPort(int $port)`						| `getPort(): ?int`				| `8080`
+|											| `getDefaultPort(): ?int`		| `80`
 | `withPath(string $path)`					| `getPath(): string`			| `'/en/download'`
 | `withQuery(string\|array $query)`			| `getQuery(): string`			| `'name=param'`
 | `withFragment(string $fragment)`			| `getFragment(): string`		| `'footer'`
@@ -180,6 +183,3 @@ The following methods are available to get these parts:
 
 
 We do not create objects `UrlScript` directly, but the method [Nette\Http\Request::getUrl() |request] returns it.
-
-
-{{composer: nette/http}}

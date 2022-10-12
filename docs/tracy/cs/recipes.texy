@@ -5,15 +5,22 @@ Návody
 Content Security Policy
 =======================
 
-Pokud váš web používá Content Security Policy, budete muset přidat stejné `'nonce-<value>'` do `script-src` a `style-src`, aby Tracy správně fungovala. Některé doplňky třetích stran mohou vyžadovat další nastavení. V produkčním režimu `'unsafe-inline'` & `'unsafe-eval'` nepřidávejte, pokud nemusíte.
+Pokud váš web používá Content Security Policy, budete muset přidat stejné `'nonce-<value>'` a `'strict-dynamic'` do `script-src`, aby Tracy správně fungovala. Některé doplňky třetích stran mohou vyžadovat další nastavení.
+Nonce není podporována v direktivě `style-src`, pokud tuto direktivu používáte, musíte přidat `'unsafe-inline'`, ale v produkčním režimu byste se tomu měli vyhnout.
 
 Příklad konfigurace pro [Nette Framework |nette:configuring]:
 
 ```neon
 http:
 	csp:
-		script-src: nonce
-		style-src: nonce
+		script-src: [nonce, strict-dynamic]
+```
+
+Příklad v čistém PHP:
+
+```php
+$nonce = base64_encode(random_bytes(20));
+header("Content-Security-Policy: script-src 'nonce-$nonce' 'strict-dynamic';");
 ```
 
 
@@ -23,7 +30,7 @@ Rychlejší načítání
 Spuštění je přímočaré, pokud však máte na webové stránce pomalu načítající se blokující skripty, mohou zpomalit načítání Tracy.
 Řešením je umístit `<?php Tracy\Debugger::renderLoader() ?>` do vaší šablony před všechny skripty:
 
-```html
+```latte
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,8 +55,7 @@ Debugger::setSessionStorage(new Tracy\NativeSession);
 Debugger::enable();
 ```
 
-V případě, že nastartování session vyžaduje složitější inicializaci, můžete Tracy spustit ihned (aby mohla zpracovat případné vzniklé chyby) a poté inicializovat obsluhu relace
-a nakonec informovat Tracy, že relace je připravena k použití pomocí funkce `dispatch()`:
+V případě, že nastartování session vyžaduje složitější inicializaci, můžete Tracy spustit ihned (aby mohla zpracovat případné vzniklé chyby) a poté inicializovat obsluhu relace a nakonec informovat Tracy, že relace je připravena k použití pomocí funkce `dispatch()`:
 
 ```php
 Debugger::setSessionStorage(new Tracy\NativeSession);
@@ -63,6 +69,24 @@ Debugger::dispatch();
 ```
 
 Funkce `setSessionStorage()` existuje od verze 2.9, předtím používala Tracy nativní PHP session vždy.
+
+
+Vlastní scrubber
+================
+
+Scrubber je filtr, který zabraňuje úniku citlivých dat při dumpování, jako jsou hesla nebo přístupové údaje. Filtr se volá pro každý prvek dumpovaného pole nebo objektu a vrací `true`, pokud je hodnota citlivá. V takovém případě se místo hodnoty vypíše `*****`.
+
+```php
+// zamezí vypsaní hodnot klíčů a properties jako `password`,
+// `password_repeat`, `check_password`, `DATABASE_PASSWORD`, apod.
+$scrubber = function(string $key, $value, ?string $class): bool
+{
+	return preg_match('#password#i', $key) && $value !== null;
+};
+
+// použijeme jej pro všechny dumpy uvnitř BlueScreen
+Tracy\Debugger::getBlueScreen()->scrubber = $scrubber;
+```
 
 
 Vlastní logger
@@ -93,6 +117,24 @@ Pokud používáme plný Nette Framework, můžete jej nastavit v konfigurační
 ```neon
 services:
 	tracy.logger: SlackLogger
+```
+
+
+Integrace monologu
+------------------
+
+Balíček Tracy poskytuje adaptér PSR-3, který umožňuje integraci [monolog/monolog](https://github.com/Seldaek/monolog).
+
+```php
+$monolog = new Monolog\Logger('main-channel');
+$monolog->pushHandler(new Monolog\Handler\StreamHandler($logFilePath, Monolog\Logger::DEBUG));
+
+$tracyLogger = new Tracy\Bridges\Psr\PsrToTracyLoggerAdapter($monolog);
+Debugger::setLogger($tracyLogger);
+Debugger::enable();
+
+Debugger::log('info'); // writes: [<TIMESTAMP>] main-channel.INFO: info [] []
+Debugger::log('warning', Debugger::WARNING); // writes: [<TIMESTAMP>] main-channel.WARNING: warning [] []
 ```
 
 
