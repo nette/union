@@ -22,7 +22,7 @@ Assert::same(
 __halt_compiler();
 Latte\Compiler\Nodes\Php\Expression\ArrayNode
    items: array (1)
-   |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ErrorSuppressNode
    |  |  |  expr: Latte\Compiler\Nodes\Php\Expression\VariableNode
    |  |  |  |  name: 'a'
@@ -32,4 +32,4 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 1:1 (offset 0)
-   position: 1:1 (offset 0)
+   position: null

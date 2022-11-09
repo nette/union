@@ -37,10 +37,4 @@ class VarPrintNode extends StatementNode
 			: 'array_diff_key(get_defined_vars(), $this->getParameters())';
 		return "(new Latte\\Essential\\Blueprint)->printVars($vars); exit;";
 	}
-
-
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }

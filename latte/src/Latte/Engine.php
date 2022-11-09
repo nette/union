@@ -19,8 +19,8 @@ class Engine
 {
 	use Strict;
 
-	public const VERSION = '3.0.6';
-	public const VERSION_ID = 30006;
+	public const VERSION = '3.0.4';
+	public const VERSION_ID = 30004;
 
 	/** @deprecated use ContentType::* */
 	public const
@@ -248,8 +248,6 @@ class Engine
 		if ((include $file) === false) {
 			throw new RuntimeException("Unable to load '$file'.");
 		}
-
-		flock($lock, LOCK_UN);
 	}
 
 
@@ -315,10 +313,7 @@ class Engine
 			$this->contentType,
 		];
 		foreach ($this->extensions as $extension) {
-			$key[] = [
-				get_debug_type($extension),
-				$extension->getCacheKey($this),
-			];
+			$key[] = [$extension::class, $extension->getCacheKey($this)];
 		}
 
 		return 'Template' . substr(md5(serialize($key)), 0, 10);
@@ -552,6 +547,8 @@ class Engine
 	{
 		if (is_array($params)) {
 			return $params;
+		} elseif (!is_object($params)) {
+			throw new \InvalidArgumentException(sprintf('Engine::render() expects array|object, %s given.', gettype($params)));
 		}
 
 		$methods = (new \ReflectionClass($params))->getMethods(\ReflectionMethod::IS_PUBLIC);

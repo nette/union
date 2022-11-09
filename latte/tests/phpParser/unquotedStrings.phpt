@@ -27,7 +27,7 @@ Assert::same(
 __halt_compiler();
 Latte\Compiler\Nodes\Php\Expression\ArrayNode
    items: array (4)
-   |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  value: 'a'
    |  |  |  position: 1:1 (offset 0)
@@ -35,7 +35,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 1:1 (offset 0)
-   |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  1 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ConstantFetchNode
    |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
    |  |  |  |  parts: array (1)
@@ -47,7 +47,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 2:1 (offset 3)
-   |  2 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  2 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  value: 'a-b-c'
    |  |  |  position: 5:1 (offset 22)
@@ -55,7 +55,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 5:1 (offset 22)
-   |  3 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  3 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  value: 'a--b--c'
    |  |  |  position: 6:1 (offset 29)
@@ -63,4 +63,4 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 6:1 (offset 29)
-   position: 1:1 (offset 0)
+   position: null

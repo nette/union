@@ -35,10 +35,4 @@ class TemplateTypeNode extends StatementNode
 	{
 		return '';
 	}
-
-
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }

@@ -20,6 +20,9 @@ abstract class Node implements \IteratorAggregate
 	abstract public function print(PrintContext $context): string;
 
 
-	/** @return \Generator<self> */
-	abstract public function &getIterator(): \Generator;
+	public function &getIterator(): \Generator
+	{
+		return;
+		yield;
+	}
 }

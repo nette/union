@@ -128,13 +128,6 @@ var html = ';
 <p onclick=';
 		echo '"' . LR\Filters::escapeXml($xss) . '"' /* line %d% */;
 		echo '> </p>
-
-<p title="';
-		echo LR\Filters::escapeHtmlChar('foo a=\'a\' b="b">', '"') /* line %d% */;
-		echo '"></p>
-<p ';
-		echo 'foo a=\'a\' b="b">' /* line %d% */;
-		echo '></p>
 ';
 	}
 

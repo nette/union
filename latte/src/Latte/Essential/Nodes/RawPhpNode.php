@@ -43,10 +43,4 @@ class RawPhpNode extends StatementNode
 			$this->code,
 		);
 	}
-
-
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }

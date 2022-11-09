@@ -153,21 +153,21 @@ Assert::exception(
 );
 
 Assert::exception(
-	fn() => $latte->compile('{= echo 123}'),
+	fn() => $latte->compile('{do echo 123}'),
 	Latte\CompileException::class,
-	"Unexpected '123' (on line 1 at column 9)",
+	"Keyword 'echo' is forbidden in Latte (on line 1 at column 5)",
 );
 
 Assert::exception(
-	fn() => $latte->compile('{= return 123}'),
+	fn() => $latte->compile('{do return 123}'),
 	Latte\CompileException::class,
-	"Unexpected 'return' (on line 1 at column 4)",
+	"Unexpected 'return' (on line 1 at column 5)",
 );
 
 Assert::exception(
-	fn() => $latte->compile('{= new stdClass}'),
+	fn() => $latte->compile('{do new stdClass}'),
 	Latte\SecurityViolationException::class,
-	"Forbidden keyword 'new' (on line 1 at column 4)",
+	"Forbidden keyword 'new' (on line 1 at column 5)",
 );
 
 Assert::exception(

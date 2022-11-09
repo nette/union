@@ -26,7 +26,7 @@ Assert::same(
 __halt_compiler();
 Latte\Compiler\Nodes\Php\Expression\ArrayNode
    items: array (5)
-   |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\MethodCallNode
    |  |  |  object: Latte\Compiler\Nodes\Php\Scalar\StringNode
    |  |  |  |  value: 'string'
@@ -41,11 +41,11 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 1:1 (offset 0)
-   |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  1 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ArrayAccessNode
-   |  |  |  expr: Latte\Compiler\Nodes\Php\Scalar\InterpolatedStringNode
+   |  |  |  expr: Latte\Compiler\Nodes\Php\Scalar\EncapsedStringNode
    |  |  |  |  parts: array (2)
-   |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\InterpolatedStringPartNode
+   |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\Scalar\EncapsedStringPartNode
    |  |  |  |  |  |  value: 'foo'
    |  |  |  |  |  |  position: 2:2 (offset 21)
    |  |  |  |  |  1 => Latte\Compiler\Nodes\Php\Expression\VariableNode
@@ -61,11 +61,11 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 2:1 (offset 20)
-   |  2 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  2 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\MethodCallNode
-   |  |  |  object: Latte\Compiler\Nodes\Php\Scalar\InterpolatedStringNode
+   |  |  |  object: Latte\Compiler\Nodes\Php\Scalar\EncapsedStringNode
    |  |  |  |  parts: array (2)
-   |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\InterpolatedStringPartNode
+   |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\Scalar\EncapsedStringPartNode
    |  |  |  |  |  |  value: 'foo'
    |  |  |  |  |  |  position: 3:2 (offset 35)
    |  |  |  |  |  1 => Latte\Compiler\Nodes\Php\Expression\VariableNode
@@ -82,7 +82,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 3:1 (offset 34)
-   |  3 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  3 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  name: Latte\Compiler\Nodes\Php\Expression\ArrayAccessNode
    |  |  |  |  expr: Latte\Compiler\Nodes\Php\Expression\PropertyFetchNode
@@ -116,12 +116,12 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 4:1 (offset 55)
-   |  4 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  4 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\AssignNode
    |  |  |  var: Latte\Compiler\Nodes\Php\Expression\ArrayAccessNode
    |  |  |  |  expr: Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  items: array (2)
-   |  |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  |  |  |  |  |  value: Latte\Compiler\Nodes\Php\Scalar\IntegerNode
    |  |  |  |  |  |  |  |  value: 0
    |  |  |  |  |  |  |  |  kind: 10
@@ -130,7 +130,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  |  |  byRef: false
    |  |  |  |  |  |  |  unpack: false
    |  |  |  |  |  |  |  position: 5:2 (offset 79)
-   |  |  |  |  |  |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  |  |  |  |  |  1 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  |  |  |  |  |  value: Latte\Compiler\Nodes\Php\Scalar\IntegerNode
    |  |  |  |  |  |  |  |  value: 1
    |  |  |  |  |  |  |  |  kind: 10
@@ -155,4 +155,4 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 5:1 (offset 78)
-   position: 1:1 (offset 0)
+   position: null

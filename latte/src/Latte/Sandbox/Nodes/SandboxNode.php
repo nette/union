@@ -59,7 +59,7 @@ class SandboxNode extends StatementNode
 				XX,
 			$this->file,
 			$this->args,
-			$context->getEscaper()->getState(),
+			$context->getEscaper()->export(),
 			$this->position,
 		);
 	}

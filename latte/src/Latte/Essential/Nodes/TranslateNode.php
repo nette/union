@@ -70,7 +70,7 @@ class TranslateNode extends StatementNode
 					$ʟ_fi = new LR\FilterInfo(%dump);
 					echo %modifyContent(%dump) %line;
 					XX,
-				$context->getEscaper()->getState(),
+				$context->getEscaper()->export(),
 				$this->modifier,
 				$this->content->content,
 				$this->position,
@@ -88,7 +88,7 @@ class TranslateNode extends StatementNode
 					echo %modifyContent($ʟ_tmp) %line;
 					XX,
 				$this->content,
-				$context->getEscaper()->getState(),
+				$context->getEscaper()->export(),
 				$this->modifier,
 				$this->position,
 			);

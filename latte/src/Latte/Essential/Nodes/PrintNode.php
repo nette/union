@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Latte\Essential\Nodes;
 
 use Latte\CompileException;
-use Latte\Compiler\Escaper;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\Php\ModifierNode;
 use Latte\Compiler\Nodes\StatementNode;
@@ -37,7 +36,7 @@ class PrintNode extends StatementNode
 		if (
 			$tag->isInText()
 			&& $parser->getContentType() === ContentType::Html
-			&& $tag->htmlElement && Escaper::isJSScript($tag->htmlElement)
+			&& $tag->htmlElement?->name === 'script'
 			&& preg_match('#["\']#A', $stream->peek()->text)
 		) {
 			throw new CompileException("Do not place {$tag->getNotation(true)} inside quotes in JavaScript.", $tag->position);

@@ -12,12 +12,6 @@ class LeafNode extends Node
 	{
 		return '';
 	}
-
-
-	public function &getIterator(): Generator
-	{
-		false && yield;
-	}
 }
 
 

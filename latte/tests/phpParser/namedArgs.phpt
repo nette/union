@@ -23,7 +23,7 @@ Assert::same(
 __halt_compiler();
 Latte\Compiler\Nodes\Php\Expression\ArrayNode
    items: array (2)
-   |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
    |  |  |  |  parts: array (1)
@@ -56,7 +56,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 1:1 (offset 0)
-   |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  1 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
    |  |  |  |  parts: array (1)
@@ -80,4 +80,4 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 2:1 (offset 19)
-   position: 1:1 (offset 0)
+   position: null

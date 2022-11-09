@@ -33,10 +33,4 @@ class VarTypeNode extends StatementNode
 	{
 		return '';
 	}
-
-
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }

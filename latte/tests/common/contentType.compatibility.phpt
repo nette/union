@@ -180,7 +180,7 @@ test('', function () {
 	Assert::exception(
 		fn() => $latte->renderToString('<div>{include style}</div> <STYLE n:inner-block=style>...</STYLE>'),
 		Latte\RuntimeException::class,
-		'Including block style with content type HTML/RAW+CSS into incompatible type HTML.',
+		'Including block style with content type HTML/CSS into incompatible type HTML.',
 	);
 
 	Assert::match(
@@ -191,7 +191,7 @@ test('', function () {
 	Assert::exception(
 		fn() => $latte->renderToString('<div>{include script}</div> <script n:inner-block=script>...</script>'),
 		Latte\RuntimeException::class,
-		'Including block script with content type HTML/RAW+JS into incompatible type HTML.',
+		'Including block script with content type HTML/JS into incompatible type HTML.',
 	);
 });
 
@@ -268,7 +268,7 @@ Assert::same('<script> <\/script></script>', $latte->renderToString('context4'))
 Assert::exception(
 	fn() => $latte->renderToString('context5'),
 	Latte\RuntimeException::class,
-	"Including 'js.latte' with content type JS into incompatible type HTML/RAW+CSS.",
+	"Including 'js.latte' with content type JS into incompatible type HTML/CSS.",
 );
 
 Assert::same('<!-- </script>-->', $latte->renderToString('context6'));
@@ -277,7 +277,7 @@ Assert::same('<!-- </script>-->', $latte->renderToString('context6'));
 
 $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader([
-	'html.latte' => '<hr><script></script> " &quot; &lt;',
+	'html.latte' => '<hr> " &quot; &lt;',
 
 	'context1' => '<p>{include html.latte}</p>',
 	'context1a' => '<p>{include html.latte|noescape}</p>',
@@ -289,40 +289,37 @@ $latte->setLoader(new Latte\Loaders\StringLoader([
 	'context2c' => '<p title="{include html.latte|stripHtml|upper|noescape}"></p>',
 	'context3' => '<p title={include html.latte}></p>',
 	'context4' => '<script>{include html.latte}</script>',
-	'context4a' => '<script type="text/html">{include html.latte}</script>',
 	'context5' => '<style>{include html.latte}</style>',
 	'context6' => '<!--{include html.latte}-->',
 ]));
 
-Assert::same('<p><hr><script></script> " &quot; &lt;</p>', $latte->renderToString('context1'));
+Assert::same('<p><hr> " &quot; &lt;</p>', $latte->renderToString('context1'));
 
-Assert::same('<p><hr><script></script> " &quot; &lt;</p>', $latte->renderToString('context1a'));
+Assert::same('<p><hr> " &quot; &lt;</p>', $latte->renderToString('context1a'));
 Assert::same('<p> " " &lt;</p>', $latte->renderToString('context1b'));
 Assert::same('<p> " " <</p>', $latte->renderToString('context1c'));
 
-Assert::same('<p title="&lt;hr&gt;&lt;script&gt;&lt;/script&gt; &quot; &quot; &lt;"></p>', $latte->renderToString('context2'));
+Assert::same('<p title="&lt;hr&gt; &quot; &quot; &lt;"></p>', $latte->renderToString('context2'));
 
-Assert::same('<p title="<hr><script></script> " &quot; &lt;"></p>', $latte->renderToString('context2a'));
+Assert::same('<p title="<hr> " &quot; &lt;"></p>', $latte->renderToString('context2a'));
 Assert::same('<p title=" &quot; &quot; &lt;"></p>', $latte->renderToString('context2b'));
 Assert::same('<p title=" " " <"></p>', $latte->renderToString('context2c'));
 
-Assert::same('<p title="&lt;hr&gt;&lt;script&gt;&lt;/script&gt; &quot; &quot; &lt;"></p>', $latte->renderToString('context3'));
+Assert::same('<p title="&lt;hr&gt; &quot; &quot; &lt;"></p>', $latte->renderToString('context3'));
 
 Assert::exception(
 	fn() => $latte->renderToString('context4'),
 	Latte\RuntimeException::class,
-	"Including 'html.latte' with content type HTML into incompatible type HTML/RAW+JS.",
+	"Including 'html.latte' with content type HTML into incompatible type HTML/JS.",
 );
-
-Assert::same('<script type="text/html"><hr>&lt;script>&lt;/script> " &quot; &lt;</script>', $latte->renderToString('context4a'));
 
 Assert::exception(
 	fn() => $latte->renderToString('context5'),
 	Latte\RuntimeException::class,
-	"Including 'html.latte' with content type HTML into incompatible type HTML/RAW+CSS.",
+	"Including 'html.latte' with content type HTML into incompatible type HTML/CSS.",
 );
 
-Assert::same('<!--<hr><script></script> " &quot; &lt;-->', $latte->renderToString('context6'));
+Assert::same('<!--<hr> " &quot; &lt;-->', $latte->renderToString('context6'));
 
 
 

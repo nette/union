@@ -86,12 +86,6 @@ Assert::exception(
 );
 
 Assert::exception(
-	fn() => $latte->compile('<a {$foo}<'),
-	Latte\CompileException::class,
-	"Unexpected '<' (on line 1 at column 10)",
-);
-
-Assert::exception(
 	fn() => $latte->compile('{time() /}'),
 	Latte\CompileException::class,
 	'Unexpected /} in tag {=time() /} (on line 1 at column 1)',
@@ -132,31 +126,27 @@ Assert::exception(
 
 // forbidden keywords
 Assert::exception(
-	fn() => $latte->compile('{= function test() }'),
+	fn() => $latte->compile('{php function test() }'),
 	Latte\CompileException::class,
-	"Unexpected 'test' (on line 1 at column 13)",
+	"Unexpected 'test()', expecting end of tag in {php} (on line 1 at column 15)",
 );
 
 Assert::exception(
-	fn() => $latte->compile('{= class test }'),
+	fn() => $latte->compile('{php class test }'),
 	Latte\CompileException::class,
-	"Unexpected 'test' (on line 1 at column 10)",
+	"Unexpected 'test', expecting end of tag in {php} (on line 1 at column 12)",
 );
 
 Assert::exception(
-	fn() => $latte->compile('{= return}'),
+	fn() => $latte->compile('{php return}'),
 	Latte\CompileException::class,
-	"Unexpected 'return' (on line 1 at column 4)",
-);
-
-Assert::noError( // prints 'yield'
-	fn() => $latte->compile('{= yield}'),
+	"Unexpected 'return' (on line 1 at column 6)",
 );
 
 Assert::exception(
-	fn() => $latte->compile('{= yield $x}'),
+	fn() => $latte->compile('{php yield $x}'),
 	Latte\CompileException::class,
-	"Unexpected '\$x' (on line 1 at column 10)",
+	"Keyword 'yield' is forbidden in Latte (on line 1 at column 6)",
 );
 
 Assert::exception(

@@ -28,7 +28,6 @@ class LattePanel implements Tracy\IBarPanel
 	private ?string $name = null;
 
 
-	/** @deprecated use TracyExtension */
 	public static function initialize(Engine $latte, ?string $name = null, ?Tracy\Bar $bar = null): void
 	{
 		$bar ??= Tracy\Debugger::getBar();
@@ -36,32 +35,21 @@ class LattePanel implements Tracy\IBarPanel
 	}
 
 
-	/** @deprecated use TracyExtension */
-	public function __construct(?Engine $latte = null, ?string $name = null)
+	public function __construct(Engine $latte, ?string $name = null)
 	{
 		$this->name = $name;
-		if ($latte) {
-			$latte->addExtension(
-				new class ($this->templates) extends Extension {
-					public function __construct(
-						private array &$templates,
-					) {
-					}
+		$latte->addExtension(new class ($this->templates) extends Extension {
+			public function __construct(
+				private array &$templates,
+			) {
+			}
 
 
-					public function beforeRender(Template $template): void
-					{
-						$this->templates[] = $template;
-					}
-				},
-			);
-		}
-	}
-
-
-	public function addTemplate(Template $template): void
-	{
-		$this->templates[] = $template;
+			public function beforeRender(Template $template): void
+			{
+				$this->templates[] = $template;
+			}
+		});
 	}
 
 

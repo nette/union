@@ -45,27 +45,18 @@ final class TagParser extends TagParserData
 	}
 
 
-	/**
-	 * Parses PHP-like expression.
-	 */
 	public function parseExpression(): ExpressionNode
 	{
 		return $this->parse(self::SchemaExpression, recovery: true);
 	}
 
 
-	/**
-	 * Parses optional list of arguments. Named and variadic arguments are also supported.
-	 */
 	public function parseArguments(): Expression\ArrayNode
 	{
 		return $this->parse(self::SchemaArguments, recovery: true);
 	}
 
 
-	/**
-	 * Parses optional list of filters.
-	 */
 	public function parseModifier(): Node\ModifierNode
 	{
 		return $this->isEnd()
@@ -74,9 +65,12 @@ final class TagParser extends TagParserData
 	}
 
 
-	/**
-	 * Parses unquoted string or PHP-like expression.
-	 */
+	public function isEnd(): bool
+	{
+		return $this->stream->peek()->isEnd();
+	}
+
+
 	public function parseUnquotedStringOrExpression(bool $colon = true): ExpressionNode
 	{
 		$position = $this->stream->peek()->position;
@@ -97,9 +91,16 @@ final class TagParser extends TagParserData
 	}
 
 
-	/**
-	 * Parses optional type declaration.
-	 */
+	public function tryConsumeModifier(string ...$modifiers): ?Token
+	{
+		$token = $this->stream->peek();
+		return $token->is(...$modifiers) // is followed by whitespace
+			&& $this->stream->peek(1)->position->offset > $token->position->offset + strlen($token->text)
+			? $this->stream->consume()
+			: null;
+	}
+
+
 	public function parseType(): ?Node\SuperiorTypeNode
 	{
 		$kind = [
@@ -113,32 +114,6 @@ final class TagParser extends TagParserData
 		}
 
 		return $res ? new Node\SuperiorTypeNode($res) : null;
-	}
-
-
-	/**
-	 * Consumes optional token followed by whitespace. Suitable before parseUnquotedStringOrExpression().
-	 */
-	public function tryConsumeTokenBeforeUnquotedString(string ...$kind): ?Token
-	{
-		$token = $this->stream->peek();
-		return $token->is(...$kind) // is followed by whitespace
-			&& $this->stream->peek(1)->position->offset > $token->position->offset + strlen($token->text)
-			? $this->stream->consume()
-			: null;
-	}
-
-
-	/** @deprecated use tryConsumeTokenBeforeUnquotedString() */
-	public function tryConsumeModifier(string ...$kind): ?Token
-	{
-		return $this->tryConsumeTokenBeforeUnquotedString(...$kind);
-	}
-
-
-	public function isEnd(): bool
-	{
-		return $this->stream->peek()->isEnd();
 	}
 
 
@@ -163,9 +138,12 @@ final class TagParser extends TagParserData
 						: null;
 
 
-					$token = $token
-						? $this->stream->consume()
-						: new Token(ord($schema), $schema);
+					if ($token) {
+						$prevToken = $token;
+						$token = $this->stream->consume();
+					} else {
+						$token = new Token(ord($schema), $schema);
+					}
 
 					recovery:
 					$symbol = self::TokenToSymbol[$token->type];
@@ -229,13 +207,18 @@ final class TagParser extends TagParserData
 						$this->startTokenStack[$stackPos] = $token;
 					}
 
-				} elseif ($recovery && $this->isExpectedEof($state)) { // recoverable error
-					[, $state, $stateStack, $stackPos, $this->semValue, $this->semStack, $this->startTokenStack] = $recovery;
-					$this->stream->seek($recovery[0]);
-					$token = new Token(Token::End, '');
-					goto recovery;
-
 				} else { // error
+					if ($prevToken->is('echo', 'print', 'return', 'yield', 'throw', 'if', 'foreach', 'unset')) {
+						throw new Latte\CompileException("Keyword '$prevToken->text' is forbidden in Latte", $prevToken->position);
+					}
+
+					if ($recovery && $this->isExpectedEof($state)) {
+						[, $state, $stateStack, $stackPos, $this->semValue, $this->semStack, $this->startTokenStack] = $recovery;
+						$this->stream->seek($recovery[0]);
+						$token = new Token(Token::End, '');
+						goto recovery;
+					}
+
 					throw new Latte\CompileException('Unexpected ' . ($token->text ? "'$token->text'" : 'end'), $token->position);
 				}
 
@@ -269,23 +252,6 @@ final class TagParser extends TagParserData
 		}
 
 		return false;
-	}
-
-
-	public function throwReservedKeywordException(Token $token)
-	{
-		throw new Latte\CompileException("Keyword '$token->text' cannot be used in Latte.", $token->position);
-	}
-
-
-	protected function checkFunctionName(
-		Expression\FunctionCallNode|Expression\FunctionCallableNode $func,
-	): ExpressionNode
-	{
-		if ($func->name instanceof NameNode && $func->name->isKeyword()) {
-			$this->throwReservedKeywordException(new Token(0, (string) $func->name, $func->name->position));
-		}
-		return $func;
 	}
 
 
@@ -325,7 +291,7 @@ final class TagParser extends TagParserData
 		string $endToken,
 		Position $startPos,
 		Position $endPos,
-	): Scalar\StringNode|Scalar\InterpolatedStringNode
+	): Scalar\StringNode|Scalar\EncapsedStringNode
 	{
 		$hereDoc = !str_contains($startToken, "'");
 		preg_match('/\A[ \t]*/', $endToken, $matches);
@@ -336,14 +302,14 @@ final class TagParser extends TagParserData
 		} elseif (!$parts) {
 			return new Scalar\StringNode('', $startPos);
 
-		} elseif (!$parts[0] instanceof Node\InterpolatedStringPartNode) {
+		} elseif (!$parts[0] instanceof Scalar\EncapsedStringPartNode) {
 			// If there is no leading encapsed string part, pretend there is an empty one
 			$this->stripIndentation('', $indentation, true, false, $parts[0]->position);
 		}
 
 		$newParts = [];
 		foreach ($parts as $i => $part) {
-			if ($part instanceof Node\InterpolatedStringPartNode) {
+			if ($part instanceof Scalar\EncapsedStringPartNode) {
 				$isLast = $i === \count($parts) - 1;
 				$part->value = $this->stripIndentation(
 					$part->value,
@@ -368,7 +334,7 @@ final class TagParser extends TagParserData
 			$newParts[] = $part;
 		}
 
-		return new Scalar\InterpolatedStringNode($newParts, $startPos);
+		return new Scalar\EncapsedStringNode($newParts, $startPos);
 	}
 
 

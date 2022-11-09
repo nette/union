@@ -24,10 +24,4 @@ class AuxiliaryNode extends AreaNode
 	{
 		return ($this->callable)($context);
 	}
-
-
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }

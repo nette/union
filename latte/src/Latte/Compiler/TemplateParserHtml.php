@@ -256,9 +256,7 @@ final class TemplateParserHtml
 				default => null,
 			});
 		} catch (CompileException $e) {
-			if ($followsLatte // attribute name together with the value inside the tag
-				&& $stream->peek() // it is not lexer exception
-			) {
+			if ($followsLatte) {
 				$stream->seek($save);
 				return $this->parser->parseLatteStatement();
 			}
@@ -345,7 +343,11 @@ final class TemplateParserHtml
 			name: preg_replace('~(inner-|tag-|)~', '', $name),
 			tokens: $tokens,
 			position: $nameToken->position,
-			prefix: $this->getPrefix($name),
+			prefix: match (true) {
+				str_starts_with($name, 'inner-') => Tag::PrefixInner,
+				str_starts_with($name, 'tag-') => Tag::PrefixTag,
+				default => Tag::PrefixNone,
+			},
 			location: $this->parser->location,
 			htmlElement: $this->element,
 			data: (object) ['node' => $node = new Nodes\TextNode('')], // TODO: better
@@ -422,7 +424,7 @@ final class TemplateParserHtml
 		$res = [];
 		foreach ($this->attrParsers as $name => $foo) {
 			if ($tag = $attrs[$name] ?? null) {
-				$prefix = $this->getPrefix($name);
+				$prefix = substr($name, 0, (int) strpos($name, '-'));
 				if (!$prefix || !$void) {
 					$res[$prefix][] = $tag;
 					unset($attrs[$name]);
@@ -500,15 +502,5 @@ final class TemplateParserHtml
 			throw new SecurityViolationException("Attribute n:$name is not allowed", $pos);
 		}
 		return $this->attrParsers[$name];
-	}
-
-
-	private function getPrefix(string $name): string
-	{
-		return match (true) {
-			str_starts_with($name, 'inner-') => Tag::PrefixInner,
-			str_starts_with($name, 'tag-') => Tag::PrefixTag,
-			default => Tag::PrefixNone,
-		};
 	}
 }

@@ -6,8 +6,8 @@
 
 declare(strict_types=1);
 
-use Latte\Runtime\Html;
 use Tester\Assert;
+
 
 require __DIR__ . '/../bootstrap.php';
 
@@ -15,31 +15,9 @@ require __DIR__ . '/../bootstrap.php';
 $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader);
 
-// escaping of string
 Assert::match(
-	'<script type="text/html"> <div title="&lt;&gt;&apos;">  &lt;&gt;&apos; </div> </script>',
-	$latte->renderToString('<script type="text/html"> <div title="{="<>\'"}">  {="<>\'"} </div> </script>'),
-);
-
-// escaping of Html object
-Assert::match(
-	'<script type="text/html"> <div title=\'&lt;/script>\'></div> </script>',
-	$latte->renderToString(
-		'<script type="text/html"> {$foo} </script>',
-		['foo' => new Html("<div title='</script>'></div>")],
-	),
-);
-
-// include
-Assert::match(
-	' <script type="text/html">&lt;script>&lt;/script></script>',
-	$latte->renderToString('{define a}<script></script>{/define} <script type="text/html">{include a}</script>'),
-);
-
-// no escape
-Assert::match(
-	'<script type="text/html">&lt;/script></script>',
-	$latte->renderToString('<script type="text/html">{="</script>"|noescape}</script>'),
+	'<script type="text/html">&lt;&gt;</script>',
+	$latte->renderToString('<script type="text/html">{="<>"}</script>'),
 );
 
 // content of <script> is RAWTEXT

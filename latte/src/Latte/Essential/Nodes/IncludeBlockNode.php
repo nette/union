@@ -45,7 +45,7 @@ class IncludeBlockNode extends StatementNode
 
 		$tag->expectArguments();
 		$node = new static;
-		$tag->parser->tryConsumeTokenBeforeUnquotedString('block') ?? $tag->parser->stream->tryConsume('#');
+		$tag->parser->tryConsumeModifier('block') ?? $tag->parser->stream->tryConsume('#');
 		$node->name = $tag->parser->parseUnquotedStringOrExpression();
 		$tokenName = $tag->parser->stream->peek(-1);
 
@@ -87,7 +87,7 @@ class IncludeBlockNode extends StatementNode
 				'function ($s, $type) { $ʟ_fi = new LR\FilterInfo($type); return %modifyContent($s); }',
 				$this->modifier,
 			)
-			: ($noEscape || $this->parent ? '' : PhpHelpers::dump($context->getEscaper()->getState()));
+			: ($noEscape || $this->parent ? '' : PhpHelpers::dump($context->getEscaper()->export()));
 
 		return $this->from
 			? $this->printBlockFrom($context, $modArg)

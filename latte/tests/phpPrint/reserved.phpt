@@ -11,6 +11,8 @@ require __DIR__ . '/../bootstrap.php';
 $test = <<<'XX'
 	__FILE__,
 	class,
+	yield (1),
+	class(),
 	class::$x,
 	class::interface,
 	$obj->interface,
@@ -29,6 +31,8 @@ Assert::same(
 __halt_compiler();
 namespace\__FILE__,
 'class',
+namespace\yield(1),
+namespace\class(),
 namespace\class::$x,
 namespace\class::interface,
 $obj->interface,

@@ -12,8 +12,4 @@ namespace Latte\Compiler\Nodes\Php;
 
 abstract class ScalarNode extends ExpressionNode
 {
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }

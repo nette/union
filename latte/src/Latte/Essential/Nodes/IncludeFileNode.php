@@ -35,7 +35,7 @@ class IncludeFileNode extends StatementNode
 
 		$tag->expectArguments();
 		$node = new static;
-		$tag->parser->tryConsumeTokenBeforeUnquotedString('file');
+		$tag->parser->tryConsumeModifier('file');
 		$node->file = $tag->parser->parseUnquotedStringOrExpression();
 		$node->mode = 'include';
 
@@ -66,7 +66,7 @@ class IncludeFileNode extends StatementNode
 					'function ($s, $type) { $ʟ_fi = new LR\FilterInfo($type); return %modifyContent($s); }',
 					$this->modifier,
 				)
-				: PhpHelpers::dump($noEscape ? null : $context->getEscaper()->getState()),
+				: PhpHelpers::dump($noEscape ? null : $context->getEscaper()->export()),
 			$this->position,
 		);
 	}

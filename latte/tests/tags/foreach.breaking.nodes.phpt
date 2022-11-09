@@ -23,17 +23,17 @@ Assert::match(<<<'XX'
 				Fragment:
 					Text:
 						content: '.1.'
-					Jump:
+					Skip:
 						Variable:
 							name: a
 					Text:
 						content: '.2.'
-					Jump:
+					Skip:
 						Variable:
 							name: b
 					Text:
 						content: '.3.'
-					Jump:
+					Skip:
 						Variable:
 							name: c
 					Text:

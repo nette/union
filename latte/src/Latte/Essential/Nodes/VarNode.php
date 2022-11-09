@@ -58,7 +58,7 @@ class VarNode extends StatementNode
 				$stream->seek($save);
 				$stream->throwUnexpectedException(addendum: ' in ' . $tag->getNotation());
 			}
-		} while ($stream->tryConsume(',') && !$stream->peek()->isEnd());
+		} while ($stream->tryConsume(','));
 
 		return $res;
 	}

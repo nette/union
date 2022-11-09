@@ -34,10 +34,4 @@ class RollbackNode extends StatementNode
 	{
 		return 'throw new Latte\Essential\RollbackException;';
 	}
-
-
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }

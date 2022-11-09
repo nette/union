@@ -26,10 +26,4 @@ class SuperiorTypeNode extends ComplexTypeNode
 	{
 		throw new \LogicException('Cannot directly print SuperiorTypeNode');
 	}
-
-
-	public function &getIterator(): \Generator
-	{
-		false && yield;
-	}
 }
