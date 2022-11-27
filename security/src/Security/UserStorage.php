@@ -20,7 +20,10 @@ interface UserStorage
 		LogoutManual = 1,
 		LogoutInactivity = 2;
 
+	/** @deprecated use User::LogoutManual */
 	public const LOGOUT_MANUAL = self::LogoutManual;
+
+	/** @deprecated use User::LogoutInactivity */
 	public const LOGOUT_INACTIVITY = self::LogoutInactivity;
 
 	/**

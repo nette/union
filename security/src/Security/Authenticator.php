@@ -22,12 +22,17 @@ interface Authenticator
 		Failure = 3,
 		NotApproved = 4;
 
-	/** Deprecated */
-	public const
-		IDENTITY_NOT_FOUND = self::IdentityNotFound,
-		INVALID_CREDENTIAL = self::InvalidCredential,
-		FAILURE = self::Failure,
-		NOT_APPROVED = self::NotApproved;
+	/** @deprecated use Authenticator::IdentityNotFound */
+	public const IDENTITY_NOT_FOUND = self::IdentityNotFound;
+
+	/** @deprecated use Authenticator::InvalidCredential */
+	public const INVALID_CREDENTIAL = self::InvalidCredential;
+
+	/** @deprecated use Authenticator::Failure */
+	public const FAILURE = self::Failure;
+
+	/** @deprecated use Authenticator::NotApproved */
+	public const NOT_APPROVED = self::NotApproved;
 
 	/**
 	 * Performs an authentication.
