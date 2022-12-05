@@ -44,7 +44,11 @@ trait PropertiesAware
 
 	public function getProperty(string $name): Property
 	{
-		return $this->properties[$name] ?? throw new Nette\InvalidArgumentException("Property '$name' not found.");
+		if (!isset($this->properties[$name])) {
+			throw new Nette\InvalidArgumentException("Property '$name' not found.");
+		}
+
+		return $this->properties[$name];
 	}
 
 

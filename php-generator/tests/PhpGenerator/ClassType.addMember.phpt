@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Nette\PhpGenerator\ClassType;
 use Tester\Assert;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -24,8 +25,6 @@ Assert::same('', $method->getBody());
 // duplicity
 $class = new ClassType('Example');
 $class->addMember(new Nette\PhpGenerator\Method('foo'));
-Assert::exception(
-	fn() => $class->addMember(new Nette\PhpGenerator\Method('FOO')),
-	Nette\InvalidStateException::class,
-	"Cannot add member 'FOO', because it already exists.",
-);
+Assert::exception(function () use ($class) {
+	$class->addMember(new Nette\PhpGenerator\Method('FOO'));
+}, Nette\InvalidStateException::class, "Cannot add member 'FOO', because it already exists.");

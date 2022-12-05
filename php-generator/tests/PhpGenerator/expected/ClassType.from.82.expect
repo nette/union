@@ -1,14 +1,5 @@
 readonly class Class13
 {
-	public bool $foo;
-
-
-	public function __construct(
-		public bool $bar = true,
-	) {
-	}
-
-
 	public function func(C|(X&D)|null $foo): (A&B)|null
 	{
 	}

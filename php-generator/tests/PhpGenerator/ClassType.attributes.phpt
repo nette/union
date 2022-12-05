@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Literal;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -18,12 +19,7 @@ $class
 	->addComment('Description of class.')
 	->addAttribute('ExampleAttribute')
 	->addAttribute('WithArgument', [new Literal('Foo::BAR')])
-	->addAttribute('Table', [
-		'name' => 'user',
-		'constraints' => [
-			Literal::new('UniqueConstraint', ['name' => 'ean', 'columns' => ['ean']]),
-		],
-	]);
+	->addAttribute('NamedArguments', ['foo' => 'bar', 'bar' => [1, 2, 3]]);
 
 $class->addConstant('FOO', 123)
 	->addComment('Commented')
@@ -39,7 +35,6 @@ $method = $class->addMethod('getHandle')
 	->addAttribute('ExampleAttribute');
 
 $method->addParameter('mode')
-	->addComment('comment')
 	->addAttribute('ExampleAttribute')
 	->addAttribute('WithArguments', [123]);
 

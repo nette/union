@@ -25,9 +25,14 @@ trait TraitsAware
 	/** @param  TraitUse[]  $traits */
 	public function setTraits(array $traits): static
 	{
-		(function (TraitUse ...$traits) {})(...$traits);
+		(function (TraitUse|string ...$traits) {})(...$traits);
 		$this->traits = [];
 		foreach ($traits as $trait) {
+			if (!$trait instanceof TraitUse) {
+				trigger_error(__METHOD__ . '() accepts an array of TraitUse as parameter, string given.', E_USER_DEPRECATED);
+				$trait = new TraitUse($trait);
+			}
+
 			$this->traits[$trait->getName()] = $trait;
 		}
 
@@ -42,14 +47,14 @@ trait TraitsAware
 	}
 
 
-	public function addTrait(string $name): TraitUse
+	public function addTrait(string $name, array|bool|null $deprecatedParam = null): TraitUse
 	{
 		if (isset($this->traits[$name])) {
 			throw new Nette\InvalidStateException("Cannot add trait '$name', because it already exists.");
 		}
-		$this->traits[$name] = $trait = new TraitUse($name);
-		if (func_num_args() > 1 && is_array(func_get_arg(1))) { // back compatibility
-			array_map(fn($item) => $trait->addResolution($item), func_get_arg(1));
+		$this->traits[$name] = $trait = new TraitUse($name, $this);
+		if (is_array($deprecatedParam)) {
+			array_map(fn($item) => $trait->addResolution($item), $deprecatedParam);
 		}
 
 		return $trait;

@@ -25,9 +25,13 @@ trait ConstantsAware
 	/** @param  Constant[]  $consts */
 	public function setConstants(array $consts): static
 	{
-		(function (Constant ...$consts) {})(...$consts);
 		$this->consts = [];
 		foreach ($consts as $k => $const) {
+			if (!$const instanceof Constant) {
+				trigger_error(__METHOD__ . '() accepts an array of Constant as parameter, ' . get_debug_type($const) . ' given.', E_USER_DEPRECATED);
+				$const = (new Constant($k))->setValue($const)->setPublic();
+			}
+
 			$this->consts[$const->getName()] = $const;
 		}
 
@@ -57,11 +61,5 @@ trait ConstantsAware
 	{
 		unset($this->consts[$name]);
 		return $this;
-	}
-
-
-	public function hasConstant(string $name): bool
-	{
-		return isset($this->consts[$name]);
 	}
 }

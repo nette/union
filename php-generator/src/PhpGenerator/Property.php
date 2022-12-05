@@ -15,9 +15,12 @@ use Nette\Utils\Type;
 
 /**
  * Class property description.
+ *
+ * @property-deprecated mixed $value
  */
 final class Property
 {
+	use Nette\SmartObject;
 	use Traits\NameAware;
 	use Traits\VisibilityAware;
 	use Traits\CommentAware;
@@ -65,7 +68,6 @@ final class Property
 	}
 
 
-	/** @return ($asObject is true ? ?Type : ?string) */
 	public function getType(bool $asObject = false): Type|string|null
 	{
 		return $asObject && $this->type

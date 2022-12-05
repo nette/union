@@ -5,49 +5,48 @@ declare(strict_types=1);
 use Nette\PhpGenerator\Extractor;
 use Tester\Assert;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
-$extractor = new Extractor(<<<'XX'
-	<?php
-	namespace NS;
+$extractor = new Extractor('<?php
+namespace NS;
 
-	abstract class Foo
+abstract class Foo
+{
+	function bar1()
 	{
-		function bar1()
-		{
-			$a = 10;
-			echo 123;
-		}
-
-		function bar2()
-		{
-			echo "hello";
-		}
-
-		abstract function bar3();
+		$a = 10;
+		echo 123;
 	}
 
-	abstract class Another
+	function bar2()
 	{
-		function bar3()
-		{
-			echo 123;
-		}
+		echo "hello";
 	}
 
-	enum Color
+	abstract function bar3();
+}
+
+abstract class Another
+{
+	function bar3()
 	{
-		case Red;
-		case Blue;
-
-		public function getName(): string
-		{
-			return $this->name;
-		}
+		echo 123;
 	}
+}
 
-	XX);
+enum Color
+{
+	case Red;
+	case Blue;
+
+	public function getName(): string
+	{
+		return $this->name;
+	}
+}
+');
 
 $bodies = $extractor->extractMethodBodies('NS\Undefined');
 Assert::same([], $bodies);
