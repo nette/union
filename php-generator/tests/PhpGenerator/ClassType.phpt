@@ -39,8 +39,7 @@ $trait2 = $class->addTrait('AnotherTrait')
 
 $class->addConstant('ROLE', 'admin');
 $class->addConstant('ACTIVE', false)
-	->setFinal()
-	->setType('bool');
+	->setFinal();
 
 Assert::false($class->isFinal());
 Assert::true($class->isAbstract());

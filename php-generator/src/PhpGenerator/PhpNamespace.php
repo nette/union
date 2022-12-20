@@ -30,14 +30,11 @@ final class PhpNamespace
 		NameFunction = 'f',
 		NameConstant = 'c';
 
-	/** @deprecated use PhpNamespace::NameNormal */
-	public const NAME_NORMAL = self::NameNormal;
-
-	/** @deprecated use PhpNamespace::NameFunction */
-	public const NAME_FUNCTION = self::NameFunction;
-
-	/** @deprecated use PhpNamespace::NameConstant */
-	public const NAME_CONSTANT = self::NameConstant;
+	/** @deprecated */
+	public const
+		NAME_NORMAL = self::NameNormal,
+		NAME_FUNCTION = self::NameFunction,
+		NAME_CONSTANT = self::NameConstant;
 
 	private string $name;
 

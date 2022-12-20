@@ -27,7 +27,6 @@ class Printer
 	public int $linesBetweenUseTypes = 0;
 	public string $returnTypeColon = ': ';
 	public bool $bracesOnNextLine = true;
-	public bool $singleParameterOnOneLine = false;
 	protected ?PhpNamespace $namespace = null;
 	protected ?Dumper $dumper;
 	private bool $resolveTypes = true;
@@ -46,17 +45,15 @@ class Printer
 			. ($function->getReturnReference() ? '&' : '')
 			. $function->getName();
 		$returnType = $this->printReturnType($function);
-		$params = $this->printParameters($function, strlen($line) + strlen($returnType) + 2); // 2 = parentheses
 		$body = Helpers::simplifyTaggedNames($function->getBody(), $this->namespace);
 		$body = ltrim(rtrim(Strings::normalize($body)) . "\n");
-		$braceOnNextLine = $this->bracesOnNextLine && (!str_contains($params, "\n") || $returnType);
 
 		return $this->printDocComment($function)
 			. $this->printAttributes($function->getAttributes())
 			. $line
-			. $params
+			. $this->printParameters($function, strlen($line) + strlen($returnType) + 2) // 2 = parentheses
 			. $returnType
-			. ($braceOnNextLine ? "\n" : ' ')
+			. ($this->bracesOnNextLine ? "\n" : ' ')
 			. "{\n" . $this->indent($body) . "}\n";
 	}
 
@@ -120,7 +117,7 @@ class Printer
 		$params = $this->printParameters($method, strlen($line) + strlen($returnType) + strlen($this->indentation) + 2);
 		$body = Helpers::simplifyTaggedNames($method->getBody(), $this->namespace);
 		$body = ltrim(rtrim(Strings::normalize($body)) . "\n");
-		$braceOnNextLine = $this->bracesOnNextLine && (!str_contains($params, "\n") || $returnType);
+		$braceOnNextLine = $this->bracesOnNextLine && !str_contains($params, "\n");
 
 		return $this->printDocComment($method)
 			. $this->printAttributes($method->getAttributes())
@@ -181,9 +178,7 @@ class Printer
 			foreach ($class->getConstants() as $const) {
 				$def = ($const->isFinal() ? 'final ' : '')
 					. ($const->getVisibility() ? $const->getVisibility() . ' ' : '')
-					. 'const '
-					. ltrim($this->printType($const->getType(), nullable: false) . ' ')
-					. $const->getName() . ' = ';
+					. 'const ' . $const->getName() . ' = ';
 
 				$consts[] = $this->printDocComment($const)
 					. $this->printAttributes($const->getAttributes())
@@ -329,8 +324,7 @@ class Printer
 	{
 		$params = [];
 		$list = $function->getParameters();
-		$multiline = false;
-		$single = $this->singleParameterOnOneLine && count($list) === 1;
+		$special = false;
 
 		foreach ($list as $param) {
 			$param->validate();
@@ -350,13 +344,12 @@ class Printer
 				. '$' . $param->getName()
 				. ($param->hasDefaultValue() && !$variadic ? ' = ' . $this->dump($param->getDefaultValue()) : '');
 
-			$multiline = $multiline || (!$single && ($promoted || $attrs));
+			$special = $special || $promoted || $attrs;
 		}
 
 		$line = implode(', ', $params);
-		$multiline = $multiline || count($params) > 1 && (strlen($line) + $column > $this->wrapLength);
 
-		return $multiline
+		return count($params) > 1 && ($special || strlen($line) + $column > $this->wrapLength)
 			? "(\n" . $this->indent(implode(",\n", $params)) . ",\n)"
 			: "($line)";
 	}
@@ -392,7 +385,7 @@ class Printer
 	}
 
 
-	protected function printReturnType(Closure|GlobalFunction|Method $function): string
+	private function printReturnType(Closure|GlobalFunction|Method $function): string
 	{
 		return ($tmp = $this->printType($function->getReturnType(), $function->isReturnNullable()))
 			? $this->returnTypeColon . $tmp
@@ -401,7 +394,7 @@ class Printer
 
 
 	/** @param  Attribute[]  $attrs */
-	protected function printAttributes(array $attrs, bool $inline = false): string
+	private function printAttributes(array $attrs, bool $inline = false): string
 	{
 		if (!$attrs) {
 			return '';

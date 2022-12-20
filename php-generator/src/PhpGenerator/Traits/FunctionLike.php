@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Nette\PhpGenerator\Traits;
 
-use JetBrains\PhpStorm\Language;
 use Nette;
 use Nette\PhpGenerator\Dumper;
 use Nette\PhpGenerator\Parameter;
@@ -32,11 +31,7 @@ trait FunctionLike
 
 
 	/** @param  ?mixed[]  $args */
-	public function setBody(
-		#[Language('PHP')]
-		string $code,
-		?array $args = null,
-	): static
+	public function setBody(string $code, ?array $args = null): static
 	{
 		$this->body = $args === null
 			? $code
@@ -52,11 +47,7 @@ trait FunctionLike
 
 
 	/** @param  ?mixed[]  $args */
-	public function addBody(
-		#[Language('PHP')]
-		string $code,
-		?array $args = null,
-	): static
+	public function addBody(string $code, ?array $args = null): static
 	{
 		$this->body .= ($args === null ? $code : (new Dumper)->format($code, ...$args)) . "\n";
 		return $this;

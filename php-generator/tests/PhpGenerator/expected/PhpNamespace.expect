@@ -18,8 +18,7 @@ class A implements A, C
 		array $d,
 		?callable $e,
 		C|string $f,
-	): static|A
-	{
+	): static|A {
 	}
 }
 

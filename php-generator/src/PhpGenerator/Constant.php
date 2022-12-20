@@ -25,7 +25,6 @@ final class Constant
 
 	private mixed $value;
 	private bool $final = false;
-	private ?string $type = null;
 
 
 	public function setValue(mixed $val): static
@@ -51,18 +50,5 @@ final class Constant
 	public function isFinal(): bool
 	{
 		return $this->final;
-	}
-
-
-	public function setType(?string $type): static
-	{
-		$this->type = Helpers::validateType($type);
-		return $this;
-	}
-
-
-	public function getType(): ?string
-	{
-		return $this->type;
 	}
 }
