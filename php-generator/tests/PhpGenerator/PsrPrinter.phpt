@@ -6,6 +6,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Literal;
 use Nette\PhpGenerator\PsrPrinter;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -13,7 +14,7 @@ $printer = new PsrPrinter;
 
 
 $class = (new ClassType('Example'))
-	->setFinal()
+	->setFinal(true)
 	->setExtends('ParentClass')
 	->addImplement('IExample')
 	->addComment("Description of class.\nThis is example\n");
@@ -41,7 +42,7 @@ $class->addProperty('short', ['aaaaaaaa' => 1, 'bbbbbbbb' => 2, 'cccccccc' => 3,
 
 $class->addMethod('first')
 	->addComment('@return resource')
-	->setFinal()
+	->setFinal(true)
 	->setReturnType('stdClass')
 	->setBody("func();\nreturn ?;", [['aaaaaaaaaaaa' => 1, 'bbbbbbbbbbb' => 2, 'cccccccccccccc' => 3, 'dddddddddddd' => 4, 'eeeeeeeeeeee' => 5, 'ffffffff' => 6]])
 	->addParameter('var')

@@ -5,14 +5,13 @@ declare(strict_types=1);
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Tester\Assert;
+
 require __DIR__ . '/../bootstrap.php';
 
 
-Assert::exception(
-	fn() => (new PhpNamespace('Foo'))->add(new ClassType),
-	Nette\InvalidArgumentException::class,
-	'Class does not have a name.',
-);
+Assert::exception(function () {
+	(new PhpNamespace('Foo'))->add(new ClassType);
+}, Nette\InvalidArgumentException::class, 'Class does not have a name.');
 
 
 $namespace = (new PhpNamespace('Foo'))
@@ -20,21 +19,16 @@ $namespace = (new PhpNamespace('Foo'))
 	->add($classB = new ClassType('B', new PhpNamespace('X')));
 
 
-same(
-	<<<'XX'
-		namespace Foo;
+same('namespace Foo;
 
-		class A
-		{
-		}
+class A
+{
+}
 
-		class B
-		{
-		}
-
-		XX,
-	(string) $namespace,
-);
+class B
+{
+}
+', (string) $namespace);
 
 // namespaces are not changed
 Assert::null($classA->getNamespace());
@@ -42,10 +36,10 @@ Assert::same('X', $classB->getNamespace()->getName());
 
 
 // duplicity
-Assert::noError(fn() => $namespace->add($classA));
+Assert::noError(function () use ($namespace, $classA) {
+	$namespace->add($classA);
+});
 
-Assert::exception(
-	fn() => $namespace->add(new ClassType('a')),
-	Nette\InvalidStateException::class,
-	"Cannot add 'a', because it already exists.",
-);
+Assert::exception(function () use ($namespace) {
+	$namespace->add(new ClassType('a'));
+}, Nette\InvalidStateException::class, "Cannot add 'a', because it already exists.");

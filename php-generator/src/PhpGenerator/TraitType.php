@@ -14,6 +14,9 @@ use Nette;
 
 /**
  * Trait description.
+ *
+ * @property-deprecated Method[] $methods
+ * @property-deprecated Property[] $properties
  */
 final class TraitType extends ClassLike
 {

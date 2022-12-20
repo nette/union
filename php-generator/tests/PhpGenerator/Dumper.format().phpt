@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Nette\PhpGenerator\Dumper;
 use Tester\Assert;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -26,37 +27,35 @@ Assert::same('func(1, 2)', $dumper->format('func(?*)', [1, 2])); // old way
 
 $dumper->wrapLength = 100;
 same(
-	<<<'XX'
-		func(
-			10,
-			11,
-			12,
-			13,
-			14,
-			15,
-			16,
-			17,
-			18,
-			19,
-			20,
-			21,
-			22,
-			23,
-			24,
-			25,
-			26,
-			27,
-			28,
-			29,
-			30,
-			31,
-			32,
-			33,
-			34,
-			35,
-			36,
-		)
-		XX,
+	'func(
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32,
+	33,
+	34,
+	35,
+	36,
+)',
 	$dumper->format('func(?*)', range(10, 36)),
 );
 

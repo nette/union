@@ -11,6 +11,7 @@ use Nette\PhpGenerator\Literal;
 use Nette\PhpGenerator\Type;
 use Tester\Assert;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -38,17 +39,14 @@ $trait2 = $class->addTrait('AnotherTrait')
 
 $class->addConstant('ROLE', 'admin');
 $class->addConstant('ACTIVE', false)
-	->setFinal()
-	->setType('bool');
-Assert::true($class->hasConstant('ROLE'));
-Assert::false($class->hasConstant('xxx'));
+	->setFinal();
 
 Assert::false($class->isFinal());
 Assert::true($class->isAbstract());
 Assert::same('ParentClass', $class->getExtends());
 Assert::same(['ObjectTrait' => $trait1, 'AnotherTrait' => $trait2], $class->getTraits());
 Assert::count(2, $class->getConstants());
-Assert::type(Nette\PhpGenerator\Constant::class, $class->getConstant('ROLE'));
+Assert::type(Nette\PhpGenerator\Constant::class, $class->getConstants()['ROLE']);
 
 $class->addConstant('FORCE_ARRAY', new Literal('Nette\Utils\Json::FORCE_ARRAY'))
 	->setVisibility('private')
@@ -89,7 +87,7 @@ Assert::true($p->isPublic());
 $m = $class->addMethod('getHandle')
 	->addComment('Returns file handle.')
 	->addComment('@return resource')
-	->setFinal()
+	->setFinal(true)
 	->setBody('return $this->?;', ['handle']);
 
 Assert::same($m, $class->getMethod('getHandle'));
@@ -103,9 +101,9 @@ Assert::same('public', $m->getVisibility());
 Assert::same('return $this->handle;', $m->getBody());
 
 $m = $class->addMethod('getSections')
-	->setStatic()
+	->setStatic(true)
 	->setVisibility('protected')
-	->setReturnReference()
+	->setReturnReference(true)
 	->addBody('$mode = ?;', [123])
 	->addBody('return self::$sections;');
 $m->addParameter('mode', new Literal('self::ORDER'));
@@ -121,23 +119,19 @@ Assert::true($m->isProtected());
 Assert::false($m->isPublic());
 
 $method = $class->addMethod('show')
-	->setAbstract();
+	->setAbstract(true);
 
-$p = $method->addParameter('foo');
-Assert::true($method->hasParameter('foo'));
-Assert::same($p, $method->getParameter('foo'));
+$method->addParameter('foo');
 $method->removeParameter('foo');
-Assert::false($method->hasParameter('foo'));
 
-$method->addParameter('item')
-	->addComment('comment');
+$method->addParameter('item');
 
 $method->addParameter('res', null)
-		->setReference()
+		->setReference(true)
 		->setType(Type::union(Type::Array, 'null'));
 
 $method->addParameter('bar', null)
-		->setNullable()
+		->setNullable(true)
 		->setType('stdClass|string');
 
 $class->addTrait('foo');
@@ -173,48 +167,37 @@ $method->setParameters(array_values($parameters));
 Assert::same($parameters, $method->getParameters());
 
 
-Assert::exception(
-	fn() => (new ClassType)->addMethod('method')->setVisibility('unknown'),
-	Nette\InvalidArgumentException::class,
-	'Argument must be public|protected|private.',
-);
+Assert::exception(function () {
+	$class = new ClassType;
+	$class->addMethod('method')->setVisibility('unknown');
+}, Nette\InvalidArgumentException::class, 'Argument must be public|protected|private.');
 
 
 // duplicity
 $class = new ClassType('Example');
 $class->addConstant('a', 1);
-Assert::exception(
-	fn() => $class->addConstant('a', 1),
-	Nette\InvalidStateException::class,
-	"Cannot add constant 'a', because it already exists.",
-);
+Assert::exception(function () use ($class) {
+	$class->addConstant('a', 1);
+}, Nette\InvalidStateException::class, "Cannot add constant 'a', because it already exists.");
 
 $class->addProperty('a');
-Assert::exception(
-	fn() => $class->addProperty('a'),
-	Nette\InvalidStateException::class,
-	"Cannot add property 'a', because it already exists.",
-);
+Assert::exception(function () use ($class) {
+	$class->addProperty('a');
+}, Nette\InvalidStateException::class, "Cannot add property 'a', because it already exists.");
 
 $class->addMethod('a');
-Assert::exception(
-	fn() => $class->addMethod('a'),
-	Nette\InvalidStateException::class,
-	"Cannot add method 'a', because it already exists.",
-);
+Assert::exception(function () use ($class) {
+	$class->addMethod('a');
+}, Nette\InvalidStateException::class, "Cannot add method 'a', because it already exists.");
 
-Assert::exception(
-	fn() => $class->addMethod('A'),
-	Nette\InvalidStateException::class,
-	"Cannot add method 'A', because it already exists.",
-);
+Assert::exception(function () use ($class) {
+	$class->addMethod('A');
+}, Nette\InvalidStateException::class, "Cannot add method 'A', because it already exists.");
 
 $class->addTrait('A');
-Assert::exception(
-	fn() => $class->addTrait('A'),
-	Nette\InvalidStateException::class,
-	"Cannot add trait 'A', because it already exists.",
-);
+Assert::exception(function () use ($class) {
+	$class->addTrait('A');
+}, Nette\InvalidStateException::class, "Cannot add trait 'A', because it already exists.");
 
 
 // remove members

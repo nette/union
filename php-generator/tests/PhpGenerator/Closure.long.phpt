@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Nette\PhpGenerator\Closure;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -16,44 +17,42 @@ for ($name = 'abcde'; $name < 'abcdu'; $name++) {
 }
 
 same(
-	<<<'XX'
-		function (
-			$abcde,
-			$abcdf,
-			$abcdg,
-			$abcdh,
-			$abcdi,
-			$abcdj,
-			$abcdk,
-			$abcdl,
-			$abcdm,
-			$abcdn,
-			$abcdo,
-			$abcdp,
-			$abcdq,
-			$abcdr,
-			$abcds,
-			$abcdt,
-		) use (
-			$abcde,
-			$abcdf,
-			$abcdg,
-			$abcdh,
-			$abcdi,
-			$abcdj,
-			$abcdk,
-			$abcdl,
-			$abcdm,
-			$abcdn,
-			$abcdo,
-			$abcdp,
-			$abcdq,
-			$abcdr,
-			$abcds,
-			$abcdt,
-		) {
-			return null;
-		}
-		XX,
+	'function (
+	$abcde,
+	$abcdf,
+	$abcdg,
+	$abcdh,
+	$abcdi,
+	$abcdj,
+	$abcdk,
+	$abcdl,
+	$abcdm,
+	$abcdn,
+	$abcdo,
+	$abcdp,
+	$abcdq,
+	$abcdr,
+	$abcds,
+	$abcdt,
+) use (
+	$abcde,
+	$abcdf,
+	$abcdg,
+	$abcdh,
+	$abcdi,
+	$abcdj,
+	$abcdk,
+	$abcdl,
+	$abcdm,
+	$abcdn,
+	$abcdo,
+	$abcdp,
+	$abcdq,
+	$abcdr,
+	$abcds,
+	$abcdt,
+) {
+	return null;
+}',
 	(string) $function,
 );

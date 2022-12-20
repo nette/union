@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Nette\PhpGenerator\Helpers;
 use Tester\Assert;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -17,5 +18,5 @@ Assert::false(Helpers::isNamespaceIdentifier('Item\\\\Item'));
 Assert::false(Helpers::isNamespaceIdentifier('\\Item'));
 Assert::false(Helpers::isNamespaceIdentifier('Item\\'));
 
-Assert::true(Helpers::isNamespaceIdentifier('\\Item', allowLeadingSlash: true));
-Assert::false(Helpers::isNamespaceIdentifier('Item\\', allowLeadingSlash: true));
+Assert::true(Helpers::isNamespaceIdentifier('\\Item', true));
+Assert::false(Helpers::isNamespaceIdentifier('Item\\', true));

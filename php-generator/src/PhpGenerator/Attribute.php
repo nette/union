@@ -17,6 +17,8 @@ use Nette;
  */
 final class Attribute
 {
+	use Nette\SmartObject;
+
 	private string $name;
 
 	/** @var mixed[] */

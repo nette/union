@@ -14,9 +14,12 @@ use Nette;
 
 /**
  * Class method.
+ *
+ * @property-deprecated string|null $body
  */
 final class Method
 {
+	use Nette\SmartObject;
 	use Traits\FunctionLike;
 	use Traits\NameAware;
 	use Traits\VisibilityAware;

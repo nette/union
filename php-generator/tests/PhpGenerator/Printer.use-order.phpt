@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\Printer;
 use Tester\Assert;
+
 require __DIR__ . '/../bootstrap.php';
 
 
 $printer = new Printer;
-$printer->omitEmptyNamespaces = false;
 $namespace = new PhpNamespace('Foo');
 $namespace->addUse('Example\Foo\EmailAlias\Bar');
 $namespace->addUse('Example\Foo\Email\Test');

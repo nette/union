@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Factory;
 
+
 require __DIR__ . '/../bootstrap.php';
 require __DIR__ . '/fixtures/classes.php';
 

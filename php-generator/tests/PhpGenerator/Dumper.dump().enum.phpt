@@ -10,6 +10,7 @@ declare(strict_types=1);
 use Nette\PhpGenerator\Dumper;
 use Tester\Assert;
 
+
 require __DIR__ . '/../bootstrap.php';
 
 
