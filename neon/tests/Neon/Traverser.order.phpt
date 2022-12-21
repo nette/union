@@ -19,8 +19,8 @@ a: 1
 $log = [];
 $traverser->traverse(
 	$node,
-	function ($node) use (&$log) { $log[] = ['enter', $node::class]; },
-	function ($node) use (&$log) { $log[] = ['leave', $node::class]; },
+	function ($node) use (&$log) { $log[] = ['enter', get_class($node)]; },
+	function ($node) use (&$log) { $log[] = ['leave', get_class($node)]; }
 );
 
 Assert::equal([
@@ -40,12 +40,12 @@ $log = [];
 $traverser->traverse(
 	$node,
 	function ($node) use (&$log) {
-		$log[] = ['enter', $node::class];
+		$log[] = ['enter', get_class($node)];
 		return $node instanceof Node\ArrayItemNode
 			? Neon\Traverser::DontTraverseChildren
 			: null;
 	},
-	function ($node) use (&$log) { $log[] = ['leave', $node::class]; },
+	function ($node) use (&$log) { $log[] = ['leave', get_class($node)]; }
 );
 
 Assert::equal([
@@ -61,10 +61,10 @@ $log = [];
 $traverser->traverse(
 	$node,
 	function ($node) use (&$log) {
-		$log[] = ['enter', $node::class];
+		$log[] = ['enter', get_class($node)];
 		return $node instanceof Node\ArrayItemNode ? Neon\Traverser::StopTraversal : null;
 	},
-	function ($node) use (&$log) { $log[] = ['enter', $node::class]; },
+	function ($node) use (&$log) { $log[] = ['enter', get_class($node)]; }
 );
 
 Assert::equal([
@@ -79,9 +79,9 @@ $traverser->traverse(
 	$node,
 	null,
 	function ($node) use (&$log) {
-		$log[] = ['leave', $node::class];
+		$log[] = ['leave', get_class($node)];
 		return $node instanceof Node\ArrayItemNode ? Neon\Traverser::StopTraversal : null;
-	},
+	}
 );
 
 Assert::equal([

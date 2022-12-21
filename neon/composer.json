@@ -15,13 +15,13 @@
 		}
 	],
 	"require": {
-		"php": ">=8.0 <8.3",
+		"php": ">=7.1",
 		"ext-json": "*"
 	},
 	"require-dev": {
-		"nette/tester": "^2.4",
+		"nette/tester": "^2.0",
 		"tracy/tracy": "^2.7",
-		"phpstan/phpstan": "^1.0"
+		"phpstan/phpstan": "^0.12"
 	},
 	"autoload": {
 		"classmap": ["src/"]
@@ -34,7 +34,7 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "3.4-dev"
+			"dev-master": "3.3-dev"
 		}
 	}
 }

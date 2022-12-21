@@ -16,7 +16,7 @@ use Nette\Neon\Node;
 abstract class ArrayNode extends Node
 {
 	/** @var ArrayItemNode[] */
-	public array $items = [];
+	public $items = [];
 
 
 	/** @return mixed[] */

@@ -15,8 +15,11 @@ use Nette\Neon\Node;
 /** @internal */
 final class ArrayItemNode extends Node
 {
-	public ?Node $key = null;
-	public Node $value;
+	/** @var ?Node */
+	public $key;
+
+	/** @var Node */
+	public $value;
 
 
 	/**
@@ -68,7 +71,7 @@ final class ArrayItemNode extends Node
 	}
 
 
-	public function toValue(): mixed
+	public function toValue()
 	{
 		throw new \LogicException;
 	}

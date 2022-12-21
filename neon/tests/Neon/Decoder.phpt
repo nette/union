@@ -179,6 +179,13 @@ $dataSet = [
 
 	// deprecated NEON syntax
 	'deprecated syntax' => [
+		['on', true],
+		['On', true],
+		['ON', true],
+		['off', false],
+		['Off', false],
+		['OFF', false],
+		['"\\x42 hex escape"', "\x42 hex escape"],
 	],
 
 	// inputs with invalid syntax, but still valid UTF-8
@@ -256,17 +263,17 @@ foreach (array_merge($dataSet['invalid syntax'], $dataSet['invalid encoding']) a
 // datetime
 Assert::equal(
 	new DateTimeImmutable('2016-06-03T19:00:00+02:00'),
-	Neon::decode('2016-06-03 19:00:00 +0200'),
+	Neon::decode('2016-06-03 19:00:00 +0200')
 );
 Assert::equal(
 	new DateTimeImmutable('2016-06-03T19:00:00+02:00'),
-	Neon::decode('2016-06-03 19:00:00 +02:00'),
+	Neon::decode('2016-06-03 19:00:00 +02:00')
 );
 Assert::equal(
 	new DateTimeImmutable('2016-06-03T19:00:00'),
-	Neon::decode('2016-06-03 19:00:00'),
+	Neon::decode('2016-06-03 19:00:00')
 );
 Assert::equal(
 	new DateTimeImmutable('2016-06-03T00:00:00'),
-	Neon::decode('2016-06-03'),
+	Neon::decode('2016-06-03')
 );
