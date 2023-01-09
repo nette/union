@@ -2,6 +2,7 @@
 
 /**
  * Test: TemplateFactory nonce
+ * @phpVersion 8.0
  */
 
 declare(strict_types=1);

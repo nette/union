@@ -22,18 +22,35 @@ class TemplateFactory implements UI\TemplateFactory
 	use Nette\SmartObject;
 
 	/** @var array<callable(Template): void>  Occurs when a new template is created */
-	public array $onCreate = [];
-	private string $templateClass;
+	public $onCreate = [];
+
+	/** @var LatteFactory */
+	private $latteFactory;
+
+	/** @var Nette\Http\IRequest|null */
+	private $httpRequest;
+
+	/** @var Nette\Security\User|null */
+	private $user;
+
+	/** @var Nette\Caching\Storage|null */
+	private $cacheStorage;
+
+	/** @var string */
+	private $templateClass;
 
 
 	public function __construct(
-		private LatteFactory $latteFactory,
-		private ?Nette\Http\IRequest $httpRequest = null,
-		private ?Nette\Security\User $user = null,
-		private ?Nette\Caching\Storage $cacheStorage = null,
-		$templateClass = null,
-		private array $configVars = [],
+		LatteFactory $latteFactory,
+		?Nette\Http\IRequest $httpRequest = null,
+		?Nette\Security\User $user = null,
+		?Nette\Caching\Storage $cacheStorage = null,
+		$templateClass = null
 	) {
+		$this->latteFactory = $latteFactory;
+		$this->httpRequest = $httpRequest;
+		$this->user = $user;
+		$this->cacheStorage = $cacheStorage;
 		if ($templateClass && (!class_exists($templateClass) || !is_a($templateClass, Template::class, true))) {
 			throw new Nette\InvalidArgumentException("Class $templateClass does not implement " . Template::class . ' or it does not exist.');
 		}
@@ -42,9 +59,10 @@ class TemplateFactory implements UI\TemplateFactory
 	}
 
 
-	public function createTemplate(?UI\Control $control = null, ?string $class = null): Template
+	/** @return Template */
+	public function createTemplate(?UI\Control $control = null, ?string $class = null): UI\Template
 	{
-		$class ??= $this->templateClass;
+		$class = $class ?? $this->templateClass;
 		if (!is_a($class, Template::class, true)) {
 			throw new Nette\InvalidArgumentException("Class $class does not implement " . Template::class . ' or it does not exist.');
 		}
@@ -68,9 +86,11 @@ class TemplateFactory implements UI\TemplateFactory
 			}
 		}
 
-		$latte->addFilter('modifyDate', fn($time, $delta, $unit = null) => $time
+		$latte->addFilter('modifyDate', function ($time, $delta, $unit = null) {
+			return $time
 				? Nette\Utils\DateTime::from($time)->modify($delta . $unit)
-				: null);
+				: null;
+		});
 
 		if (!isset($latte->getFilters()['translate'])) {
 			$latte->addFilter('translate', function (Latte\Runtime\FilterInfo $fi): void {
@@ -93,7 +113,6 @@ class TemplateFactory implements UI\TemplateFactory
 			'flashes' => $flashes,
 			'control' => $control,
 			'presenter' => $presenter,
-			'config' => $control instanceof UI\Presenter && $this->configVars ? (object) $this->configVars : null,
 		];
 
 		foreach ($params as $key => $value) {
@@ -112,7 +131,7 @@ class TemplateFactory implements UI\TemplateFactory
 		Latte\Engine $latte,
 		?UI\Control $control,
 		?UI\Presenter $presenter,
-		Template $template,
+		Template $template
 	): void
 	{
 		if ($latte->onCompile instanceof \Traversable) {

@@ -70,11 +70,11 @@ class TestPresenter extends Application\UI\Presenter
 	public ?bool $pbooln = null;
 
 
-	protected function startup(): void
+	protected function startup()
 	{
 		parent::startup();
 		$this['mycontrol'] = new TestControl;
-		$this->invalidLinkMode = self::InvalidLinkTextual;
+		$this->invalidLinkMode = self::INVALID_LINK_TEXTUAL;
 
 		// standard
 		Assert::same("#error: Invalid destination ''.", $this->link(''));
@@ -222,17 +222,17 @@ class TestPresenter extends Application\UI\Presenter
 		Assert::same('#error: Argument $req passed to TestPresenter::actionObjects() must be stdClass, array given.', $this->link('objects', ['req' => []]));
 
 		// silent invalid link mode
-		$this->invalidLinkMode = self::InvalidLinkSilent;
+		$this->invalidLinkMode = self::INVALID_LINK_SILENT;
 		Assert::same('#', $this->link('params', ['p' => null, 'pbool' => 'a']));
 
 		// warning invalid link mode
-		$this->invalidLinkMode = self::InvalidLinkWarning;
+		$this->invalidLinkMode = self::INVALID_LINK_WARNING;
 		Assert::error(function () {
 			$this->link('params', ['p' => null, 'pbool' => 'a']);
 		}, E_USER_WARNING, "Invalid link: Value passed to persistent parameter 'pbool' in presenter Test must be boolean, string given.");
 
 		// exception invalid link mode
-		$this->invalidLinkMode = self::InvalidLinkException;
+		$this->invalidLinkMode = self::INVALID_LINK_EXCEPTION;
 		Assert::exception(function () {
 			$this->link('params', ['p' => null, 'pbool' => 'a']);
 		}, Nette\Application\UI\InvalidLinkException::class, "Value passed to persistent parameter 'pbool' in presenter Test must be boolean, string given.");
@@ -300,18 +300,21 @@ $url = new Http\UrlScript('http://localhost/index.php', '/index.php');
 
 $presenterFactory = Mockery::mock(Nette\Application\IPresenterFactory::class);
 $presenterFactory->shouldReceive('getPresenterClass')
-	->andReturnUsing(fn($presenter) => $presenter . 'Presenter');
+	->andReturnUsing(function ($presenter) {
+		return $presenter . 'Presenter';
+	});
 
 $presenter = new TestPresenter;
 $presenter->injectPrimary(
-	new Http\Request($url),
-	new Http\Response,
+	null,
 	$presenterFactory,
 	new Application\Routers\SimpleRouter,
+	new Http\Request($url),
+	new Http\Response
 );
 
-$presenter->invalidLinkMode = TestPresenter::InvalidLinkWarning;
+$presenter->invalidLinkMode = TestPresenter::INVALID_LINK_WARNING;
 $presenter->autoCanonicalize = false;
 
-$request = new Application\Request('Test', Http\Request::Get, []);
+$request = new Application\Request('Test', Http\Request::GET, []);
 $presenter->run($request);

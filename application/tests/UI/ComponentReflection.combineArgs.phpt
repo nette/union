@@ -29,7 +29,7 @@ class MyPresenter
 		?bool $bool = null,
 		?string $str = null,
 		?array $arr = null,
-		?iterable $iter = null,
+		?iterable $iter = null
 	) {
 	}
 
@@ -44,7 +44,7 @@ class MyPresenter
 		bool $bool = false,
 		string $str = '',
 		array $arr = [],
-		iterable $iter = [],
+		iterable $iter = []
 	) {
 	}
 
@@ -55,11 +55,6 @@ class MyPresenter
 
 
 	public function objects(stdClass $req, ?stdClass $nullable, ?stdClass $opt = null)
-	{
-	}
-
-
-	public function hintsUnion(int|array $intArray, string|array $strArray)
 	{
 	}
 }
@@ -256,28 +251,4 @@ test('', function () {
 	Assert::exception(function () use ($method) {
 		Reflection::combineArgs($method, ['req' => [], 'opt' => null]);
 	}, Nette\InvalidArgumentException::class, 'Argument $req passed to MyPresenter::objects() must be stdClass, array given.');
-});
-
-
-test('', function () {
-	$method = new ReflectionMethod('MyPresenter', 'hintsUnion');
-
-	Assert::same([1, 'abc'], Reflection::combineArgs($method, ['intArray' => '1', 'strArray' => 'abc']));
-	Assert::same([[1], [2]], Reflection::combineArgs($method, ['intArray' => [1], 'strArray' => [2]]));
-
-	Assert::exception(function () use ($method) {
-		Reflection::combineArgs($method, []);
-	}, Nette\InvalidArgumentException::class, 'Missing parameter $intArray required by MyPresenter::hintsUnion()');
-
-	Assert::exception(function () use ($method) {
-		Reflection::combineArgs($method, ['intArray' => '']);
-	}, Nette\InvalidArgumentException::class, 'Argument $intArray passed to MyPresenter::hintsUnion() must be array|int, string given.');
-
-	Assert::exception(function () use ($method) {
-		Reflection::combineArgs($method, ['intArray' => null]);
-	}, Nette\InvalidArgumentException::class, 'Missing parameter $intArray required by MyPresenter::hintsUnion()');
-
-	Assert::exception(function () use ($method) {
-		Reflection::combineArgs($method, ['intArray' => new stdClass]);
-	}, Nette\InvalidArgumentException::class, 'Argument $intArray passed to MyPresenter::hintsUnion() must be array|int, stdClass given.');
 });

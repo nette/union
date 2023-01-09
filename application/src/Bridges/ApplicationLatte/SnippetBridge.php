@@ -23,9 +23,11 @@ class SnippetBridge implements ISnippetBridge
 {
 	use Nette\SmartObject;
 
-	private Control $control;
+	/** @var Control */
+	private $control;
 
-	private \stdClass $payload;
+	/** @var \stdClass|null */
+	private $payload;
 
 
 	public function __construct(Control $control)
@@ -68,7 +70,7 @@ class SnippetBridge implements ISnippetBridge
 
 	public function addSnippet($name, $content): void
 	{
-		if (!isset($this->payload)) {
+		if ($this->payload === null) {
 			$this->payload = $this->control->getPresenter()->getPayload();
 		}
 

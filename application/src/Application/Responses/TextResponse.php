@@ -19,16 +19,23 @@ final class TextResponse implements Nette\Application\Response
 {
 	use Nette\SmartObject;
 
-	private mixed $source;
+	/** @var mixed */
+	private $source;
 
 
-	public function __construct(mixed $source)
+	/**
+	 * @param  mixed  $source
+	 */
+	public function __construct($source)
 	{
 		$this->source = $source;
 	}
 
 
-	public function getSource(): mixed
+	/**
+	 * @return mixed
+	 */
+	public function getSource()
 	{
 		return $this->source;
 	}

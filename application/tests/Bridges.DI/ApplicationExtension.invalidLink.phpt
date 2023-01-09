@@ -18,7 +18,7 @@ function createCompiler(string $config): DI\Compiler
 	$compiler->loadConfig(Tester\FileMock::create($config, 'neon'));
 	$builder = $compiler->getContainerBuilder();
 	$builder->addDefinition('myRouter')->setFactory(Nette\Application\Routers\SimpleRouter::class);
-	$builder->addDefinition('myHttpRequest')->setFactory(Nette\Http\Request::class, [new DI\Definitions\Statement(Nette\Http\UrlScript::class)]);
+	$builder->addDefinition('myHttpRequest')->setFactory(Nette\Http\Request::class, [new DI\Statement(Nette\Http\UrlScript::class)]);
 	$builder->addDefinition('myHttpResponse')->setFactory(Nette\Http\Response::class);
 	return $compiler;
 }
@@ -38,8 +38,8 @@ test('', function () {
 
 	$container = new Container4;
 	Assert::same(
-		Presenter::InvalidLinkTextual,
-		$container->getService('presenter')->invalidLinkMode,
+		Presenter::INVALID_LINK_TEXTUAL,
+		$container->getService('presenter')->invalidLinkMode
 	);
 });
 
@@ -58,8 +58,8 @@ test('', function () {
 
 	$container = new Container5;
 	Assert::same(
-		Presenter::InvalidLinkWarning | Presenter::InvalidLinkTextual,
-		$container->getService('presenter')->invalidLinkMode,
+		Presenter::INVALID_LINK_WARNING | Presenter::INVALID_LINK_TEXTUAL,
+		$container->getService('presenter')->invalidLinkMode
 	);
 });
 
@@ -78,8 +78,8 @@ test('', function () {
 
 	$container = new Container6;
 	Assert::same(
-		Presenter::InvalidLinkWarning,
-		$container->getService('presenter')->invalidLinkMode,
+		Presenter::INVALID_LINK_WARNING,
+		$container->getService('presenter')->invalidLinkMode
 	);
 });
 
@@ -98,7 +98,7 @@ test('', function () {
 
 	$container = new Container7;
 	Assert::same(
-		Presenter::InvalidLinkWarning,
-		$container->getService('presenter')->invalidLinkMode,
+		Presenter::INVALID_LINK_WARNING,
+		$container->getService('presenter')->invalidLinkMode
 	);
 });

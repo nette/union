@@ -21,11 +21,21 @@ final class LinkGenerator
 {
 	use Nette\SmartObject;
 
-	public function __construct(
-		private Router $router,
-		private UrlScript $refUrl,
-		private ?IPresenterFactory $presenterFactory = null,
-	) {
+	/** @var Router */
+	private $router;
+
+	/** @var UrlScript */
+	private $refUrl;
+
+	/** @var IPresenterFactory|null */
+	private $presenterFactory;
+
+
+	public function __construct(Router $router, UrlScript $refUrl, ?IPresenterFactory $presenterFactory = null)
+	{
+		$this->router = $router;
+		$this->refUrl = $refUrl;
+		$this->presenterFactory = $presenterFactory;
 	}
 
 
@@ -52,7 +62,7 @@ final class LinkGenerator
 
 		if (is_subclass_of($class, UI\Presenter::class)) {
 			if ($action === '') {
-				$action = UI\Presenter::DefaultAction;
+				$action = UI\Presenter::DEFAULT_ACTION;
 			}
 
 			if (
@@ -70,14 +80,14 @@ final class LinkGenerator
 		}
 
 		if ($action !== '') {
-			$params[UI\Presenter::ActionKey] = $action;
+			$params[UI\Presenter::ACTION_KEY] = $action;
 		}
 
-		$params[UI\Presenter::PresenterKey] = $presenter;
+		$params[UI\Presenter::PRESENTER_KEY] = $presenter;
 
 		$url = $this->router->constructUrl($params, $this->refUrl);
 		if ($url === null) {
-			unset($params[UI\Presenter::ActionKey], $params[UI\Presenter::PresenterKey]);
+			unset($params[UI\Presenter::ACTION_KEY], $params[UI\Presenter::PRESENTER_KEY]);
 			$paramsDecoded = urldecode(http_build_query($params, '', ', '));
 			throw new UI\InvalidLinkException("No route for $dest($paramsDecoded)");
 		}
@@ -86,12 +96,12 @@ final class LinkGenerator
 	}
 
 
-	public function withReferenceUrl(string $url): static
+	public function withReferenceUrl(string $url): self
 	{
 		return new self(
 			$this->router,
 			new UrlScript($url),
-			$this->presenterFactory,
+			$this->presenterFactory
 		);
 	}
 }

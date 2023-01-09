@@ -18,11 +18,21 @@ use Nette;
  */
 final class PresenterFactoryCallback
 {
-	public function __construct(
-		private Nette\DI\Container $container,
-		private int $invalidLinkMode,
-		private ?string $touchToRefresh,
-	) {
+	/** @var Nette\DI\Container */
+	private $container;
+
+	/** @var int */
+	private $invalidLinkMode;
+
+	/** @var string|null */
+	private $touchToRefresh;
+
+
+	public function __construct(Nette\DI\Container $container, int $invalidLinkMode, ?string $touchToRefresh)
+	{
+		$this->container = $container;
+		$this->invalidLinkMode = $invalidLinkMode;
+		$this->touchToRefresh = $touchToRefresh;
 	}
 
 

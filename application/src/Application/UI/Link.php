@@ -20,11 +20,14 @@ final class Link
 {
 	use Nette\SmartObject;
 
-	private Component $component;
+	/** @var Component */
+	private $component;
 
-	private string $destination;
+	/** @var string */
+	private $destination;
 
-	private array $params;
+	/** @var array */
+	private $params;
 
 
 	/**
@@ -58,8 +61,9 @@ final class Link
 
 	/**
 	 * Changes link parameter.
+	 * @return static
 	 */
-	public function setParameter(string $key, $value): static
+	public function setParameter(string $key, $value)
 	{
 		$this->params[$key] = $value;
 		return $this;
@@ -68,8 +72,9 @@ final class Link
 
 	/**
 	 * Returns link parameter.
+	 * @return mixed
 	 */
-	public function getParameter(string $key): mixed
+	public function getParameter(string $key)
 	{
 		return $this->params[$key] ?? null;
 	}
@@ -98,6 +103,16 @@ final class Link
 	 */
 	public function __toString(): string
 	{
-		return $this->component->link($this->destination, $this->params);
+		try {
+			return $this->component->link($this->destination, $this->params);
+
+		} catch (\Throwable $e) {
+			if (func_num_args() || PHP_VERSION_ID >= 70400) {
+				throw $e;
+			}
+
+			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
+			return '';
+		}
 	}
 }

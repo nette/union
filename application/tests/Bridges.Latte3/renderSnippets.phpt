@@ -2,6 +2,7 @@
 
 /**
  * Test: render snippets.
+ * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -49,7 +50,7 @@ class TestPresenter extends Nette\Application\UI\Presenter
 
 
 $presenter = new TestPresenter;
-$presenter->injectPrimary(new Http\Request(new Http\UrlScript('/')), new Http\Response);
+$presenter->injectPrimary(null, null, null, new Http\Request(new Http\UrlScript('/')), new Http\Response);
 $presenter->snippetMode = true;
 $presenter->redrawControl();
 $presenter['multi-1']->redrawControl();
@@ -73,7 +74,7 @@ Assert::same([
 
 
 $presenter = new TestPresenter;
-$presenter->injectPrimary(new Http\Request(new Http\UrlScript('/')), new Http\Response);
+$presenter->injectPrimary(null, null, null, new Http\Request(new Http\UrlScript('/')), new Http\Response);
 $presenter->snippetMode = true;
 $presenter->redrawControl('hello');
 $presenter->redrawControl('array');
@@ -89,7 +90,7 @@ Assert::same([
 ], (array) $presenter->payload);
 
 $presenter = new TestPresenter;
-$presenter->injectPrimary(new Http\Request(new Http\UrlScript('/')), new Http\Response);
+$presenter->injectPrimary(null, null, null, new Http\Request(new Http\UrlScript('/')), new Http\Response);
 ob_start();
 $presenter->render();
 $content = ob_get_clean();

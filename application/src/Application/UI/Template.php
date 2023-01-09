@@ -22,8 +22,9 @@ interface Template
 
 	/**
 	 * Sets the path to the template file.
+	 * @return static
 	 */
-	function setFile(string $file): static;
+	function setFile(string $file);
 
 	/**
 	 * Returns the path to the template file.

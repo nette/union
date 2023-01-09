@@ -34,10 +34,11 @@ class TestPresenter extends Application\UI\Presenter
 $presenter = new TestPresenter;
 $presenter->setParent(null, 'test');
 $presenter->injectPrimary(
-	new Http\Request(new Http\UrlScript('http://localhost')),
-	new Http\Response,
+	null,
 	null,
 	new Application\Routers\SimpleRouter,
+	new Http\Request(new Http\UrlScript('http://localhost')),
+	new Http\Response
 );
 
 

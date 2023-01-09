@@ -20,12 +20,14 @@ final class RedirectResponse implements Nette\Application\Response
 {
 	use Nette\SmartObject;
 
-	private string $url;
+	/** @var string */
+	private $url;
 
-	private int $httpCode;
+	/** @var int */
+	private $httpCode;
 
 
-	public function __construct(string $url, int $httpCode = Http\IResponse::S302_Found)
+	public function __construct(string $url, int $httpCode = Http\IResponse::S302_FOUND)
 	{
 		$this->url = $url;
 		$this->httpCode = $httpCode;

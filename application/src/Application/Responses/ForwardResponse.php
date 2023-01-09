@@ -19,7 +19,8 @@ final class ForwardResponse implements Nette\Application\Response
 {
 	use Nette\SmartObject;
 
-	private Nette\Application\Request $request;
+	/** @var Nette\Application\Request */
+	private $request;
 
 
 	public function __construct(Nette\Application\Request $request)

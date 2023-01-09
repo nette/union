@@ -21,7 +21,8 @@ final class CliRouter implements Nette\Routing\Router
 
 	private const PresenterKey = 'action';
 
-	private array $defaults;
+	/** @var array */
+	private $defaults;
 
 
 	public function __construct(array $defaults = [])
