@@ -86,7 +86,7 @@ Assert::same([
 	'C::detached(A)',
 ], Notes::fetch());
 
-Assert::null($dolly['d']['e']->lookupPath('A', false));
+Assert::null($dolly['d']['e']->lookupPath('A', throw: false));
 
 Assert::same('d-e', $dolly['d']['e']->lookupPath(C::class));
 

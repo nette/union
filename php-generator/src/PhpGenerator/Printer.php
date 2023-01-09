@@ -18,8 +18,6 @@ use Nette\Utils\Strings;
  */
 class Printer
 {
-	use Nette\SmartObject;
-
 	public int $wrapLength = 120;
 	public string $indentation = "\t";
 	public int $linesBetweenProperties = 0;
@@ -28,6 +26,7 @@ class Printer
 	public string $returnTypeColon = ': ';
 	public bool $bracesOnNextLine = true;
 	public bool $singleParameterOnOneLine = false;
+	public bool $omitEmptyNamespaces = true;
 	protected ?PhpNamespace $namespace = null;
 	protected ?Dumper $dumper;
 	private bool $resolveTypes = true;
@@ -147,11 +146,12 @@ class Printer
 		$traits = [];
 		if ($class instanceof ClassType || $class instanceof TraitType || $class instanceof EnumType) {
 			foreach ($class->getTraits() as $trait) {
-				$resolutions = $trait->getResolutions();
+				$resolutions = implode(";\n", $trait->getResolutions());
+				$resolutions = Helpers::simplifyTaggedNames($resolutions, $this->namespace);
 				$traits[] = $this->printDocComment($trait)
 					. 'use ' . $resolver($trait->getName())
 					. ($resolutions
-						? " {\n" . $this->indentation . implode(";\n" . $this->indentation, $resolutions) . ";\n}\n"
+						? " {\n" . $this->indent($resolutions) . ";\n}\n"
 						: ";\n");
 			}
 		}
@@ -234,7 +234,7 @@ class Printer
 		}
 
 		$line[] = match (true) {
-			$class instanceof ClassType => $class->getName() ? $class->getType() . ' ' . $class->getName() : null,
+			$class instanceof ClassType => $class->getName() ? 'class ' . $class->getName() : null,
 			$class instanceof InterfaceType => 'interface ' . $class->getName(),
 			$class instanceof TraitType => 'trait ' . $class->getName(),
 			$class instanceof EnumType => 'enum ' . $class->getName() . ($enumType ? $this->returnTypeColon . $enumType : ''),
@@ -275,6 +275,10 @@ class Printer
 
 		foreach ($namespace->getFunctions() as $function) {
 			$items[] = $this->printFunction($function, $namespace);
+		}
+
+		if (!$items && $this->omitEmptyNamespaces) {
+			return '';
 		}
 
 		$body = ($uses ? $uses . "\n" : '')
@@ -327,38 +331,49 @@ class Printer
 
 	protected function printParameters(Closure|GlobalFunction|Method $function, int $column = 0): string
 	{
-		$params = [];
-		$list = $function->getParameters();
-		$multiline = false;
-		$single = $this->singleParameterOnOneLine && count($list) === 1;
-
-		foreach ($list as $param) {
+		$special = false;
+		foreach ($function->getParameters() as $param) {
 			$param->validate();
-			$variadic = $function->isVariadic() && $param === end($list);
-			$type = $param->getType();
-			$promoted = $param instanceof PromotedParameter ? $param : null;
-			$params[] =
-				($promoted ? $this->printDocComment($promoted) : '')
-				. ($attrs = $this->printAttributes($param->getAttributes(), inline: true))
-				. ($promoted ?
-					($promoted->getVisibility() ?: 'public')
-					. ($promoted->isReadOnly() && $type ? ' readonly' : '')
-					. ' ' : '')
-				. ltrim($this->printType($type, $param->isNullable()) . ' ')
+			$special = $special || $param instanceof PromotedParameter || $param->getAttributes() || $param->getComment();
+		}
+
+		if (!$special || ($this->singleParameterOnOneLine && count($function->getParameters()) === 1)) {
+			$line = $this->formatParameters($function, multiline: false);
+			if (!str_contains($line, "\n") && strlen($line) + $column <= $this->wrapLength) {
+				return $line;
+			}
+		}
+
+		return $this->formatParameters($function, multiline: true);
+	}
+
+
+	private function formatParameters(Closure|GlobalFunction|Method $function, bool $multiline): string
+	{
+		$params = $function->getParameters();
+		$res = '';
+
+		foreach ($params as $param) {
+			$variadic = $function->isVariadic() && $param === end($params);
+			$attrs = $this->printAttributes($param->getAttributes(), inline: true);
+			$res .=
+				$this->printDocComment($param)
+				. ($attrs ? ($multiline ? substr($attrs, 0, -1) . "\n" : $attrs) : '')
+				. ($param instanceof PromotedParameter
+					? ($param->getVisibility() ?: 'public') . ($param->isReadOnly() && $param->getType() ? ' readonly' : '') . ' '
+					: '')
+				. ltrim($this->printType($param->getType(), $param->isNullable()) . ' ')
 				. ($param->isReference() ? '&' : '')
 				. ($variadic ? '...' : '')
 				. '$' . $param->getName()
-				. ($param->hasDefaultValue() && !$variadic ? ' = ' . $this->dump($param->getDefaultValue()) : '');
-
-			$multiline = $multiline || (!$single && ($promoted || $attrs));
+				. ($param->hasDefaultValue() && !$variadic ? ' = ' . $this->dump($param->getDefaultValue()) : '')
+				. ($multiline ? ",\n" : ', ');
 		}
 
-		$line = implode(', ', $params);
-		$multiline = $multiline || count($params) > 1 && (strlen($line) + $column > $this->wrapLength);
-
 		return $multiline
-			? "(\n" . $this->indent(implode(",\n", $params)) . ",\n)"
-			: "($line)";
+			? "(\n" . $this->indent($res) . ')'
+			: '(' . substr($res, 0, -2) . ')';
+
 	}
 
 
@@ -412,7 +427,8 @@ class Printer
 		foreach ($attrs as $attr) {
 			$args = $this->dumper->format('...?:', $attr->getArguments());
 			$args = Helpers::simplifyTaggedNames($args, $this->namespace);
-			$items[] = $this->printType($attr->getName(), nullable: false) . ($args ? "($args)" : '');
+			$items[] = $this->printType($attr->getName(), nullable: false) . ($args === '' ? '' : "($args)");
+			$inline = $inline && !str_contains($args, "\n");
 		}
 
 		return $inline

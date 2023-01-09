@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Nette\Schema\Elements\Structure;
 use Nette\Schema\Expect;
+use Nette\Schema\Processor;
 use Tester\Assert;
 
 
@@ -15,12 +16,12 @@ Assert::with(Structure::class, function () {
 
 	Assert::type(Structure::class, $schema);
 	Assert::same([], $schema->items);
-	Assert::same(stdClass::class, $schema->castTo);
+	Assert::type(stdClass::class, (new Processor)->process($schema, []));
 });
 
 
 Assert::with(Structure::class, function () {
-	$schema = Expect::from(new class {
+	$schema = Expect::from($obj = new class {
 		public string $dsn = 'mysql';
 		public ?string $user;
 		public ?string $password = null;
@@ -40,7 +41,28 @@ Assert::with(Structure::class, function () {
 		'mixed' => Expect::mixed()->required(),
 		'arr' => Expect::type('array')->default([1]),
 	], $schema->items);
-	Assert::type('string', $schema->castTo);
+	Assert::type($obj, (new Processor)->process($schema, ['user' => '', 'mixed' => '']));
+});
+
+
+Assert::with(Structure::class, function () { // constructor injection
+	$schema = Expect::from($obj = new class ('') {
+		public function __construct(
+			public ?string $user,
+			public ?string $password = null,
+		) {
+		}
+	});
+
+	Assert::type(Structure::class, $schema);
+	Assert::equal([
+		'user' => Expect::type('?string')->required(),
+		'password' => Expect::type('?string'),
+	], $schema->items);
+	Assert::equal(
+		new $obj('foo', 'bar'),
+		(new Processor)->process($schema, ['user' => 'foo', 'password' => 'bar']),
+	);
 });
 
 

@@ -1,5 +1,7 @@
 <?php
 
+/** @phpVersion 8.0 */
+
 declare(strict_types=1);
 
 use Nette\Forms\Form;
@@ -12,7 +14,7 @@ $form = new Form('signForm');
 $form->addText('name')->setRequired();
 
 ob_start();
-(new Nette\Bridges\FormsLatte\Runtime)->renderFormClassPrint($form);
+Nette\Bridges\FormsLatte\Runtime::renderFormClassPrint($form);
 $res = ob_get_clean();
 
 Assert::match(

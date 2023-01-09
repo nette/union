@@ -105,9 +105,11 @@ test('global function', function () {
 
 	Assert::same('undefined', Callback::toString('undefined'));
 
-	Assert::exception(function () {
-		Callback::toReflection('undefined');
-	}, ReflectionException::class, 'Function undefined() does not exist');
+	Assert::exception(
+		fn() => Callback::toReflection('undefined'),
+		ReflectionException::class,
+		'Function undefined() does not exist',
+	);
 });
 
 
@@ -156,6 +158,8 @@ test('object methods', function () {
 
 	Assert::same('Test::privateFun', getName(Callback::toReflection([$test, 'privateFun'])));
 	Assert::same('Test::privateFun', getName(Callback::toReflection($test->createPrivateClosure())));
+
+	Assert::same(['Test', 'privateFun'], Callback::unwrap((new TestChild)->createPrivateClosure()));
 	Assert::same('Test::privateFun', getName(Callback::toReflection((new TestChild)->createPrivateClosure())));
 
 	Assert::same('Test::privateFun*', $test->createPrivateClosure()->__invoke('*'));
@@ -207,20 +211,26 @@ test('magic methods', function () {
 	Assert::same('{closure TestDynamic::magic}', Callback::toString(Closure::fromCallable('TestDynamic::magic')));
 	Assert::same('TestDynamic::__callStatic magic *', Closure::fromCallable('TestDynamic::magic')->__invoke('*'));
 
-	Assert::exception(function () {
-		Callback::toReflection([new TestDynamic, 'magic']);
-	}, ReflectionException::class, 'Method TestDynamic::magic() does not exist');
+	Assert::exception(
+		fn() => Callback::toReflection([new TestDynamic, 'magic']),
+		ReflectionException::class,
+		'Method TestDynamic::magic() does not exist',
+	);
 
-	Assert::exception(function () {
-		Callback::toReflection(Closure::fromCallable([new TestDynamic, 'magic']));
-	}, ReflectionException::class, 'Method TestDynamic::magic() does not exist');
+	Assert::exception(
+		fn() => Callback::toReflection(Closure::fromCallable([new TestDynamic, 'magic'])),
+		ReflectionException::class,
+		'Method TestDynamic::magic() does not exist',
+	);
 });
 
 
 test('PHP bugs - is_callable($object, true) fails', function () {
 	Assert::same('stdClass::__invoke', Callback::toString(new stdClass));
 
-	Assert::exception(function () {
-		Callback::toReflection(new stdClass);
-	}, ReflectionException::class, 'Method stdClass::__invoke() does not exist');
+	Assert::exception(
+		fn() => Callback::toReflection(new stdClass),
+		ReflectionException::class,
+		'Method stdClass::__invoke() does not exist',
+	);
 });

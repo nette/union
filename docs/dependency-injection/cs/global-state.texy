@@ -2,36 +2,28 @@ Globální stav a singletony
 **************************
 
 .[perex]
-Varování: Následující konstrukce jsou příznakem špatného návrhu kódu:
+Varování: Následující konstrukce jsou příznakem špatně navrženého kódu:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` nebo `static::$var`
 
-Vyskytují se některé z těchto konstrukcí ve vašem kódu? Pak máte příležitost k zlepšení. Možná si říkáte, že jde o běžné konstrukce, které vídáme i v ukázkových řešeních různých knihoven a frameworků.
-Bohužel, i přesto jsou jasným indikátorem špatného návrhu. Spojuje je jedno: používání globálního stavu.
+Vyskytují se některé z těchto konstrukcí ve vašem kódu? Pak máte příležitost k jeho zlepšení. Možná si říkáte, že jde o běžné konstrukce, které vídáte třeba i v ukázkových řešeních různých knihoven a frameworků. Pokud je tomu tak, pak návrh jejich kódu není dobrý.
 
-Nyní rozhodně nemluvíme o jakési akademické čistotě. Používání globálního stavu a singletonů má destruktivní dopady na kvalitu kódu. Jeho chování se stává nepředvídatelné, snižuje produktivitu vývojářů a nutí rozhraní tříd lhát o svých skutečných závislostech. Což mate programátory.
+Nyní rozhodně nemluvíme o jakési akademické čistotě. Všechny tyto konstrukce mají jedno společné: využívají globální stav. A ten má destruktivní dopad na kvalitu kódu. Třídy lžou o svých závislostech. Kód se stává nepředvídatelným. Mate programátory a snižuje jejich efektivitu.
 
-V této kapitole si ukážeme, jak je to možné.
+V této kapitole si vysvětlíme, proč tomu tak je, a jak se globálnímu stavu vyhnout.
 
 
 Globální provázání
 ------------------
 
-Základní problém globálního stavu spočívá v tom, že je globálně přístupný. Díky tomu je třeba možné zapsat do databáze přes globální (statickou) metodu `DB::insert()`.
-V ideálním světě by měl být objekt schopen komunikovat pouze s jinými objekty, které mu byly [přímo předány |passing-dependencies].
-Pokud vytvořím dva objekty `A` a `B` a nikdy nepředám referenci z `A` na `B`, pak se ani `A`, ani `B` nemohou dostat k druhému objektu nebo změnit jeho stav.
-To je velmi žádoucí vlastnost kódu. Je to podobné, jako když máte baterii a žárovku; žárovka nebude svítit, dokud je nepropojíte drátem.
+V ideálním světě by měl být objekt schopen komunikovat pouze s objekty, které mu byly [přímo předány |passing-dependencies]. Pokud vytvořím dva objekty `A` a `B` a nikdy nepředám referenci mezi nimi, pak se ani `A`, ani `B`, nemohou dostat k druhému objektu nebo změnit jeho stav. To je velmi žádoucí vlastnost kódu. Je to podobné, jako když máte baterii a žárovku; žárovka nebude svítit, dokud ji s baterií nepropojíte drátem.
 
-To ale neplatí u globálních (statických) proměnných nebo singletonů. Objekt `A` by se mohl *bezdrátově* dostat k objektu `C` a modifikovat jej bez jakéhokoliv předání reference, tím, že zavolá `C::changeSomething()`.
-Pokud se objekt `B` také chopí globálního `C`, pak se `A` a `B` mohou navzájem ovlivňovat prostřednictvím `C`.
+To ale neplatí u globálních (statických) proměnných nebo singletonů. Objekt `A` by se mohl *bezdrátově* dostat k objektu `C` a modifikovat jej bez jakéhokoliv předání reference, tím, že zavolá `C::changeSomething()`. Pokud se objekt `B` také chopí globálního `C`, pak se `A` a `B` mohou navzájem ovlivňovat prostřednictvím `C`.
 
-Použití globálních proměnných do systému vnáší novou formu *bezdrátové* provázanosti, která není zvenčí vidět.
-Vytváří kouřovou clonu komplikující pochopení a používání kódu.
-Aby vývojáři závislostem skutečně porozuměli, musí přečíst každý řádek zdrojového kódu. Místo pouhého seznámení se s rozhraním tříd.
-Jde navíc o provázanost zcela zbytečnou.
+Použití globálních proměnných do systému vnáší novou formu *bezdrátové* provázanosti, která není zvenčí vidět. Vytváří kouřovou clonu komplikující pochopení a používání kódu. Aby vývojáři závislostem skutečně porozuměli, musí přečíst každý řádek zdrojového kódu. Místo pouhého seznámení se s rozhraním tříd. Jde navíc o provázanost zcela zbytečnou. Globální stav se používá kvůli tomu, že je snadno odkudkoliv přístupný a umožňuje třeba zapsat do databáze přes globální (statickou) metodu `DB::insert()`. Ale jak si ukážeme, výhoda, kterou to přináší, je nepatrná, naopak komplikace to způsobuje fatální.
 
 .[note]
 Z hlediska chování není rozdíl mezi globální a statickou proměnnou. Jsou stejně škodlivé.
@@ -309,4 +301,4 @@ Když promýšlíte návrh kódu, myslete na to, že každé `static $foo` před
 
 Během tohoto procesu možná zjistíte, že je třeba třídu rozdělit, protože má více než jednu odpovědnost. Nebojte se toho; usilujte o princip jedné odpovědnosti.
 
-*Rád bych poděkoval Miškovi Heverymu, jehož články, jako je [Flaw: Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/], jsou základem této kapitoly.*
+*Rád bych poděkoval Miškovi Heverymu, jehož články, jako je [Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/], jsou základem této kapitoly.*

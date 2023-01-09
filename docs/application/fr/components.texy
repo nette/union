@@ -87,7 +87,7 @@ class PollControl extends Control
 Rendu .[#toc-rendering]
 =======================
 
-Nous savons déjà que la balise `{control componentName}` est utilisée pour dessiner un composant. Elle appelle en fait la méthode `render()` du composant, dans laquelle nous nous occupons du rendu. Nous disposons, comme dans le présentateur, d'un modèle [Latte |latte:] dans la variable `$this->template`, à laquelle nous passons les paramètres. Contrairement à l'utilisation dans un présentateur, nous devons spécifier un fichier de modèle et le laisser effectuer le rendu :
+Nous savons déjà que la balise `{control componentName}` est utilisée pour dessiner un composant. Elle appelle en fait la méthode `render()` du composant, dans laquelle nous nous occupons du rendu. Nous disposons, comme dans le présentateur, d'un [modèle Latte |templates] dans la variable `$this->template`, à laquelle nous passons les paramètres. Contrairement à l'utilisation dans un présentateur, nous devons spécifier un fichier de modèle et le laisser effectuer le rendu :
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -240,7 +240,7 @@ Par exemple, vous avez un composant de pagination de contenu. Il peut y avoir pl
 La création d'un paramètre persistant est extrêmement simple dans Nette. Il suffit de créer une propriété publique et de la baliser avec l'attribut : (auparavant `/** @persistent */` était utilisé)
 
 ```php
-use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Persistent; // cette ligne est importante
 
 class PaginatingControl extends Control
 {
@@ -380,7 +380,7 @@ Les composants en profondeur .[#toc-components-in-depth]
 Les composants d'une application Nette sont les parties réutilisables d'une application Web que nous intégrons dans les pages, ce qui est le sujet de ce chapitre. Quelles sont exactement les capacités d'un tel composant ?
 
 1) il peut être rendu dans un modèle
-2) Il sait quelle partie de lui-même doit être rendue lors d'une [requête AJAX |ajax#invalidation] (snippets).
+2) il sait [quelle partie de lui-même |ajax#snippets] rendre lors d'une requête AJAX (snippets)
 3) il a la capacité de stocker son état dans une URL (paramètres persistants)
 4) il a la capacité de répondre aux actions de l'utilisateur (signaux)
 5) il crée une structure hiérarchique (dont la racine est le présentateur).

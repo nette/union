@@ -39,6 +39,16 @@ Assert::match( // fix #58
 	$latte->renderToString('{contentType application/xml}{if true}x{/if}'),
 );
 
+Assert::match( // fix
+	'<input x >',
+	$latte->renderToString('<input x {*a*}>{*b*}'),
+);
+
+Assert::match( // html is case insensitive
+	'<a></a>',
+	$latte->renderToString('<a n:if=1></A>'),
+);
+
 Assert::match(
 	'<a href=""></a>',
 	$latte->renderToString('<a href="{ifset $x}{$x}{/ifset}"></a>'),
@@ -64,6 +74,11 @@ Assert::match(
 Assert::match(
 	'<a><br {foo}></a>',
 	$latte->renderToString('<a n:syntax="double"><br {foo}></a>'),
+);
+
+Assert::match(
+	'<brx>', // bad, but allowed for compatibility
+	$latte->renderToString('<br{if 1}x{/if}>'),
 );
 
 

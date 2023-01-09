@@ -50,7 +50,7 @@ class MyPresenter extends BasePresenter
 Οι ιδιότητες επισημαίνονται με μια ιδιότητα: (προηγουμένως, χρησιμοποιούνταν ο σχολιασμός `/** @inject */`)
 
 ```php
-use Nette\DI\Attributes\Inject; // η εισαγωγή είναι σημαντική εδώ
+use Nette\DI\Attributes\Inject; // αυτή η γραμμή είναι σημαντική
 
 class MyPresenter extends Nette\Application\UI\Presenter
 {

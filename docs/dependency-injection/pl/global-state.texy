@@ -2,36 +2,28 @@ Stan globalny i singletony
 **************************
 
 .[perex]
-Ostrzeżenie: poniższe konstrukcje są objawami złego projektowania kodu:
+Ostrzeżenie: Poniższe konstrukcje są objawami źle zaprojektowanego kodu:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` lub `static::$var`
 
-Czy któryś z tych konstruktów występuje w Twoim kodzie? W takim razie masz okazję do poprawy. Możesz myśleć, że są to powszechne konstrukcje, które widzimy w przykładowych rozwiązaniach różnych bibliotek i frameworków.
-Niestety, nadal są one wyraźnym wskaźnikiem złego projektu. Mają one jedną wspólną cechę: wykorzystanie stanu globalnego.
+Czy napotkałeś którąś z tych konstrukcji w swoim kodzie? Jeśli tak, to masz okazję je poprawić. Można by pomyśleć, że są to powszechne konstrukcje, często spotykane w przykładowych rozwiązaniach różnych bibliotek i frameworków. Jeśli tak jest, ich projekt kodu jest wadliwy.
 
-Teraz z pewnością nie mówimy o jakiejś akademickiej czystości. Używanie globalnego stanu i singletonów ma destrukcyjny wpływ na jakość kodu. Jego zachowanie staje się nieprzewidywalne, zmniejsza produktywność programistów i zmusza interfejsy klas do kłamania na temat ich prawdziwych zależności. Co dezorientuje programistów.
+Nie mówimy tutaj o jakiejś akademickiej czystości. Wszystkie te konstrukcje mają jedną wspólną cechę: wykorzystują stan globalny. Ma to destrukcyjny wpływ na jakość kodu. Klasy wprowadzają w błąd co do swoich zależności. Kod staje się nieprzewidywalny. Dezorientuje to programistów i zmniejsza ich wydajność.
 
-W tym rozdziale pokażemy, jak to jest możliwe.
+W tym rozdziale wyjaśnimy, dlaczego tak się dzieje i jak uniknąć stanu globalnego.
 
 
 Globalne powiązania .[#toc-global-interlinking]
 -----------------------------------------------
 
-Podstawowy problem z globalnym stanem polega na tym, że jest on globalnie dostępny. Umożliwia to zapis do bazy danych poprzez globalną (statyczną) metodę `DB::insert()`.
-W idealnym świecie obiekt powinien być w stanie komunikować się tylko z innymi obiektami, które zostały [bezpośrednio przekazane do |passing-dependencies] niego.
-Jeśli stworzę dwa obiekty `A` i `B` i nigdy nie przekażę referencji z `A` do `B`, to ani `A`, ani `B` nie mogą uzyskać dostępu do drugiego obiektu ani zmienić jego stanu.
-Jest to bardzo pożądana cecha kodu. Jest to podobne do posiadania baterii i żarówki; żarówka nie będzie świecić, dopóki nie połączysz ich przewodem.
+W idealnym świecie obiekt powinien komunikować się tylko z obiektami, które zostały [mu bezpośrednio przekazane |passing-dependencies]. Jeśli utworzę dwa obiekty `A` i `B` i nigdy nie przekażę między nimi referencji, to ani `A`, ani `B` nie będą mogły uzyskać dostępu do stanu drugiego obiektu ani go zmodyfikować. Jest to bardzo pożądana właściwość kodu. Przypomina to posiadanie baterii i żarówki; żarówka nie zaświeci się, dopóki nie połączysz jej z baterią za pomocą przewodu.
 
-Nie jest to prawdą w przypadku zmiennych globalnych (statycznych) lub singletonów. Obiekt `A` mógłby *bezprzewodowo* uzyskać dostęp do obiektu `C` i zmodyfikować go bez przekazywania referencji, poprzez wywołanie `C::changeSomething()`.
-Jeśli obiekt `B` chwyci również globalny `C`, to `A` i `B` mogą współdziałać ze sobą poprzez `C`.
+Nie dotyczy to jednak zmiennych globalnych (statycznych) lub singletonów. Obiekt `A` może *bezprzewodowo* uzyskać dostęp do obiektu `C` i zmodyfikować go bez przekazywania referencji, poprzez wywołanie `C::changeSomething()`. Jeśli obiekt `B` ma również dostęp do globalnego `C`, to `A` i `B` mogą wpływać na siebie nawzajem poprzez `C`.
 
-Użycie zmiennych globalnych wprowadza do systemu nową formę *bezprzewodowego* sprzężenia, która nie jest widoczna z zewnątrz.
-Tworzy zasłonę dymną komplikującą zrozumienie i wykorzystanie kodu.
-Programiści muszą czytać każdą linię kodu źródłowego, aby naprawdę zrozumieć zależności. Zamiast po prostu zapoznać się z interfejsem klas.
-Co więcej, jest to całkowicie niepotrzebne sprzężenie.
+Używanie zmiennych globalnych wprowadza nową formę *bezprzewodowego* sprzężenia, które nie jest widoczne z zewnątrz. Tworzy to zasłonę dymną, która komplikuje zrozumienie i używanie kodu. Aby naprawdę zrozumieć zależności, programiści muszą przeczytać każdą linijkę kodu źródłowego, a nie tylko zapoznać się z interfejsami klas. Co więcej, to uwikłanie jest całkowicie niepotrzebne. Stan globalny jest używany, ponieważ jest łatwo dostępny z dowolnego miejsca i umożliwia, na przykład, zapis do bazy danych za pomocą globalnej (statycznej) metody `DB::insert()`. Jednak, jak zobaczymy, korzyści, jakie oferuje, są minimalne, podczas gdy komplikacje, które wprowadza, są poważne.
 
 .[note]
 Pod względem zachowania nie ma różnicy między zmienną globalną a statyczną. Są one równie szkodliwe.
@@ -309,4 +301,4 @@ Rozważając projekt kodu, pamiętaj, że każdy `static $foo` reprezentuje prob
 
 Podczas tego procesu może się okazać, że musisz podzielić klasę, ponieważ ma ona więcej niż jedną odpowiedzialność. Nie przejmuj się tym; dąż do zasady jednej odpowiedzialności.
 
-*Chciałbym podziękować Miško Hevery'emu, którego artykuły takie jak [Flaw: Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] stanowią podstawę tego rozdziału.*
+*Chciałbym podziękować Miško Hevery'emu, którego artykuły takie jak [Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] stanowią podstawę tego rozdziału.*

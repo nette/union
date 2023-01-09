@@ -2,36 +2,28 @@ Globális állapot és singletonok
 *******************************
 
 .[perex]
-Figyelmeztetés: A következő konstrukciók a rossz kódtervezés tünetei:
+Figyelmeztetés: A következő konstrukciók a rosszul megtervezett kód tünetei:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` vagy `static::$var`
 
-Előfordulnak-e ezek a konstrukciók az Ön kódjában? Akkor lehetősége van a javításra. Talán arra gondolsz, hogy ezek olyan gyakori konstrukciók, amelyeket különböző könyvtárak és keretrendszerek mintamegoldásaiban látunk.
-Sajnos ezek még mindig a rossz tervezés egyértelmű jelei. Egy dolog közös bennük: a globális állapot használata.
+Találkozik ilyen konstrukciókkal a kódjában? Ha igen, akkor lehetősége van javítani rajta. Azt gondolhatod, hogy ezek gyakori konstrukciók, amelyeket gyakran láthatsz különböző könyvtárak és keretrendszerek mintamegoldásaiban. Ha ez a helyzet, akkor a kódtervezésük hibás.
 
-Most biztosan nem valamiféle akadémiai tisztaságról beszélünk. A globális állapot és a singletonok használata romboló hatással van a kód minőségére. A viselkedés kiszámíthatatlanná válik, csökkenti a fejlesztők termelékenységét, és arra kényszeríti az osztályinterfészeket, hogy hazudjanak a valódi függőségükről. Ami összezavarja a programozókat.
+Itt most nem valami akadémiai tisztaságról beszélünk. Mindezekben a konstrukciókban egy dolog közös: globális állapotot használnak. Ez pedig romboló hatással van a kód minőségére. Az osztályok megtévesztőek a függőségeiket illetően. A kód kiszámíthatatlanná válik. Ez összezavarja a fejlesztőket és csökkenti a hatékonyságukat.
 
-Ebben a fejezetben megmutatjuk, hogyan lehetséges ez.
+Ebben a fejezetben elmagyarázzuk, miért van ez így, és hogyan kerülhetjük el a globális állapotot.
 
 
 Globális összekapcsolás .[#toc-global-interlinking]
 ---------------------------------------------------
 
-A globális állammal az az alapvető probléma, hogy globálisan hozzáférhető. Ez lehetővé teszi, hogy a `DB::insert()` globális (statikus) metóduson keresztül írjunk az adatbázisba.
-Egy ideális világban egy objektumnak csak olyan más objektumokkal kellene tudnia kommunikálni, amelyeket [közvetlenül átadtak neki |passing-dependencies].
-Ha létrehozok két objektumot `A` és `B`, és soha nem adok át hivatkozást a `A` objektumról a `B` objektumra, akkor sem a `A`, sem a `B` nem tud hozzáférni a másik objektumhoz, és nem tudja megváltoztatni annak állapotát.
-Ez egy nagyon kívánatos tulajdonsága a kódnak. Hasonló ahhoz, mintha lenne egy elem és egy izzó; az izzó nem fog világítani, amíg össze nem kapcsoljuk őket.
+Egy ideális világban egy objektum csak olyan objektumokkal kommunikálhat, amelyeket [közvetlenül átadtak neki |passing-dependencies]. Ha létrehozok két objektumot `A` és `B`, és soha nem adok át közöttük hivatkozást, akkor sem a `A`, sem a `B` nem férhet hozzá a másik állapotához, illetve nem módosíthatja azt. Ez egy nagyon kívánatos tulajdonsága a kódnak. Olyan, mintha lenne egy elem és egy izzó; az izzó nem fog világítani, amíg nem csatlakoztatjuk az elemhez egy vezetékkel.
 
-Ez nem igaz a globális (statikus) változókra vagy a szingletonokra. A `A` objektum *vezeték nélkül* hozzáférhet a `C` objektumhoz, és módosíthatja azt hivatkozás átadása nélkül, a `C::changeSomething()` meghívásával.
-Ha a `B` objektum a globális `C` objektumot is megragadja, akkor a `A` és a `B` objektum a `C` objektumon keresztül kölcsönhatásba léphet egymással.
+Ez azonban nem igaz a globális (statikus) változókra vagy a szingletonokra. A `A` objektum *vezeték nélkül* hozzáférhet a `C` objektumhoz, és módosíthatja azt mindenféle referenciaátadás nélkül, a `C::changeSomething()` meghívásával. Ha a `B` objektum a globális `C` objektumot is megcsapolja, akkor a `A` és a `B` objektumok a `C` objektumon keresztül befolyásolhatják egymást.
 
-A globális változók használata a *vezeték nélküli* csatolás egy új, kívülről nem látható formáját vezeti be a rendszerbe.
-Ez egy füstfüggönyt hoz létre, amely megnehezíti a kód megértését és használatát.
-A fejlesztőknek a forráskód minden sorát el kell olvasniuk ahhoz, hogy valóban megértsék a függőségeket. Ahelyett, hogy csak az osztályok interfészével ismerkednének.
-Ráadásul ez egy teljesen felesleges csatolás.
+A globális változók használata a *vezeték nélküli* csatolás egy új, kívülről nem látható formáját vezeti be. Ez egy füstfüggönyt hoz létre, amely megnehezíti a kód megértését és használatát. A függőségek valódi megértéséhez a fejlesztőknek a forráskód minden sorát el kell olvasniuk, ahelyett, hogy csak az osztályok interfészeivel ismerkednének. Ráadásul ez az összefonódás teljesen felesleges. A globális állapotot azért használjuk, mert bárhonnan könnyen elérhető, és lehetővé teszi például az adatbázisba való írást egy globális (statikus) metóduson keresztül `DB::insert()`. Azonban, mint látni fogjuk, az általa nyújtott előny minimális, míg a bevezetett bonyodalmak súlyosak.
 
 .[note]
 A viselkedés szempontjából nincs különbség egy globális és egy statikus változó között. Egyformán károsak.
@@ -309,4 +301,4 @@ Amikor a kódtervezésről gondolkodik, tartsa szem előtt, hogy minden egyes `s
 
 E folyamat során előfordulhat, hogy egy osztályt fel kell osztanod, mert egynél több felelőssége van. Ne aggódjon emiatt; törekedjen az egy felelősség elvére.
 
-*Köszönöm Miško Hevery-nek, akinek olyan cikkei, mint a [Flaw: Brittle Global State & Singletons (Hiba: Törékeny globális állapot és szingletonok |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] ) képezik e fejezet alapját.*
+*Köszönöm Miško Hevery-nek, akinek olyan cikkei, mint a [Flaw: Brittle Global State & Singletons (Hiba: Törékeny globális állapot és szingletonok |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] ) képezik e fejezet alapját.*

@@ -2,68 +2,66 @@ Nette Kurulumu
 **************
 
 .[perex]
-Nette, PHP için tamamen bağımsız olarak kullanabileceğiniz gelişmiş kütüphanelerden oluşan bir ailedir. Nette aynı zamanda tam yığın bir çerçevedir. Bu sayfa size her bir kütüphaneyi veya tüm çerçeveyi nasıl kuracağınızı gösterir.
+Mevcut projenizde Nette'in avantajlarından yararlanmak mı istiyorsunuz yoksa Nette tabanlı yeni bir proje mi oluşturmayı planlıyorsunuz? Bu kılavuz, kurulum boyunca size adım adım yol gösterecektir.
 
 
-.[note]
-Nette'te yeni misiniz? [İlk Uygulamanızı Oluşturun |quickstart:] eğitimine de göz atmanızı tavsiye ederiz.
+Projenize Nette Nasıl Eklenir .[#toc-how-to-add-nette-to-your-project]
+----------------------------------------------------------------------
 
+Nette, PHP için kullanışlı ve sofistike paketlerden (kütüphaneler) oluşan bir koleksiyon sunar. Bunları projenize dahil etmek için aşağıdaki adımları izleyin:
 
-Paketler Nasıl Kurulur .[#toc-how-to-install-packages]
-------------------------------------------------------
+1) **[Composer |best-practices:composer]'ı Kurun:** Bu araç, projeniz için gerekli olan kütüphanelerin kolay kurulumu, güncellenmesi ve yönetimi için gereklidir.
 
-Nette ailesindeki bireysel [paketler |www:packages] [Composer |best-practices:composer] aracı kullanılarak kurulur. Eğer bu araca aşina değilseniz, kesinlikle onunla başlamalısınız. Çok kullanışlı bir araçtır.
+2) **Bir [paket |www:packages] seçin:** Diyelim ki `nette/utils` paketindeki [Finder |utils:finder] 'ın mükemmel bir şekilde yaptığı dosya sisteminde gezinmeniz gerekiyor. Paket adını belgelerinin sağ sütununda bulabilirsiniz.
 
-Örneğin, kodunuzda dosya sistemini dolaşmanız mı gerekiyor? `nette/utils` paketine dahil olan [Finder |utils:finder](sağ sütuna bakın) bunun için harikadır. Komut satırından yükleyebilirsiniz:
+3) **Paketi yükleyin:** Bu komutu projenizin kök dizininde çalıştırın:
 
 ```shell
 composer require nette/utils
 ```
 
-Bu, diğer tüm paketleri de yükleyecektir.
-
-Alternatif bir yol da `nette/nette` adresini yükleyerek tüm paketleri bir kerede eklemektir:
-
-```shell
-composer require nette/nette
-```
+Grafik arayüzü mü tercih ediyorsunuz? PhpStrom ortamında paket yükleme [kılavuzuna |https://www.jetbrains.com/help/phpstorm/using-the-composer-dependency-manager.html] göz atın.
 
 
-Yeni Bir Proje Nasıl Oluşturulur .[#toc-how-to-create-a-new-project]
---------------------------------------------------------------------
+Nette ile Yeni Bir Projeye Nasıl Başlanır .[#toc-how-to-start-a-new-project-with-nette]
+---------------------------------------------------------------------------------------
 
-Nette yeni bir proje mi oluşturacaksınız? Başlamanın en kolay yolu [Web Projesi |https://github.com/nette/web-project] adı verilen temel web uygulaması iskeletini indirmektir.
+Nette platformunda tamamen yeni bir proje oluşturmak istiyorsanız, önceden ayarlanmış iskelet [Web Projesini |https://github.com/nette/web-project] kullanmanızı öneririz:
 
-Composer yine projenizi kurmanıza yardımcı olacaktır. Web sunucunuzun kök dizinini bulun (örneğin, `/var/www` veya `C:\InetPub`). Komut isteminde aşağıdaki komutu çalıştırın, ancak `my-project` yerine oluşturulacak dizinin adını yazın:
+1) **[Composer |best-practices:composer]'ı kurun.**
+
+2) **Komut satırını** açın ve web sunucunuzun kök dizinine gidin, örneğin, `/etc/var/www`, `C:/xampp/htdocs`, `/Library/WebServer/Documents`.
+
+3) **Bu komutu kullanarak** Projeyi oluşturun:
 
 ```shell
-composer create-project nette/web-project my-project
+composer create-project nette/web-project PROJECT_NAME
 ```
 
-(Composer kullanmak istemiyorsanız, [arşivi indirin |https://github.com/nette/web-project/archive/preloaded.zip], sıkıştırmayı açın ve web sunucusunun kök dizinine kopyalayın).
+4) **Composer kullanmıyor musunuz?** Sadece [Web Projesini ZIP formatında |https://github.com/nette/web-project/archive/preloaded.zip] indirin ve çıkarın. Ama bize güvenin, Composer buna değer!
 
-MacOS veya Linux (ya da Unix tabanlı başka bir sistem) üzerinde geliştirme yapıyorsanız, yine de [yazma izinlerini ayarlamanız |nette:troubleshooting#setting-directory-permissions] gerekecektir.
+5) **İzinleri ayarlama:** macOS veya Linux sistemlerinde, dizinler için [yazma izin |nette:troubleshooting#Setting directory permissions] lerini ayarlayın.
 
-Nette'in en güzel yanı, karmaşık bir şey yapılandırmanız ya da kurmanız gerekmemesidir. Bu noktada, Web Projesi ana sayfası çalışıyor olmalıdır. Tarayıcınızı aşağıdaki URL'de açarak bunu test edebilirsiniz:
+6) **Projeyi bir tarayıcıda açın:** `http://localhost/PROJECT_NAME/www/` URL'sini girin. İskeletin açılış sayfasını göreceksiniz:
 
-```
-http://localhost/my-project/www/
-```
+[* qs-welcome.webp .{url: http://localhost/PROJECT_NAME/www/} *]
 
-ve Nette Framework karşılama sayfasını görmelisiniz:
+Tebrikler! Web siteniz artık geliştirilmeye hazır. Karşılama şablonunu kaldırmaktan çekinmeyin ve uygulamanızı oluşturmaya başlayın.
 
-[* qs-welcome.webp .{url: http://localhost/my-project/www/} *]
-
-Yaşasın, iskelet çalışıyor! Karşılama şablonunu silin ve harika bir yeni uygulama yazmaya başlayabilirsiniz.
+Nette'in avantajlarından biri de projenin yapılandırmaya gerek kalmadan hemen çalışmasıdır. Ancak, herhangi bir sorunla karşılaşırsanız, [genel sorun çözümlerine |nette:troubleshooting#nette-is-not-working-white-page-is-displayed] bakmayı düşünün.
 
 .[note]
-Bir sorun varsa, [bu birkaç ipucunu deneyin |nette:troubleshooting#Nette Is Not Working, White Page Is Displayed].
+Nette ile başlıyorsanız, [İlk Uygulamanızı Oluşturun |quickstart:] eğitimine devam etmenizi öneririz.
 
 
-Araçlar .[#toc-tools]
----------------------
+Araçlar ve Öneriler .[#toc-tools-and-recommendations]
+-----------------------------------------------------
 
- [Kaliteli |best-practices:editors-and-tools] bir [IDE ve gerekli tüm eklentileri |best-practices:editors-and-tools] kullanmanızı öneririz, bu sizi son derece verimli hale getirecektir.
+Nette ile verimli çalışmak için aşağıdaki araçları öneriyoruz:
+
+- [Nette için eklentilere sahip yüksek kaliteli IDE |best-practices:editors-and-tools]
+- Sürüm kontrol sistemi Git
+- [Besteci |best-practices:composer]
 
 
 {{leftbar: www:@menu-common}}

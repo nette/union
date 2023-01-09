@@ -50,7 +50,7 @@ Jde o formu [injektování do property |dependency-injection:passing-dependencie
 Properites označíme atributem: (dříve se používala anotace `/** @inject */`)
 
 ```php
-use Nette\DI\Attributes\Inject;  // import je důležitý
+use Nette\DI\Attributes\Inject;  // tento řádek je důležitý
 
 class MyPresenter extends Nette\Application\UI\Presenter
 {

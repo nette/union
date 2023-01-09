@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Latte\Compiler\Nodes\Php\Expression;
 
 use Latte\Compiler\Nodes\Php;
+use Latte\Compiler\Nodes\Php\ClosureUseNode;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
@@ -24,7 +25,7 @@ class ClosureNode extends ExpressionNode
 		/** @var ClosureUseNode[] */
 		public array $uses,
 		public Php\IdentifierNode|Php\NameNode|Php\ComplexTypeNode|null $returnType = null,
-		public ?ExpressionNode $expr,
+		public ?ExpressionNode $expr = null,
 		public ?Position $position = null,
 	) {
 		(function (Php\ParameterNode ...$args) {})(...$params);

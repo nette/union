@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Wenn Sie das Array `$container->parameters` nicht verwenden, können Sie den Export der Parameter deaktivieren. Außerdem können Sie nur die Tags exportieren, über die Sie mit der Methode `$container->findByTag(...)` Dienste erhalten.
+Wenn Sie das Array `$container->getParameters()` nicht verwenden, können Sie den Export der Parameter deaktivieren. Außerdem können Sie nur die Tags exportieren, über die Sie mit der Methode `$container->findByTag(...)` Dienste erhalten.
 Wenn Sie die Methode gar nicht aufrufen, können Sie den Tag-Export mit `false` vollständig deaktivieren.
 
 Sie können die Metadaten für die [automatische Verdrahtung |autowiring] erheblich reduzieren, indem Sie die von Ihnen verwendeten Klassen als Parameter für die Methode `$container->getByType()` angeben.
@@ -191,20 +191,15 @@ Geben Sie einfach an, in welchen Verzeichnissen (und Unterverzeichnissen) nach d
 
 ```neon
 Suche:
-	# Sie wählen die Namen der Abschnitte selbst
-	myForms:
-		in: %appDir%/Forms
-
-	model:
-		in: %appDir%/Model
+	-	in: %appDir%/Forms
+	-	in: %appDir%/Model
 ```
 
 Normalerweise wollen wir jedoch nicht alle Klassen und Schnittstellen hinzufügen, so dass wir sie filtern können:
 
 ```neon
 search:
-	myForms:
-		in: %appDir%/Forms
+	-	in: %appDir%/Forms
 
 		# Filtern nach Dateinamen (string|string[])
 		files:
@@ -220,7 +215,7 @@ Oder wir können Klassen auswählen, die mindestens eine der folgenden Klassen e
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		extends:
 			- App\*Form
 		implements:
@@ -231,7 +226,7 @@ Sie können auch negative Regeln definieren, z. B. Klassennamensmasken oder Vorf
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		exclude:
 			classes: ...
 			extends: ...
@@ -242,7 +237,7 @@ Für hinzugefügte Dienste können Tags gesetzt werden:
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		tags: ...
 ```
 

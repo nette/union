@@ -230,9 +230,11 @@ test('First is default', function () {
 
 
 test('Empty set', function () {
-	Assert::exception(function () {
-		Expect::anyOf();
-	}, Nette\InvalidStateException::class, 'The enumeration must not be empty.');
+	Assert::exception(
+		fn() => Expect::anyOf(),
+		Nette\InvalidStateException::class,
+		'The enumeration must not be empty.',
+	);
 });
 
 

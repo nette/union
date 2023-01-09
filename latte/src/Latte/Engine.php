@@ -19,8 +19,13 @@ class Engine
 {
 	use Strict;
 
-	public const VERSION = '3.0.5';
-	public const VERSION_ID = 30005;
+	public const Version = '3.0.10';
+	public const VersionId = 30010;
+
+	/** @deprecated use Engine::Version */
+	public const
+		VERSION = self::Version,
+		VERSION_ID = self::VersionId;
 
 	/** @deprecated use ContentType::* */
 	public const
@@ -42,8 +47,10 @@ class Engine
 	private ?string $tempDirectory = null;
 	private bool $autoRefresh = true;
 	private bool $strictTypes = false;
+	private bool $strictParsing = false;
 	private ?Policy $policy = null;
 	private bool $sandboxed = false;
+	private ?string $phpBinary = null;
 
 
 	public function __construct()
@@ -126,6 +133,10 @@ class Engine
 			throw $e->setSource($source, $name);
 		}
 
+		if ($this->phpBinary) {
+			Compiler\PhpHelpers::checkCode($this->phpBinary, $code, "(compiled $name)");
+		}
+
 		return $code;
 	}
 
@@ -135,8 +146,8 @@ class Engine
 	 */
 	public function parse(string $source): TemplateNode
 	{
-		$lexer = new Compiler\TemplateLexer;
 		$parser = new Compiler\TemplateParser;
+		$parser->strict = $this->strictParsing;
 
 		foreach ($this->extensions as $extension) {
 			$extension->beforeCompile($this);
@@ -146,7 +157,7 @@ class Engine
 		return $parser
 			->setContentType($this->contentType)
 			->setPolicy($this->getPolicy(effective: true))
-			->parse($source, $lexer);
+			->parse($source);
 	}
 
 
@@ -173,12 +184,12 @@ class Engine
 	 */
 	public function generate(TemplateNode $node, string $name): string
 	{
-		$comment = preg_match('#\n|\?#', $name) ? null : "source: $name";
+		$sourceName = preg_match('#\n|\?#', $name) ? null : $name;
 		$generator = new Compiler\TemplateGenerator;
 		return $generator->generate(
 			$node,
 			$this->getTemplateClass($name),
-			$comment,
+			$sourceName,
 			$this->strictTypes,
 		);
 	}
@@ -248,6 +259,8 @@ class Engine
 		if ((include $file) === false) {
 			throw new RuntimeException("Unable to load '$file'.");
 		}
+
+		flock($lock, LOCK_UN);
 	}
 
 
@@ -308,13 +321,13 @@ class Engine
 	{
 		$key = [
 			$this->getLoader()->getUniqueId($name),
-			self::VERSION,
+			self::Version,
 			array_keys((array) $this->functions),
 			$this->contentType,
 		];
 		foreach ($this->extensions as $extension) {
 			$key[] = [
-				preg_replace('~\$.*~', '', $extension::class), // remove id from anonymous class
+				get_debug_type($extension),
 				$extension->getCacheKey($this),
 			];
 		}
@@ -525,6 +538,19 @@ class Engine
 	}
 
 
+	public function setStrictParsing(bool $on = true): static
+	{
+		$this->strictParsing = $on;
+		return $this;
+	}
+
+
+	public function isStrictParsing(): bool
+	{
+		return $this->strictParsing;
+	}
+
+
 	public function setLoader(Loader $loader): static
 	{
 		$this->loader = $loader;
@@ -542,6 +568,13 @@ class Engine
 	}
 
 
+	public function enablePhpLinter(?string $phpBinary): static
+	{
+		$this->phpBinary = $phpBinary;
+		return $this;
+	}
+
+
 	/**
 	 * @param  object|mixed[]  $params
 	 * @return mixed[]
@@ -550,8 +583,6 @@ class Engine
 	{
 		if (is_array($params)) {
 			return $params;
-		} elseif (!is_object($params)) {
-			throw new \InvalidArgumentException(sprintf('Engine::render() expects array|object, %s given.', gettype($params)));
 		}
 
 		$methods = (new \ReflectionClass($params))->getMethods(\ReflectionMethod::IS_PUBLIC);

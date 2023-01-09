@@ -13,11 +13,10 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-setUp(function () {
+before(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
-	ob_start();
+	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 	Form::initialize(true);
 });
 
@@ -112,7 +111,7 @@ test('float', function () {
 
 	$form = new Form;
 	$input = $form->addText('number')
-		->addRule($form::Float);
+		->addRule($form::FLOAT);
 
 	Assert::same('10,5', $input->getValue());
 	$input->validate();
@@ -126,8 +125,8 @@ test('float in condition', function () {
 
 	$form = new Form;
 	$input = $form->addText('number');
-	$input->addCondition($form::Filled)
-			->addRule($form::Float);
+	$input->addCondition($form::FILLED)
+			->addRule($form::FLOAT);
 
 	$input->validate();
 	Assert::same(10.5, $input->getValue());
@@ -139,7 +138,7 @@ test('non float', function () {
 
 	$form = new Form;
 	$input = @$form->addText('number')
-		->addRule(~$form::Float); // @ - negative rules are deprecated
+		->addRule(~$form::FLOAT); // @ - negative rules are deprecated
 
 	$input->validate();
 	Assert::same(10.5, $input->getValue()); // side effect
@@ -185,7 +184,7 @@ test('filter in condition', function () {
 
 	$form = new Form;
 	$input = $form->addText('text');
-	$input->addCondition($form::Filled)
+	$input->addCondition($form::FILLED)
 			->addFilter('strrev');
 
 	Assert::same('hello', $input->getValue());
@@ -199,8 +198,10 @@ test('filter in BLANK condition', function () {
 
 	$form = new Form;
 	$input = $form->addText('text');
-	$input->addCondition($form::Blank)
-		->addFilter(fn() => 'default');
+	$input->addCondition($form::BLANK)
+		->addFilter(function () use ($input) {
+			return 'default';
+		});
 
 	Assert::same('', $input->getValue());
 	$input->validate();
@@ -213,9 +214,11 @@ test('filter in !FILLED condition', function () {
 
 	$form = new Form;
 	$input = $form->addText('text');
-	$input->addCondition($form::Filled)
+	$input->addCondition($form::FILLED)
 		->elseCondition()
-		->addFilter(fn() => 'default');
+		->addFilter(function () use ($input) {
+			return 'default';
+		});
 
 	Assert::same('', $input->getValue());
 	$input->validate();

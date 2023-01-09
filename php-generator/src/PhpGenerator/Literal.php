@@ -18,18 +18,9 @@ class Literal
 	/**
 	 * Creates a literal representing the creation of an object using the new operator.
 	 */
-	public static function new(string $_class, mixed ...$_args): self
+	public static function new(string $class, array $args = []): self
 	{
-		return new self('new ' . $_class . '(...?:)', [$_args]);
-	}
-
-
-	/**
-	 * Creates a literal representing the calling a method or function.
-	 */
-	public static function call(string $_function, mixed ...$_args): self
-	{
-		return new self($_function . '(...?:)', [$_args]);
+		return new self('new ' . $class . '(...?:)', [$args]);
 	}
 
 

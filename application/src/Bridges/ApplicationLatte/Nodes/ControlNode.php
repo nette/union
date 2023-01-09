@@ -11,7 +11,7 @@ namespace Nette\Bridges\ApplicationLatte\Nodes;
 
 use Latte;
 use Latte\Compiler\Escaper;
-use Latte\Compiler\Nodes\Php\Expression\ArrayItemNode;
+use Latte\Compiler\Nodes\Php\ArrayItemNode;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\Php\ModifierNode;
@@ -31,6 +31,7 @@ class ControlNode extends StatementNode
 	public ?ExpressionNode $method = null;
 	public ArrayNode $args;
 	public ?bool $escape = null;
+	public bool $inSnippetArea = false;
 
 
 	public static function create(Tag $tag): static
@@ -40,6 +41,7 @@ class ControlNode extends StatementNode
 		$stream = $tag->parser->stream;
 		$node = new static;
 		$node->name = $tag->parser->parseUnquotedStringOrExpression(colon: false);
+		$node->inSnippetArea = $tag->closestTag(['snippetArea']) && !$tag->closestTag(['snippet']);
 		if ($stream->tryConsume(':')) {
 			$node->method = $tag->parser->parseExpression();
 		}
@@ -94,11 +96,14 @@ class ControlNode extends StatementNode
 			$this->name,
 		);
 
+		$fetchCode .= $this->inSnippetArea
+			? 'if ($ʟ_tmp instanceof Nette\Application\UI\Renderable) $ʟ_tmp->snippetMode = $this->global->uiControl->snippetMode;'
+			: 'if ($ʟ_tmp instanceof Nette\Application\UI\Renderable) $ʟ_tmp->redrawControl(null, false);';
+
 		if ($this->escape) {
 			return $context->format(
 				<<<'XX'
 					%raw
-					if ($ʟ_tmp instanceof Nette\Application\UI\Renderable) $ʟ_tmp->redrawControl(null, false);
 					ob_start(fn() => '');
 					$ʟ_tmp->%raw(%args) %line;
 					$ʟ_fi = new LR\FilterInfo(%dump); echo %modifyContent(ob_get_clean());
@@ -117,7 +122,6 @@ class ControlNode extends StatementNode
 			return $context->format(
 				<<<'XX'
 					%raw
-					if ($ʟ_tmp instanceof Nette\Application\UI\Renderable) $ʟ_tmp->redrawControl(null, false);
 					$ʟ_tmp->%raw(%args) %line;
 
 

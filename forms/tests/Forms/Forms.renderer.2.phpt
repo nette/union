@@ -15,7 +15,7 @@ require __DIR__ . '/../bootstrap.php';
 
 
 $_SERVER['REQUEST_METHOD'] = 'POST';
-$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 $_POST = ['name' => 'John Doe ', 'age' => '9.9', 'email' => '@', 'street' => '', 'city' => 'Troubsko', 'country' => '0', 'password' => 'xx', 'password2' => 'xx', 'note' => '', 'submit1' => 'Send', 'userid' => '231'];
 
 
@@ -57,28 +57,28 @@ $renderer->wrappers['control']['requiredsuffix'] = " \u{2022}";
 
 $form->addGroup('Personal data');
 $form->addText('name', 'Your name')
-	->addRule(Form::Filled, 'Enter your name')
+	->addRule(Form::FILLED, 'Enter your name')
 	->setOption('class', 'myclass')
 	->setOption('id', 'myid');
 
 $form->addText('age', 'Your age')
-	->addRule(Form::Filled, 'Enter your age')
-	->addRule(Form::Integer, 'Age must be numeric value')
-	->addRule(Form::Range, 'Age must be in range from %d to %d', [10, 100]);
+	->addRule(Form::FILLED, 'Enter your age')
+	->addRule(Form::INTEGER, 'Age must be numeric value')
+	->addRule(Form::RANGE, 'Age must be in range from %d to %d', [10, 100]);
 
 $form->addSelect('gender', 'Your gender', $sex);
 
 $form->addText('email', 'Email')
 	->setEmptyValue('@')
-	->addCondition(Form::Filled)
-		->addRule(Form::Email, 'Incorrect email address');
+	->addCondition(Form::FILLED)
+		->addRule(Form::EMAIL, 'Incorrect email address');
 
 
 $form->addGroup('Shipping address')
 	->setOption('embedNext', true);
 
 $form->addCheckbox('send', 'Ship to address')
-	->addCondition(Form::Equal, true)
+	->addCondition(Form::EQUAL, true)
 		->toggle('sendBox');
 
 
@@ -88,27 +88,27 @@ $form->addGroup()
 $form->addText('street', 'Street');
 
 $form->addText('city', 'City')
-	->addConditionOn($form['send'], Form::Equal, true)
-		->addRule(Form::Filled, 'Enter your shipping address');
+	->addConditionOn($form['send'], Form::EQUAL, true)
+		->addRule(Form::FILLED, 'Enter your shipping address');
 
 $form->addSelect('country', 'Country', $countries)
 	->setPrompt('Select your country')
-	->addConditionOn($form['send'], Form::Equal, true)
-		->addRule(Form::Filled, 'Select your country');
+	->addConditionOn($form['send'], Form::EQUAL, true)
+		->addRule(Form::FILLED, 'Select your country');
 
 
 $form->addGroup('Your account');
 
 $form->addPassword('password', 'Choose password')
 	->setOption('nextTo', 'password2')
-	->addRule(Form::Filled, 'Choose your password')
-	->addRule(Form::MinLength, 'The password is too short: it must be at least %d characters', 3)
+	->addRule(Form::FILLED, 'Choose your password')
+	->addRule(Form::MIN_LENGTH, 'The password is too short: it must be at least %d characters', 3)
 	->setOption('description', '(at least 3 characters)');
 
 $form->addPassword('password2', 'Reenter password')
-	->addConditionOn($form['password'], Form::Valid)
-		->addRule(Form::Filled, 'Reenter your password')
-		->addRule(Form::Equal, 'Passwords do not match', $form['password']);
+	->addConditionOn($form['password'], Form::VALID)
+		->addRule(Form::FILLED, 'Reenter your password')
+		->addRule(Form::EQUAL, 'Passwords do not match', $form['password']);
 
 $form->addUpload('avatar', 'Picture');
 

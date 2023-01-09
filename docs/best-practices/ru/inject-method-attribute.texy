@@ -50,7 +50,7 @@ class MyPresenter extends BasePresenter
 Свойства помечаются атрибутом: (ранее использовалась аннотация `/** @inject */`)
 
 ```php
-use Nette\DI\Attributes\Inject; // здесь важен импорт
+use Nette\DI\Attributes\Inject; // эта строка важна
 
 class MyPresenter extends Nette\Application\UI\Presenter
 {

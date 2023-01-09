@@ -11,7 +11,6 @@ use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\Type;
 use Tester\Assert;
 
-
 require __DIR__ . '/../bootstrap.php';
 
 // test from
@@ -43,10 +42,12 @@ $method->addParameter('a')->setType(Type::String);
 $method->addParameter('b')->setType(Type::Bool);
 
 same(
-	'function create(string $a, bool $b)
-{
-	return null;
-}
-',
+	<<<'XX'
+		function create(string $a, bool $b)
+		{
+			return null;
+		}
+
+		XX,
 	(string) $method,
 );

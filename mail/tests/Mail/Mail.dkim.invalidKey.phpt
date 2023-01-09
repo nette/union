@@ -18,7 +18,7 @@ if (!extension_loaded('openssl')) {
 	Tester\Environment::skip('OpenSSL not installed');
 }
 
-$signer = new DkimSigner([]);
+$signer = new DkimSigner('', '', '');
 
 $mail = new Message;
 $mail->setFrom('John Doe <doe@example.com>');
@@ -26,6 +26,7 @@ $mail->addTo('Lady Jane <jane@example.com>');
 $mail->setSubject('Hello Jane!');
 $mail->setBody('Příliš žluťoučký kůň');
 
-Assert::exception(function () use ($signer, $mail) {
-	$signer->generateSignedMessage($mail);
-}, SignException::class);
+Assert::exception(
+	fn() => $signer->generateSignedMessage($mail),
+	SignException::class,
+);

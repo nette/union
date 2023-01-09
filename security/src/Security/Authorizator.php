@@ -17,21 +17,27 @@ namespace Nette\Security;
 interface Authorizator
 {
 	/** Set type: all */
-	public const ALL = null;
+	public const All = null;
 
 	/** Permission type: allow */
-	public const ALLOW = true;
+	public const Allow = true;
 
 	/** Permission type: deny */
-	public const DENY = false;
+	public const Deny = false;
+
+	/** @deprecated use Authorizator::All */
+	public const ALL = self::All;
+
+	/** @deprecated use Authorizator::Allow */
+	public const ALLOW = self::Allow;
+
+	/** @deprecated use Authorizator::Deny */
+	public const DENY = self::Deny;
 
 	/**
 	 * Performs a role-based authorization.
-	 * @param  string|null  $role
-	 * @param  string|null  $resource
-	 * @param  string|null  $privilege
 	 */
-	function isAllowed($role, $resource, $privilege): bool;
+	function isAllowed(?string $role, ?string $resource, ?string $privilege): bool;
 }
 
 

@@ -9,6 +9,7 @@ Oprócz zwykłych funkcji PHP, w szablonach możemy używać także następując
 | `divisibleBy`| [sprawdza, czy zmienna jest podzielna przez liczbę |#divisibleBy]
 | `even` | [sprawdza, czy podana liczba jest parzysta |#even]
 | `first` | [zwraca pierwszy element tablicy lub znak łańcucha|#first]
+| `hasBlock` | [wykrywa istnienie bloku |#hasBlock]
 | `last` | [zwraca ostatni element tablicy lub znak łańcucha|#last]
 | `odd` | [sprawdza, czy podana liczba jest nieparzysta |#odd]
 | `slice` | [wyciąga część tablicy lubłańcucha |#slice]
@@ -44,8 +45,8 @@ Funkcja .[#toc-functions]
 =========================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
-----------------------------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
+----------------------------------------------------------------------------
 Ogranicza wartość do danego zakresu włączenia min i max.
 
 ```latte
@@ -55,8 +56,8 @@ Ogranicza wartość do danego zakresu włączenia min i max.
 Patrz również [zacisk filtra |filters#clamp].
 
 
-divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
----------------------------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]
+------------------------------------------------
 Sprawdza, czy zmienna jest podzielna przez liczbę.
 
 ```latte
@@ -64,8 +65,8 @@ Sprawdza, czy zmienna jest podzielna przez liczbę.
 ```
 
 
-even(int $value): bool .[method]{data-version:2.10.2}
------------------------------------------------------
+even(int $value): bool .[method]
+--------------------------------
 Sprawdza, czy podana liczba jest parzysta.
 
 ```latte
@@ -73,8 +74,8 @@ Sprawdza, czy podana liczba jest parzysta.
 ```
 
 
-first(string|array $value): mixed .[method]{data-version:2.10.2}
-----------------------------------------------------------------
+first(string|array $value): mixed .[method]
+-------------------------------------------
 Zwraca pierwszy element tablicy lub znak łańcucha:
 
 ```latte
@@ -85,8 +86,19 @@ Zwraca pierwszy element tablicy lub znak łańcucha:
 Zobacz także [last |#last], [filter first |filters#first].
 
 
-last(string|array $value): mixed .[method]{data-version:2.10.2}
----------------------------------------------------------------
+hasBlock(string $name): bool .[method]{data-version:3.0.10}
+-----------------------------------------------------------
+Sprawdza, czy blok o podanej nazwie istnieje:
+
+```latte
+{if hasBlock(header)} ... {/if}
+```
+
+Zobacz także [sprawdzanie istnienia |template-inheritance#Checking Block Existence] bloku.
+
+
+last(string|array $value): mixed .[method]
+------------------------------------------
 Zwraca ostatni element tablicy lub znak łańcucha:
 
 ```latte
@@ -97,8 +109,8 @@ Zwraca ostatni element tablicy lub znak łańcucha:
 Zobacz także [first |#first], [filter last |filters#last].
 
 
-odd(int $value): bool .[method]{data-version:2.10.2}
-----------------------------------------------------
+odd(int $value): bool .[method]
+-------------------------------
 Sprawdza, czy podana liczba jest nieparzysta.
 
 ```latte
@@ -106,8 +118,8 @@ Sprawdza, czy podana liczba jest nieparzysta.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
--------------------------------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
+----------------------------------------------------------------------------------------------------------
 Wyodrębnia część tablicy lub łańcucha.
 
 ```latte

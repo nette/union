@@ -155,6 +155,20 @@ Ou directement sur la valeur (en combinaison avec [`{=expr}` | https://latte.net
 ```
 
 
+Balises HTML dynamiques .[#toc-dynamic-html-tags]
+=================================================
+
+Latte supporte les balises HTML dynamiques, qui sont utiles lorsque vous avez besoin de flexibilité dans les noms de balises :
+
+```latte
+<h{$level}>Heading</h{$level}>
+```
+
+Par exemple, le code ci-dessus peut générer `<h1>Heading</h1>` ou `<h2>Heading</h2>` en fonction de la valeur de la variable `$level`. Les balises HTML dynamiques dans Latte doivent toujours être appariées. Leur alternative est la [balise n:tag |tags#n:tag].
+
+Latte étant un système de création de modèles sécurisé, il vérifie que le nom de balise résultant est valide et ne contient pas de valeurs indésirables ou malveillantes. Il s'assure également que le nom de la balise de fin est toujours le même que le nom de la balise d'ouverture.
+
+
 Commentaires .[#toc-comments]
 =============================
 
@@ -238,35 +252,19 @@ L'opérateur `in` peut être utilisé pour remplacer la fonction `in_array()`. L
 ```
 
 
-.{data-version:2.9}
-Chaînage optionnel avec l'opérateur indéfini-sûr .[#toc-optional-chaining-with-undefined-safe-operator]
--------------------------------------------------------------------------------------------------------
-
-L'opérateur undefined-safe `??->` est similaire à l'opérateur nullsafe `?->`, mais ne génère pas d'erreur si une variable, une propriété ou un index n'existe pas du tout.
-
-```latte
-{$order??->id}
-```
-
-C'est une façon de dire que lorsque `$order` est défini et n'est pas nul, `$order->id` sera calculé, mais que lorsque `$order` est nul ou n'existe pas, on arrête ce qu'on fait et on renvoie simplement null.
-
-```latte
-{$user??->address??->street}
-// roughly means isset($user) && isset($user->address) ? $user->address->street : null
-```
-
-
 Une fenêtre dans l'histoire .[#toc-a-window-into-history]
 ---------------------------------------------------------
 
 Latte a proposé un certain nombre de bonbons syntaxiques au cours de son histoire, qui sont apparus dans PHP lui-même quelques années plus tard. Par exemple, en Latte, il était possible d'écrire les tableaux en tant que `[1, 2, 3]` au lieu de `array(1, 2, 3)` ou d'utiliser l'opérateur nullsafe `$obj?->foo` bien avant que cela ne soit possible en PHP. Latte a également introduit l'opérateur d'expansion de tableau `(expand) $arr`, qui est l'équivalent de l'opérateur `...$arr` de PHP.
 
+L'opérateur undefined-safe `??->`, qui est similaire à l'opérateur nullsafe `?->`, mais qui ne soulève pas d'erreur si la variable n'existe pas, a été créé pour des raisons historiques et nous recommandons aujourd'hui d'utiliser l'opérateur PHP standard `?->`.
+
 
 Limitations de PHP dans Latte .[#toc-php-limitations-in-latte]
 ==============================================================
 
-Seules les expressions PHP peuvent être écrites dans Latte. En d'autres termes, vous ne pouvez pas déclarer de classes ni utiliser de [structures de contrôle |https://www.php.net/manual/en/language.control-structures.php], telles que `if`, `foreach`, `switch`, `return`, `try`, `throw` et autres, au lieu desquelles Latte propose ses [balises |tags].
-Vous ne pouvez pas non plus utiliser d'[attributs |https://www.php.net/manual/en/language.attributes.php], de [backticks |https://www.php.net/manual/en/language.operators.execution.php] ou de [constantes magiques |https://www.php.net/manual/en/language.constants.magic.php], car cela n'aurait aucun sens.
-Vous ne pouvez même pas utiliser `unset`, `echo`, `include`, `require`, `exit`, `eval`, car ce ne sont pas des fonctions, mais des constructions spéciales du langage PHP, et donc pas des expressions.
+Seules les expressions PHP peuvent être écrites dans Latte. En d'autres termes, les déclarations se terminant par un point-virgule ne peuvent pas être utilisées. Vous ne pouvez pas déclarer des classes ou utiliser des [structures de contrôle |https://www.php.net/manual/en/language.control-structures.php], telles que `if`, `foreach`, `switch`, `return`, `try`, `throw` et autres, au lieu desquelles Latte propose ses [balises |tags].
+Vous ne pouvez pas non plus utiliser d'[attributs |https://www.php.net/manual/en/language.attributes.php], de [backticks |https://www.php.net/manual/en/language.operators.execution.php] ou de [constantes magiques |https://www.php.net/manual/en/language.constants.magic.php].
+Vous ne pouvez même pas utiliser `unset`, `echo`, `include`, `require`, `exit`, `eval`, car ce ne sont pas des fonctions, mais des constructions spéciales du langage PHP, et donc pas des expressions. Seuls les commentaires sur plusieurs lignes sont supportés `/* ... */`.
 
 Toutefois, vous pouvez contourner ces limitations en activant l'extension [RawPhpExtension |develop#RawPhpExtension], qui vous permet d'utiliser n'importe quel code PHP dans la balise `{php ...}`, sous la responsabilité de l'auteur du modèle.

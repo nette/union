@@ -12,34 +12,36 @@ use Tracy\Dumper;
 require __DIR__ . '/../bootstrap.php';
 
 
-$input = '
-# hello
-first: # first comment
-	# another comment
-	- a  # a comment
-next:
-	- [k,
-		l, m:
-	n]
-second:
-	sub:
-		a: 1
-		b: 2
-third:
-	- entity(a: 1)
-	- entity(a: 1)foo()bar
-- a: 1
-  b: 2
-- - c
-dash subblock:
-- a
-- b
-text: """
-     one
-     two
-"""
-# world
-';
+$input = <<<'XX'
+
+	# hello
+	first: # first comment
+		# another comment
+		- a  # a comment
+	next:
+		- [k,
+			l, m:
+		n]
+	second:
+		sub:
+			a: 1
+			b: 2
+	third:
+		- entity(a: 1)
+		- entity(a: 1)foo()bar
+	- a: 1
+	  b: 2
+	- - c
+	dash subblock:
+	- a
+	- b
+	text: """
+	     one
+	     two
+	"""
+	# world
+
+	XX;
 
 
 $lexer = new Neon\Lexer;
@@ -55,14 +57,14 @@ Assert::matchFile(
 $traverser = new Traverser;
 $traverser->traverse($node, function (Node $node) use ($stream) {
 	@$node->code = ''; // dynamic property is deprecated
-	foreach (array_slice($stream->getTokens(), $node->startTokenPos, $node->endTokenPos - $node->startTokenPos + 1) as $token) {
-		$node->code .= $token->value;
+	foreach (array_slice($stream->tokens, $node->startTokenPos, $node->endTokenPos - $node->startTokenPos + 1) as $token) {
+		$node->code .= $token->text;
 	}
 
 	unset($node->startTokenPos, $node->endTokenPos);
 });
 
-Assert::matchFile(
-	__DIR__ . '/fixtures/Parser.nodes.txt',
+Assert::same(
+	strtr(file_get_contents(__DIR__ . '/fixtures/Parser.nodes.txt'), ["\r\n" => "\n"]),
 	Dumper::toText($node, [Dumper::HASH => false, Dumper::DEPTH => 20]),
 );

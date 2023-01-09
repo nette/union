@@ -36,10 +36,12 @@ Formlar
 Ortak
 -----
 - [Yapılandırma dosyası nasıl yüklenir |bootstrap:]
+- [Mikro siteler nasıl yazılır |microsites]
 - [Nette neden PascalCase sabit gösterimini kullanıyor? |https://blog.nette.org/tr/kodda-daha-az-ciglik-atmak-icin]
 - [Nette neden Interface son ekini kullanmıyor? |https://blog.nette.org/tr/oenek-ve-sonekler-arayuez-adlarina-ait-degildir]
 - [Composer kullanım ipuçları |composer]
 - [Editörler ve araçlar hakkında ipuçları |editors-and-tools]
+- [Nesne yönelimli programlamaya giriş |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

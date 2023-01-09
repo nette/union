@@ -12,21 +12,21 @@ namespace Nette\Forms;
 
 /**
  * Defines method that must be implemented to allow a component to act like a form control.
- * @template T
  */
 interface Control
 {
 	/**
 	 * Sets control's value.
-	 * @param  T|null  $value
+	 * @param  mixed  $value
+	 * @return static
 	 */
-	function setValue(mixed $value): static;
+	function setValue($value);
 
 	/**
 	 * Returns control's value.
-	 * @return  T|null
+	 * @return mixed
 	 */
-	function getValue(): mixed;
+	function getValue();
 
 	function validate(): void;
 
@@ -40,3 +40,6 @@ interface Control
 	 */
 	function isOmitted(): bool;
 }
+
+
+interface_exists(IControl::class);

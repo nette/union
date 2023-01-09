@@ -32,19 +32,17 @@ class DateTime extends \DateTime implements \JsonSerializable
 	public const WEEK = 7 * self::DAY;
 
 	/** average month in seconds */
-	public const MONTH = 2629800;
+	public const MONTH = 2_629_800;
 
 	/** average year in seconds */
-	public const YEAR = 31557600;
+	public const YEAR = 31_557_600;
 
 
 	/**
 	 * Creates a DateTime object from a string, UNIX timestamp, or other DateTimeInterface object.
-	 * @param  string|int|\DateTimeInterface  $time
-	 * @return static
 	 * @throws \Exception if the date and time are not valid.
 	 */
-	public static function from($time)
+	public static function from(string|int|\DateTimeInterface|null $time): static
 	{
 		if ($time instanceof \DateTimeInterface) {
 			return new static($time->format('Y-m-d H:i:s.u'), $time->getTimezone());
@@ -54,7 +52,7 @@ class DateTime extends \DateTime implements \JsonSerializable
 				$time += time();
 			}
 
-			return (new static('@' . $time))->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+			return (new static)->setTimestamp((int) $time);
 
 		} else { // textual or null
 			return new static((string) $time);
@@ -64,7 +62,6 @@ class DateTime extends \DateTime implements \JsonSerializable
 
 	/**
 	 * Creates DateTime object.
-	 * @return static
 	 * @throws Nette\InvalidArgumentException if the date and time are not valid.
 	 */
 	public static function fromParts(
@@ -73,47 +70,84 @@ class DateTime extends \DateTime implements \JsonSerializable
 		int $day,
 		int $hour = 0,
 		int $minute = 0,
-		float $second = 0.0
-	) {
-		$s = sprintf('%04d-%02d-%02d %02d:%02d:%02.5F', $year, $month, $day, $hour, $minute, $second);
-		if (
-			!checkdate($month, $day, $year)
-			|| $hour < 0
-			|| $hour > 23
-			|| $minute < 0
-			|| $minute > 59
-			|| $second < 0
-			|| $second >= 60
-		) {
-			throw new Nette\InvalidArgumentException("Invalid date '$s'");
-		}
-
-		return new static($s);
+		float $second = 0.0,
+	): static
+	{
+		self::check($year, $month, $day, $hour, $minute, $second);
+		return new static(sprintf('%04d-%02d-%02d %02d:%02d:%02.5F', $year, $month, $day, $hour, $minute, $second));
 	}
 
 
 	/**
 	 * Returns new DateTime object formatted according to the specified format.
-	 * @param  string  $format  The format the $time parameter should be in
-	 * @param  string  $time
-	 * @param  string|\DateTimeZone  $timezone (default timezone is used if null is passed)
-	 * @return static|false
 	 */
-	#[\ReturnTypeWillChange]
-	public static function createFromFormat($format, $time, $timezone = null)
+	public static function createFromFormat(
+		string $format,
+		string $datetime,
+		string|\DateTimeZone|null $timezone = null,
+	): static|false
 	{
 		if ($timezone === null) {
 			$timezone = new \DateTimeZone(date_default_timezone_get());
 
 		} elseif (is_string($timezone)) {
 			$timezone = new \DateTimeZone($timezone);
-
-		} elseif (!$timezone instanceof \DateTimeZone) {
-			throw new Nette\InvalidArgumentException('Invalid timezone given');
 		}
 
-		$date = parent::createFromFormat($format, $time, $timezone);
+		$date = parent::createFromFormat($format, $datetime, $timezone);
 		return $date ? static::from($date) : false;
+	}
+
+
+	/**
+	 * Throws an exception if the date and time are not valid.
+	 */
+	public static function check(
+		int $year = 1,
+		int $month = 1,
+		int $day = 1,
+		int $hour = 0,
+		int $minute = 0,
+		float $second = 0,
+		int $microsecond = 0,
+	): void
+	{
+		$microsecond2 = round($second * 1_000_000) % 1_000_000 + $microsecond;
+		match (true) {
+			$month < 1 || $month > 12 => throw new Nette\InvalidArgumentException("Month value ($month) is out of range."),
+			$day < 1 || $day > 31 => throw new Nette\InvalidArgumentException("Day value ($day) is out of range."),
+			$hour < 0 || $hour > 23 => throw new Nette\InvalidArgumentException("Hour value ($hour) is out of range."),
+			$minute < 0 || $minute > 59 => throw new Nette\InvalidArgumentException("Minute value ($minute) is out of range."),
+			$second < 0 || $second >= 60 => throw new Nette\InvalidArgumentException("Second value ($second) is out of range."),
+			$microsecond < 0 || $microsecond >= 1_000_000 => throw new Nette\InvalidArgumentException("Microsecond value ($microsecond) is out of range."),
+			$microsecond2 >= 1_000_000 => throw new Nette\InvalidArgumentException("Combination of second and microsecond ($microsecond2) is out of range."),
+			!checkdate($month, $day, $year) => throw new Nette\InvalidArgumentException('The date ' . sprintf('%04d-%02d-%02d', $year, $month, $day) . ' is not valid.'),
+			default => null,
+		};
+	}
+
+
+	public function __construct(string $datetime = 'now', ?\DateTimeZone $timezone = null)
+	{
+		parent::__construct($datetime, $timezone);
+		$errors = self::getLastErrors();
+		if ($errors && $errors['warnings']) {
+			throw new Nette\InvalidArgumentException(Arrays::first($errors['warnings']) . " '$datetime'");
+		}
+	}
+
+
+	public function setDate(int $year, int $month, int $day): static
+	{
+		self::check($year, $month, $day);
+		return parent::setDate($year, $month, $day);
+	}
+
+
+	public function setTime(int $hour, int $minute, int $second = 0, int $microsecond = 0): static
+	{
+		self::check(hour: $hour, minute: $minute, second: $second, microsecond: $microsecond);
+		return parent::setTime($hour, $minute, $second, $microsecond);
 	}
 
 
@@ -136,10 +170,9 @@ class DateTime extends \DateTime implements \JsonSerializable
 
 
 	/**
-	 * Creates a copy with a modified time.
-	 * @return static
+	 * You'd better use: (clone $dt)->modify(...)
 	 */
-	public function modifyClone(string $modify = '')
+	public function modifyClone(string $modify = ''): static
 	{
 		$dolly = clone $this;
 		return $modify ? $dolly->modify($modify) : $dolly;

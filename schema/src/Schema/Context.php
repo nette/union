@@ -9,13 +9,9 @@ declare(strict_types=1);
 
 namespace Nette\Schema;
 
-use Nette;
-
 
 final class Context
 {
-	use Nette\SmartObject;
-
 	public bool $skipDefaults = false;
 
 	/** @var string[] */
@@ -43,5 +39,13 @@ final class Context
 	public function addWarning(string $message, string $code, array $variables = []): Message
 	{
 		return $this->warnings[] = new Message($message, $code, $this->path, $variables);
+	}
+
+
+	/** @return \Closure(): bool */
+	public function createChecker(): \Closure
+	{
+		$count = count($this->errors);
+		return fn(): bool => $count === count($this->errors);
 	}
 }

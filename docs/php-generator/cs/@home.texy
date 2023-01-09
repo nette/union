@@ -1,11 +1,12 @@
 Generátor PHP kódu
 ******************
 
-<div class=perex>
-- Potřebujete generovat kód tříd, funkcí, PHP souborů atd?
+<div class="perex">
+Hledáte nástroj pro generování PHP kódu tříd, funkcí či kompletních souborů?
+
 - Umí všechny nejnovější vychytávky v PHP (jako enumy atd.)
-- Dovolí vám snadno modifikovat existující třídy
-- Výstup vyhovující PSR-12
+- Umožní vám snadno modifikovat existující třídy
+- Výstupní kód je v souladu s PSR-12 / PER coding style
 - Zralá, stabilní a široce používaná knihovna
 </div>
 
@@ -276,7 +277,7 @@ $function->addParameter('a');
 $function->addParameter('b');
 echo $function;
 
-// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12
+// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12 / PER
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFunction($function);
 ```
 
@@ -304,7 +305,7 @@ $closure->addUse('c')
 	->setReference();
 echo $closure;
 
-// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12
+// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12 / PER
 // echo (new Nette\PhpGenerator\PsrPrinter)->printClosure($closure);
 ```
 
@@ -471,30 +472,56 @@ function foo($a)
 Printer a soulad s PSR
 ----------------------
 
-PHP kód generují objekty `Printer`. K je vám tiskárna `PsrPrinter`, jejíž výstup je v souladu s PSR-2 a PSR-12 a k odsazování používá mezery, a dále `Printer`, která pro odsazování používá tabulátory.
+Ke generování PHP kódu slouží třída [Printer |api:Nette\PhpGenerator\Printer]:
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
 // ...
 
-$printer = new Nette\PhpGenerator\PsrPrinter;
-echo $printer->printClass($class); // odsazení 4 mezerami
+$printer = new Nette\PhpGenerator\Printer;
+echo $printer->printClass($class); // totéž, jako: echo $class
 ```
 
-Potřebujete na míru upravit chování printeru? Vytvořte si vlastní poděděním třídy `Printer`. Můžete překonfigurovat tyto proměnné:
+Umí vygenerovat kód všech dalších prvků, nabízí metody jako `printFunction()`, `printNamespace()`, atd.
+
+K dispozici je také třída `PsrPrinter`, jejíž výstup je v souladu s PSR-2 / PSR-12 / PER coding style:
+
+```php
+$printer = new Nette\PhpGenerator\PsrPrinter;
+echo $printer->printClass($class);
+```
+
+Potřebujete chování doladit na míru? Vytvořte si vlastní verzi poděděním třídy `Printer`. Lze překonfigurovat tyto proměnné:
 
 ```php
 class MyPrinter extends Nette\PhpGenerator\Printer
 {
+	// délka řádku, po které dojde k zalamování řádku
 	public int $wrapLength = 120;
+	// znak odsazení, může být nahrazen sekvencí mezer
 	public string $indentation = "\t";
+	// počet prázdných řádků mezi properties
 	public int $linesBetweenProperties = 0;
+	// počet prázdných řádků mezi metodami
 	public int $linesBetweenMethods = 2;
+	// počet prázdných řádků mezi skupinami 'use statements' pro třídy, funkce a konstanty
 	public int $linesBetweenUseTypes = 0;
+	// pozice otevírací složené závorky pro funkce a metody
 	public bool $bracesOnNextLine = true;
+	// umístěte jeden parametr na jeden řádek, i když má atribut nebo je podporován
+	public bool $singleParameterOnOneLine = false;
+	// omits namespaces that do not contain any class or function
+	public bool $omitEmptyNamespaces = true;
+	// oddělovač mezi pravou závorkou a návratovým typem funkcí a metod
 	public string $returnTypeColon = ': ';
 }
 ```
+
+Jak a proč se vlastně liší standardní `Printer` a `PsrPrinter`? Proč není v balíčku jen jeden printer, a to `PsrPrinter`?
+
+Standardní `Printer` formátuje kód tak, jak to děláme v celém Nette. Tím, že Nette vzniklo mnohem dřív, než PSR, a také proto, že PSR dlouhé roky nedodávalo standardy včas, ale třeba až s několikaletým zpožděním od uvedení nové featury v PHP, došlo k tomu, že [kódovací standard |contributing:coding-standard] se v několika drobnostech liší.
+Větším rozdílem je jen používání tabulátorů místo mezer. Víme, že používáním tabulátorů v našich projektech umožňujeme přizpůsobení šířky, které je pro [lidi se zrakovým postižením nezbytné |contributing:coding-standard#Tabulátory místo mezer].
+Příkladem drobné odlišnosti je umístění složené závorky na samostatném řádku u funkcí a metod a to vždy. Doporučení PSR se nám jeví jako nelogické a vede k [snížení přehlednosti kódu |contributing:coding-standard#Wrapping and Braces].
 
 
 Typy
@@ -506,7 +533,8 @@ Každý typ nebo union/intersection typ lze předat jako řetězec, můžete tak
 use Nette\PhpGenerator\Type;
 
 $member->setType('array'); // nebo Type::Array;
-$member->setType('array|string'); // nebo Type::union('array', 'string')
+$member->setType('?array'); // or Type::nullable(Type::Array);
+$member->setType('array|string'); // or Type::union(Type::Array, Type::String)
 $member->setType('Foo&Bar'); // nebo Type::intersection(Foo::class, Bar::class)
 $member->setType(null); // odstraní typ
 ```
@@ -552,6 +580,13 @@ new Literal('substr(?, ?)', [$a, $b]);
 // generuje například: substr('hello', 5);
 ```
 
+Literál představující vytvoření nového objektu lze snadno vygenerovat pomocí metody `new`:
+
+```php
+Literal::new(Demo::class, [$a, 'foo' => $b]);
+// generuje například: new Demo(10, foo: 20)
+```
+
 
 Atributy
 --------
@@ -560,10 +595,15 @@ PHP 8 atributy můžete přidat do všech tříd, metod, vlastností, konstant, 
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
-$class->addAttribute('Deprecated');
+$class->addAttribute('Table', [
+	'name' => 'user',
+	'constraints' => [
+		Literal::new('UniqueConstraint', ['name' => 'ean', 'columns' => ['ean']]),
+	],
+]);
 
 $class->addProperty('list')
-	->addAttribute('WithArguments', [1, 2]);
+	->addAttribute('Deprecated');
 
 $method = $class->addMethod('count')
 	->addAttribute('Foo\Cached', ['mode' => true]);
@@ -577,16 +617,18 @@ echo $class;
 Výsledek:
 
 ```php
-#[Deprecated]
+#[Table(name: 'user', constraints: [new UniqueConstraint(name: 'ean', columns: ['ean'])])]
 class Demo
 {
-	#[WithArguments(1, 2)]
+	#[Deprecated]
 	public $list;
 
 
 	#[Foo\Cached(mode: true)]
-	public function count(#[Bar] $items)
-	{
+	public function count(
+		#[Bar]
+		$items,
+	) {
 	}
 }
 ```
@@ -641,8 +683,7 @@ echo $namespace->resolveName('range', $namespace::NameFunction); // 'iter\range'
 Překlady názvů tříd
 -------------------
 
-**Když je třída součástí jmenného prostoru, je vykreslena mírně odlišně:** všechny typy (například typehinty, návratové typy, název rodičovské třídy,
-implementovaná rozhraní, použité vlastnosti a atributy) jsou automaticky *překládány* (pokud to nevypnete, viz níže).
+**Když je třída součástí jmenného prostoru, je vykreslena mírně odlišně:** všechny typy (například typehinty, návratové typy, název rodičovské třídy, implementovaná rozhraní, použité vlastnosti a atributy) jsou automaticky *překládány* (pokud to nevypnete, viz níže).
 To znamená, že musíte v definicích **používat úplné názvy tříd** a ty budou nahrazeny za aliasy (podle klauzulí use) nebo za plně kvalifikovaná jména ve výsledném kódu:
 
 ```php
@@ -660,7 +701,7 @@ $method->addParameter('arg')
 
 echo $namespace;
 
-// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12
+// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12 / PER
 // echo (new Nette\PhpGenerator\PsrPrinter)->printNamespace($namespace);
 ```
 
@@ -713,7 +754,7 @@ $function = $file->addFunction('Foo\foo');
 
 echo $file;
 
-// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12
+// nebo použijte PsrPrinter pro výstup v souladu s PSR-2 / PSR-12 / PER
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFile($file);
 ```
 
@@ -817,7 +858,6 @@ echo $dumper->dump($var); // vypíše ['a', 'b', 123]
 Tabulka kompatibility
 ---------------------
 
-PhpGenerator 4.0 je kompatibilní s PHP 8.0 až 8.2
-
+PhpGenerator 4.0 a 4.1 jsou kompatibilní s PHP 8.0 až 8.3.
 
 {{leftbar: nette:@menu-topics}}

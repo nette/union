@@ -11,7 +11,6 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Forms\Form;
-use Stringable;
 
 
 /**
@@ -19,7 +18,10 @@ use Stringable;
  */
 class TextInput extends TextBase
 {
-	public function __construct(string|Stringable|null $label = null, ?int $maxLength = null)
+	/**
+	 * @param  string|object  $label
+	 */
+	public function __construct($label = null, ?int $maxLength = null)
 	{
 		parent::__construct($label);
 		$this->control->maxlength = $maxLength;
@@ -29,14 +31,15 @@ class TextInput extends TextBase
 
 	public function loadHttpData(): void
 	{
-		$this->setValue($this->getHttpData(Form::DataLine));
+		$this->setValue($this->getHttpData(Form::DATA_LINE));
 	}
 
 
 	/**
 	 * Changes control's type attribute.
+	 * @return static
 	 */
-	public function setHtmlType(string $type): static
+	public function setHtmlType(string $type)
 	{
 		$this->control->type = $type;
 		return $this;
@@ -45,8 +48,9 @@ class TextInput extends TextBase
 
 	/**
 	 * @deprecated  use setHtmlType()
+	 * @return static
 	 */
-	public function setType(string $type): static
+	public function setType(string $type)
 	{
 		return $this->setHtmlType($type);
 	}
@@ -61,11 +65,8 @@ class TextInput extends TextBase
 	}
 
 
-	public function addRule(
-		callable|string $validator,
-		string|Stringable|null $errorMessage = null,
-		mixed $arg = null,
-	): static
+	/** @return static */
+	public function addRule($validator, $errorMessage = null, $arg = null)
 	{
 		foreach ($this->getRules() as $rule) {
 			if (!$rule->canExport() && !$rule->branch) {
@@ -73,17 +74,17 @@ class TextInput extends TextBase
 			}
 		}
 
-		if ($this->control->type === null && in_array($validator, [Form::Email, Form::URL, Form::Integer], true)) {
-			$types = [Form::Email => 'email', Form::URL => 'url', Form::Integer => 'number'];
+		if ($this->control->type === null && in_array($validator, [Form::EMAIL, Form::URL, Form::INTEGER], true)) {
+			$types = [Form::EMAIL => 'email', Form::URL => 'url', Form::INTEGER => 'number'];
 			$this->control->type = $types[$validator];
 
 		} elseif (
-			in_array($validator, [Form::Min, Form::Max, Form::Range], true)
+			in_array($validator, [Form::MIN, Form::MAX, Form::RANGE], true)
 			&& in_array($this->control->type, ['number', 'range', 'datetime-local', 'datetime', 'date', 'month', 'week', 'time'], true)
 		) {
-			if ($validator === Form::Min) {
+			if ($validator === Form::MIN) {
 				$range = [$arg, null];
-			} elseif ($validator === Form::Max) {
+			} elseif ($validator === Form::MAX) {
 				$range = [null, $arg];
 			} else {
 				$range = $arg;
@@ -102,7 +103,7 @@ class TextInput extends TextBase
 			}
 
 		} elseif (
-			$validator === Form::Pattern
+			$validator === Form::PATTERN
 			&& is_scalar($arg)
 			&& in_array($this->control->type, [null, 'text', 'search', 'tel', 'url', 'email', 'password'], true)
 		) {

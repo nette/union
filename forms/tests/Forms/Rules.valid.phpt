@@ -18,7 +18,7 @@ test('', function () {
 	$form->addText('foo')
 		->setRequired('fill foo');
 	$form->addText('bar')
-		->addConditionOn($form['foo'], Form::Valid)
+		->addConditionOn($form['foo'], Form::VALID)
 		->setRequired('fill bar');
 
 	$form->validate();
@@ -38,15 +38,17 @@ test('', function () {
 	Assert::exception(function () {
 		$form = new Form;
 		$form->addText('foo')
-			->addRule(Form::Valid);
-	}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addRule method.');
+			->addRule(Form::VALID);
+	}, Nette\InvalidArgumentException::class, 'You cannot use Form::VALID in the addRule method.');
 });
 
 test('', function () {
 	$form = new Form;
 	$form->addText('foo')
-		->addFilter(fn($value) => str_replace(' ', '', $value))
-		->addRule($form::Pattern, 'only numbers', '\d{5}');
+		->addFilter(function ($value) {
+			return str_replace(' ', '', $value);
+		})
+		->addRule($form::PATTERN, 'only numbers', '\d{5}');
 
 	$form['foo']->setValue('160 00');
 	$form->validate();
@@ -63,9 +65,11 @@ test('', function () {
 	$foo = $form->addText('foo');
 	$rules = $foo->getRules();
 	$rules->addFilter(
-		fn($value) => str_replace(' ', '', $value),
+		function ($value) {
+			return str_replace(' ', '', $value);
+		}
 	);
-	$rules->addRule($form::Pattern, 'only numbers', '\d{5}');
+	$rules->addRule($form::PATTERN, 'only numbers', '\d{5}');
 
 	$form['foo']->setValue('160 00');
 	$form->validate();
@@ -81,8 +85,8 @@ test('', function () {
 	Assert::exception(function () {
 		$form = new Form;
 		$form->addText('foo')
-			->addCondition(Form::Valid);
-	}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addCondition method.');
+			->addCondition(Form::VALID);
+	}, Nette\InvalidArgumentException::class, 'You cannot use Form::VALID in the addCondition method.');
 });
 
 
@@ -90,6 +94,6 @@ test('', function () {
 	Assert::exception(function () {
 		$form = new Form;
 		@$form->addText('foo')
-			->addRule(~Form::Valid); // @ - negative rules are deprecated
-	}, Nette\InvalidArgumentException::class, 'You cannot use Form::Valid in the addRule method.');
+			->addRule(~Form::VALID); // @ - negative rules are deprecated
+	}, Nette\InvalidArgumentException::class, 'You cannot use Form::VALID in the addRule method.');
 });

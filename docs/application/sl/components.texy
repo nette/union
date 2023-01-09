@@ -87,7 +87,7 @@ class PollControl extends Control
 Prikazovanje .[#toc-rendering]
 ==============================
 
-Vemo že, da se oznaka `{control componentName}` uporablja za risanje komponente. Pravzaprav kliče metodo `render()` komponente, v kateri poskrbimo za upodabljanje. Podobno kot v predstavitvenem programu imamo tudi tu v spremenljivki `$this->template` predlogo [Latte |latte:], ki ji posredujemo parametre. Za razliko od uporabe v predstavitvenem programu moramo določiti datoteko predloge in ji omogočiti, da se izrisuje:
+Vemo že, da se oznaka `{control componentName}` uporablja za risanje komponente. Pravzaprav kliče metodo `render()` komponente, v kateri poskrbimo za upodabljanje. Podobno kot v predstavitvenem programu imamo tudi tu v spremenljivki `$this->template` [predlogo Latte |templates], ki ji posredujemo parametre. Za razliko od uporabe v predstavitvenem programu moramo določiti datoteko predloge in ji omogočiti, da se izrisuje:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -240,7 +240,7 @@ Na primer, imate komponento za listanje vsebine. Na strani je lahko več takšni
 Ustvarjanje trajnega parametra je v programu Nette zelo enostavno. Ustvarite le javno lastnost in jo označite z atributom: (prej je bila uporabljena `/** @persistent */` )
 
 ```php
-use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Persistent; // ta vrstica je pomembna
 
 class PaginatingControl extends Control
 {
@@ -380,7 +380,7 @@ Komponente poglobljeno .[#toc-components-in-depth]
 Komponente v aplikaciji Nette so ponovno uporabni deli spletne aplikacije, ki jih vgrajujemo v strani, kar je predmet tega poglavja. Kakšne natančno so zmožnosti takšne komponente?
 
 1) mogoče jo je izrisati v predlogi
-2) ve, kateri del sebe naj prikaže med [zahtevo AJAX |ajax#invalidation] (odlomki)
+2) ve, [kateri del sebe |ajax#snippets] naj prikaže med zahtevo AJAX (fragmenti).
 3) ima možnost shranjevanja svojega stanja v naslovu URL (trajni parametri).
 4) ima sposobnost odzivanja na dejanja uporabnika (signali)
 5) ustvarja hierarhično strukturo (kjer je korenski element predstavnik)

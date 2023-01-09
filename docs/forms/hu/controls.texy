@@ -20,7 +20,7 @@ Automatikusan érvényesíti az UTF-8 szabványt, levágja a bal és jobb oldali
 
 A maximális hossz a `setMaxLength()` segítségével korlátozható. Az [addFilter() |validation#Modifying Input Values] lehetővé teszi a felhasználó által megadott érték megváltoztatását.
 
-A `setHtmlType()` segítségével a `search`, `tel`, `url`, `range`, `date`, `datetime-local`, `month`, `time`, `week`, `color` beviteli elem [karakterét |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] módosíthatja. A `number` és `email` típusok helyett az [addInteger |#addInteger] és az [addEmail |#addEmail] típusok használatát javasoljuk, amelyek szerveroldali érvényesítést biztosítanak.
+A `setHtmlType()` segítségével a bemeneti elem [karakterét |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] `search`, `tel`, `url`, `range`, `month`, `week` vagy `color`[karakterre |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] változtathatja. Más típusokhoz, mint például a `number`, `email`, `date`, `datetime-local` és `time`, külön metódusok állnak rendelkezésre: [addInteger |#addInteger], [addFloat |#addFloat], [addEmail |#addEmail], [addDate |#addDate], [addTime |#addTime] és [addDateTime |#addDateTime], amelyek szerveroldali érvényesítéssel rendelkeznek.
 
 ```php
 $form->addText('color', 'Choose color:')
@@ -58,10 +58,23 @@ addInteger(string|int $name, $label=null): TextInput .[method]
 Egész számok beviteli mezőjének hozzáadása ( [TextInput |api:Nette\Forms\Controls\TextInput] osztály). Egész számot vagy a `null` értéket adja vissza, ha a felhasználó nem ad meg semmit.
 
 ```php
-$form->addInteger('level', 'Level:')
-	->setDefaultValue(0)
-	->addRule($form::Range, 'Level must be between %d and %d.', [0, 100]);
+$form->addInteger('year', 'Év:')
+	->addRule($form::Range, 'Az évnek a %d és %d közötti tartományban kell lennie.', [1900, 2023 |1900, 2023]);
 ```
+
+
+addFloat(string|int $name, $label=null): TextInput .[method]{data-version:3.1.12}
+=================================================================================
+
+Adds a field for entering a decimal number ([TextInput |api:Nette\Forms\Controls\TextInput] class). Returns either float or `null`, if the user does not specify anything.
+
+```php
+$form->addFloat('szint', 'Szint:')
+	->setDefaultValue(0)
+->addRule($form::Range, 'A szintnek a %d és %d közötti tartományban kell lennie.', [0, 100 |0, 100]);
+```
+
+A Nette és a Chrome elfogadja a vesszőt és a pontot is tizedesválasztóként. Ahhoz, hogy a Firefox is elfogadja a vesszőt, be kell állítania a megfelelő nyelvet a `lang` HTML-attribútumban, vagy közvetlenül ehhez az elemhez, vagy bármelyik szülőelemhez, pl. `<html lang="cs">`.
 
 
 addEmail(string|int $name, $label=null): TextInput .[method]
@@ -246,6 +259,79 @@ Ne bízzon a `FileUpload::getName()` módszer által visszaküldött eredeti fá
 A `MimeType` és a `Image` szabályok az aláírás alapján ismerik fel a kívánt fájl- vagy képtípust. A teljes fájl sértetlenségét nem ellenőrzik. Azt, hogy egy kép nem sérült-e, például a [betöltési |http:request#toImage] próbálkozással állapíthatja meg.
 
 
+addDate(string|int $name, $label=null): DateTimeControl .[method]{data-version:3.1.14}
+======================================================================================
+
+Hozzáad egy mezőt, amely lehetővé teszi a felhasználó számára, hogy egyszerűen beírjon egy dátumot, amely évből, hónapból és napból áll ( [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl] osztály).
+
+Alapértelmezett értékként elfogadja a `DateTimeInterface` objektumokat megvalósító objektumokat, az időt tartalmazó karakterláncot, vagy egy UNIX időbélyeget reprezentáló számot. Ugyanez vonatkozik a `Min`, `Max` vagy `Range` szabály argumentumaira is, amelyek a minimális és maximálisan megengedett dátumot határozzák meg.
+
+```php
+$form->addDate('date', 'Date:')
+	->setDefaultValue(new DateTime)
+	->addRule($form::Min, 'The date must be at least a month old.', new DateTime('-1 month'));
+```
+
+Alapértelmezés szerint egy `DateTimeImmutable` objektumot ad vissza. A `setFormat()` módszerrel [szöveges formátumot |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] vagy időbélyeget adhat meg:
+
+```php
+$form->addDate('date', 'Date:')
+	->setFormat('Y-m-d');
+```
+
+
+addTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
+=================================================================================================================
+
+Hozzáad egy mezőt, amely lehetővé teszi a felhasználó számára, hogy egyszerűen beírja az órákból, percekből és opcionálisan másodpercekből álló időt ( [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl] osztály).
+
+Alapértelmezett értékként elfogadja a `DateTimeInterface` objektumokat megvalósító objektumokat, az időt tartalmazó karakterláncot vagy egy UNIX időbélyeget jelentő számot. Csak az ezekből a bemenetekből származó időinformáció kerül felhasználásra; a dátumot figyelmen kívül hagyja. Ugyanez vonatkozik a `Min`, `Max` vagy `Range` szabály argumentumaira is, amelyek a minimális és maximális megengedett időt határozzák meg. Ha a beállított minimális érték nagyobb, mint a maximális, akkor egy éjfélig tartó időtartomány jön létre.
+
+```php
+$form->addTime('time', 'Time:', withSeconds: true)
+	->addRule($form::Range, 'Time must be between %d and %d.', ['12:30', '13:30']);
+```
+
+Alapértelmezés szerint egy `DateTimeImmutable` objektumot ad vissza (a 0. év január 1-jei fiktív dátummal). A `setFormat()` módszerrel [szöveges formátumot |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] adhat meg:
+
+```php
+$form->addTime('time', 'Time:')
+	->setFormat('H:i');
+```
+
+
+addDateTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
+=====================================================================================================================
+
+Hozzáad egy olyan mezőt, amely lehetővé teszi a felhasználó számára, hogy egyszerűen beírja a dátumot és az időt, amely évből, hónapból, napból, órából, percből és opcionálisan másodpercekből áll ( [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl] osztály).
+
+Alapértelmezett értékként elfogadja a `DateTimeInterface` objektumokat megvalósító objektumokat, egy karakterláncot az idővel, vagy egy UNIX időbélyeget reprezentáló számot. Ugyanez vonatkozik a `Min`, `Max` vagy `Range` szabály argumentumaira is, amelyek a minimális és maximálisan megengedett dátumot határozzák meg.
+
+```php
+$form->addDateTime('datetime', 'Date and Time:')
+	->setDefaultValue(new DateTime)
+	->addRule($form::Min, 'The date must be at least a month old.', new DateTime('-1 month'));
+```
+
+Alapértelmezés szerint egy `DateTimeImmutable` objektumot ad vissza. A `setFormat()` módszerrel [szöveges formátumot |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] vagy időbélyeget adhat meg:
+
+```php
+$form->addDateTime('datetime')
+	->setFormat(DateTimeControl::FormatTimestamp);
+```
+
+
+addColor(string|int $name, $label=null): ColorPicker .[method]{data-version:3.1.14}
+===================================================================================
+
+Hozzáad egy színválasztó mezőt ( [ColorPicker |api:Nette\Forms\Controls\ColorPicker] osztály). A szín egy karakterlánc a `#rrggbb` formátumban. Ha a felhasználó nem választ, a visszaküldött alapértelmezett szín a fekete `#000000`.
+
+```php
+$form->addColor('color', 'Color:')
+	->setDefaultValue('#3C8ED7');
+```
+
+
 addHidden(string|int $name, string $default=null): HiddenField .[method]
 ========================================================================
 
@@ -399,9 +485,9 @@ $form->addText('username', 'User name:')
 	->setDisabled();
 ```
 
-Vegye figyelembe, hogy a böngésző egyáltalán nem küldi el a letiltott mezőket a szerverre, így a `$form->getValues()` függvény által visszaküldött adatokban sem fogja megtalálni őket.
+A letiltott mezőket a böngésző egyáltalán nem küldi el a kiszolgálónak, így a `$form->getValues()` funkció által visszaküldött adatokban sem találja meg őket. Ha azonban beállítja a `setOmitted(false)` értéket, a Nette tartalmazza az értéküket ezekben az adatokban.
 
-Ha alapértelmezett értéket állít be egy mezőhöz, akkor ezt csak a mező letiltása után szabad megtennie:
+A `setDisabled()` meghívásakor a mező értéke törlődik. Ha alapértelmezett értéket állít be, akkor azt a deaktiválás után kell megtennie:
 
 ```php
 $form->addText('username', 'User name:')

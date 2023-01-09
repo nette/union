@@ -2,36 +2,28 @@ Starea globală și singletoni
 ****************************
 
 .[perex]
-Atenție: următoarele construcții sunt simptome ale unei proiectări proaste a codului:
+Avertisment: Următoarele construcții sunt simptome ale unui cod prost conceput:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` sau `static::$var`
 
-Apare vreuna dintre aceste construcții în codul dumneavoastră? Atunci aveți ocazia de a vă îmbunătăți. Poate că vă gândiți că acestea sunt construcții comune pe care le vedem în soluțiile de exemplu ale diferitelor biblioteci și cadre.
-Din nefericire, ele reprezintă totuși un indicator clar al unei proiectări deficitare. Ele au un lucru în comun: utilizarea stării globale.
+Întâlnești vreunul dintre aceste construcții în codul tău? În caz afirmativ, aveți posibilitatea de a-l îmbunătăți. S-ar putea să vă gândiți că acestea sunt construcții obișnuite, văzute adesea în soluții de exemplu ale diferitelor biblioteci și cadre de lucru. Dacă este așa, designul codului lor este defectuos.
 
-Acum, cu siguranță nu vorbim despre un fel de puritate academică. Utilizarea stării globale și a singletonilor are efecte distructive asupra calității codului. Comportamentul său devine imprevizibil, reduce productivitatea dezvoltatorilor și forțează interfețele de clasă să mintă în legătură cu adevăratele lor dependențe. Ceea ce îi derutează pe programatori.
+Nu vorbim aici despre o puritate academică. Toate aceste construcții au un lucru în comun: utilizează starea globală. Iar acest lucru are un impact distructiv asupra calității codului. Clasele sunt înșelătoare în ceea ce privește dependențele lor. Codul devine imprevizibil. Îi încurcă pe dezvoltatori și le reduce eficiența.
 
-În acest capitol, vom arăta cum este posibil acest lucru.
+În acest capitol, vom explica de ce se întâmplă acest lucru și cum să evităm starea globală.
 
 
 Interconectarea globală .[#toc-global-interlinking]
 ---------------------------------------------------
 
-Problema fundamentală a statului global este că acesta este accesibil la nivel global. Acest lucru face posibilă scrierea în baza de date prin intermediul metodei globale (statice) `DB::insert()`.
-Într-o lume ideală, un obiect ar trebui să poată comunica doar cu alte obiecte care [i-au fost transmise direct |passing-dependencies].
-Dacă creez două obiecte `A` și `B` și nu transmit niciodată o referință de la `A` la `B`, atunci nici `A`, nici `B` nu pot accesa celălalt obiect sau schimba starea acestuia.
-Aceasta este o caracteristică foarte dorită a codului. Este similar cu a avea o baterie și un bec; becul nu se va aprinde până când nu le conectați împreună.
+Într-o lume ideală, un obiect ar trebui să comunice numai cu obiectele care [i-au fost transmise direct |passing-dependencies]. Dacă creez două obiecte `A` și `B` și nu transmit niciodată o referință între ele, atunci nici `A` și nici `B` nu pot accesa sau modifica starea celuilalt. Aceasta este o proprietate foarte dorită a codului. Este ca și cum ai avea o baterie și un bec; becul nu se va aprinde până când nu îl conectezi la baterie cu un fir.
 
-Acest lucru nu este valabil pentru variabilele globale (statice) sau singletone. Obiectul `A` ar putea să acceseze *fără fir* obiectul `C` și să îl modifice fără a trece nicio referință, prin apelarea `C::changeSomething()`.
-Dacă obiectul `B` prinde și obiectul global `C`, atunci `A` și `B` pot interacționa unul cu celălalt prin intermediul `C`.
+Cu toate acestea, acest lucru nu este valabil pentru variabilele globale (statice) sau singletone. Obiectul `A` poate accesa *fără fir* obiectul `C` și îl poate modifica fără a trece referințe, prin apelarea `C::changeSomething()`. În cazul în care obiectul `B` accesează și obiectul global `C`, atunci `A` și `B` se pot influența reciproc prin intermediul `C`.
 
-Utilizarea variabilelor globale introduce o nouă formă de cuplare *fără fir* în sistem, care nu este vizibilă din exterior.
-Aceasta creează o perdea de fum care complică înțelegerea și utilizarea codului.
-Dezvoltatorii trebuie să citească fiecare linie de cod sursă pentru a înțelege cu adevărat dependențele. În loc să se familiarizeze doar cu interfața claselor.
-În plus, este un cuplaj complet inutil.
+Utilizarea variabilelor globale introduce o nouă formă de cuplare *fără fir* care nu este vizibilă din exterior. Aceasta creează o perdea de fum care complică înțelegerea și utilizarea codului. Pentru a înțelege cu adevărat dependențele, dezvoltatorii trebuie să citească fiecare linie a codului sursă, în loc să se familiarizeze doar cu interfețele claselor. În plus, această încurcătură este complet inutilă. Starea globală este utilizată deoarece este ușor de accesat de oriunde și permite, de exemplu, scrierea într-o bază de date prin intermediul unei metode globale (statice) `DB::insert()`. Cu toate acestea, după cum vom vedea, beneficiul pe care îl oferă este minim, în timp ce complicațiile pe care le introduce sunt grave.
 
 .[note]
 În ceea ce privește comportamentul, nu există nicio diferență între o variabilă globală și una statică. Ele sunt la fel de dăunătoare.
@@ -309,4 +301,4 @@ Atunci când vă gândiți la proiectarea codului, nu uitați că fiecare `stati
 
 În timpul acestui proces, s-ar putea să descoperiți că trebuie să divizați o clasă deoarece aceasta are mai multe responsabilități. Nu vă faceți griji în această privință; străduiți-vă să respectați principiul unei singure responsabilități.
 
-*Doresc să îi mulțumesc lui Miško Hevery, ale cărui articole, precum [Flaw: Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/], constituie baza acestui capitol.*
+*Doresc să îi mulțumesc lui Miško Hevery, ale cărui articole, precum [Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/], constituie baza acestui capitol.*

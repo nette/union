@@ -18,7 +18,6 @@ use Nette\Schema\Schema;
 final class Structure implements Schema
 {
 	use Base;
-	use Nette\SmartObject;
 
 	/** @var Schema[] */
 	private array $items;
@@ -38,12 +37,12 @@ final class Structure implements Schema
 	{
 		(function (Schema ...$items) {})(...array_values($items));
 		$this->items = $items;
-		$this->castTo = 'object';
+		$this->castTo('object');
 		$this->required = true;
 	}
 
 
-	public function default($value): self
+	public function default(mixed $value): self
 	{
 		throw new Nette\InvalidStateException('Structure cannot have default value.');
 	}
@@ -110,7 +109,7 @@ final class Structure implements Schema
 	}
 
 
-	public function merge(mixed $value, $base): mixed
+	public function merge(mixed $value, mixed $base): mixed
 	{
 		if (is_array($value) && isset($value[Helpers::PreventMerging])) {
 			unset($value[Helpers::PreventMerging]);
@@ -148,13 +147,17 @@ final class Structure implements Schema
 
 		$this->doDeprecation($context);
 
-		if (!$this->doValidate($value, 'array', $context)
-			|| !$this->doValidateRange($value, $this->range, $context)
-		) {
-			return null;
-		}
+		$isOk = $context->createChecker();
+		Helpers::validateType($value, 'array', $context);
+		$isOk() && Helpers::validateRange($value, $this->range, $context);
+		$isOk() && $this->validateItems($value, $context);
+		$isOk() && $value = $this->doTransform($value, $context);
+		return $isOk() ? $value : null;
+	}
 
-		$errCount = count($context->errors);
+
+	private function validateItems(array &$value, Context $context): void
+	{
 		$items = $this->items;
 		if ($extraKeys = array_keys(array_diff_key($value, $items))) {
 			if ($this->otherItems) {
@@ -185,12 +188,6 @@ final class Structure implements Schema
 
 			array_pop($context->path);
 		}
-
-		if (count($context->errors) > $errCount) {
-			return null;
-		}
-
-		return $this->doFinalize($value, $context);
 	}
 
 

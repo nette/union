@@ -19,28 +19,24 @@ class Passwords
 {
 	use Nette\SmartObject;
 
-	/** @var int|string  string since PHP 7.4 */
-	private $algo;
-
-	/** @var array */
-	private $options;
-
-
 	/**
 	 * Chooses which secure algorithm is used for hashing and how to configure it.
 	 * @see https://php.net/manual/en/password.constants.php
 	 */
-	public function __construct($algo = PASSWORD_DEFAULT, array $options = [])
-	{
-		$this->algo = $algo;
-		$this->options = $options;
+	public function __construct(
+		private string $algo = PASSWORD_DEFAULT,
+		private array $options = [],
+	) {
 	}
 
 
 	/**
 	 * Computes password´s hash. The result contains the algorithm ID and its settings, cryptographical salt and the hash itself.
 	 */
-	public function hash(string $password): string
+	public function hash(
+		#[\SensitiveParameter]
+		string $password,
+	): string
 	{
 		if ($password === '') {
 			throw new Nette\InvalidArgumentException('Password can not be empty.');
@@ -58,7 +54,11 @@ class Passwords
 	/**
 	 * Finds out, whether the given password matches the given hash.
 	 */
-	public function verify(string $password, string $hash): bool
+	public function verify(
+		#[\SensitiveParameter]
+		string $password,
+		string $hash,
+	): bool
 	{
 		return password_verify($password, $hash);
 	}

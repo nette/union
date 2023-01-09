@@ -24,10 +24,10 @@ class Authenticator implements Nette\Security\Authenticator
 	public function authenticate(string $username, string $password): IIdentity
 	{
 		if ($username !== 'john') {
-			throw new Nette\Security\AuthenticationException('Unknown user', self::IDENTITY_NOT_FOUND);
+			throw new Nette\Security\AuthenticationException('Unknown user', self::IdentityNotFound);
 
 		} elseif ($password !== 'xxx') {
-			throw new Nette\Security\AuthenticationException('Password not match', self::INVALID_CREDENTIAL);
+			throw new Nette\Security\AuthenticationException('Password not match', self::InvalidCredential);
 
 		} else {
 			return new SimpleIdentity('John Doe', 'admin');
@@ -36,7 +36,7 @@ class Authenticator implements Nette\Security\Authenticator
 }
 
 
-$user = new Nette\Security\User(null, null, null, new MockUserStorage);
+$user = new Nette\Security\User(new MockUserStorage);
 
 $counter = (object) [
 	'login' => 0,
@@ -58,23 +58,26 @@ Assert::null($user->getId());
 
 
 // authenticate
-Assert::exception(function () use ($user) {
-	// login without handler
-	$user->login('jane', '');
-}, Nette\InvalidStateException::class, 'Authenticator has not been set.');
+Assert::exception(
+	fn() => $user->login('jane', ''),
+	Nette\InvalidStateException::class,
+	'Authenticator has not been set.',
+);
 
 $handler = new Authenticator;
 $user->setAuthenticator($handler);
 
-Assert::exception(function () use ($user) {
-	// login as jane
-	$user->login('jane', '');
-}, Nette\Security\AuthenticationException::class, 'Unknown user');
+Assert::exception(
+	fn() => $user->login('jane', ''),
+	Nette\Security\AuthenticationException::class,
+	'Unknown user',
+);
 
-Assert::exception(function () use ($user) {
-	// login as john
-	$user->login('john', '');
-}, Nette\Security\AuthenticationException::class, 'Password not match');
+Assert::exception(
+	fn() => $user->login('john', ''),
+	Nette\Security\AuthenticationException::class,
+	'Password not match',
+);
 
 // login as john#2
 $user->login('john', 'xxx');

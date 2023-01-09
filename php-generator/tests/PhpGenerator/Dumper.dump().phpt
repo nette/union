@@ -10,7 +10,6 @@ use Nette\PhpGenerator\Dumper;
 use Nette\PhpGenerator\Literal;
 use Tester\Assert;
 
-
 require __DIR__ . '/../bootstrap.php';
 
 ini_set('serialize_precision', '14');
@@ -52,16 +51,10 @@ Assert::same("[strlen('hello')]", $dumper->dump([new Literal('strlen(?)', ['hell
 Assert::same("a\nb", $dumper->dump(new Literal("a\r\nb")));
 
 
-// literal::new
+// Literal::new
 Assert::same('new stdClass()', $dumper->dump(Literal::new('stdClass')));
-Assert::same('new stdClass(10, 20)', $dumper->dump(Literal::new('stdClass', 10, 20)));
-Assert::same('new stdClass(10, c: 20)', $dumper->dump(Literal::new('stdClass', 10, c: 20)));
-
-
-// literal::call
-Assert::same('trim()', $dumper->dump(Literal::call('trim')));
-Assert::same('trim(10, 20)', $dumper->dump(Literal::call('trim', 10, 20)));
-Assert::same('trim(10, c: 20)', $dumper->dump(Literal::call('trim', 10, c: 20)));
+Assert::same('new stdClass(10, 20)', $dumper->dump(Literal::new('stdClass', [10, 20])));
+Assert::same('new stdClass(10, c: 20)', $dumper->dump(Literal::new('stdClass', [10, 'c' => 20])));
 
 
 // arrays
@@ -219,10 +212,12 @@ Assert::same(
 	$dumper->dump(new DateTimeImmutable('2016-06-22 20:52:43.1234', new DateTimeZone('Europe/Prague'))),
 );
 same(
-	"\\Nette\\PhpGenerator\\Dumper::createObject(\\TestDateTime::class, [
-	'date' => '2016-06-22 20:52:43.123400',
-	'timezone_type' => 3,
-	'timezone' => 'Europe/Prague',
-])",
+	<<<'XX'
+		\Nette\PhpGenerator\Dumper::createObject(\TestDateTime::class, [
+			'date' => '2016-06-22 20:52:43.123400',
+			'timezone_type' => 3,
+			'timezone' => 'Europe/Prague',
+		])
+		XX,
 	$dumper->dump(new TestDateTime('2016-06-22 20:52:43.1234', new DateTimeZone('Europe/Prague'))),
 );

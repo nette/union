@@ -2,36 +2,28 @@ Globalno stanje in singletoni
 *****************************
 
 .[perex]
-Opozorilo: naslednji konstrukti so simptomi slabe zasnove kode:
+Opozorilo: Naslednji konstrukti so simptomi slabo načrtovane kode:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` ali `static::$var`
 
-Ali se v vaši kodi pojavlja katera od teh konstrukcij? Potem imate priložnost za izboljšave. Morda mislite, da so to pogosti konstrukti, ki jih vidimo v vzorčnih rešitvah različnih knjižnic in ogrodij.
-Na žalost so še vedno jasen pokazatelj slabe zasnove. Skupno jim je eno: uporaba globalnega stanja.
+Ali se v svoji kodi srečujete s temi konstrukcijami? Če je tako, jo lahko izboljšate. Morda menite, da so to običajni konstrukti, ki jih pogosto vidimo v vzorčnih rešitvah različnih knjižnic in ogrodij. Če je tako, je njihova zasnova kode pomanjkljiva.
 
-Zdaj zagotovo ne govorimo o neki akademski čistosti. Uporaba globalnega stanja in singletonov ima uničujoče učinke na kakovost kode. Njeno obnašanje postane nepredvidljivo, zmanjšuje produktivnost razvijalcev in sili vmesnike razredov, da lažejo o svojih resničnih odvisnostih. To zmede programerje.
+Tukaj ne govorimo o kakšni akademski čistosti. Vsi ti konstrukti imajo eno skupno lastnost: uporabljajo globalno stanje. To pa uničujoče vpliva na kakovost kode. Razredi so zavajajoči glede svojih odvisnosti. Koda postane nepredvidljiva. Razvijalce zmede in zmanjša njihovo učinkovitost.
 
-V tem poglavju bomo pokazali, kako je to mogoče.
+V tem poglavju bomo pojasnili, zakaj je tako in kako se izogniti globalnemu stanju.
 
 
 Globalno medsebojno povezovanje .[#toc-global-interlinking]
 -----------------------------------------------------------
 
-Temeljna težava globalne države je, da je globalno dostopna. To omogoča pisanje v podatkovno zbirko prek globalne (statične) metode `DB::insert()`.
-V idealnem svetu bi moral biti objekt sposoben komunicirati le z drugimi objekti, ki so mu bili [neposredno posredovani |passing-dependencies].
-Če ustvarim dva objekta `A` in `B` in nikoli ne prenesem reference z `A` na `B`, potem niti `A`, niti `B` ne moreta dostopati do drugega objekta ali spreminjati njegovega stanja.
-To je zelo zaželena lastnost kode. To je podobno, kot če bi imeli baterijo in žarnico; žarnica ne bo svetila, dokler ju ne povežete z žico.
+V idealnem svetu naj bi objekt komuniciral samo z objekti, ki so [mu |passing-dependencies] bili [neposredno posredovani |passing-dependencies]. Če ustvarim dva objekta `A` in `B` in med njima nikoli ne prenesem reference, potem niti `A` niti `B` ne moreta dostopati do stanja drugega objekta ali ga spreminjati. To je zelo zaželena lastnost kode. To je podobno, kot če bi imeli baterijo in žarnico; žarnica se ne bo prižgala, dokler je z žico ne povežete z baterijo.
 
-To ne velja za globalne (statične) spremenljivke ali singletone. Objekt `A` bi lahko *brezžično* dostopal do objekta `C` in ga spreminjal brez posredovanja reference, tako da bi poklical `C::changeSomething()`.
-Če objekt `B` zagrabi tudi globalno spremenljivko `C`, potem lahko `A` in `B` medsebojno komunicirata prek `C`.
+Vendar to ne velja za globalne (statične) spremenljivke ali singletone. Objekt `A` lahko *brezžično* dostopa do objekta `C` in ga spreminja brez posredovanja referenc, tako da pokliče `C::changeSomething()`. Če objekt `B` prav tako dostopa do globalne spremenljivke `C`, potem lahko `A` in `B` vplivata drug na drugega prek `C`.
 
-Uporaba globalnih spremenljivk v sistem uvede novo obliko *brezžične* povezave, ki navzven ni vidna.
-Ustvarja dimno zaveso, ki otežuje razumevanje in uporabo kode.
-Razvijalci morajo prebrati vsako vrstico izvorne kode, da resnično razumejo odvisnosti. Namesto da bi se le seznanili z vmesnikom razredov.
-Poleg tega gre za popolnoma nepotrebno povezovanje.
+Uporaba globalnih spremenljivk uvaja novo obliko *brezžične* povezave, ki ni vidna navzven. Ustvarja dimno zaveso, ki otežuje razumevanje in uporabo kode. Za resnično razumevanje odvisnosti morajo razvijalci prebrati vsako vrstico izvorne kode, namesto da bi se seznanili le z vmesniki razredov. Poleg tega je ta zapletenost povsem nepotrebna. Globalno stanje se uporablja, ker je zlahka dostopno od koder koli in omogoča na primer pisanje v podatkovno zbirko prek globalne (statične) metode `DB::insert()`. Vendar pa je, kot bomo videli, korist, ki jo ponuja, minimalna, zapleti, ki jih prinaša, pa so hudi.
 
 .[note]
 Kar zadeva obnašanje, ni razlike med globalno in statično spremenljivko. So enako škodljive.
@@ -309,4 +301,4 @@ Ko razmišljate o oblikovanju kode, imejte v mislih, da vsaka stran `static $foo
 
 Med tem postopkom boste morda ugotovili, da morate razred razdeliti, ker ima več kot eno odgovornost. Ne skrbite zaradi tega; prizadevajte si za načelo ene odgovornosti.
 
-*Zahvaljujem se Mišku Heveryju, čigar članki, kot je [Flaw: Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/], so podlaga za to poglavje.*
+*Zahvaljujem se Mišku Heveryju, čigar članki, kot je [Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/], so podlaga za to poglavje.*

@@ -132,6 +132,8 @@ Ecco alcuni suggerimenti per lavorare con l'ereditarietà dei layout:
 
 - Se si usa `{layout}` in un modello, deve essere il primo tag del modello in quel modello.
 
+- Il layout può essere [cercato automaticamente |develop#automatic-layout-lookup] (come nei [presentatori |application:templates#search-for-templates]). In questo caso, se il modello non deve avere un layout, lo indicherà con il tag `{layout none}`.
+
 - Il tag `{layout}` ha l'alias `{extends}`.
 
 - Il nome del file del template esteso dipende dal [caricatore di template |extending-latte#Loaders].
@@ -147,8 +149,7 @@ Vedi anche anonimo [`{block}` |tags#block]
 
 Un blocco fornisce un modo per modificare la resa di una certa parte di un template, ma non interferisce in alcun modo con la logica che lo circonda. Prendiamo il seguente esempio per illustrare come funziona un blocco e, soprattutto, come non funziona:
 
-```latte
-{* parent.Latte *}
+```latte .{file: parent.latte}
 {foreach $posts as $post}
 {block post}
 	<h1>{$post->title}</h1>
@@ -159,8 +160,7 @@ Un blocco fornisce un modo per modificare la resa di una certa parte di un templ
 
 Se si renderizza questo modello, il risultato sarebbe esattamente lo stesso con o senza i tag di blocco. I blocchi hanno accesso alle variabili degli ambiti esterni. È solo un modo per renderlo sovrascrivibile da un template figlio:
 
-```latte
-{* child.Latte *}
+```latte .{file: child.latte}
 {layout 'parent.Latte'}
 
 {block post}
@@ -247,11 +247,7 @@ I blocchi stampati non hanno accesso alle variabili del contesto attivo, tranne 
 È possibile passare le variabili al blocco nel modo seguente:
 
 ```latte
-{* da Latte 2.9 *}
 {include footer, foo: bar, id: 123}
-
-{* prima di Latte 2.9 *}
-{include footer, foo => bar, id => 123}
 ```
 
 Si può usare una variabile o qualsiasi espressione in PHP come nome del blocco. In questo caso, aggiungere la parola chiave `block` prima della variabile, in modo che sia noto a tempo di compilazione che si tratta di un blocco e non di un [modello di inserimento |tags#include], il cui nome potrebbe anche essere nella variabile:
@@ -307,11 +303,11 @@ Definizioni `{define}` .{toc: Definitions}
 
 Oltre ai blocchi, in Latte esistono anche le "definizioni". Sono paragonabili alle funzioni dei normali linguaggi di programmazione. Sono utili per riutilizzare frammenti di modelli e non ripetersi.
 
-Latte cerca di fare le cose in modo semplice, quindi fondamentalmente le definizioni sono uguali ai blocchi e **tutto ciò che viene detto sui blocchi vale anche per le definizioni**. Si differenzia dai blocchi solo per tre aspetti:
+Latte cerca di mantenere le cose semplici, quindi fondamentalmente le definizioni sono uguali ai blocchi e **tutto ciò che viene detto sui blocchi si applica anche alle definizioni**. Si differenziano dai blocchi per il fatto che:
 
-1) possono accettare argomenti
-2) non possono avere [filtri |syntax#filters]
-3) sono racchiusi in tag `{define}` e il contenuto all'interno di questi tag non viene inviato all'output finché non li si include. Grazie a ciò, è possibile crearli ovunque:
+1) sono racchiuse in tag `{define}`
+2) vengono resi solo quando vengono inseriti tramite `{include}`
+3) si possono definire dei parametri per esse, come le funzioni in PHP
 
 ```latte
 {block foo}<p>Hello</p>{/block}
@@ -324,10 +320,9 @@ Latte cerca di fare le cose in modo semplice, quindi fondamentalmente le definiz
 {* prints: <p>World</p> *}
 ```
 
-Immaginiamo di avere un modello generico di aiuto che definisce come rendere i moduli HTML tramite definizioni:
+Immaginate di avere un modello di aiuto con una raccolta di definizioni su come disegnare i moduli HTML.
 
-```latte
-{* forms.latte *}
+```latte .{file: forms.latte}
 {define input, $name, $value, $type = 'text'}
 	<input type={$type} name={$name} value={$value}>
 {/define}
@@ -337,16 +332,16 @@ Immaginiamo di avere un modello generico di aiuto che definisce come rendere i m
 {/define}
 ```
 
-Gli argomenti di una definizione sono sempre opzionali con valore predefinito `null`, a meno che non sia specificato un valore predefinito (qui `text` è il valore predefinito per `$type`, possibile da Latte 2.9.1). A partire da Latte 2.7, è possibile dichiarare anche i tipi di parametro: `{define input, string $name, ...}`.
+Gli argomenti di una definizione sono sempre opzionali con valore predefinito `null`, a meno che non sia specificato un valore predefinito (qui `'text'` è il valore predefinito per `$type`). I tipi di parametri possono anche essere dichiarati: `{define input, string $name, ...}`.
 
-Le definizioni non hanno accesso alle variabili del contesto attivo, ma hanno accesso alle variabili globali.
-
-Vengono incluse [allo stesso modo dei blocchi |#Printing Blocks]:
+Il template con le definizioni viene caricato utilizzando [`{import}` |#horizontal-reuse]. Le definizioni stesse sono rese allo [stesso modo dei blocchi |#Printing Blocks]:
 
 ```latte
 <p>{include input, 'password', null, 'password'}</p>
 <p>{include textarea, 'comment'}</p>
 ```
+
+Le definizioni non hanno accesso alle variabili del contesto attivo, ma hanno accesso alle variabili globali.
 
 
 Nomi dinamici dei blocchi .[#toc-dynamic-block-names]
@@ -354,8 +349,7 @@ Nomi dinamici dei blocchi .[#toc-dynamic-block-names]
 
 Latte consente una grande flessibilità nella definizione dei blocchi, perché il nome del blocco può essere una qualsiasi espressione PHP. Questo esempio definisce tre blocchi denominati `hi-Peter`, `hi-John` e `hi-Mary`:
 
-```latte
-{* parent.latte *}
+```latte .{file: parent.latte}
 {foreach [Peter, John, Mary] as $name}
 	{block "hi-$name"}Hi, I am {$name}.{/block}
 {/foreach}
@@ -363,8 +357,7 @@ Latte consente una grande flessibilità nella definizione dei blocchi, perché i
 
 Per esempio, possiamo ridefinire solo un blocco in un modello figlio:
 
-```latte
-{* child.latte *}
+```latte .{file: child.latte}
 {block hi-John}Hello. I am {$name}.{/block}
 ```
 
@@ -403,6 +396,14 @@ Si può usare una variabile o qualsiasi espressione in PHP come nome del blocco.
 {/ifset}
 ```
 
+L'esistenza di blocchi viene restituita anche dalla funzione [`hasBlock()` |functions#hasBlock]:
+
+```latte
+{if hasBlock(header) || hasBlock(footer)}
+	...
+{/if}
+```
+
 
 Suggerimenti .[#toc-tips]
 -------------------------
@@ -424,37 +425,27 @@ Riutilizzo orizzontale `{import}` .{toc: Horizontal Reuse}
 
 Il riutilizzo orizzontale è un terzo meccanismo di riusabilità ed ereditarietà di Latte. Permette di caricare blocchi da altri modelli. È simile alla creazione di un file PHP con funzioni di aiuto o un tratto.
 
-Sebbene l'ereditarietà dei modelli di layout sia una delle caratteristiche più potenti di Latte, è limitata all'ereditarietà singola; un modello può estendere solo un altro modello. Questa limitazione rende l'ereditarietà dei template semplice da capire e facile da debuggare:
+L'ereditarietà dei layout dei modelli è una delle caratteristiche più potenti di Latte, ma è limitata all'ereditarietà semplice: un modello può estendere solo un altro modello. Il riutilizzo orizzontale è un modo per ottenere l'ereditarietà multipla.
 
-```latte
-{layout 'layout.latte'}
+Prendiamo un insieme di definizioni di blocchi:
 
-{block title}...{/block}
-{block content}...{/block}
+```latte .{file: blocks.latte}
+{block sidebar}...{/block}
+
+{block menu}...{/block}
 ```
 
-Il riutilizzo orizzontale è un modo per raggiungere lo stesso obiettivo dell'ereditarietà multipla, ma senza la complessità associata:
+Utilizzando il comando `{import}`, importare tutti i blocchi e le [definizioni |#definitions] definite in `blocks.latte` in un altro modello:
 
-```latte
-{layout 'layout.latte'}
-
+```latte .{file: child.latte}
 {import 'blocks.latte'}
 
-{block title}...{/block}
-{block content}...{/block}
+{* I blocchi sidebar e menu possono ora essere utilizzati *}
 ```
 
-L'istruzione `{import}` dice a Latte di importare tutti i blocchi e le [definizioni |#definitions] definiti in `blocks.latte` nel modello corrente.
+Se si importano i blocchi nel template padre (cioè si usa `{import}` in `layout.latte`), i blocchi saranno disponibili anche in tutti i template figli, il che è molto utile.
 
-```latte
-{* blocks.latte *}
-
-{block sidebar}...{/block}
-```
-
-In questo esempio, l'istruzione `{import}` importa il blocco `sidebar` nel modello principale.
-
-Il template importato non deve [estendere |#Layout Inheritance] un altro template e il suo corpo deve essere vuoto. Tuttavia, il template importato può importare altri template.
+Il modello che si intende importare (ad esempio `blocks.latte`) non deve [estendere |#Layout Inheritance] un altro modello, cioè usare `{layout}`. Tuttavia, può importare altri template.
 
 Il tag `{import}` deve essere il primo tag del template dopo `{layout}`. Il nome del template può essere una qualsiasi espressione PHP:
 
@@ -467,7 +458,7 @@ Si possono usare tutte le dichiarazioni `{import}` che si vogliono in un dato te
 Tutti i blocchi sovrascritti possono essere inclusi gradualmente inserendoli come [blocco padre |#parent block]:
 
 ```latte
-{layout 'base.latte'}
+{layout 'layout.latte'}
 
 {import 'blocks.latte'}
 
@@ -482,8 +473,8 @@ Tutti i blocchi sovrascritti possono essere inclusi gradualmente inserendoli com
 In questo esempio, `{include parent}` richiamerà correttamente il blocco `sidebar` dal modello `blocks.latte`.
 
 
-Ereditarietà delle unità `{embed}` .{toc: Unit Inheritance}{data-version:2.9}
-=============================================================================
+Ereditarietà delle unità `{embed}` .{toc: Unit Inheritance}
+===========================================================
 
 L'ereditarietà delle unità porta l'idea dell'ereditarietà del layout al livello dei frammenti di contenuto. Mentre l'ereditarietà del layout funziona con gli "scheletri del documento", che vengono portati in vita da modelli figli, l'ereditarietà delle unità consente di creare scheletri per unità di contenuto più piccole e di riutilizzarle dove si vuole.
 
@@ -558,7 +549,7 @@ I blocchi all'interno dei tag embed formano un livello separato, indipendente da
 
 I template incorporati non hanno accesso alle variabili del contesto attivo, ma hanno accesso alle variabili globali.
 
-Con `{embed}` è possibile inserire non solo modelli, ma anche altri blocchi, per cui l'esempio precedente potrebbe essere scritto in questo modo: .{data-version:2.10}
+Con `{embed}` è possibile inserire non solo modelli, ma anche altri blocchi, per cui l'esempio precedente potrebbe essere scritto in questo modo:
 
 ```latte
 {define collapsible}

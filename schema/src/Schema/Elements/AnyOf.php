@@ -18,7 +18,6 @@ use Nette\Schema\Schema;
 final class AnyOf implements Schema
 {
 	use Base;
-	use Nette\SmartObject;
 
 	private array $set;
 
@@ -63,7 +62,7 @@ final class AnyOf implements Schema
 	}
 
 
-	public function merge($value, $base): mixed
+	public function merge(mixed $value, mixed $base): mixed
 	{
 		if (is_array($value) && isset($value[Helpers::PreventMerging])) {
 			unset($value[Helpers::PreventMerging]);
@@ -76,6 +75,15 @@ final class AnyOf implements Schema
 
 	public function complete(mixed $value, Context $context): mixed
 	{
+		$isOk = $context->createChecker();
+		$value = $this->findAlternative($value, $context);
+		$isOk() && $value = $this->doTransform($value, $context);
+		return $isOk() ? $value : null;
+	}
+
+
+	private function findAlternative(mixed $value, Context $context): mixed
+	{
 		$expecteds = $innerErrors = [];
 		foreach ($this->set as $item) {
 			if ($item instanceof Schema) {
@@ -84,7 +92,7 @@ final class AnyOf implements Schema
 				$res = $item->complete($item->normalize($value, $dolly), $dolly);
 				if (!$dolly->errors) {
 					$context->warnings = array_merge($context->warnings, $dolly->warnings);
-					return $this->doFinalize($res, $context);
+					return $res;
 				}
 
 				foreach ($dolly->errors as $error) {
@@ -96,7 +104,7 @@ final class AnyOf implements Schema
 				}
 			} else {
 				if ($item === $value) {
-					return $this->doFinalize($value, $context);
+					return $value;
 				}
 
 				$expecteds[] = Nette\Schema\Helpers::formatValue($item);

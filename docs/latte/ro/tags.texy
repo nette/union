@@ -79,6 +79,7 @@ Rezumat și descriere a tuturor etichetelor Latte încorporate.
 | `{debugbreak}` | [setează un punct de întrerupere în cod |#debugbreak]
 | `{do}` | [evaluează o expresie fără a o imprima |#do]
 | `{dump}` | [transferă variabilele în bara Tracy Bar |#dump]
+| `{php}` | [execută orice cod PHP |#php]
 | `{spaceless}`... `{/spaceless}` | [elimină spațiile albe inutile |#spaceless]
 | `{syntax}` | [schimbă sintaxa în timpul execuției |#syntax]
 | `{trace}` | [afișează urma de stivă |#trace]
@@ -96,8 +97,8 @@ Rezumat și descriere a tuturor etichetelor Latte încorporate.
 | `{link}` | [tipărește un link |application:creating-links#In the Presenter Template]
 | `{plink}` | [tipărește un link către un prezentator |application:creating-links#In the Presenter Template]
 | `{control}` | [tipărește o componentă |application:components#Rendering]
-| `{snippet}`... `{/snippet}` | [un fragment de șablon care poate fi trimis prin AJAX |application:ajax#tag-snippet]
-| `{snippetArea}` | plic de fragmente
+| `{snippet}`... `{/snippet}` | [un fragment de șablon care poate fi trimis prin AJAX |application:ajax#snippets-in-latte]
+| `{snippetArea}` | [plic de fragmente |application:ajax#snippet-areas]
 | `{cache}`... `{/cache}` | [pune în cache o secțiune de șablon |caching:en#caching-in-latte]
 
 .[table-latte-tags language-latte]
@@ -109,7 +110,6 @@ Rezumat și descriere a tuturor etichetelor Latte încorporate.
 | `n:name` | [activează un element de intrare HTML |forms:rendering#n:name]
 | `{formPrint}` | [generează schița unui formular Latte |forms:rendering#formPrint]
 | `{formPrintClass}` | [tipărește clasa PHP pentru datele formularului |forms:in-presenter#mapping-to-classes]
-| `{formContext}`... `{/formContext}` | [redarea parțială a formularului |forms:rendering#special-cases]
 | `{formContainer}`... `{/formContainer}` | [redarea formularului container |forms:rendering#special-cases]
 
 
@@ -283,8 +283,8 @@ Utilizați condiția `{ifset $var}` pentru a determina dacă o variabilă (sau m
 ```
 
 
-`{ifchanged}` .{data-version:2.9}
----------------------------------
+`{ifchanged}`
+-------------
 
 `{ifchanged}` verifică dacă valoarea unei variabile s-a schimbat de la ultima iterație din buclă (foreach, for sau while).
 
@@ -330,7 +330,7 @@ Așadar, este echivalentul exact al structurii `match` cu care vine PHP 8.0.
 		Differently
 {/switch}
 ```
-.{data-version:2.9}
+
 Clauza `{case}` poate conține mai multe valori separate prin virgule:
 
 ```latte
@@ -391,8 +391,8 @@ Deci, se tipărește ceva de genul:
 ```
 
 
-`{else}` .{data-version:2.9}{toc: foreach-else}
------------------------------------------------
+`{else}` .{toc: foreach-else}
+-----------------------------
 
 Bucla `foreach` poate primi o clauză opțională `{else}` al cărei text este afișat dacă matricea dată este goală:
 
@@ -415,10 +415,10 @@ Bucla `foreach` poate primi o clauză opțională `{else}` al cărei text este a
 - `$iterator->first` - este aceasta prima iterație?
 - `$iterator->last` - este aceasta ultima iterație?
 - `$iterator->counter` - contorul de iterații, începe de la 1
-- `$iterator->counter0` - contorul de iterații, începe de la 0 .{data-version:2.9}
+- `$iterator->counter0` - contorul de iterații, începe de la 0
 - `$iterator->odd` - este această iterație impară?
 - `$iterator->even` - este această iterație pară?
-- `$iterator->parent` - iteratorul care îl înconjoară pe cel curent .{data-version:2.9}
+- `$iterator->parent` - iteratorul care îl înconjoară pe cel curent
 - `$iterator->nextValue` - următorul element din buclă
 - `$iterator->nextKey` - cheia următorului element din buclă
 
@@ -466,8 +466,8 @@ Conținutul `{sep}` este redat dacă iterația nu este ultima, astfel încât es
 Este destul de practic, nu-i așa?
 
 
-`{iterateWhile}` .{data-version:2.10}
--------------------------------------
+`{iterateWhile}`
+----------------
 
 Aceasta simplifică gruparea datelor liniare în timpul iterației într-o buclă foreach prin efectuarea iterației într-o buclă imbricata, atâta timp cât condiția este îndeplinită. [Citiți instrucțiunile din cartea de bucate |cookbook/iteratewhile].
 
@@ -548,7 +548,7 @@ Există etichete speciale pe care le puteți utiliza pentru a controla orice buc
 {/foreach}
 ```
 
-.{data-version:2.9}
+
 Eticheta `{skipIf}` este foarte asemănătoare cu `{continueIf}`, dar nu incrementează contorul. Astfel, nu există găuri în numerotare atunci când tipăriți `$iterator->counter` și săriți peste unele elemente. De asemenea, clauza {else} va fi redată atunci când săriți peste toate elementele.
 
 ```latte
@@ -599,11 +599,7 @@ Eticheta `{include}` încarcă și redă șablonul specificat. În limbajul nost
 Puteți transmite variabile către șablonul inserat în felul următor:
 
 ```latte
-{* de la Latte 2.9 *}
 {include 'template.latte', foo: 'bar', id: 123}
-
-{* înainte de Latte 2.9 *}
-{include 'template.latte', foo => 'bar', id => 123}
 ```
 
 Numele șablonului poate fi orice expresie PHP:
@@ -619,7 +615,7 @@ Conținutul inserat poate fi modificat cu ajutorul [filtrelor |syntax#filters]. 
 <title>{include 'heading.latte' |stripHtml|capitalize}</title>
 ```
 
- [Moștenirea șablonului |template inheritance] **nu este implicată** în acest lucru în mod implicit. Deși puteți adăuga etichete de bloc la șabloanele care sunt incluse, acestea nu vor înlocui blocurile corespunzătoare din șablonul în care sunt incluse. Gândiți-vă la incluziuni ca la părți independente și ecranate ale paginilor sau modulelor. Acest comportament poate fi schimbat cu ajutorul modificatorului `with blocks` (începând cu Latte 2.9.1):
+ [Moștenirea șablonului |template inheritance] **nu este implicată** în mod implicit. Deși puteți adăuga etichete de bloc la șabloanele care sunt incluse, acestea nu vor înlocui blocurile corespunzătoare din șablonul în care sunt incluse. Gândiți-vă la incluziuni ca la părți independente și ecranate ale paginilor sau modulelor. Acest comportament poate fi schimbat cu ajutorul modificatorului `with blocks`:
 
 ```latte
 {include 'template.latte' with blocks}
@@ -628,8 +624,8 @@ Conținutul inserat poate fi modificat cu ajutorul [filtrelor |syntax#filters]. 
 Relația dintre numele de fișier specificat în etichetă și fișierul de pe disc este o chestiune de [încărcător |extending-latte#Loaders].
 
 
-`{sandbox}` .{data-version:2.8}
--------------------------------
+`{sandbox}`
+-----------
 
 Atunci când includeți un șablon creat de un utilizator final, ar trebui să aveți în vedere [sandboxing-ul |sandbox] acestuia (mai multe informații în [documentația sandbox |sandbox]):
 
@@ -659,8 +655,8 @@ Gestionarea excepțiilor .[#toc-exception-handling]
 ==================================================
 
 
-`{try}` .{data-version:2.9}
----------------------------
+`{try}`
+-------
 
 Aceste etichete facilitează foarte mult crearea de șabloane robuste.
 
@@ -701,8 +697,8 @@ Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes]:
 De asemenea, este posibil să se definească [propriul gestionar de excepții |develop#exception handler], de exemplu, pentru logare:
 
 
-`{rollback}` .{data-version:2.9}
---------------------------------
+`{rollback}`
+------------
 
 Blocul `{try}` poate fi, de asemenea, oprit și sărit manual folosind `{rollback}`. Astfel, nu trebuie să verificați în prealabil toate datele de intrare și numai în timpul redării puteți decide dacă este utilă redarea obiectului.
 
@@ -743,7 +739,7 @@ Eticheta `{default}` funcționează în mod similar, cu excepția faptului că c
 {default $lang = 'cs'}
 ```
 
-Începând cu Latte 2.7, puteți specifica și [tipurile de variabile |type-system]. Deocamdată, acestea sunt informative și Latte nu le verifică.
+De asemenea, puteți specifica [tipurile de variabile |type-system]. Deocamdată, acestea sunt informative și Latte nu le verifică.
 
 ```latte
 {var string $name = $article->getTitle()}
@@ -751,8 +747,8 @@ Eticheta `{default}` funcționează în mod similar, cu excepția faptului că c
 ```
 
 
-`{parameters}` .{data-version:2.9}
-----------------------------------
+`{parameters}`
+--------------
 
 La fel cum o funcție își declară parametrii, un șablon își poate declara variabilele la începutul său:
 
@@ -784,13 +780,15 @@ Prin utilizarea etichetei `{capture}` puteți captura ieșirea într-o variabil�
 <p>Captured: {$var}</p>
 ```
 
-Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes]:
+Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes], ca orice altă etichetă de tip pereche:
 
 ```latte
 <ul n:capture="$var">
 	<li>Hello World</li>
 </ul>
 ```
+
+Rezultatul HTML este stocat în variabila `$var` ca obiect `Latte\Runtime\Html` pentru a [evita scăpările nedorite |develop#disabling-auto-escaping-of-variable] la imprimare.
 
 
 Altele .[#toc-others]
@@ -842,13 +840,11 @@ Specifică locul în care se va întrerupe execuția codului. Este utilizat în 
 `{do}`
 ------
 
-Execută codul și nu tipărește nimic.
+Execută codul PHP și nu tipărește nimic. Ca și în cazul celorlalte etichete, codul PHP este o singură expresie, a se vedea [Limitări PHP |syntax#PHP Limitations in Latte].
 
 ```latte
 {do $num++}
 ```
-
-În Latte 2.7 și versiunile anterioare, se folosea `{php}`.
 
 
 `{dump}`
@@ -864,6 +860,12 @@ Aruncă o variabilă sau contextul curent.
 
 .[caution]
 Necesită pachetul [Tracy |tracy:en].
+
+
+`{php}`
+-------
+
+Vă permite să executați orice cod PHP. Eticheta trebuie să fie activată cu ajutorul extensiei [RawPhpExtension |develop#RawPhpExtension].
 
 
 `{spaceless}`
@@ -909,8 +911,8 @@ Prin utilizarea notației n:attribute putem dezactiva Latte doar pentru un bloc 
 Dacă dezactivați Latte cu `{syntax off}` (adică tag-ul, nu atributul n:), acesta va ignora cu strictețe toate tag-urile până la `{/syntax}`.
 
 
-{trace} .{data-version:2.10}
-----------------------------
+{trace}
+-------
 
 Aruncă o excepție `Latte\RuntimeException`, a cărei urmă din stivă este în spiritul șabloanelor. Astfel, în loc să apeleze funcții și metode, implică apelarea de blocuri și inserarea de șabloane. Dacă utilizați un instrument pentru afișarea clară a excepțiilor aruncate, cum ar fi [Tracy |tracy:en], veți vedea clar stiva de apelare, inclusiv toate argumentele transmise.
 
@@ -987,6 +989,8 @@ Dacă `$heading === null`, atributul `<h1>` este tipărit fără modificări. Î
 ```latte
 <h3 class="main">...</h3>
 ```
+
+Deoarece Latte este un sistem de modelare securizat, acesta verifică dacă noul nume de etichetă este valid și nu conține valori nedorite sau rău intenționate.
 
 
 n:ifcontent .[#toc-n-ifcontent]

@@ -17,8 +17,6 @@ use Nette;
  */
 class SqlPreprocessor
 {
-	use Nette\SmartObject;
-
 	private const
 		ModeAnd = 'and',       // (key [operator] value) AND ...
 		ModeOr = 'or',         // (key [operator] value) OR ...
@@ -50,26 +48,22 @@ class SqlPreprocessor
 		'EXPLAIN' => 1,
 	];
 
-	/** @var Connection */
-	private $connection;
+	private Connection $connection;
 
-	/** @var Driver */
-	private $driver;
+	private Driver $driver;
 
-	/** @var array of input parameters */
-	private $params;
+	/** input parameters */
+	private array $params;
 
-	/** @var array of parameters to be processed by PDO */
-	private $remaining;
+	/** parameters to be processed by PDO */
+	private array $remaining;
 
-	/** @var int */
-	private $counter;
+	private int $counter;
 
-	/** @var bool */
-	private $useParams;
+	private bool $useParams;
 
-	/** @var string|null values|set|and|order|items */
-	private $arrayMode;
+	/** values|set|and|order|items */
+	private ?string $arrayMode;
 
 
 	public function __construct(Connection $connection)
@@ -103,17 +97,19 @@ class SqlPreprocessor
 				$this->arrayMode = null;
 				$res[] = Nette\Utils\Strings::replace(
 					$param,
-					'~
-						\'[^\']*+\'
-						|"[^"]*+"
-						|\?[a-z]*
-						|^\s*+(?:\(?\s*SELECT|INSERT|UPDATE|DELETE|REPLACE|EXPLAIN)\b
-						|\b(?:SET|WHERE|HAVING|ORDER\ BY|GROUP\ BY|KEY\ UPDATE)(?=\s*$|\s*\?)
-						|\bIN\s+(?:\?|\(\?\))
-						|/\*.*?\*/
-						|--[^\n]*
-					~Dsix',
-					\Closure::fromCallable([$this, 'callback'])
+					<<<'X'
+						~
+							'[^']*+'
+							|"[^"]*+"
+							|\?[a-z]*
+							|^\s*+(?:\(?\s*SELECT|INSERT|UPDATE|DELETE|REPLACE|EXPLAIN)\b
+							|\b(?:SET|WHERE|HAVING|ORDER\ BY|GROUP\ BY|KEY\ UPDATE)(?=\s*$|\s*\?)
+							|\bIN\s+(?:\?|\(\?\))
+							|/\*.*?\*/
+							|--[^\n]*
+						~Dsix
+						X,
+					\Closure::fromCallable([$this, 'callback']),
 				);
 			} else {
 				throw new Nette\InvalidArgumentException('There are more parameters than placeholders.');
@@ -197,13 +193,13 @@ class SqlPreprocessor
 				$this->remaining[] = $value->value;
 				return '?';
 
-			} elseif (is_object($value) && method_exists($value, '__toString')) {
+			} elseif ($value instanceof \Stringable) {
 				$this->remaining[] = (string) $value;
 				return '?';
 			}
 		} elseif ($mode === 'name') {
 			if (!is_string($value)) {
-				$type = gettype($value);
+				$type = get_debug_type($value);
 				throw new Nette\InvalidArgumentException("Placeholder ?$mode expects string, $type given.");
 			}
 
@@ -225,7 +221,7 @@ class SqlPreprocessor
 					if (!is_array($value[0]) && !$value[0] instanceof Row) {
 						throw new Nette\InvalidArgumentException(
 							'Automaticaly detected multi-insert, but values aren\'t array. If you need try to change mode like "?['
-							. implode('|', self::Modes) . ']". Mode "' . $mode . '" was used.'
+							. implode('|', self::Modes) . ']". Mode "' . $mode . '" was used.',
 						);
 					}
 
@@ -242,7 +238,7 @@ class SqlPreprocessor
 						$vx[] = implode(', ', $vx2);
 					}
 
-					$select = $this->driver->isSupported(Driver::SUPPORT_MULTI_INSERT_AS_SELECT);
+					$select = $this->driver->isSupported(Driver::SupportMultiInsertAsSelect);
 					return '(' . implode(', ', $kx) . ($select ? ') SELECT ' : ') VALUES (')
 						. implode($select ? ' UNION ALL SELECT ' : '), (', $vx) . ($select ? '' : ')');
 				}
@@ -258,7 +254,7 @@ class SqlPreprocessor
 				foreach ($value as $k => $v) {
 					if (is_int($k)) { // value, value, ...
 						$vx[] = $this->formatValue($v);
-					} elseif (substr($k, -1) === '=') { // key+=value, key-=value, ...
+					} elseif (str_ends_with($k, '=')) { // key+=value, key-=value, ...
 						$k2 = $this->delimite(substr($k, 0, -2));
 						$vx[] = $k2 . '=' . $k2 . ' ' . substr($k, -2, 1) . ' ' . $this->formatValue($v);
 					} else { // key=value, key=value, ...
@@ -316,15 +312,15 @@ class SqlPreprocessor
 			} else {
 				throw new Nette\InvalidArgumentException("Unknown placeholder ?$mode.");
 			}
-		} elseif (in_array($mode, self::Modes, true)) {
-			$type = gettype($value);
+		} elseif (in_array($mode, self::Modes, strict: true)) {
+			$type = get_debug_type($value);
 			throw new Nette\InvalidArgumentException("Placeholder ?$mode expects array or Traversable object, $type given.");
 
 		} elseif ($mode && $mode !== self::ModeAuto) {
 			throw new Nette\InvalidArgumentException("Unknown placeholder ?$mode.");
 
 		} else {
-			throw new Nette\InvalidArgumentException('Unexpected type of parameter: ' . (is_object($value) ? get_class($value) : gettype($value)));
+			throw new Nette\InvalidArgumentException('Unexpected type of parameter: ' . get_debug_type($value));
 		}
 	}
 

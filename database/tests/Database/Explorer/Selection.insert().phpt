@@ -22,7 +22,7 @@ $book = $explorer->table('author')->insert([
 // id = 14
 
 Assert::equal('eddard stark', $book->name);
-Assert::equal(new Nette\Utils\DateTime('2011-11-11'), $book->born);
+Assert::equal(new Nette\Database\DateTime('2011-11-11'), $book->born);
 
 
 $books = $explorer->table('book');
@@ -41,34 +41,26 @@ Assert::same('eddard stark', $book2->author->name);  // SELECT * FROM `author` W
 // SQL Server throw PDOException because does not allow insert explicit value for IDENTITY column.
 // This exception is about primary key violation.
 if ($driverName !== 'sqlsrv') {
-	Assert::exception(function () use ($explorer) {
-		$explorer->table('author')->insert([
+	Assert::exception(
+		fn() => $explorer->table('author')->insert([
 			'id' => 14,
 			'name' => 'Jon Snow',
 			'web' => 'http://example.com',
-		]);
-	}, PDOException::class);
+		]),
+		Nette\Database\DriverException::class,
+	);
 }
 
 
 // SQL Server 2008 doesn't know CONCAT()
 if ($driverName !== 'sqlsrv') {
-	switch ($driverName) {
-		case 'mysql':
-			$selection = $explorer->table('author')->select('NULL, id, NULL, CONCAT(?, name), NULL', 'Biography: ');
-			break;
-		case 'pgsql':
-			$selection = $explorer->table('author')->select('nextval(?), id, NULL, ? || name, NULL', 'book_id_seq', 'Biography: ');
-			break;
-		case 'sqlite':
-			$selection = $explorer->table('author')->select('NULL, id, NULL, ? || name, NULL', 'Biography: ');
-			break;
-		case 'sqlsrv':
-			$selection = $explorer->table('author')->select('id, NULL, CONCAT(?, name), NULL', 'Biography: ');
-			break;
-		default:
-			Assert::fail("Unsupported driver $driverName");
-	}
+	$selection = match ($driverName) {
+		'mysql' => $explorer->table('author')->select('NULL, id, NULL, CONCAT(?, name), NULL', 'Biography: '),
+		'pgsql' => $explorer->table('author')->select('nextval(?), id, NULL, ? || name, NULL', 'book_id_seq', 'Biography: '),
+		'sqlite' => $explorer->table('author')->select('NULL, id, NULL, ? || name, NULL', 'Biography: '),
+		//'sqlsrv' => $explorer->table('author')->select('id, NULL, CONCAT(?, name), NULL', 'Biography: '),
+		default => Assert::fail("Unsupported driver $driverName"),
+	};
 
 	$explorer->table('book')->insert($selection);
 	Assert::equal(4, $explorer->table('book')->where('title LIKE', 'Biography%')->count('*'));
@@ -79,7 +71,7 @@ if ($driverName !== 'sqlsrv') {
 $explorer = new Nette\Database\Explorer(
 	$connection,
 	$structure,
-	new Nette\Database\Conventions\DiscoveredConventions($structure)
+	new Nette\Database\Conventions\DiscoveredConventions($structure),
 );
 
 $inserted = $explorer->table('note')->insert([

@@ -16,12 +16,12 @@ $options = Tester\Environment::loadData() + ['user' => null, 'password' => null]
 
 try {
 	$connection = new Nette\Database\Connection($options['dsn'], $options['user'], $options['password']);
-} catch (PDOException $e) {
+} catch (Nette\Database\ConnectionException $e) {
 	Tester\Environment::skip("Connection to '$options[dsn]' failed. Reason: " . $e->getMessage());
 }
 
-if (strpos($options['dsn'], 'sqlite::memory:') === false) {
-	Tester\Environment::lock($options['dsn'], TEMP_DIR);
+if (!str_contains($options['dsn'], 'sqlite::memory:')) {
+	Tester\Environment::lock($options['dsn'], getTempDir());
 }
 
 $driverName = $connection->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -43,4 +43,4 @@ $book = $explorer->table('author')->insert([
 
 Assert::type(Nette\Database\Table\ActiveRow::class, $book);
 Assert::equal('eddard stark', $book->name);
-Assert::equal(new Nette\Utils\DateTime('2011-11-11'), $book->born);
+Assert::equal(new Nette\Database\DateTime('2011-11-11'), $book->born);

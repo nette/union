@@ -307,9 +307,10 @@ test('arrayOf() & keys II.', function () {
 
 
 test('arrayOf() error', function () {
-	Assert::exception(function () {
-		Expect::arrayOf(['a' => Expect::string()]);
-	}, TypeError::class);
+	Assert::exception(
+		fn() => Expect::arrayOf(['a' => Expect::string()]),
+		TypeError::class,
+	);
 });
 
 

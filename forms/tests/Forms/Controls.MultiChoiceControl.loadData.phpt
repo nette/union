@@ -20,11 +20,10 @@ class MultiChoiceControl extends Nette\Forms\Controls\MultiChoiceControl
 }
 
 
-setUp(function () {
+before(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
-	ob_start();
+	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 	Form::initialize(true);
 });
 
@@ -185,11 +184,11 @@ test('setValue() and invalid argument', function () use ($series) {
 
 	Assert::exception(function () use ($input) {
 		$input->setValue(new stdClass);
-	}, Nette\InvalidArgumentException::class, "Value must be array or null, stdClass given in field 'select'.");
+	}, Nette\InvalidArgumentException::class, "Value must be array or null, object given in field 'select'.");
 
 	Assert::exception(function () use ($input) {
 		$input->setValue([new stdClass]);
-	}, Nette\InvalidArgumentException::class, "Values must be scalar, stdClass given in field 'select'.");
+	}, Nette\InvalidArgumentException::class, "Values must be scalar, object given in field 'select'.");
 });
 
 
@@ -202,11 +201,11 @@ test('setValue() and disabled checkDefaultValue()', function () use ($series) {
 
 	Assert::exception(function () use ($input) {
 		$input->setValue(new stdClass);
-	}, Nette\InvalidArgumentException::class, "Value must be array or null, stdClass given in field 'select'.");
+	}, Nette\InvalidArgumentException::class, "Value must be array or null, object given in field 'select'.");
 
 	Assert::exception(function () use ($input) {
 		$input->setValue([new stdClass]);
-	}, Nette\InvalidArgumentException::class, "Values must be scalar, stdClass given in field 'select'.");
+	}, Nette\InvalidArgumentException::class, "Values must be scalar, object given in field 'select'.");
 });
 
 

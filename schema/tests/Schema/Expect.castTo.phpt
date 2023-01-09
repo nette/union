@@ -19,23 +19,49 @@ test('built-in', function () {
 });
 
 
-test('stdClass', function () {
-	$schema = Expect::array()->castTo('stdClass');
+test('simple object', function () {
+	class Foo1
+	{
+		public $a;
+		public $b;
+	}
+
+	$foo = new Foo1;
+	$foo->a = 1;
+	$foo->b = 2;
+
+	$schema = Expect::array()->castTo(Foo1::class);
 	Assert::equal(
-		(object) ['a' => 1, 'b' => 2],
+		$foo,
 		(new Processor)->process($schema, ['a' => 1, 'b' => 2]),
 	);
 });
 
 
-test('DateTime', function () {
-	$schema = Expect::array()->castTo('DateTime');
-	Assert::equal(
-		new DateTime('2021-01-01'),
-		(new Processor)->process($schema, ['datetime' => '2021-01-01']),
-	);
+test('object with constructor', function () {
+	class Foo2
+	{
+		private $a;
+		private $b;
 
-	$schema = Expect::string()->castTo('DateTime');
+
+		public function __construct(int $a, int $b)
+		{
+			$this->b = $b;
+			$this->a = $a;
+		}
+	}
+
+	$schema = Expect::array()->castTo(Foo2::class);
+	Assert::equal(
+		new Foo2(1, 2),
+		(new Processor)->process($schema, ['b' => 2, 'a' => 1]),
+	);
+});
+
+
+test('DateTime', function () {
+	$schema = Expect::string()->castTo(DateTime::class);
 	Assert::equal(
 		new DateTime('2021-01-01'),
 		(new Processor)->process($schema, '2021-01-01'),

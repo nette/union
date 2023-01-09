@@ -15,29 +15,8 @@ use Nette;
 /**
  * Supplemental MS SQL database driver.
  */
-class MsSqlDriver implements Nette\Database\Driver
+class MsSqlDriver extends PdoDriver
 {
-	use Nette\SmartObject;
-
-	/** @var Nette\Database\Connection */
-	private $connection;
-
-
-	public function initialize(Nette\Database\Connection $connection, array $options): void
-	{
-		$this->connection = $connection;
-	}
-
-
-	public function convertException(\PDOException $e): Nette\Database\DriverException
-	{
-		return Nette\Database\DriverException::from($e);
-	}
-
-
-	/********************* SQL ****************d*g**/
-
-
 	public function delimite(string $name): string
 	{
 		// @see https://msdn.microsoft.com/en-us/library/ms176027.aspx
@@ -86,15 +65,10 @@ class MsSqlDriver implements Nette\Database\Driver
 
 	public function getTables(): array
 	{
-		$tables = [];
-		foreach ($this->connection->query('SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES') as $row) {
-			$tables[] = [
-				'name' => $row['TABLE_SCHEMA'] . '.' . $row['TABLE_NAME'],
-				'view' => ($row['TABLE_TYPE'] ?? null) === 'VIEW',
-			];
-		}
-
-		return $tables;
+		return $this->pdo->query('SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES')->fetchAll(
+			\PDO::FETCH_FUNC,
+			fn($schema, $name, $type) => new Nette\Database\Reflection\Table($schema . '.' . $name, $type === 'VIEW'),
+		);
 	}
 
 
@@ -103,7 +77,7 @@ class MsSqlDriver implements Nette\Database\Driver
 		[$table_schema, $table_name] = explode('.', $table);
 		$columns = [];
 
-		$query = "
+		$query = <<<X
 			SELECT
 				COLUMN_NAME,
 				DATA_TYPE,
@@ -115,22 +89,22 @@ class MsSqlDriver implements Nette\Database\Driver
 			FROM
 				INFORMATION_SCHEMA.COLUMNS
 			WHERE
-				TABLE_SCHEMA = {$this->connection->quote($table_schema)}
-				AND TABLE_NAME = {$this->connection->quote($table_name)}";
+				TABLE_SCHEMA = {$this->pdo->quote($table_schema)}
+				AND TABLE_NAME = {$this->pdo->quote($table_name)}
+			X;
 
-		foreach ($this->connection->query($query) as $row) {
-			$columns[] = [
-				'name' => $row['COLUMN_NAME'],
-				'table' => $table,
-				'nativetype' => strtoupper($row['DATA_TYPE']),
-				'size' => $row['CHARACTER_MAXIMUM_LENGTH'] ?? ($row['NUMERIC_PRECISION'] ?? null),
-				'unsigned' => false,
-				'nullable' => $row['IS_NULLABLE'] === 'YES',
-				'default' => $row['COLUMN_DEFAULT'],
-				'autoincrement' => $row['DOMAIN_NAME'] === 'COUNTER',
-				'primary' => $row['COLUMN_NAME'] === 'ID',
-				'vendor' => (array) $row,
-			];
+		foreach ($this->pdo->query($query, \PDO::FETCH_ASSOC) as $row) {
+			$columns[] = new Nette\Database\Reflection\Column(
+				name: $row['COLUMN_NAME'],
+				table: $table,
+				nativeType: $row['DATA_TYPE'],
+				size: $row['CHARACTER_MAXIMUM_LENGTH'] ?? $row['NUMERIC_PRECISION'] ?? null,
+				nullable: $row['IS_NULLABLE'] === 'YES',
+				default: $row['COLUMN_DEFAULT'],
+				autoIncrement: $row['DOMAIN_NAME'] === 'COUNTER',
+				primary: $row['COLUMN_NAME'] === 'ID',
+				vendor: $row,
+			);
 		}
 
 		return $columns;
@@ -142,7 +116,7 @@ class MsSqlDriver implements Nette\Database\Driver
 		[, $table_name] = explode('.', $table);
 		$indexes = [];
 
-		$query = "
+		$query = <<<X
 			SELECT
 				 name_index = ind.name,
 				 id_column = ic.index_column_id,
@@ -155,11 +129,12 @@ class MsSqlDriver implements Nette\Database\Driver
 				INNER JOIN sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
 				INNER JOIN sys.tables t ON ind.object_id = t.object_id
 			WHERE
-				 t.name = {$this->connection->quote($table_name)}
+				 t.name = {$this->pdo->quote($table_name)}
 			ORDER BY
-				 t.name, ind.name, ind.index_id, ic.index_column_id";
+				 t.name, ind.name, ind.index_id, ic.index_column_id
+			X;
 
-		foreach ($this->connection->query($query) as $row) {
+		foreach ($this->pdo->query($query) as $row) {
 			$id = $row['name_index'];
 			$indexes[$id]['name'] = $id;
 			$indexes[$id]['unique'] = $row['is_unique'] !== 'False';
@@ -167,7 +142,7 @@ class MsSqlDriver implements Nette\Database\Driver
 			$indexes[$id]['columns'][$row['id_column'] - 1] = $row['name_column'];
 		}
 
-		return array_values($indexes);
+		return array_map(fn($data) => new Nette\Database\Reflection\Index(...$data), array_values($indexes));
 	}
 
 
@@ -176,7 +151,7 @@ class MsSqlDriver implements Nette\Database\Driver
 		[$table_schema, $table_name] = explode('.', $table);
 		$keys = [];
 
-		$query = "
+		$query = <<<X
 			SELECT
 				obj.name AS [fk_name],
 				col1.name AS [column],
@@ -197,16 +172,18 @@ class MsSqlDriver implements Nette\Database\Driver
 				INNER JOIN sys.columns col2
 				ON col2.column_id = referenced_column_id AND col2.object_id = tab2.object_id
 			WHERE
-				tab1.name = {$this->connection->quote($table_name)}";
+				tab1.name = {$this->pdo->quote($table_name)}
+			X;
 
-		foreach ($this->connection->query($query) as $id => $row) {
-			$keys[$id]['name'] = $row['fk_name'];
-			$keys[$id]['local'] = $row['column'];
-			$keys[$id]['table'] = $table_schema . '.' . $row['referenced_table'];
-			$keys[$id]['foreign'] = $row['referenced_column'];
+		foreach ($this->pdo->query($query) as $row) {
+			$id = $row['fk_name'];
+			$keys[$id]['name'] = $id;
+			$keys[$id]['columns'][] = $row['column'];
+			$keys[$id]['targetTable'] = $table_schema . '.' . $row['referenced_table'];
+			$keys[$id]['targetColumns'][] = $row['referenced_column'];
 		}
 
-		return array_values($keys);
+		return array_map(fn($data) => new Nette\Database\Reflection\ForeignKey(...$data), array_values($keys));
 	}
 
 
@@ -218,6 +195,6 @@ class MsSqlDriver implements Nette\Database\Driver
 
 	public function isSupported(string $item): bool
 	{
-		return $item === self::SUPPORT_SUBSELECT;
+		return $item === self::SupportSubselect;
 	}
 }

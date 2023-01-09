@@ -17,8 +17,6 @@ use Nette;
  */
 class SessionSection implements \IteratorAggregate, \ArrayAccess
 {
-	use Nette\SmartObject;
-
 	private Session $session;
 	private string $name;
 

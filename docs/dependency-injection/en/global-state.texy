@@ -2,36 +2,28 @@ Global State and Singletons
 ***************************
 
 .[perex]
-Warning: the following constructs are symptoms of poor code design:
+Warning: The following constructs are symptoms of poorly designed code:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` or `static::$var`
 
-Do any of these constructs occur in your code? Then you have an opportunity to improve. You may be thinking that these are common constructs that we see in sample solutions of various libraries and frameworks.
-Unfortunately, they are still a clear indicator of poor design. They have one thing in common: the use of global state.
+Do you encounter any of these constructs in your code? If so, you have an opportunity to improve it. You might think these are common constructs, often seen in sample solutions of various libraries and frameworks. If that's the case, their code design is flawed.
 
-Now, we're certainly not talking about some kind of academic purity. The use of global state and singletons has destructive effects on code quality. Its behavior becomes unpredictable, reduces developer productivity, and forces class interfaces to lie about their true dependencies. Which confuses programmers.
+We're not talking about some academic purity here. All these constructs have one thing in common: they utilize global state. And this has a destructive impact on code quality. Classes are deceptive about their dependencies. The code becomes unpredictable. It confuses developers and reduces their efficiency.
 
-In this chapter, we will show how this is possible.
+In this chapter, we'll explain why this is the case and how to avoid global state.
 
 
 Global Interlinking
 -------------------
 
-The fundamental problem with the global state is that it is globally accessible. This makes it possible to write to the database via the global (static) method `DB::insert()`.
-In an ideal world, an object should only be able to communicate with other objects that have been [directly passed to |passing-dependencies] it.
-If I create two objects `A` and `B` and never pass a reference from `A` to `B`, then neither `A`, nor `B` can access the other object or change its state.
-This is a very desirable feature of the code. It's similar to having a battery and a light bulb; the bulb won't light until you wire them together.
+In an ideal world, an object should only communicate with objects that were [directly passed to it |passing-dependencies]. If I create two objects `A` and `B` and never pass a reference between them, then neither `A` nor `B` can access or modify the other's state. This is a highly desirable property of code. It's akin to having a battery and a light bulb; the bulb won't light up until you connect it to the battery with a wire.
 
-This is not true for global (static) variables or singletons. The `A` object could *wirelessly* access the `C` object and modify it without passing any reference, by calling `C::changeSomething()`.
-If the `B` object also grabs the global `C`, then `A` and `B` can interact with each other via `C`.
+However, this doesn't hold true for global (static) variables or singletons. Object `A` could *wirelessly* access object `C` and modify it without any reference passing, by calling `C::changeSomething()`. If object `B` also taps into the global `C`, then `A` and `B` can influence each other through `C`.
 
-The use of global variables introduces a new form of *wireless* coupling into the system that is not visible from the outside.
-It creates a smokescreen complicating the understanding and use of the code.
-Developers must read every line of source code to truly understand the dependencies. Instead of just familiarizing themselves with the interface of the classes.
-Moreover, it is a completely unnecessary coupling.
+Using global variables introduces a new form of *wireless* coupling that's not externally visible. It creates a smokescreen that complicates understanding and using the code. To truly understand the dependencies, developers have to read every line of the source code, rather than just familiarizing themselves with class interfaces. Moreover, this entanglement is entirely unnecessary. Global state is used because it's easily accessible from anywhere and allows, for instance, writing to a database through a global (static) method `DB::insert()`. However, as we'll see, the benefit it offers is minimal, while the complications it introduces are severe.
 
 .[note]
 In terms of behavior, there is no difference between a global and a static variable. They are equally harmful.
@@ -309,4 +301,4 @@ When contemplating code design, keep in mind that each `static $foo` represents 
 
 During this process, you may find that you need to split a class because it has more than one responsibility. Don't worry about it; strive for the principle of one responsibility.
 
-*I would like to thank Miško Hevery, whose articles such as [Flaw: Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] form the basis of this chapter.*
+*I would like to thank Miško Hevery, whose articles such as [Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] form the basis of this chapter.*

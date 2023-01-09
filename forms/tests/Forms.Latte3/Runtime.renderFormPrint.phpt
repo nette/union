@@ -1,5 +1,7 @@
 <?php
 
+/** @phpVersion 8.0 */
+
 declare(strict_types=1);
 
 use Nette\Forms\Form;
@@ -14,7 +16,7 @@ $form->addText('name')->setRequired('Enter your name');
 $form->addSubmit('submit', 'Send');
 
 ob_start();
-(new Nette\Bridges\FormsLatte\Runtime)->renderFormPrint($form);
+Nette\Bridges\FormsLatte\Runtime::renderFormPrint($form);
 $res = ob_get_clean();
 
 Assert::match(

@@ -15,13 +15,15 @@ use Nette;
 /**
  * A user group of form controls.
  */
-final class ControlGroup
+class ControlGroup
 {
 	use Nette\SmartObject;
 
-	protected \SplObjectStorage $controls;
+	/** @var \SplObjectStorage */
+	protected $controls;
 
-	private array $options = [];
+	/** @var array user options */
+	private $options = [];
 
 
 	public function __construct()
@@ -30,7 +32,8 @@ final class ControlGroup
 	}
 
 
-	public function add(...$items): static
+	/** @return static */
+	public function add(...$items)
 	{
 		foreach ($items as $item) {
 			if ($item instanceof Control) {
@@ -44,7 +47,7 @@ final class ControlGroup
 				$this->add(...$item);
 
 			} else {
-				$type = get_debug_type($item);
+				$type = is_object($item) ? get_class($item) : gettype($item);
 				throw new Nette\InvalidArgumentException("Control or Container items expected, $type given.");
 			}
 		}
@@ -84,8 +87,10 @@ final class ControlGroup
 	 * - 'container' - container as Html object
 	 * - 'description' - textual or Nette\HtmlStringable object description
 	 * - 'embedNext' - describes how render next group
+	 *
+	 * @return static
 	 */
-	public function setOption(string $key, mixed $value): static
+	public function setOption(string $key, $value)
 	{
 		if ($value === null) {
 			unset($this->options[$key]);
@@ -100,11 +105,11 @@ final class ControlGroup
 
 	/**
 	 * Returns user-specific option.
+	 * @return mixed
 	 */
-	public function getOption(string $key): mixed
+	public function getOption(string $key)
 	{
 		if (func_num_args() > 1) {
-			trigger_error(__METHOD__ . '() parameter $default is deprecated, use operator ??', E_USER_DEPRECATED);
 			$default = func_get_arg(1);
 		}
 		return $this->options[$key] ?? $default ?? null;

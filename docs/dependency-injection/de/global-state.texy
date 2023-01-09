@@ -2,36 +2,28 @@ Globaler Zustand und Singletons
 *******************************
 
 .[perex]
-Warnung: Die folgenden Konstrukte sind Symptome für schlechtes Code-Design:
+Warnung: Die folgenden Konstrukte sind Symptome für schlecht entworfenen Code:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` oder `static::$var`
 
-Kommt eines dieser Konstrukte in Ihrem Code vor? Dann haben Sie die Möglichkeit, sich zu verbessern. Sie denken vielleicht, dass es sich um gängige Konstrukte handelt, die wir in Musterlösungen verschiedener Bibliotheken und Frameworks sehen.
-Leider sind sie dennoch ein klarer Indikator für schlechtes Design. Sie haben eines gemeinsam: die Verwendung eines globalen Zustands.
+Finden Sie eines dieser Konstrukte in Ihrem Code? Wenn ja, dann haben Sie die Möglichkeit, ihn zu verbessern. Sie könnten denken, dass es sich um gängige Konstrukte handelt, die oft in Beispiellösungen verschiedener Bibliotheken und Frameworks zu sehen sind. Wenn das der Fall ist, ist ihr Code-Design mangelhaft.
 
-Wir sprechen hier sicherlich nicht von einer akademischen Reinheit. Die Verwendung von globalen Zuständen und Singletons hat zerstörerische Auswirkungen auf die Codequalität. Ihr Verhalten wird unvorhersehbar, verringert die Produktivität der Entwickler und zwingt Klassenschnittstellen dazu, über ihre wahren Abhängigkeiten zu lügen. Das verwirrt die Programmierer.
+Wir sprechen hier nicht von einer akademischen Reinheit. Alle diese Konstrukte haben eines gemeinsam: Sie verwenden einen globalen Zustand. Und das hat zerstörerische Auswirkungen auf die Codequalität. Die Klassen täuschen über ihre Abhängigkeiten hinweg. Der Code wird unberechenbar. Das verwirrt die Entwickler und mindert ihre Effizienz.
 
-In diesem Kapitel werden wir zeigen, wie dies möglich ist.
+In diesem Kapitel wird erklärt, warum dies der Fall ist und wie man globale Zustände vermeiden kann.
 
 
 Globale Verkettung .[#toc-global-interlinking]
 ----------------------------------------------
 
-Das grundsätzliche Problem mit dem globalen Zustand ist, dass er global zugänglich ist. Dadurch ist es möglich, über die globale (statische) Methode `DB::insert()` in die Datenbank zu schreiben.
-In einer idealen Welt sollte ein Objekt nur mit anderen Objekten kommunizieren können, die [ihm direkt übergeben |passing-dependencies] wurden.
-Wenn ich zwei Objekte `A` und `B` anlege und niemals eine Referenz von `A` an `B` übergebe, dann können weder `A` noch `B` auf das andere Objekt zugreifen oder dessen Zustand ändern.
-Dies ist eine sehr wünschenswerte Eigenschaft des Codes. Es ist vergleichbar mit einer Batterie und einer Glühbirne; die Glühbirne leuchtet erst, wenn man sie miteinander verbindet.
+In einer idealen Welt sollte ein Objekt nur mit Objekten kommunizieren, die [direkt an es übergeben |passing-dependencies] wurden. Wenn ich zwei Objekte `A` und `B` erstelle und nie einen Verweis zwischen ihnen übergebe, dann können weder `A` noch `B` auf den Zustand des anderen zugreifen oder ihn ändern. Dies ist eine höchst wünschenswerte Eigenschaft von Code. Es ist so, als hätte man eine Batterie und eine Glühbirne; die Glühbirne leuchtet erst, wenn man sie über ein Kabel mit der Batterie verbindet.
 
-Dies gilt nicht für globale (statische) Variablen oder Singletons. Das Objekt `A` kann *drahtlos* auf das Objekt `C` zugreifen und es ändern, ohne eine Referenz zu übergeben, indem es `C::changeSomething()` aufruft.
-Wenn das Objekt `B` auch auf das globale `C` zugreift, dann können `A` und `B` über `C` miteinander interagieren.
+Dies gilt jedoch nicht für globale (statische) Variablen oder Singletons. Das Objekt `A` könnte *drahtlos* auf das Objekt `C` zugreifen und es ohne jegliche Referenzübergabe ändern, indem es `C::changeSomething()` aufruft. Wenn das Objekt `B` auch auf das globale `C` zugreift, dann können sich `A` und `B` über `C` gegenseitig beeinflussen.
 
-Die Verwendung von globalen Variablen führt eine neue Form der *drahtlosen* Kopplung in das System ein, die von außen nicht sichtbar ist.
-Sie schafft einen Nebelschleier, der das Verständnis und die Verwendung des Codes erschwert.
-Die Entwickler müssen jede Zeile des Quellcodes lesen, um die Abhängigkeiten wirklich zu verstehen. Anstatt sich nur mit der Schnittstelle der Klassen vertraut zu machen.
-Außerdem handelt es sich um eine völlig unnötige Kopplung.
+Die Verwendung globaler Variablen führt eine neue Form der *drahtlosen* Kopplung ein, die von außen nicht sichtbar ist. Sie schafft einen Nebelschleier, der das Verständnis und die Verwendung des Codes erschwert. Um die Abhängigkeiten wirklich zu verstehen, müssen Entwickler jede Zeile des Quellcodes lesen, anstatt sich nur mit den Klassenschnittstellen vertraut zu machen. Außerdem ist diese Verstrickung völlig unnötig. Globale Zustände werden verwendet, weil sie von überall her leicht zugänglich sind und beispielsweise das Schreiben in eine Datenbank über eine globale (statische) Methode `DB::insert()` ermöglichen. Wie wir jedoch sehen werden, ist der Nutzen, den er bietet, minimal, während die Komplikationen, die er mit sich bringt, schwerwiegend sind.
 
 .[note]
 Was das Verhalten angeht, gibt es keinen Unterschied zwischen einer globalen und einer statischen Variable. Sie sind gleichermaßen schädlich.
@@ -309,4 +301,4 @@ Wenn Sie über den Entwurf von Code nachdenken, sollten Sie bedenken, dass jedes
 
 Während dieses Prozesses kann es vorkommen, dass Sie eine Klasse aufteilen müssen, weil sie mehr als eine Verantwortung hat. Machen Sie sich keine Gedanken darüber; streben Sie das Prinzip der einen Verantwortung an.
 
-*Ich möchte Miško Hevery danken, dessen Artikel wie [Flaw: Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] die Grundlage für dieses Kapitel bilden.*
+*Ich möchte Miško Hevery danken, dessen Artikel wie [Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] die Grundlage für dieses Kapitel bilden.*

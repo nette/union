@@ -23,8 +23,6 @@ use Nette\InvalidStateException;
  */
 final class PhpNamespace
 {
-	use Nette\SmartObject;
-
 	public const
 		NameNormal = 'n',
 		NameFunction = 'f',
@@ -50,7 +48,7 @@ final class PhpNamespace
 		self::NameConstant => [],
 	];
 
-	/** @var ClassLike[] */
+	/** @var (ClassType|InterfaceType|TraitType|EnumType)[] */
 	private array $classes = [];
 
 	/** @var GlobalFunction[] */
@@ -89,21 +87,13 @@ final class PhpNamespace
 	}
 
 
-	/** @deprecated  use hasBracketedSyntax() */
-	public function getBracketedSyntax(): bool
-	{
-		trigger_error(__METHOD__ . '() is deprecated, use hasBracketedSyntax().', E_USER_DEPRECATED);
-		return $this->bracketedSyntax;
-	}
-
-
 	/**
 	 * @throws InvalidStateException
 	 */
 	public function addUse(string $name, ?string $alias = null, string $of = self::NameNormal): static
 	{
 		if (
-			!Helpers::isNamespaceIdentifier($name, true)
+			!Helpers::isNamespaceIdentifier($name, allowLeadingSlash: true)
 			|| (Helpers::isIdentifier($name) && isset(Helpers::Keywords[strtolower($name)]))
 		) {
 			throw new Nette\InvalidArgumentException("Value '$name' is not valid class/function/constant name.");
@@ -171,14 +161,6 @@ final class PhpNamespace
 			fn($name, $alias) => strcasecmp(($this->name ? $this->name . '\\' : '') . $alias, $name),
 			ARRAY_FILTER_USE_BOTH,
 		);
-	}
-
-
-	/** @deprecated  use simplifyName() */
-	public function unresolveName(string $name): string
-	{
-		trigger_error(__METHOD__ . '() is deprecated, use simplifyName()', E_USER_DEPRECATED);
-		return $this->simplifyName($name);
 	}
 
 
@@ -253,7 +235,7 @@ final class PhpNamespace
 	}
 
 
-	public function add(ClassLike $class): static
+	public function add(ClassType|InterfaceType|TraitType|EnumType $class): static
 	{
 		$name = $class->getName();
 		if ($name === null) {
@@ -327,7 +309,7 @@ final class PhpNamespace
 	}
 
 
-	/** @return ClassLike[] */
+	/** @return (ClassType|InterfaceType|TraitType|EnumType)[] */
 	public function getClasses(): array
 	{
 		$res = [];

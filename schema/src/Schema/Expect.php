@@ -32,8 +32,6 @@ use Nette\Schema\Elements\Type;
  */
 final class Expect
 {
-	use Nette\SmartObject;
-
 	public static function __callStatic(string $name, array $args): Type
 	{
 		$type = new Type($name);
@@ -69,19 +67,23 @@ final class Expect
 	public static function from(object $object, array $items = []): Structure
 	{
 		$ro = new \ReflectionObject($object);
-		foreach ($ro->getProperties() as $prop) {
+		$props = $ro->hasMethod('__construct')
+			? $ro->getMethod('__construct')->getParameters()
+			: $ro->getProperties();
+
+		foreach ($props as $prop) {
 			$item = &$items[$prop->getName()];
 			if (!$item) {
 				$item = new Type((string) (Nette\Utils\Type::fromReflection($prop) ?? 'mixed'));
-				if (!$prop->isInitialized($object)) {
-					$item->required();
-				} else {
-					$def = $prop->getValue($object);
+				if ($prop instanceof \ReflectionProperty ? $prop->isInitialized($object) : $prop->isOptional()) {
+					$def = ($prop instanceof \ReflectionProperty ? $prop->getValue($object) : $prop->getDefaultValue());
 					if (is_object($def)) {
 						$item = static::from($def);
 					} else {
 						$item->default($def);
 					}
+				} else {
+					$item->required();
 				}
 			}
 		}

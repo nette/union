@@ -87,7 +87,7 @@ class PollControl extends Control
 A  megjelenítése .[#toc-rendering]
 ==================================
 
-Azt már tudjuk, hogy a `{control componentName}` címkét egy komponens megrajzolására használjuk. Valójában a komponens `render()` metódusát hívja meg, amelyben a renderelésről gondoskodunk. A prezenterhez hasonlóan van egy [Latte |latte:] sablonunk a `$this->template` változóban, amelynek átadjuk a paramétereket. A prezenterben való használattal ellentétben itt meg kell adnunk egy sablonfájlt, és hagynunk kell, hogy renderelje:
+Azt már tudjuk, hogy a `{control componentName}` címkét egy komponens megrajzolására használjuk. Valójában a komponens `render()` metódusát hívja meg, amelyben a renderelésről gondoskodunk. A prezenterhez hasonlóan van egy [Latte sablonunk |templates] a `$this->template` változóban, amelynek átadjuk a paramétereket. A prezenterben való használattal ellentétben itt meg kell adnunk egy sablonfájlt, és hagynunk kell, hogy renderelje:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -240,7 +240,7 @@ Például van egy tartalom lapozó komponens. Egy oldalon több ilyen komponens 
 A perzisztens paraméter létrehozása rendkívül egyszerű a Nette-ben. Csak hozzon létre egy nyilvános tulajdonságot, és címkézze meg az attribútummal: (korábban a `/** @persistent */` volt használatos).
 
 ```php
-use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Persistent; // ez a sor fontos
 
 class PaginatingControl extends Control
 {
@@ -380,7 +380,7 @@ A komponensek mélysége .[#toc-components-in-depth]
 A komponensek egy Nette alkalmazásban a webalkalmazás újrafelhasználható részei, amelyeket oldalakba ágyazunk be, ez a fejezet témája. Pontosan milyen képességekkel rendelkezik egy ilyen komponens?
 
 1) egy sablonban megjeleníthető.
-2) tudja, hogy egy [AJAX-kérés |ajax#invalidation] során melyik részét kell renderelni (snippet)
+2) tudja, hogy egy AJAX-kérés során [melyik |ajax#snippets] részét kell megjelenítenie (snippetek).
 3) képes az állapotát egy URL-ben tárolni (állandó paraméterek).
 4) képes reagálni a felhasználói műveletekre (jelek)
 5) hierarchikus struktúrát hoz létre (ahol a gyökér a bemutató)

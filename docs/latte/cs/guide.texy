@@ -3,8 +3,10 @@ Začínáme s Latte
 
 <div class=perex>
 
+Šablony zlepšují organizaci kódu, oddělují logiku aplikace od prezentace a zvyšují bezpečnost. Nabízejí daleko lepší funkce a vyjadřovací prostředky pro generování HTML než samotné PHP.
+
 Latte je nejbezpečnějším šablonovacím systémem pro PHP. Jeho intuitivní syntaxi si zamilujete. Široká škála užitečných funkcí vám výrazně usnadní práci.
-Ochrana Latte proti [kritickým zranitelnostem|safety-first] je velmi účinná a umožní vám soustředit se na vytváření kvalitních aplikací bez obav o jejich bezpečnost.
+Poskytuje špičkovou ochranu proti [kritickým zranitelnostem|safety-first] a umožní vám soustředit se na vytváření kvalitních aplikací bez obav o jejich bezpečnost.
 
 
 Jak psát šablony pomocí Latte?
@@ -12,8 +14,8 @@ Jak psát šablony pomocí Latte?
 
 Latte je chytře navržen a snadno se ho naučí ti, kteří znají PHP a osvojí si základní značky.
 
-- Začněte tím, že si vyzkoušíte [syntaxi |syntax] Latte [online |https://fiddle.nette.org/latte/]
-- Prozkoumejte základní dostupné [značky|tags] a [filtry|filters]
+- Nejprve se seznamte se [syntaxí Latte|syntax] a [VYZKOUŠEJTE JI ONLINE |https://fiddle.nette.org/latte/#9cc0cf6d89#9cc0cf6d89]
+- Podívejte se na základní sadu [značek|tags] a [filtrů|filters]
 - Pište šablony v [editoru s podporu Latte |recipes#Editory a IDE]
 
 
@@ -26,6 +28,8 @@ Nasadit Latte do vaší nové aplikace je otázkou pár minut:
 - Nechte se rozmazlovat [debuggovacím nástrojem Tracy |develop#Debuggování a Tracy]
 - Rozšiřte Latte o [vlastní funkcionalitu |extending-latte]
 
+Převádíte-li starý projekt napsaný v čistém PHP do Latte, usnadní vám migraci [nástroj pro převod PHP kódu do Latte |cookbook/migration-from-php]. Nebo se chystáte přejít na Latte z Twigu? Máme pro vás [převodník šablon Twig do Latte |cookbook/migration-from-twig].
+
 
 Co ještě Latte umí?
 -------------------
@@ -37,7 +41,6 @@ Latte dostáváte v plné výbavě, se vším důležitým v základu.
 - Pro další inspiraci jsou tu [tipy a triky |recipes]
 
 </div>
-
 
 
 {{description: Latte je nejbezpečnější šablonovací systém pro PHP. Zabraňuje spoustě bezpečnostních zranitelností. Oceníte jeho intuitivní syntaxi a oceníte spoustu užitečných vychytávek.}}

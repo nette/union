@@ -50,7 +50,7 @@ Ez a [tulajdonságokba való befecskendezés |dependency-injection:passing-depen
 A tulajdonságokat egy attribútummal jelöljük: (korábban a `/** @inject */` megjegyzést használtuk)
 
 ```php
-use Nette\DI\Attributes\Inject; // az importálás itt fontos.
+use Nette\DI\Attributes\Inject; // ez a sor fontos
 
 class MyPresenter extends Nette\Application\UI\Presenter
 {

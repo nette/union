@@ -14,8 +14,6 @@ use Nette;
 
 final class Message
 {
-	use Nette\SmartObject;
-
 	/** variables: {value: mixed, expected: string} */
 	public const TypeMismatch = 'schema.typeMismatch';
 
@@ -95,6 +93,6 @@ final class Message
 		return preg_replace_callback('~( ?)%(\w+)%~', function ($m) use ($vars) {
 			[, $space, $key] = $m;
 			return $vars[$key] === null ? '' : $space . $vars[$key];
-		}, $this->message);
+		}, $this->message) ?? throw new Nette\InvalidStateException(preg_last_error_msg());
 	}
 }

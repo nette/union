@@ -444,4 +444,28 @@ services:
 ```
 
 
+DI Services
+===========
+
+These services are added to the DI container:
+
+| Name | Type | Description
+|----------------------------------------------------------
+| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
+| `cache.storage` | [api:Nette\Caching\Storage] | repository
+
+
+Turning Off Cache
+=================
+
+One of the ways to turn off caching in the application is to set the storage to [DevNullStorage|#DevNullStorage]:
+
+```neon
+services:
+	cache.storage: Nette\Caching\Storages\DevNullStorage
+```
+
+This setting does not affect the caching of templates in Latte or the DI container, as these libraries do not use the services of nette/caching and manage their cache independently. Moreover, their cache [does not need to be turned off |nette:troubleshooting#how-to-disable-cache-during-development] in development mode.
+
+
 {{leftbar: nette:@menu-topics}}

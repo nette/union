@@ -15,19 +15,19 @@ use Nette;
 /**
  * HttpRequest provides access scheme for request sent via HTTP.
  *
- * @property-read UrlScript $url
- * @property-read array $query
- * @property-read array $post
- * @property-read array $files
- * @property-read array $cookies
- * @property-read string $method
- * @property-read array $headers
- * @property-read UrlImmutable|null $referer
- * @property-read bool $secured
- * @property-read bool $ajax
- * @property-read string|null $remoteAddress
- * @property-read string|null $remoteHost
- * @property-read string|null $rawBody
+ * @property-deprecated UrlScript $url
+ * @property-deprecated array $query
+ * @property-deprecated array $post
+ * @property-deprecated array $files
+ * @property-deprecated array $cookies
+ * @property-deprecated string $method
+ * @property-deprecated array $headers
+ * @property-deprecated UrlImmutable|null $referer
+ * @property-deprecated bool $secured
+ * @property-deprecated bool $ajax
+ * @property-deprecated string|null $remoteAddress
+ * @property-deprecated string|null $remoteHost
+ * @property-deprecated string|null $rawBody
  */
 class Request implements IRequest
 {
@@ -273,14 +273,11 @@ class Request implements IRequest
 	public function getBody(): mixed
 	{
 		$type = $this->getHeader('Content-Type');
-		switch ($type) {
-			case 'application/json':
-				return json_decode($this->getRawBody());
-			case 'application/x-www-form-urlencoded':
-				return $_POST;
-			default:
-				throw new \Exception("Unsupported content type: $type");
-		}
+		return match ($type) {
+			'application/json' => json_decode($this->getRawBody()),
+			'application/x-www-form-urlencoded' => $_POST,
+			default => throw new \Exception("Unsupported content type: $type"),
+		};
 	}
 
 

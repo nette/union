@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Nette\PhpGenerator\PhpFile;
 use Nette\PhpGenerator\PhpNamespace;
-
 require __DIR__ . '/../bootstrap.php';
 
 $namespace = new PhpNamespace('Foo');
@@ -15,11 +14,16 @@ $phpFile->addNamespace('Foo');
 $phpFile->addNamespace($namespace); // overwrite
 
 
-same('<?php
+same(
+	<<<'XX'
+		<?php
 
-namespace Foo;
+		namespace Foo;
 
-class Bar
-{
-}
-', (string) $phpFile);
+		class Bar
+		{
+		}
+
+		XX,
+	(string) $phpFile,
+);

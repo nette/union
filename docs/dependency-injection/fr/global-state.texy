@@ -2,36 +2,28 @@
 *************************
 
 .[perex]
-Avertissement : les constructions suivantes sont des symptômes d'une mauvaise conception du code :
+Avertissement : Les constructions suivantes sont des symptômes d'un code mal conçu :
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` ou `static::$var`
 
-L'une de ces constructions apparaît-elle dans votre code ? Alors vous avez la possibilité de vous améliorer. Vous pensez peut-être qu'il s'agit de constructions courantes que nous voyons dans des exemples de solutions de diverses bibliothèques et de divers frameworks.
-Malheureusement, elles sont toujours un indicateur clair d'une mauvaise conception. Elles ont une chose en commun : l'utilisation d'un état global.
+Rencontrez-vous l'une de ces constructions dans votre code ? Si c'est le cas, vous avez la possibilité de l'améliorer. Vous pouvez penser qu'il s'agit de constructions courantes, souvent observées dans des exemples de solutions de diverses bibliothèques et frameworks. Si c'est le cas, la conception de leur code est défectueuse.
 
-Il ne s'agit certainement pas d'une sorte de pureté académique. L'utilisation de l'état global et des singletons a des effets destructeurs sur la qualité du code. Son comportement devient imprévisible, réduit la productivité des développeurs et oblige les interfaces de classe à mentir sur leurs véritables dépendances. Ce qui désoriente les programmeurs.
+Nous ne parlons pas ici de pureté académique. Toutes ces constructions ont une chose en commun : elles utilisent un état global. Et cela a un impact destructeur sur la qualité du code. Les classes sont trompeuses quant à leurs dépendances. Le code devient imprévisible. Cela perturbe les développeurs et réduit leur efficacité.
 
-Dans ce chapitre, nous allons montrer comment cela est possible.
+Dans ce chapitre, nous expliquerons pourquoi c'est le cas et comment éviter l'état global.
 
 
 Interconnexion globale .[#toc-global-interlinking]
 --------------------------------------------------
 
-Le problème fondamental de l'état global est qu'il est accessible globalement. Il est donc possible d'écrire dans la base de données via la méthode globale (statique) `DB::insert()`.
-Dans un monde idéal, un objet ne devrait pouvoir communiquer qu'avec les autres objets qui lui ont été [directement transmis |passing-dependencies].
-Si je crée deux objets `A` et `B` et que je ne passe jamais une référence de `A` à `B`, ni `A`, ni `B` ne peuvent accéder à l'autre objet ou modifier son état.
-Il s'agit d'une caractéristique très souhaitable du code. C'est comme si vous aviez une batterie et une ampoule ; l'ampoule ne s'allume pas tant que vous ne les connectez pas ensemble.
+Dans un monde idéal, un objet ne devrait communiquer qu'avec les objets qui lui ont été [directement transmis |passing-dependencies]. Si je crée deux objets `A` et `B` et que je ne leur passe jamais de référence, ni `A` ni `B` ne peuvent accéder à l'état de l'autre ou le modifier. Il s'agit d'une propriété hautement souhaitable du code. C'est un peu comme si vous aviez une batterie et une ampoule ; l'ampoule ne s'allumera pas tant que vous ne l'aurez pas reliée à la batterie par un fil.
 
-Ce n'est pas vrai pour les variables globales (statiques) ou les singletons. L'objet `A` pourrait accéder *sans fil* à l'objet `C` et le modifier sans passer de référence, en appelant `C::changeSomething()`.
-Si l'objet `B` s'empare également de la variable globale `C`, alors `A` et `B` peuvent interagir entre eux via `C`.
+Cependant, cela n'est pas vrai pour les variables globales (statiques) ou les singletons. L'objet `A` pourrait accéder sans fil à l'objet `C` et le modifier sans aucun passage de référence, en appelant `C::changeSomething()`. Si l'objet `B` accède également à la variable globale `C`, alors `A` et `B` peuvent s'influencer mutuellement par l'intermédiaire de `C`.
 
-L'utilisation de variables globales introduit dans le système une nouvelle forme de couplage *sans fil* qui n'est pas visible de l'extérieur.
-Elle crée un écran de fumée qui complique la compréhension et l'utilisation du code.
-Les développeurs doivent lire chaque ligne du code source pour vraiment comprendre les dépendances. Au lieu de se contenter de se familiariser avec l'interface des classes.
-De plus, il s'agit d'un couplage totalement inutile.
+L'utilisation de variables globales introduit une nouvelle forme de couplage "sans fil" qui n'est pas visible de l'extérieur. Cela crée un écran de fumée qui complique la compréhension et l'utilisation du code. Pour vraiment comprendre les dépendances, les développeurs doivent lire chaque ligne du code source, au lieu de se contenter de se familiariser avec les interfaces des classes. De plus, cet enchevêtrement n'est absolument pas nécessaire. L'état global est utilisé parce qu'il est facilement accessible de partout et permet, par exemple, d'écrire dans une base de données par le biais d'une méthode globale (statique) `DB::insert()`. Cependant, comme nous le verrons, l'avantage qu'il offre est minime, tandis que les complications qu'il introduit sont graves.
 
 .[note]
 En termes de comportement, il n'y a pas de différence entre une variable globale et une variable statique. Elles sont tout aussi nuisibles l'une que l'autre.
@@ -309,4 +301,4 @@ Lorsque vous envisagez la conception d'un code, gardez à l'esprit que chaque `s
 
 Au cours de ce processus, vous constaterez peut-être que vous devez diviser une classe parce qu'elle a plus d'une responsabilité. Ne vous en préoccupez pas ; efforcez-vous de respecter le principe de la responsabilité unique.
 
-*Je tiens à remercier Miško Hevery, dont les articles tels que [Flaw : Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] constituent la base de ce chapitre*.
+*Je tiens à remercier Miško Hevery, dont les articles tels que [Flaw : Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] constituent la base de ce chapitre*.

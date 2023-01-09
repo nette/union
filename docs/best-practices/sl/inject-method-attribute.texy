@@ -50,7 +50,7 @@ To je oblika [vbrizgavanja v lastnosti |dependency-injection:passing-dependencie
 Lastnosti so označene z atributom: (prej se je uporabljala anotacija `/** @inject */`)
 
 ```php
-use Nette\DI\Attributes\Inject; // tu je pomemben uvoz
+use Nette\DI\Attributes\Inject; // ta vrstica je pomembna
 
 class MyPresenter extends Nette\Application\UI\Presenter
 {

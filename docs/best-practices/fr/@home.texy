@@ -36,10 +36,12 @@ Formulaires
 Commun
 ------
 - [Comment charger le fichier de configuration |bootstrap:]
+- [Comment rédiger des microsites |microsites]
 - [Pourquoi Nette utilise la notation constante PascalCase ? |https://blog.nette.org/fr/pour-moins-crier-dans-le-code]
 - [Pourquoi Nette n'utilise pas le suffixe Interface ? |https://blog.nette.org/fr/les-prefixes-et-les-suffixes-n-ont-pas-leur-place-dans-les-noms-d-interface]
 - [Conseils d'utilisation de Composer |composer]
 - [Conseils sur les éditeurs et les outils |editors-and-tools]
+- [Introduction à la programmation orientée objet |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

@@ -50,7 +50,7 @@ Bu, [özelliklere enjeksiyonun |dependency-injection:passing-dependencies#Proper
 Özellikler bir öznitelikle işaretlenir: (daha önce `/** @inject */` ek açıklaması kullanılıyordu)
 
 ```php
-use Nette\DI\Attributes\Inject; // import burada önemlidir
+use Nette\DI\Attributes\Inject; // bu satır önemlidir
 
 class MyPresenter extends Nette\Application\UI\Presenter
 {

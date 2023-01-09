@@ -4,6 +4,8 @@ final class Template%a% extends Latte\Runtime\Template
 {
 	public const ContentType = 'xml';
 
+	public const Source = '%a%.latte';
+
 
 	public function main(array $ʟ_args): void
 	{
@@ -111,23 +113,23 @@ var html = ';
 		echo '
 <input/> <input />
 
-<p val=';
+<p val="';
 		if (true) /* line %d% */ {
-			echo '"a"';
+			echo 'a';
 		} else /* line %d% */ {
-			echo '"b"';
+			echo 'b';
 		}
-		echo '> </p>
+		echo '"> </p>
 
-<p val=';
-		echo '"' . LR\Filters::escapeXml($xss) . '"' /* line %d% */;
-		echo ' val2=';
-		echo '"' . LR\Filters::escapeXml($mxss) . '"' /* line %d% */;
-		echo '> </p>
+<p val="';
+		echo LR\Filters::escapeXml($xss) /* line %d% */;
+		echo '" val2="';
+		echo LR\Filters::escapeXml($mxss) /* line %d% */;
+		echo '"> </p>
 
-<p onclick=';
-		echo '"' . LR\Filters::escapeXml($xss) . '"' /* line %d% */;
-		echo '> </p>
+<p onclick="';
+		echo LR\Filters::escapeXml($xss) /* line %d% */;
+		echo '"> </p>
 ';
 	}
 

@@ -2,36 +2,28 @@ Küresel Durum ve Singletonlar
 *****************************
 
 .[perex]
-Uyarı: Aşağıdaki yapılar kötü kod tasarımının belirtileridir:
+Uyarı: Aşağıdaki yapılar kötü tasarlanmış kodun belirtileridir:
 
 - `Foo::getInstance()`
 - `DB::insert(...)`
 - `Article::setDb($db)`
 - `ClassName::$var` veya `static::$var`
 
-Kodunuzda bu yapılardan herhangi biri var mı? O halde kendinizi geliştirmek için bir fırsatınız var. Bunların çeşitli kütüphanelerin ve çerçevelerin örnek çözümlerinde gördüğümüz yaygın yapılar olduğunu düşünüyor olabilirsiniz.
-Ne yazık ki, bunlar hala kötü tasarımın açık bir göstergesidir. Ortak bir noktaları var: küresel durum kullanımı.
+Kodunuzda bu yapılardan herhangi biriyle karşılaşıyor musunuz? Eğer öyleyse, onu geliştirmek için bir fırsatınız var demektir. Bunların yaygın yapılar olduğunu, genellikle çeşitli kütüphanelerin ve çerçevelerin örnek çözümlerinde görüldüğünü düşünebilirsiniz. Eğer durum buysa, kod tasarımları kusurludur.
 
-Şimdi, kesinlikle bir tür akademik saflıktan bahsetmiyoruz. Global state ve singleton kullanımının kod kalitesi üzerinde yıkıcı etkileri vardır. Davranışları öngörülemez hale gelir, geliştirici verimliliğini azaltır ve sınıf arayüzlerini gerçek bağımlılıkları hakkında yalan söylemeye zorlar. Bu da programcıların kafasını karıştırır.
+Burada akademik bir saflıktan bahsetmiyoruz. Tüm bu yapıların ortak bir noktası var: küresel durum kullanıyorlar. Ve bunun kod kalitesi üzerinde yıkıcı bir etkisi vardır. Sınıflar bağımlılıkları konusunda aldatıcıdır. Kod öngörülemez hale gelir. Geliştiricilerin kafasını karıştırır ve verimliliklerini azaltır.
 
-Bu bölümde, bunun nasıl mümkün olduğunu göstereceğiz.
+Bu bölümde, bunun neden böyle olduğunu ve küresel durumdan nasıl kaçınılacağını açıklayacağız.
 
 
 Küresel Bağlantı .[#toc-global-interlinking]
 --------------------------------------------
 
-Global durumla ilgili temel sorun, global olarak erişilebilir olmasıdır. Bu, `DB::insert()` global (statik) yöntemi aracılığıyla veritabanına yazmayı mümkün kılar.
-İdeal bir dünyada, bir nesne yalnızca kendisine [doğrudan aktarılan |passing-dependencies] diğer nesnelerle iletişim kurabilmelidir.
-Eğer `A` ve `B` adında iki nesne yaratırsam ve `A` 'den `B`'a asla bir referans aktarmazsam, o zaman ne `A` ne de `B` diğer nesneye erişemez veya durumunu değiştiremez.
-Bu, kodun çok arzu edilen bir özelliğidir. Bu, bir pil ve bir ampule sahip olmaya benzer; siz onları birbirine bağlayana kadar ampul yanmayacaktır.
+İdeal bir dünyada, bir nesne yalnızca [kendisine doğrudan aktarılan |passing-dependencies] nesnelerle iletişim kurmalıdır. İki nesne yaratırsam `A` ve `B` ve aralarında hiçbir zaman bir referans geçmezsem, o zaman ne `A` ne de `B` diğerinin durumuna erişemez veya değiştiremez. Bu, kodun oldukça arzu edilen bir özelliğidir. Bu, bir pil ve bir ampule sahip olmaya benzer; ampul, siz onu bir kabloyla pile bağlamadan yanmaz.
 
-Bu durum global (statik) değişkenler veya tekil değişkenler için geçerli değildir. `A` nesnesi `C` nesnesine *kablosuz* olarak erişebilir ve `C::changeSomething()` adresini çağırarak herhangi bir referans iletmeden onu değiştirebilir.
-Eğer `B` nesnesi global `C` nesnesini de yakalarsa, `A` ve `B` birbirleriyle `C` üzerinden etkileşime girebilir.
+Ancak bu durum global (statik) değişkenler veya tekil değişkenler için geçerli değildir. `A` nesnesi `C` nesnesine *kablosuz* olarak erişebilir ve `C::changeSomething()` adresini çağırarak herhangi bir referans geçişi olmadan onu değiştirebilir. Eğer `B` nesnesi global `C` nesnesine de erişirse, `A` ve `B` birbirlerini `C` üzerinden etkileyebilir.
 
-Global değişkenlerin kullanımı, sisteme dışarıdan görünmeyen yeni bir *kablosuz* bağlantı biçimi getirir.
-Kodun anlaşılmasını ve kullanılmasını zorlaştıran bir sis perdesi yaratır.
-Geliştiriciler bağımlılıkları gerçekten anlamak için kaynak kodun her satırını okumalıdır. Sadece sınıfların arayüzüne aşina olmak yerine.
-Dahası, bu tamamen gereksiz bir bağlantıdır.
+Global değişkenlerin kullanılması, dışarıdan görünmeyen yeni bir *kablosuz* bağlantı biçimi ortaya çıkarır. Bu da kodun anlaşılmasını ve kullanılmasını zorlaştıran bir sis perdesi yaratır. Bağımlılıkları gerçekten anlamak için, geliştiricilerin sadece sınıf arayüzlerine aşina olmak yerine kaynak kodun her satırını okumaları gerekir. Üstelik bu karışıklık tamamen gereksizdir. Global durum, her yerden kolayca erişilebildiği ve örneğin global (statik) bir yöntem aracılığıyla bir veritabanına yazmaya izin verdiği için kullanılır `DB::insert()`. Ancak, göreceğimiz gibi, sunduğu fayda minimum düzeydeyken, ortaya çıkardığı komplikasyonlar ciddidir.
 
 .[note]
 Davranış açısından, global ve statik değişken arasında bir fark yoktur. İkisi de eşit derecede zararlıdır.
@@ -309,4 +301,4 @@ Kod tasarımını düşünürken, her `static $foo` adresinin bir sorunu temsil 
 
 Bu süreç sırasında, birden fazla sorumluluğu olduğu için bir sınıfı bölmeniz gerektiğini fark edebilirsiniz. Bu konuda endişelenmeyin; tek sorumluluk ilkesi için çaba gösterin.
 
-*[Flaw: Brittle Global State & Singletons |http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] gibi makaleleri bu bölümün temelini oluşturan Miško Hevery'ye teşekkür ederim.*
+*[Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] gibi makaleleri bu bölümün temelini oluşturan Miško Hevery'ye teşekkür ederim.*

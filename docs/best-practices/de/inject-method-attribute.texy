@@ -50,7 +50,7 @@ Dies ist eine Form der [Injektion in Eigenschaften |dependency-injection:passing
 Eigenschaften werden mit einem Attribut gekennzeichnet: (früher wurde die Annotation `/** @inject */` verwendet)
 
 ```php
-use Nette\DI\Attributes\Inject; // Import ist hier wichtig
+use Nette\DI\Attributes\Inject; // diese Zeile ist wichtig
 
 class MyPresenter extends Nette\Application\UI\Presenter
 {

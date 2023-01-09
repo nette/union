@@ -9,88 +9,52 @@ declare(strict_types=1);
 
 namespace Nette\Mail;
 
-use Nette;
-
 
 /**
  * Sends emails via the SMTP server.
  */
 class SmtpMailer implements Mailer
 {
-	use Nette\SmartObject;
+	public const
+		EncryptionSSL = 'ssl',
+		EncryptionTLS = 'tls';
 
-	/** @var Signer|null */
-	private $signer;
-
-	/** @var resource|null */
+	/** @var ?resource */
 	private $connection;
-
-	/** @var string */
-	private $host;
-
-	/** @var int */
-	private $port;
-
-	/** @var string */
-	private $username;
-
-	/** @var string */
-	private $password;
-
-	/** @var string ssl | tls | (empty) */
-	private $secure;
-
-	/** @var int */
-	private $timeout;
 
 	/** @var resource */
 	private $context;
-
-	/** @var bool */
-	private $persistent;
-
-	/** @var string */
-	private $clientHost;
+	private string $clientHost;
+	private ?Signer $signer = null;
 
 
-	public function __construct(array $options = [])
-	{
-		if (isset($options['host'])) {
-			$this->host = $options['host'];
-			$this->port = isset($options['port'])
-				? (int) $options['port']
-				: null;
-		} else {
-			$this->host = ini_get('SMTP');
-			$this->port = (int) ini_get('smtp_port');
-		}
+	public function __construct(
+		private string $host,
+		private string $username,
+		#[\SensitiveParameter]
+		private string $password,
+		private ?int $port = null,
+		private ?string $encryption = null,
+		private bool $persistent = false,
+		private int $timeout = 20,
+		?string $clientHost = null,
+		?array $streamOptions = null,
+	) {
+		$this->context = $streamOptions === null
+			? stream_context_get_default()
+			: stream_context_create($streamOptions);
 
-		$this->username = $options['username'] ?? '';
-		$this->password = $options['password'] ?? '';
-		$this->secure = $options['secure'] ?? '';
-		$this->timeout = isset($options['timeout'])
-			? (int) $options['timeout']
-			: 20;
-		$this->context = isset($options['context'])
-			? stream_context_create($options['context'])
-			: stream_context_get_default();
-		if (!$this->port) {
-			$this->port = $this->secure === 'ssl' ? 465 : 25;
-		}
-
-		$this->persistent = !empty($options['persistent']);
-		if (isset($options['clientHost'])) {
-			$this->clientHost = $options['clientHost'];
-		} else {
+		if ($clientHost === null) {
 			$this->clientHost = isset($_SERVER['HTTP_HOST']) && preg_match('#^[\w.-]+$#D', $_SERVER['HTTP_HOST'])
 				? $_SERVER['HTTP_HOST']
 				: 'localhost';
+		} else {
+			$this->clientHost = $clientHost;
 		}
 	}
 
 
-	/** @return static */
-	public function setSigner(Signer $signer): self
+	public function setSigner(Signer $signer): static
 	{
 		$this->signer = $signer;
 		return $this;
@@ -105,6 +69,10 @@ class SmtpMailer implements Mailer
 	{
 		$tmp = clone $mail;
 		$tmp->setHeader('Bcc', null);
+		if (!$tmp->getHeader('To') && !$tmp->getHeader('Cc')) {
+			// missing recipient headers make some mailers (e.g., sendmail) nervous -> set 'To' like many MTAs do
+			$tmp->setHeader('To', 'undisclosed-recipients: ;');
+		}
 
 		$data = $this->signer
 			? $this->signer->generateSignedMessage($tmp)
@@ -154,8 +122,9 @@ class SmtpMailer implements Mailer
 	 */
 	protected function connect(): void
 	{
+		$port = $this->port ?? ($this->encryption === self::EncryptionSSL ? 465 : 25);
 		$this->connection = @stream_socket_client(// @ is escalated to exception
-			($this->secure === 'ssl' ? 'ssl://' : '') . $this->host . ':' . $this->port,
+			($this->encryption === self::EncryptionSSL ? 'ssl://' : '') . $this->host . ':' . $port,
 			$errno,
 			$error,
 			$this->timeout,
@@ -169,7 +138,7 @@ class SmtpMailer implements Mailer
 		stream_set_timeout($this->connection, $this->timeout, 0);
 		$this->read(); // greeting
 
-		if ($this->secure === 'tls') {
+		if ($this->encryption === self::EncryptionTLS) {
 			$this->write("EHLO $this->clientHost", 250);
 			$this->write('STARTTLS', 220);
 			if (!stream_socket_enable_crypto(
@@ -199,7 +168,7 @@ class SmtpMailer implements Mailer
 				$authMechanisms = explode(' ', trim($matches[1]));
 			}
 
-			if (in_array('PLAIN', $authMechanisms, true)) {
+			if (in_array('PLAIN', $authMechanisms, strict: true)) {
 				$credentials = $this->username . "\0" . $this->username . "\0" . $this->password;
 				$this->write('AUTH PLAIN ' . base64_encode($credentials), 235, 'PLAIN credentials');
 			} else {
@@ -227,12 +196,12 @@ class SmtpMailer implements Mailer
 	 * Writes data to server and checks response against expected code if some provided.
 	 * @param  int|int[]  $expectedCode
 	 */
-	protected function write(string $line, $expectedCode = null, ?string $message = null): void
+	protected function write(string $line, int|array|null $expectedCode = null, ?string $message = null): void
 	{
 		fwrite($this->connection, $line . Message::EOL);
 		if ($expectedCode) {
 			$response = $this->read();
-			if (!in_array((int) $response, (array) $expectedCode, true)) {
+			if (!in_array((int) $response, (array) $expectedCode, strict: true)) {
 				throw new SmtpException('SMTP server did not accept ' . ($message ?: $line) . ' with error: ' . trim($response));
 			}
 		}
@@ -244,14 +213,26 @@ class SmtpMailer implements Mailer
 	 */
 	protected function read(): string
 	{
-		$s = '';
-		while (($line = fgets($this->connection, 1000)) != null) { // intentionally ==
-			$s .= $line;
-			if (substr($line, 3, 1) === ' ') {
+		$data = '';
+		$endtime = $this->timeout > 0 ? time() + $this->timeout : 0;
+
+		while (is_resource($this->connection) && !feof($this->connection)) {
+			$line = @fgets($this->connection); // @ is escalated to exception
+			if ($line === '' || $line === false) {
+				$info = stream_get_meta_data($this->connection);
+				if ($info['timed_out'] || ($endtime && time() > $endtime)) {
+					throw new SmtpException('Connection timed out.');
+				} elseif ($info['eof']) {
+					throw new SmtpException('Connection has been closed unexpectedly.');
+				}
+			}
+
+			$data .= $line;
+			if (preg_match('#^.{3}(?:[ \r\n]|$)#D', $line)) {
 				break;
 			}
 		}
 
-		return $s;
+		return $data;
 	}
 }

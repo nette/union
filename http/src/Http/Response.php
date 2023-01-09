@@ -16,7 +16,7 @@ use Nette\Utils\DateTime;
 /**
  * HttpResponse class.
  *
- * @property-read array $headers
+ * @property-deprecated array $headers
  */
 final class Response implements IResponse
 {
@@ -33,9 +33,6 @@ final class Response implements IResponse
 
 	/** Whether warn on possible problem with data in output buffer */
 	public bool $warnOnBuffer = true;
-
-	/** Send invisible garbage for IE 6? */
-	private static bool $fixIE = true;
 
 	/** HTTP response code */
 	private int $code = self::S200_OK;
@@ -218,24 +215,10 @@ final class Response implements IResponse
 		$headers = [];
 		foreach (headers_list() as $header) {
 			$a = strpos($header, ':');
-			$headers[substr($header, 0, $a)] = (string) substr($header, $a + 2);
+			$headers[substr($header, 0, $a)] = substr($header, $a + 2);
 		}
 
 		return $headers;
-	}
-
-
-	public function __destruct()
-	{
-		if (
-			self::$fixIE
-			&& str_contains($_SERVER['HTTP_USER_AGENT'] ?? '', 'MSIE ')
-			&& in_array($this->code, [400, 403, 404, 405, 406, 408, 409, 410, 500, 501, 505], true)
-			&& preg_match('#^text/html(?:;|$)#', (string) $this->getHeader('Content-Type'))
-		) {
-			echo Nette\Utils\Random::generate(2000, " \t\r\n"); // sends invisible garbage for IE
-			self::$fixIE = false;
-		}
 	}
 
 

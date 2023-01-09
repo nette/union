@@ -1,5 +1,7 @@
 <?php
 
+/** @phpVersion 8.0 */
+
 declare(strict_types=1);
 
 use Nette\Bridges\FormsLatte\FormsExtension;
@@ -15,13 +17,13 @@ if (version_compare(Latte\Engine::VERSION, '3', '<')) {
 
 class MyControl extends Nette\Forms\Controls\BaseControl
 {
-	public function getLabel($c = null): string
+	public function getLabel($c = null)
 	{
 		return '<label>My</label>';
 	}
 
 
-	public function getControl(): string
+	public function getControl()
 	{
 		return '<input name=My>';
 	}
