@@ -27,7 +27,6 @@ Assert::true(Floats::isGreaterThanOrEqualTo(INF, INF));
 Assert::true(Floats::isGreaterThanOrEqualTo(INF, -INF));
 Assert::false(Floats::isGreaterThanOrEqualTo(-INF, INF));
 
-Assert::exception(
-	fn() => Floats::isGreaterThanOrEqualTo(NAN, NAN),
-	LogicException::class,
-);
+Assert::exception(function () {
+	Floats::isGreaterThanOrEqualTo(NAN, NAN);
+}, LogicException::class);

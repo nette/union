@@ -21,8 +21,3 @@ Assert::same([
 	0 => 'a',
 	2 => 'c',
 ], Arrays::grep(['a', '1', 'c'], '#\d#', PREG_GREP_INVERT));
-
-Assert::same([
-	0 => 'a',
-	2 => 'c',
-], Arrays::grep(['a', '1', 'c'], '#\d#', invert: true));

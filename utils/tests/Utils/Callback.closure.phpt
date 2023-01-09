@@ -105,11 +105,9 @@ test('global function', function () {
 
 	Assert::same('undefined', Callback::toString('undefined'));
 
-	Assert::exception(
-		fn() => Callback::toReflection('undefined'),
-		ReflectionException::class,
-		'Function undefined() does not exist',
-	);
+	Assert::exception(function () {
+		Callback::toReflection('undefined');
+	}, ReflectionException::class, 'Function undefined() does not exist');
 });
 
 
@@ -209,26 +207,20 @@ test('magic methods', function () {
 	Assert::same('{closure TestDynamic::magic}', Callback::toString(Closure::fromCallable('TestDynamic::magic')));
 	Assert::same('TestDynamic::__callStatic magic *', Closure::fromCallable('TestDynamic::magic')->__invoke('*'));
 
-	Assert::exception(
-		fn() => Callback::toReflection([new TestDynamic, 'magic']),
-		ReflectionException::class,
-		'Method TestDynamic::magic() does not exist',
-	);
+	Assert::exception(function () {
+		Callback::toReflection([new TestDynamic, 'magic']);
+	}, ReflectionException::class, 'Method TestDynamic::magic() does not exist');
 
-	Assert::exception(
-		fn() => Callback::toReflection(Closure::fromCallable([new TestDynamic, 'magic'])),
-		ReflectionException::class,
-		'Method TestDynamic::magic() does not exist',
-	);
+	Assert::exception(function () {
+		Callback::toReflection(Closure::fromCallable([new TestDynamic, 'magic']));
+	}, ReflectionException::class, 'Method TestDynamic::magic() does not exist');
 });
 
 
 test('PHP bugs - is_callable($object, true) fails', function () {
 	Assert::same('stdClass::__invoke', Callback::toString(new stdClass));
 
-	Assert::exception(
-		fn() => Callback::toReflection(new stdClass),
-		ReflectionException::class,
-		'Method stdClass::__invoke() does not exist',
-	);
+	Assert::exception(function () {
+		Callback::toReflection(new stdClass);
+	}, ReflectionException::class, 'Method stdClass::__invoke() does not exist');
 });
