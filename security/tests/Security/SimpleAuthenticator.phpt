@@ -28,14 +28,10 @@ $identity = $authenticator->authenticate('admin', 'admin');
 Assert::type(Nette\Security\IIdentity::class, $identity);
 Assert::equal('admin', $identity->getId());
 
-Assert::exception(
-	fn() => $authenticator->authenticate('admin', 'wrong password'),
-	Nette\Security\AuthenticationException::class,
-	'Invalid password.',
-);
+Assert::exception(function () use ($authenticator) {
+	$authenticator->authenticate('admin', 'wrong password');
+}, Nette\Security\AuthenticationException::class, 'Invalid password.');
 
-Assert::exception(
-	fn() => $authenticator->authenticate('nobody', 'password'),
-	Nette\Security\AuthenticationException::class,
-	"User 'nobody' not found.",
-);
+Assert::exception(function () use ($authenticator) {
+	$authenticator->authenticate('nobody', 'password');
+}, Nette\Security\AuthenticationException::class, "User 'nobody' not found.");

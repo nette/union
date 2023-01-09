@@ -21,15 +21,28 @@ final class CookieStorage implements Nette\Security\UserStorage
 {
 	use Nette\SmartObject;
 
-	private const MinLength = 13;
+	private const MIN_LENGTH = 13;
 
-	private Http\IRequest $request;
-	private Http\IResponse $response;
-	private ?string $uid = null;
-	private string $cookieName = 'userid';
-	private ?string $cookieDomain = null;
-	private string $cookieSameSite = 'Lax';
-	private ?string $cookieExpiration = null;
+	/** @var Http\IRequest */
+	private $request;
+
+	/** @var Http\IResponse */
+	private $response;
+
+	/** @var ?string */
+	private $uid;
+
+	/** @var string */
+	private $cookieName = 'userid';
+
+	/** @var ?string */
+	private $cookieDomain;
+
+	/** @var string */
+	private $cookieSameSite = 'Lax';
+
+	/** @var ?string */
+	private $cookieExpiration;
 
 
 	public function __construct(Http\IRequest $request, Http\IResponse $response)
@@ -42,7 +55,7 @@ final class CookieStorage implements Nette\Security\UserStorage
 	public function saveAuthentication(IIdentity $identity): void
 	{
 		$uid = (string) $identity->getId();
-		if (strlen($uid) < self::MinLength) {
+		if (strlen($uid) < self::MIN_LENGTH) {
 			throw new \LogicException('UID is too short.');
 		}
 
@@ -51,8 +64,11 @@ final class CookieStorage implements Nette\Security\UserStorage
 			$this->cookieName,
 			$uid,
 			$this->cookieExpiration,
-			domain: $this->cookieDomain,
-			sameSite: $this->cookieSameSite,
+			null,
+			$this->cookieDomain,
+			null,
+			true,
+			$this->cookieSameSite
 		);
 	}
 
@@ -62,7 +78,8 @@ final class CookieStorage implements Nette\Security\UserStorage
 		$this->uid = '';
 		$this->response->deleteCookie(
 			$this->cookieName,
-			domain: $this->cookieDomain,
+			null,
+			$this->cookieDomain
 		);
 	}
 
@@ -71,7 +88,7 @@ final class CookieStorage implements Nette\Security\UserStorage
 	{
 		if ($this->uid === null) {
 			$uid = $this->request->getCookie($this->cookieName);
-			$this->uid = is_string($uid) && strlen($uid) >= self::MinLength ? $uid : '';
+			$this->uid = is_string($uid) && strlen($uid) >= self::MIN_LENGTH ? $uid : '';
 		}
 
 		return $this->uid
@@ -89,7 +106,7 @@ final class CookieStorage implements Nette\Security\UserStorage
 	public function setCookieParameters(
 		?string $name = null,
 		?string $domain = null,
-		?string $sameSite = null,
+		?string $sameSite = null
 	) {
 		$this->cookieName = $name ?? $this->cookieName;
 		$this->cookieDomain = $domain ?? $this->cookieDomain;
