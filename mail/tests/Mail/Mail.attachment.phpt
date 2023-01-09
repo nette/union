@@ -49,7 +49,7 @@ Assert::match(<<<'EOD'
 
 $mail = new Message;
 $mail->addAttachment(__DIR__ . '/fixtures/example.zip', null, 'application/zip')
-	->setEncoding(Message::EncodingQuotedPrintable);
+	->setEncoding(Message::ENCODING_QUOTED_PRINTABLE);
 $mailer->send($mail);
 
 Assert::match(<<<'EOD'

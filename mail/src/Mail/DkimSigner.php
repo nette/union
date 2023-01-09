@@ -14,6 +14,8 @@ use Nette;
 
 class DkimSigner implements Signer
 {
+	use Nette\SmartObject;
+
 	private const DefaultSignHeaders = [
 		'From',
 		'To',
@@ -25,21 +27,27 @@ class DkimSigner implements Signer
 	];
 
 	private const DkimSignature = 'DKIM-Signature';
+	private string $domain;
+	private array $signHeaders;
+	private string $selector;
+	private string $privateKey;
+	private string $passPhrase;
 
 
 	/** @throws Nette\NotSupportedException */
-	public function __construct(
-		private string $domain,
-		private string $selector,
-		#[\SensitiveParameter]
-		private string $privateKey,
-		#[\SensitiveParameter]
-		private ?string $passPhrase = null,
-		private array $signHeaders = self::DefaultSignHeaders,
-	) {
+	public function __construct(array $options, array $signHeaders = self::DefaultSignHeaders)
+	{
 		if (!extension_loaded('openssl')) {
 			throw new Nette\NotSupportedException('DkimSigner requires PHP extension openssl which is not loaded.');
 		}
+
+		$this->domain = $options['domain'] ?? '';
+		$this->selector = $options['selector'] ?? '';
+		$this->privateKey = $options['privateKey'] ?? '';
+		$this->passPhrase = $options['passPhrase'] ?? '';
+		$this->signHeaders = count($signHeaders) > 0
+			? $signHeaders
+			: self::DefaultSignHeaders;
 	}
 
 
@@ -94,7 +102,7 @@ class DkimSigner implements Signer
 			if (str_contains($header, ':')) {
 				[$heading, $value] = explode(':', $header, 2);
 
-				if (($index = array_search($heading, $selectedHeaders, strict: true)) !== false) {
+				if (($index = array_search($heading, $selectedHeaders, true)) !== false) {
 					$parts[$index] =
 						trim(strtolower($heading), " \t") . ':' .
 						trim(preg_replace("/[ \t]{2,}/", ' ', $value), " \t");

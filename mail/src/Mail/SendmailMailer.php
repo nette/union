@@ -17,11 +17,14 @@ use Nette;
  */
 class SendmailMailer implements Mailer
 {
-	public string $commandArgs = '';
+	use Nette\SmartObject;
+
+	public ?string $commandArgs = null;
 	private ?Signer $signer = null;
 
 
-	public function setSigner(Signer $signer): static
+	/** @return static */
+	public function setSigner(Signer $signer): self
 	{
 		$this->signer = $signer;
 		return $this;
@@ -47,18 +50,15 @@ class SendmailMailer implements Mailer
 			: $tmp->generateMessage();
 		$parts = explode(Message::EOL . Message::EOL, $data, 2);
 
-		$cmd = $this->commandArgs;
-		if ($from = $mail->getFrom()) {
-			$cmd .= ' -f' . key($from);
-		}
-
 		$args = [
-			(string) $mail->getEncodedHeader('To'),
-			(string) $mail->getEncodedHeader('Subject'),
-			$parts[1],
+			str_replace(Message::EOL, PHP_EOL, (string) $mail->getEncodedHeader('To')),
+			str_replace(Message::EOL, PHP_EOL, (string) $mail->getEncodedHeader('Subject')),
+			str_replace(Message::EOL, PHP_EOL, $parts[1]),
 			$parts[0],
-			$cmd,
 		];
+		if ($this->commandArgs) {
+			$args[] = $this->commandArgs;
+		}
 
 		$res = Nette\Utils\Callback::invokeSafe('mail', $args, function (string $message) use (&$info): void {
 			$info = ": $message";
