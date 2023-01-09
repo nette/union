@@ -13,18 +13,17 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-setUp(function () {
+before(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 	$_GET = $_POST = $_FILES = [];
-	ob_start();
 	Form::initialize(true);
 });
 
 
 test('', function () {
 	$name = 'name';
-	$_POST = [Form::TrackerId => $name, 'send2' => ''];
+	$_POST = [Form::TRACKER_ID => $name, 'send2' => ''];
 
 	$form = new Form($name);
 	$btn1 = $form->addSubmit('send1');
@@ -38,7 +37,7 @@ test('', function () {
 
 test('', function () {
 	$name = 'name';
-	$_POST = [Form::TrackerId => $name, 'send2' => ['x' => '1', 'y' => '1']];
+	$_POST = [Form::TRACKER_ID => $name, 'send2' => ['x' => '1', 'y' => '1']];
 
 	$form = new Form($name);
 	$btn1 = $form->addImageButton('send1');

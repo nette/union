@@ -14,7 +14,6 @@ use Nette\Forms\Control;
 use Nette\Forms\Form;
 use Nette\Forms\Rules;
 use Nette\Utils\Html;
-use Stringable;
 
 
 /**
@@ -22,9 +21,9 @@ use Stringable;
  *
  * @property-read Form $form
  * @property-read string $htmlName
- * @property   string|bool|null $htmlId
+ * @property   mixed $htmlId
  * @property   mixed $value
- * @property   string|Stringable $caption
+ * @property   string|object $caption
  * @property   bool $disabled
  * @property   bool $omitted
  * @property-read Html $control
@@ -36,44 +35,50 @@ use Stringable;
  * @property-read array $errors
  * @property-read array $options
  * @property-read string $error
- *
- * @template T
- * @implements Control<T>
  */
 abstract class BaseControl extends Nette\ComponentModel\Component implements Control
 {
-	public static string $idMask = 'frm-%s';
+	/** @var string */
+	public static $idMask = 'frm-%s';
 
-	/** current control value */
-	protected mixed $value = null;
+	/** @var mixed current control value */
+	protected $value;
 
-	/** control element template */
-	protected Html $control;
+	/** @var Html  control element template */
+	protected $control;
 
-	/** label element template */
-	protected Html $label;
+	/** @var Html  label element template */
+	protected $label;
 
 	/** @var bool|bool[] */
 	protected $disabled = false;
 
 	/** @var callable[][]  extension methods */
-	private static array $extMethods = [];
+	private static $extMethods = [];
 
-	private string|Stringable|null $caption;
+	/** @var string|object textual caption or label */
+	private $caption;
 
-	private array $errors = [];
+	/** @var array */
+	private $errors = [];
 
-	private ?bool $omitted = null;
+	/** @var bool|null */
+	private $omitted;
 
-	private Rules $rules;
+	/** @var Rules */
+	private $rules;
 
-	/** true means autodetect */
-	private Nette\Localization\Translator|bool|null $translator = true;
+	/** @var Nette\Localization\Translator|bool|null */
+	private $translator = true; // means autodetect
 
-	private array $options = [];
+	/** @var array user options */
+	private $options = [];
 
 
-	public function __construct(string|Stringable|null $caption = null)
+	/**
+	 * @param  string|object  $caption
+	 */
+	public function __construct($caption = null)
 	{
 		$this->control = Html::el('input', ['type' => null, 'name' => null]);
 		$this->label = Html::el('label');
@@ -90,15 +95,18 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets textual caption or label.
+	 * @param object|string  $caption
+	 * @return static
 	 */
-	public function setCaption(string|Stringable $caption): static
+	public function setCaption($caption)
 	{
 		$this->caption = $caption;
 		return $this;
 	}
 
 
-	public function getCaption(): string|Stringable|null
+	/** @return object|string */
+	public function getCaption()
 	{
 		return $this->caption;
 	}
@@ -118,14 +126,15 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	 */
 	public function loadHttpData(): void
 	{
-		$this->setValue($this->getHttpData(Form::DataText));
+		$this->setValue($this->getHttpData(Form::DATA_TEXT));
 	}
 
 
 	/**
 	 * Loads HTTP data.
+	 * @return mixed
 	 */
-	protected function getHttpData($type, ?string $htmlTail = null): mixed
+	protected function getHttpData($type, ?string $htmlTail = null)
 	{
 		return $this->getForm()->getHttpData($type, $this->getHtmlName() . $htmlTail);
 	}
@@ -145,9 +154,10 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets control's value.
+	 * @return static
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
 		$this->value = $value;
 		return $this;
@@ -156,8 +166,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Returns control's value.
+	 * @return mixed
 	 */
-	public function getValue(): mixed
+	public function getValue()
 	{
 		return $this->value;
 	}
@@ -175,8 +186,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets control's default value.
+	 * @return static
 	 */
-	public function setDefaultValue($value): static
+	public function setDefaultValue($value)
 	{
 		$form = $this->getForm(false);
 		if ($this->isDisabled() || !$form || !$form->isAnchored() || !$form->isSubmitted()) {
@@ -189,8 +201,10 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Disables or enables control.
+	 * @param  bool  $value
+	 * @return static
 	 */
-	public function setDisabled(bool $value = true): static
+	public function setDisabled($value = true)
 	{
 		if ($this->disabled = (bool) $value) {
 			$this->setValue(null);
@@ -213,8 +227,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets whether control value is excluded from $form->getValues() result.
+	 * @return static
 	 */
-	public function setOmitted(bool $value = true): static
+	public function setOmitted(bool $value = true)
 	{
 		$this->omitted = $value;
 		return $this;
@@ -235,8 +250,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Generates control's HTML element.
+	 * @return Html|string
 	 */
-	public function getControl(): Html|string
+	public function getControl()
 	{
 		$this->setOption('rendered', true);
 		$el = clone $this->control;
@@ -246,19 +262,20 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 			'required' => $this->isRequired(),
 			'disabled' => $this->isDisabled(),
 			'data-nette-rules' => Nette\Forms\Helpers::exportRules($this->rules) ?: null,
-			'data-nette-error' => $this->hasErrors(),
 		]);
 	}
 
 
 	/**
 	 * Generates label's HTML element.
+	 * @param  string|object  $caption
+	 * @return Html|string|null
 	 */
-	public function getLabel(string|Stringable|null $caption = null): Html|string|null
+	public function getLabel($caption = null)
 	{
 		$label = clone $this->label;
 		$label->for = $this->getHtmlId();
-		$caption ??= $this->caption;
+		$caption = $caption ?? $this->caption;
 		$translator = $this->getForm()->getTranslator();
 		$label->setText($translator && !$caption instanceof Nette\HtmlStringable ? $translator->translate($caption) : $caption);
 		return $label;
@@ -297,8 +314,10 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Changes control's HTML id.
+	 * @param  string|bool|null  $id
+	 * @return static
 	 */
-	public function setHtmlId(string|bool|null $id): static
+	public function setHtmlId($id)
 	{
 		$this->control->id = $id;
 		return $this;
@@ -307,8 +326,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Returns control's HTML id.
+	 * @return mixed
 	 */
-	public function getHtmlId(): string|bool|null
+	public function getHtmlId()
 	{
 		if (!isset($this->control->id)) {
 			$form = $this->getForm();
@@ -324,8 +344,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Changes control's HTML attribute.
+	 * @return static
 	 */
-	public function setHtmlAttribute(string $name, mixed $value = true): static
+	public function setHtmlAttribute(string $name, $value = true)
 	{
 		$this->control->$name = $value;
 		if (
@@ -344,8 +365,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * @deprecated  use setHtmlAttribute()
+	 * @return static
 	 */
-	public function setAttribute(string $name, mixed $value = true): static
+	public function setAttribute(string $name, $value = true)
 	{
 		return $this->setHtmlAttribute($name, $value);
 	}
@@ -356,8 +378,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets translate adapter.
+	 * @return static
 	 */
-	public function setTranslator(?Nette\Localization\Translator $translator): static
+	public function setTranslator(?Nette\Localization\Translator $translator)
 	{
 		$this->translator = $translator;
 		return $this;
@@ -381,8 +404,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Returns translated string.
+	 * @return mixed
 	 */
-	public function translate($value, ...$parameters): mixed
+	public function translate($value, ...$parameters)
 	{
 		if ($translator = $this->getTranslator()) {
 			$tmp = is_array($value) ? [&$value] : [[&$value]];
@@ -402,12 +426,11 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Adds a validation rule.
+	 * @param  callable|string  $validator
+	 * @param  string|object  $errorMessage
+	 * @return static
 	 */
-	public function addRule(
-		callable|string $validator,
-		string|Stringable|null $errorMessage = null,
-		mixed $arg = null,
-	): static
+	public function addRule($validator, $errorMessage = null, $arg = null)
 	{
 		$this->rules->addRule($validator, $errorMessage, $arg);
 		return $this;
@@ -434,8 +457,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Adds a input filter callback.
+	 * @return static
 	 */
-	public function addFilter(callable $filter): static
+	public function addFilter(callable $filter)
 	{
 		$this->getRules()->addFilter($filter);
 		return $this;
@@ -450,8 +474,10 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Makes control mandatory.
+	 * @param  bool|string|object  $value
+	 * @return static
 	 */
-	public function setRequired(string|Stringable|bool $value = true): static
+	public function setRequired($value = true)
 	{
 		$this->rules->setRequired($value);
 		return $this;
@@ -483,8 +509,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Adds error message to the list.
+	 * @param  string|object  $message
 	 */
-	public function addError(string|Stringable $message, bool $translate = true): void
+	public function addError($message, bool $translate = true): void
 	{
 		$this->errors[] = $translate ? $this->translate($message) : $message;
 	}
@@ -525,8 +552,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets user-specific option.
+	 * @return static
 	 */
-	public function setOption($key, mixed $value): static
+	public function setOption($key, $value)
 	{
 		if ($value === null) {
 			unset($this->options[$key]);
@@ -540,11 +568,11 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Returns user-specific option.
+	 * @return mixed
 	 */
-	public function getOption($key): mixed
+	public function getOption($key)
 	{
 		if (func_num_args() > 1) {
-			trigger_error(__METHOD__ . '() parameter $default is deprecated, use operator ??', E_USER_DEPRECATED);
 			$default = func_get_arg(1);
 		}
 		return $this->options[$key] ?? $default ?? null;
@@ -563,7 +591,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	/********************* extension methods ****************d*g**/
 
 
-	public function __call(string $name, array $args): mixed
+	public function __call(string $name, array $args)
 	{
 		$class = static::class;
 		do {
@@ -580,7 +608,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	public static function extensionMethod(string $name, /*callable*/ $callback): void
 	{
-		if (str_contains($name, '::')) { // back compatibility
+		if (strpos($name, '::') !== false) { // back compatibility
 			[, $name] = explode('::', $name);
 		}
 

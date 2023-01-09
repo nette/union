@@ -10,28 +10,32 @@ declare(strict_types=1);
 namespace Nette\Forms;
 
 use Nette;
-use Stringable;
 
 
 /**
  * Single validation rule or condition represented as value object.
  */
-final class Rule
+class Rule
 {
 	use Nette\SmartObject;
 
-	public Control $control;
+	/** @var Control */
+	public $control;
 
-	public mixed $validator;
+	/** @var mixed */
+	public $validator;
 
-	public mixed $arg = null;
+	/** @var mixed */
+	public $arg;
 
-	public bool $isNegative = false;
+	/** @var bool */
+	public $isNegative = false;
 
-	public string|Stringable|null $message;
+	/** @var string|null */
+	public $message;
 
-	/** for conditions */
-	public ?Rules $branch = null;
+	/** @var Rules|null  for conditions */
+	public $branch;
 
 
 	/** @internal */

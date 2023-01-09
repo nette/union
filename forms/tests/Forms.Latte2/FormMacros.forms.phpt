@@ -19,13 +19,13 @@ if (version_compare(Latte\Engine::VERSION, '3', '>')) {
 
 class MyControl extends Nette\Forms\Controls\BaseControl
 {
-	public function getLabel($c = null): string
+	public function getLabel($c = null)
 	{
 		return '<label>My</label>';
 	}
 
 
-	public function getControl(): string
+	public function getControl()
 	{
 		return '<input name=My>';
 	}
@@ -53,9 +53,9 @@ $form['username']->addError('error');
 
 Assert::matchFile(
 	__DIR__ . '/expected/FormMacros.forms.php',
-	$latte->compile(__DIR__ . '/templates/forms.latte'),
+	$latte->compile(__DIR__ . '/templates/forms.latte')
 );
 Assert::matchFile(
 	__DIR__ . '/expected/FormMacros.forms.html',
-	$latte->renderToString(__DIR__ . '/templates/forms.latte'),
+	$latte->renderToString(__DIR__ . '/templates/forms.latte')
 );

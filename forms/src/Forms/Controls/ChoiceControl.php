@@ -17,14 +17,14 @@ use Nette;
  *
  * @property   array $items
  * @property-read mixed $selectedItem
- *
- * @extends BaseControl<array-key>
  */
 abstract class ChoiceControl extends BaseControl
 {
-	private bool $checkDefaultValue = true;
+	/** @var bool */
+	private $checkDefaultValue = true;
 
-	private array $items = [];
+	/** @var array */
+	private $items = [];
 
 
 	public function __construct($label = null, ?array $items = null)
@@ -38,7 +38,7 @@ abstract class ChoiceControl extends BaseControl
 
 	public function loadHttpData(): void
 	{
-		$this->value = $this->getHttpData(Nette\Forms\Form::DataText);
+		$this->value = $this->getHttpData(Nette\Forms\Form::DATA_TEXT);
 		if ($this->value !== null) {
 			$this->value = is_array($this->disabled) && isset($this->disabled[$this->value])
 				? null
@@ -49,21 +49,14 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Sets selected item (by key).
-	 * @param  string|int|\BackedEnum|null  $value
+	 * @param  string|int|null  $value
+	 * @return static
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
-		if ($value instanceof \BackedEnum) {
-			$value = $value->value;
-		}
-
 		if ($this->checkDefaultValue && $value !== null && !array_key_exists((string) $value, $this->items)) {
-			$set = Nette\Utils\Strings::truncate(
-				implode(', ', array_map(fn($s) => var_export($s, true), array_keys($this->items))),
-				70,
-				'...',
-			);
+			$set = Nette\Utils\Strings::truncate(implode(', ', array_map(function ($s) { return var_export($s, true); }, array_keys($this->items))), 70, '...');
 			throw new Nette\InvalidArgumentException("Value '$value' is out of allowed set [$set] in field '{$this->name}'.");
 		}
 
@@ -74,8 +67,9 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected key.
+	 * @return string|int|null
 	 */
-	public function getValue(): mixed
+	public function getValue()
 	{
 		return array_key_exists($this->value, $this->items)
 			? $this->value
@@ -85,8 +79,9 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected key (not checked).
+	 * @return string|int
 	 */
-	public function getRawValue(): string|int
+	public function getRawValue()
 	{
 		return $this->value;
 	}
@@ -103,8 +98,9 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Sets items from which to choose.
+	 * @return static
 	 */
-	public function setItems(array $items, bool $useKeys = true): static
+	public function setItems(array $items, bool $useKeys = true)
 	{
 		$this->items = $useKeys ? $items : array_combine($items, $items);
 		return $this;
@@ -122,8 +118,9 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected value.
+	 * @return mixed
 	 */
-	public function getSelectedItem(): mixed
+	public function getSelectedItem()
 	{
 		$value = $this->getValue();
 		return $value === null ? null : $this->items[$value];
@@ -132,8 +129,10 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Disables or enables control or items.
+	 * @param  bool|array  $value
+	 * @return static
 	 */
-	public function setDisabled(bool|array $value = true): static
+	public function setDisabled($value = true)
 	{
 		if (!is_array($value)) {
 			return parent::setDisabled($value);
@@ -149,7 +148,8 @@ abstract class ChoiceControl extends BaseControl
 	}
 
 
-	public function checkDefaultValue(bool $value = true): static
+	/** @return static */
+	public function checkDefaultValue(bool $value = true)
 	{
 		$this->checkDefaultValue = $value;
 		return $this;

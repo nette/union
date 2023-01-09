@@ -11,7 +11,6 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
-use Stringable;
 
 
 /**
@@ -23,19 +22,23 @@ use Stringable;
  */
 class RadioList extends ChoiceControl
 {
-	public bool $generateId = false;
+	/** @var bool */
+	public $generateId = false;
 
-	/** separator element template */
-	protected Html $separator;
+	/** @var Html  separator element template */
+	protected $separator;
 
-	/** container element template */
-	protected Html $container;
+	/** @var Html  container element template */
+	protected $container;
 
-	/** item label template */
-	protected Html $itemLabel;
+	/** @var Html  item label template */
+	protected $itemLabel;
 
 
-	public function __construct(string|Stringable|null $label = null, ?array $items = null)
+	/**
+	 * @param  string|object  $label
+	 */
+	public function __construct($label = null, ?array $items = null)
 	{
 		parent::__construct($label, $items);
 		$this->control->type = 'radio';
@@ -67,8 +70,8 @@ class RadioList extends ChoiceControl
 					'data-nette-rules:' => [key($items) => $input->attrs['data-nette-rules']],
 				]),
 				['for:' => $ids] + $this->itemLabel->attrs,
-				$this->separator,
-			),
+				$this->separator
+			)
 		);
 	}
 
