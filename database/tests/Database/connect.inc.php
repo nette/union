@@ -13,12 +13,12 @@ $options = Tester\Environment::loadData() + ['user' => null, 'password' => null]
 
 try {
 	$connection = new Nette\Database\Connection($options['dsn'], $options['user'], $options['password']);
-} catch (Nette\Database\ConnectionException $e) {
+} catch (PDOException $e) {
 	Tester\Environment::skip("Connection to '$options[dsn]' failed. Reason: " . $e->getMessage());
 }
 
-if (!str_contains($options['dsn'], 'sqlite::memory:')) {
-	Tester\Environment::lock($options['dsn'], getTempDir());
+if (strpos($options['dsn'], 'sqlite::memory:') === false) {
+	Tester\Environment::lock($options['dsn'], TEMP_DIR);
 }
 
 $driverName = $connection->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME);

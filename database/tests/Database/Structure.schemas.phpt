@@ -7,9 +7,6 @@
 declare(strict_types=1);
 
 use Mockery\MockInterface;
-use Nette\Database\Reflection\Column;
-use Nette\Database\Reflection\ForeignKey;
-use Nette\Database\Reflection\Table;
 use Nette\Database\Structure;
 use Tester\Assert;
 use Tester\TestCase;
@@ -21,7 +18,7 @@ class StructureMock extends Structure
 {
 	protected function needStructure(): void
 	{
-		if (!isset($this->structure)) {
+		if (!$this->structure) {
 			$this->structure = $this->loadStructure();
 		}
 	}
@@ -33,13 +30,17 @@ class StructureMock extends Structure
  */
 class StructureSchemasTestCase extends TestCase
 {
-	private MockInterface $connection;
+	/** @var MockInterface */
+	private $connection;
 
-	private MockInterface $driver;
+	/** @var MockInterface */
+	private $driver;
 
-	private MockInterface $storage;
+	/** @var MockInterface */
+	private $storage;
 
-	private Structure $structure;
+	/** @var Structure */
+	private $structure;
 
 
 	protected function setUp()
@@ -52,23 +53,23 @@ class StructureSchemasTestCase extends TestCase
 		$this->connection->shouldReceive('getDsn')->once()->andReturn('');
 		$this->connection->shouldReceive('getDriver')->once()->andReturn($this->driver);
 		$this->driver->shouldReceive('getTables')->once()->andReturn([
-			new Table(name: 'authors', view: false, fullName: 'authors.authors'),
-			new Table(name: 'books', view: false, fullName: 'books.books'),
+			['name' => 'authors', 'view' => false, 'fullName' => 'authors.authors'],
+			['name' => 'books', 'view' => false, 'fullName' => 'books.books'],
 		]);
 		$this->driver->shouldReceive('getColumns')->with('authors.authors')->once()->andReturn([
-			new Column(name: 'id', primary: true, vendor: ['sequence' => '"authors"."authors_id_seq"']),
-			new Column(name: 'name', primary: false, vendor: []),
+			['name' => 'id', 'primary' => true, 'vendor' => ['sequence' => '"authors"."authors_id_seq"']],
+			['name' => 'name', 'primary' => false, 'vendor' => []],
 		]);
 		$this->driver->shouldReceive('getColumns')->with('books.books')->once()->andReturn([
-			new Column(name: 'id', primary: true, vendor: ['sequence' => '"books"."books_id_seq"']),
-			new Column(name: 'title', primary: false, vendor: []),
+			['name' => 'id', 'primary' => true, 'vendor' => ['sequence' => '"books"."books_id_seq"']],
+			['name' => 'title', 'primary' => false, 'vendor' => []],
 		]);
 
 		$this->connection->shouldReceive('getDriver')->times(2)->andReturn($this->driver);
 		$this->driver->shouldReceive('getForeignKeys')->with('authors.authors')->once()->andReturn([]);
 		$this->driver->shouldReceive('getForeignKeys')->with('books.books')->once()->andReturn([
-			new ForeignKey(columns: ['author_id'], targetTable: 'authors.authors', targetColumns: ['id'], name: 'authors_authors_fk1'),
-			new ForeignKey(columns: ['translator_id'], targetTable: 'authors.authors', targetColumns: ['id'], name: 'authors_authors_fk2'),
+			['local' => 'author_id', 'table' => 'authors.authors', 'foreign' => 'id', 'name' => 'authors_authors_fk1'],
+			['local' => 'translator_id', 'table' => 'authors.authors', 'foreign' => 'id', 'name' => 'authors_authors_fk2'],
 		]);
 
 		$this->structure = new StructureMock($this->connection, $this->storage);

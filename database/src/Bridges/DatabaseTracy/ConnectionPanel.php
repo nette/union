@@ -22,23 +22,32 @@ class ConnectionPanel implements Tracy\IBarPanel
 {
 	use Nette\SmartObject;
 
-	public int $maxQueries = 100;
+	/** @var int */
+	public $maxQueries = 100;
 
-	public string $name;
+	/** @var string */
+	public $name;
 
-	public bool|string $explain = true;
+	/** @var bool|string explain queries? */
+	public $explain = true;
 
-	public bool $disabled = false;
+	/** @var bool */
+	public $disabled = false;
 
-	public float $performanceScale = 0.25;
+	/** @var float */
+	public $performanceScale = 0.25;
 
-	private float $totalTime = 0;
+	/** @var float logged time */
+	private $totalTime = 0;
 
-	private int $count = 0;
+	/** @var int */
+	private $count = 0;
 
-	private array $queries = [];
+	/** @var array */
+	private $queries = [];
 
-	private Tracy\BlueScreen $blueScreen;
+	/** @var Tracy\BlueScreen */
+	private $blueScreen;
 
 
 	public static function initialize(
@@ -47,17 +56,17 @@ class ConnectionPanel implements Tracy\IBarPanel
 		string $name = '',
 		bool $explain = true,
 		?Tracy\Bar $bar = null,
-		?Tracy\BlueScreen $blueScreen = null,
+		?Tracy\BlueScreen $blueScreen = null
 	): ?self
 	{
-		$blueScreen ??= Tracy\Debugger::getBlueScreen();
+		$blueScreen = $blueScreen ?? Tracy\Debugger::getBlueScreen();
 		$blueScreen->addPanel([self::class, 'renderException']);
 
 		if ($addBarPanel) {
 			$panel = new self($connection, $blueScreen);
 			$panel->explain = $explain;
 			$panel->name = $name;
-			$bar ??= Tracy\Debugger::getBar();
+			$bar = $bar ?? Tracy\Debugger::getBar();
 			$bar->addPanel($panel);
 		}
 

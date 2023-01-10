@@ -15,39 +15,38 @@ use Nette;
 /**
  * Supplemental Oracle database driver.
  */
-class OciDriver extends PdoDriver
+class OciDriver implements Nette\Database\Driver
 {
-	/** Datetime format */
-	private string $fmtDateTime;
+	use Nette\SmartObject;
+
+	/** @var Nette\Database\Connection */
+	private $connection;
+
+	/** @var string  Datetime format */
+	private $fmtDateTime;
 
 
-	public function connect(
-		string $dsn,
-		?string $user = null,
-		#[\SensitiveParameter]
-		?string $password = null,
-		?array $options = null,
-	): void
+	public function initialize(Nette\Database\Connection $connection, array $options): void
 	{
-		parent::connect($dsn, $user, $password, $options);
+		$this->connection = $connection;
 		$this->fmtDateTime = $options['formatDateTime'] ?? 'U';
 	}
 
 
-	public function detectExceptionClass(\PDOException $e): ?string
+	public function convertException(\PDOException $e): Nette\Database\DriverException
 	{
 		$code = $e->errorInfo[1] ?? null;
 		if (in_array($code, [1, 2299, 38911], true)) {
-			return Nette\Database\UniqueConstraintViolationException::class;
+			return Nette\Database\UniqueConstraintViolationException::from($e);
 
 		} elseif (in_array($code, [1400], true)) {
-			return Nette\Database\NotNullConstraintViolationException::class;
+			return Nette\Database\NotNullConstraintViolationException::from($e);
 
 		} elseif (in_array($code, [2266, 2291, 2292], true)) {
-			return Nette\Database\ForeignKeyConstraintViolationException::class;
+			return Nette\Database\ForeignKeyConstraintViolationException::from($e);
 
 		} else {
-			return null;
+			return Nette\Database\DriverException::from($e);
 		}
 	}
 
@@ -103,7 +102,7 @@ class OciDriver extends PdoDriver
 	public function getTables(): array
 	{
 		$tables = [];
-		foreach ($this->pdo->query('SELECT * FROM cat') as $row) {
+		foreach ($this->connection->query('SELECT * FROM cat') as $row) {
 			if ($row[1] === 'TABLE' || $row[1] === 'VIEW') {
 				$tables[] = [
 					'name' => $row[0],
@@ -142,6 +141,6 @@ class OciDriver extends PdoDriver
 
 	public function isSupported(string $item): bool
 	{
-		return $item === self::SupportSequence || $item === self::SupportSubselect;
+		return $item === self::SUPPORT_SEQUENCE || $item === self::SUPPORT_SUBSELECT;
 	}
 }

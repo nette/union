@@ -22,7 +22,7 @@ $book = $explorer->table('author')->insert([
 // id = 14
 
 Assert::equal('eddard stark', $book->name);
-Assert::equal(new Nette\Database\DateTime('2011-11-11'), $book->born);
+Assert::equal(new Nette\Utils\DateTime('2011-11-11'), $book->born);
 
 
 $books = $explorer->table('book');
@@ -47,7 +47,7 @@ if ($driverName !== 'sqlsrv') {
 			'name' => 'Jon Snow',
 			'web' => 'http://example.com',
 		]);
-	}, Nette\Database\DriverException::class);
+	}, PDOException::class);
 }
 
 
@@ -79,7 +79,7 @@ if ($driverName !== 'sqlsrv') {
 $explorer = new Nette\Database\Explorer(
 	$connection,
 	$structure,
-	new Nette\Database\Conventions\DiscoveredConventions($structure),
+	new Nette\Database\Conventions\DiscoveredConventions($structure)
 );
 
 $inserted = $explorer->table('note')->insert([

@@ -20,11 +20,14 @@ class StaticConventions implements Conventions
 {
 	use Nette\SmartObject;
 
-	protected string $primary;
+	/** @var string */
+	protected $primary;
 
-	protected string $foreign;
+	/** @var string */
+	protected $foreign;
 
-	protected string $table;
+	/** @var string */
+	protected $table;
 
 
 	/**

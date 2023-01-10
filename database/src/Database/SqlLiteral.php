@@ -19,9 +19,11 @@ class SqlLiteral
 {
 	use Nette\SmartObject;
 
-	private string $value;
+	/** @var string */
+	private $value;
 
-	private array $parameters;
+	/** @var array */
+	private $parameters;
 
 
 	public function __construct(string $value, array $parameters = [])

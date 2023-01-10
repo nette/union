@@ -15,21 +15,27 @@ use Nette;
 /**
  * Supplemental SQL Server 2005 and later database driver.
  */
-class SqlsrvDriver extends PdoDriver
+class SqlsrvDriver implements Nette\Database\Driver
 {
-	private string $version;
+	use Nette\SmartObject;
+
+	/** @var Nette\Database\Connection */
+	private $connection;
+
+	/** @var string */
+	private $version;
 
 
-	public function connect(
-		string $dsn,
-		?string $user = null,
-		#[\SensitiveParameter]
-		?string $password = null,
-		?array $options = null,
-	): void
+	public function initialize(Nette\Database\Connection $connection, array $options): void
 	{
-		parent::connect($dsn, $user, $password, $options);
-		$this->version = $this->pdo->getAttribute(\PDO::ATTR_SERVER_VERSION);
+		$this->connection = $connection;
+		$this->version = $connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION);
+	}
+
+
+	public function convertException(\PDOException $e): Nette\Database\DriverException
+	{
+		return Nette\Database\DriverException::from($e);
 	}
 
 
@@ -92,36 +98,41 @@ class SqlsrvDriver extends PdoDriver
 
 	public function getTables(): array
 	{
-		return $this->pdo->query(<<<'X'
+		$tables = [];
+		foreach ($this->connection->query("
 			SELECT
 				name,
 				CASE type
 					WHEN 'U' THEN 0
 					WHEN 'V' THEN 1
-				END
+				END AS [view]
 			FROM
 				sys.objects
 			WHERE
 				type IN ('U', 'V')
-			X)->fetchAll(
-			\PDO::FETCH_FUNC,
-			fn($name, $view) => new Nette\Database\Reflection\Table($name, (bool) $view),
-		);
+		") as $row) {
+			$tables[] = [
+				'name' => $row->name,
+				'view' => (bool) $row->view,
+			];
+		}
+
+		return $tables;
 	}
 
 
 	public function getColumns(string $table): array
 	{
 		$columns = [];
-		foreach ($this->pdo->query(<<<X
+		foreach ($this->connection->query("
 			SELECT
 				c.name AS name,
 				o.name AS [table],
-				t.name AS nativeType,
+				UPPER(t.name) AS nativetype,
 				NULL AS size,
 				c.is_nullable AS nullable,
 				OBJECT_DEFINITION(c.default_object_id) AS [default],
-				c.is_identity AS autoIncrement,
+				c.is_identity AS autoincrement,
 				CASE WHEN i.index_id IS NULL
 					THEN 0
 					ELSE 1
@@ -134,14 +145,15 @@ class SqlsrvDriver extends PdoDriver
 				LEFT JOIN sys.index_columns i ON k.parent_object_id = i.object_id AND i.index_id = k.unique_index_id AND i.column_id = c.column_id
 			WHERE
 				o.type IN ('U', 'V')
-				AND o.name = {$this->pdo->quote($table)}
-			X, \PDO::FETCH_ASSOC) as $row) {
+				AND o.name = {$this->connection->quote($table)}
+		") as $row) {
+			$row = (array) $row;
 			$row['vendor'] = $row;
 			$row['nullable'] = (bool) $row['nullable'];
-			$row['autoIncrement'] = (bool) $row['autoIncrement'];
+			$row['autoincrement'] = (bool) $row['autoincrement'];
 			$row['primary'] = (bool) $row['primary'];
 
-			$columns[] = new Nette\Database\Reflection\Column(...$row);
+			$columns[] = $row;
 		}
 
 		return $columns;
@@ -151,7 +163,7 @@ class SqlsrvDriver extends PdoDriver
 	public function getIndexes(string $table): array
 	{
 		$indexes = [];
-		foreach ($this->pdo->query(<<<X
+		foreach ($this->connection->query("
 			SELECT
 				i.name AS name,
 				CASE WHEN i.is_unique = 1 OR i.is_unique_constraint = 1
@@ -166,11 +178,11 @@ class SqlsrvDriver extends PdoDriver
 				JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
 				JOIN sys.tables t ON i.object_id = t.object_id
 			WHERE
-				t.name = {$this->pdo->quote($table)}
+				t.name = {$this->connection->quote($table)}
 			ORDER BY
 				i.index_id,
 				ic.index_column_id
-			X) as $row) {
+		") as $row) {
 			$id = $row['name'];
 			$indexes[$id]['name'] = $id;
 			$indexes[$id]['unique'] = (bool) $row['unique'];
@@ -178,7 +190,7 @@ class SqlsrvDriver extends PdoDriver
 			$indexes[$id]['columns'][] = $row['column'];
 		}
 
-		return array_map(fn($data) => new Nette\Database\Reflection\Index(...$data), array_values($indexes));
+		return array_values($indexes);
 	}
 
 
@@ -186,7 +198,7 @@ class SqlsrvDriver extends PdoDriver
 	{
 		// Does't work with multicolumn foreign keys
 		$keys = [];
-		foreach ($this->pdo->query(<<<X
+		foreach ($this->connection->query("
 			SELECT
 				fk.name AS name,
 				cl.name AS local,
@@ -200,16 +212,12 @@ class SqlsrvDriver extends PdoDriver
 				JOIN sys.tables tf ON fkc.referenced_object_id = tf.object_id
 				JOIN sys.columns cf ON fkc.referenced_object_id = cf.object_id AND fkc.referenced_column_id = cf.column_id
 			WHERE
-				tl.name = {$this->pdo->quote($table)}
-			X, \PDO::FETCH_ASSOC) as $row) {
-			$id = $row['name'];
-			$keys[$id]['name'] = $id;
-			$keys[$id]['columns'][] = $row['local'];
-			$keys[$id]['targetTable'] = $row['table'];
-			$keys[$id]['targetColumns'][] = $row['column'];
+				tl.name = {$this->connection->quote($table)}
+		") as $row) {
+			$keys[$row->name] = (array) $row;
 		}
 
-		return array_map(fn($data) => new Nette\Database\Reflection\ForeignKey(...$data), array_values($keys));
+		return array_values($keys);
 	}
 
 
@@ -235,6 +243,6 @@ class SqlsrvDriver extends PdoDriver
 
 	public function isSupported(string $item): bool
 	{
-		return $item === self::SupportSubselect;
+		return $item === self::SUPPORT_SUBSELECT;
 	}
 }
