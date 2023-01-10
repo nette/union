@@ -26,36 +26,47 @@ final class Helpers
 
 	/**
 	 * Expands %placeholders%.
-	 * @param  mixed  $var
-	 * @param  bool|array  $recursive
-	 * @return mixed
 	 * @throws Nette\InvalidArgumentException
 	 */
-	public static function expand($var, array $params, $recursive = false)
+	public static function expand(mixed $var, array $params, bool|array $recursive = false): mixed
 	{
 		if (is_array($var)) {
 			$res = [];
 			foreach ($var as $key => $val) {
 				$res[self::expand($key, $params, $recursive)] = self::expand($val, $params, $recursive);
 			}
-
 			return $res;
 
 		} elseif ($var instanceof Statement) {
-			return new Statement(self::expand($var->getEntity(), $params, $recursive), self::expand($var->arguments, $params, $recursive));
+			return new Statement(
+				self::expand($var->getEntity(), $params, $recursive),
+				self::expand($var->arguments, $params, $recursive),
+			);
 
 		} elseif ($var === '%parameters%' && !array_key_exists('parameters', $params)) {
 			return $recursive
-				? self::expand($params, $params, (is_array($recursive) ? $recursive : []))
+				? self::expand($params, $params, $recursive)
 				: $params;
 
-		} elseif (!is_string($var)) {
+		} elseif (is_string($var)) {
+			$recursive = is_array($recursive) ? $recursive : ($recursive ? [] : null);
+			return self::expandString($var, $params, $recursive);
+
+		} else {
 			return $var;
 		}
+	}
 
+
+	/**
+	 * Expands %placeholders% in string
+	 * @throws Nette\InvalidArgumentException
+	 */
+	private static function expandString(string $var, array $params, ?array $recursive, bool $onlyString = false): mixed
+	{
 		$parts = preg_split('#%([\w.-]*)%#i', $var, -1, PREG_SPLIT_DELIM_CAPTURE);
 		$res = [];
-		$php = false;
+		$dynamic = false;
 		foreach ($parts as $n => $part) {
 			if ($n % 2 === 0) {
 				$res[] = $part;
@@ -63,17 +74,23 @@ final class Helpers
 			} elseif ($part === '') {
 				$res[] = '%';
 
-			} elseif (isset($recursive[$part])) {
-				throw new Nette\InvalidArgumentException(sprintf(
-					'Circular reference detected for variables: %s.',
-					implode(', ', array_keys($recursive))
-				));
-
 			} else {
 				$val = $params;
-				foreach (explode('.', $part) as $key) {
+				$path = [];
+				$keys = explode('.', $part);
+				while (($key = $path[] = array_shift($keys)) !== null) {
 					if (is_array($val) && array_key_exists($key, $val)) {
 						$val = $val[$key];
+						$fullExpand = !$onlyString && !$keys; // last
+						if (is_array($recursive) && ($fullExpand || is_string($val))) {
+							$pathStr = implode('.', $path);
+							if (isset($recursive[$pathStr])) {
+								throw new Nette\InvalidArgumentException('Circular reference detected for parameters: %' . implode('%, %', array_keys($recursive)) . '%');
+							}
+							$val = $fullExpand
+								? self::expand($val, $params, $recursive + [$pathStr => 1])
+								: self::expandString($val, $params, $recursive + [$pathStr => 1], true);
+						}
 					} elseif ($val instanceof DynamicParameter) {
 						$val = new DynamicParameter($val . '[' . var_export($key, true) . ']');
 					} else {
@@ -81,16 +98,10 @@ final class Helpers
 					}
 				}
 
-				if ($recursive) {
-					$val = self::expand($val, $params, (is_array($recursive) ? $recursive : []) + [$part => 1]);
-				}
-
 				if (strlen($part) + 2 === strlen($var)) {
 					return $val;
-				}
-
-				if ($val instanceof DynamicParameter) {
-					$php = true;
+				} elseif ($val instanceof DynamicParameter || $val instanceof Statement) {
+					$dynamic = true;
 				} elseif (!is_scalar($val)) {
 					throw new Nette\InvalidArgumentException(sprintf("Unable to concatenate non-scalar parameter '%s' into '%s'.", $part, $var));
 				}
@@ -99,26 +110,16 @@ final class Helpers
 			}
 		}
 
-		if ($php) {
-			$res = array_filter($res, function ($val): bool { return $val !== ''; });
-			$res = array_map(function ($val): string {
-				return $val instanceof DynamicParameter
-					? "($val)"
-					: var_export((string) $val, true);
-			}, $res);
-			return new DynamicParameter(implode(' . ', $res));
-		}
-
-		return implode('', $res);
+		return $dynamic
+			? new Statement('::implode', [$res])
+			: implode('', $res);
 	}
 
 
 	/**
 	 * Escapes '%' and '@'
-	 * @param  mixed  $value
-	 * @return mixed
 	 */
-	public static function escape($value)
+	public static function escape(mixed $value): mixed
 	{
 		if (is_array($value)) {
 			$res = [];
@@ -148,9 +149,9 @@ final class Helpers
 				&& preg_match('#^([\w\\\\]+)::\w+$#D', $v, $m)
 				&& enum_exists($m[1])
 			) {
-				$args[$k] = new Nette\PhpGenerator\PhpLiteral($v);
+				$args[$k] = new Nette\PhpGenerator\Literal($v);
 			} elseif (is_string($v) && preg_match('#^[\w\\\\]*::[A-Z][a-zA-Z0-9_]*$#D', $v)) {
-				$args[$k] = new Nette\PhpGenerator\PhpLiteral(ltrim($v, ':'));
+				$args[$k] = new Nette\PhpGenerator\Literal(ltrim($v, ':'));
 			} elseif (is_string($v) && preg_match('#^@[\w\\\\]+$#D', $v)) {
 				$args[$k] = new Reference(substr($v, 1));
 			} elseif (is_array($v)) {
@@ -167,10 +168,8 @@ final class Helpers
 
 	/**
 	 * Replaces @extension with real extension name in service definition.
-	 * @param  mixed  $config
-	 * @return mixed
 	 */
-	public static function prefixServiceName($config, string $namespace)
+	public static function prefixServiceName(mixed $config, string $namespace): mixed
 	{
 		if (is_string($config)) {
 			if (strncmp($config, '@extension.', 10) === 0) {
@@ -183,7 +182,7 @@ final class Helpers
 		} elseif ($config instanceof Statement) {
 			return new Statement(
 				self::prefixServiceName($config->getEntity(), $namespace),
-				self::prefixServiceName($config->arguments, $namespace)
+				self::prefixServiceName($config->arguments, $namespace),
 			);
 		} elseif (is_array($config)) {
 			foreach ($config as &$val) {
@@ -197,7 +196,6 @@ final class Helpers
 
 	/**
 	 * Returns an annotation value.
-	 * @param  \ReflectionFunctionAbstract|\ReflectionProperty|\ReflectionClass  $ref
 	 */
 	public static function parseAnnotation(\Reflector $ref, string $name): ?string
 	{
@@ -214,31 +212,23 @@ final class Helpers
 	}
 
 
-	public static function getReturnTypeAnnotation(\ReflectionFunctionAbstract $func): ?Type
+	public static function ensureClassType(
+		?Type $type,
+		string $hint,
+		string $descriptor = '',
+		bool $allowNullable = false,
+	): string
 	{
-		$type = preg_replace('#[|\s].*#', '', (string) self::parseAnnotation($func, 'return'));
-		if (!$type || $type === 'object' || $type === 'mixed') {
-			return null;
-		} elseif ($func instanceof \ReflectionMethod) {
-			$type = $type === '$this' ? 'static' : $type;
-			$type = Reflection::expandClassName($type, $func->getDeclaringClass());
-		}
-
-		return Type::fromString($type);
-	}
-
-
-	public static function ensureClassType(?Type $type, string $hint, bool $allowNullable = false): string
-	{
+		$descriptor = $descriptor ? "[$descriptor]\n" : '';
 		if (!$type) {
-			throw new ServiceCreationException(sprintf('%s is not declared.', ucfirst($hint)));
+			throw new ServiceCreationException(sprintf('%s%s is not declared.', $descriptor, ucfirst($hint)));
 		} elseif (!$type->isClass() || (!$allowNullable && $type->allows('null'))) {
-			throw new ServiceCreationException(sprintf("%s is expected to not be %sbuilt-in/complex, '%s' given.", ucfirst($hint), $allowNullable ? '' : 'nullable/', $type));
+			throw new ServiceCreationException(sprintf("%s%s is expected to not be %sbuilt-in/complex, '%s' given.", $descriptor, ucfirst($hint), $allowNullable ? '' : 'nullable/', $type));
 		}
 
 		$class = $type->getSingleName();
 		if (!class_exists($class) && !interface_exists($class)) {
-			throw new ServiceCreationException(sprintf("Class '%s' not found.\nCheck the %s.", $class, $hint));
+			throw new ServiceCreationException(sprintf("%sClass '%s' not found.\nCheck the %s.", $descriptor, $class, $hint));
 		}
 
 		return $class;
@@ -255,11 +245,9 @@ final class Helpers
 
 	/**
 	 * Non data-loss type conversion.
-	 * @param  mixed  $value
-	 * @return mixed
 	 * @throws Nette\InvalidStateException
 	 */
-	public static function convertType($value, string $type)
+	public static function convertType(mixed $value, string $type): mixed
 	{
 		if (is_scalar($value)) {
 			$norm = ($value === false ? '0' : (string) $value);
@@ -276,8 +264,26 @@ final class Helpers
 
 		throw new Nette\InvalidStateException(sprintf(
 			'Cannot convert %s to %s.',
-			is_scalar($value) ? "'$value'" : gettype($value),
-			$type
+			is_scalar($value) ? "'$value'" : get_debug_type($value),
+			$type,
 		));
+	}
+
+
+	public static function entityToString(string|array|Reference $entity, bool $inner = false): string
+	{
+		if (is_string($entity)) {
+			return $entity . ($inner ? '()' : '');
+
+		} elseif ($entity instanceof Reference) {
+			return '@' . $entity->getValue();
+
+		} else {
+			[$a, $b] = $entity;
+			return self::entityToString($a instanceof Statement ? $a->getEntity() : $a, inner: true)
+				. '::'
+				. $b
+				. (str_contains($b, '$') ? '' : '()');
+		}
 	}
 }

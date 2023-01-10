@@ -15,14 +15,14 @@ require __DIR__ . '/../connect.inc.php'; // create $connection
 Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverName}-nette_test1.sql");
 $driver = $connection->getDriver();
 test('', function () use ($explorer, $driver) {
-	$schema = $driver->isSupported(Driver::SupportSchema)
+	$schema = $driver->isSupported(Driver::SUPPORT_SCHEMA)
 		? '[public].'
 		: '';
 	$sql = $explorer->table('book')->joinWhere('translator', 'translator.name', 'Geek')->select('book.*')->getSql();
 
 	Assert::same(reformat(
 		'SELECT [book].* FROM [book] ' .
-		"LEFT JOIN {$schema}[author] [translator] ON [book].[translator_id] = [translator].[id] AND ([translator].[name] = ?)",
+		"LEFT JOIN {$schema}[author] [translator] ON [book].[translator_id] = [translator].[id] AND ([translator].[name] = ?)"
 	), $sql);
 });
 
@@ -34,7 +34,7 @@ test('', function () use ($explorer, $driver) {
 		->where('tag.name', 'PHP')
 		->group('tag.name')
 		->getSql();
-	if ($driver->isSupported(Driver::SupportSchema)) {
+	if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
 		Assert::same(
 			reformat(
 				'SELECT [tag].[name], COUNT([book].[id]) AS [count_of_next_volume_written_by_younger_author] FROM [tag] ' .
@@ -44,9 +44,9 @@ test('', function () use ($explorer, $driver) {
 				'LEFT JOIN [public].[author] [next_volume_author] ON [book_ref].[author_id] = [next_volume_author].[id] ' .
 				'LEFT JOIN [public].[author] [author] ON [book].[author_id] = [author].[id] AND ([author].[born] < [next_volume_author].[born]) ' .
 				'WHERE ([tag].[name] = ?) ' .
-				'GROUP BY [tag].[name]',
+				'GROUP BY [tag].[name]'
 			),
-			$sql,
+			$sql
 		);
 	} else {
 		Assert::same(
@@ -58,9 +58,9 @@ test('', function () use ($explorer, $driver) {
 				'LEFT JOIN [author] [next_volume_author] ON [book_ref].[author_id] = [next_volume_author].[id] ' .
 				'LEFT JOIN [author] ON [book].[author_id] = [author].[id] AND ([author].[born] < [next_volume_author].[born]) ' .
 				'WHERE ([tag].[name] = ?) ' .
-				'GROUP BY [tag].[name]',
+				'GROUP BY [tag].[name]'
 			),
-			$sql,
+			$sql
 		);
 	}
 });

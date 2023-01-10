@@ -9,15 +9,21 @@ declare(strict_types=1);
 
 namespace Nette\Database;
 
+use Nette;
+
 
 /**
  * SQL literal value.
  */
 class SqlLiteral
 {
-	private string $value;
+	use Nette\SmartObject;
 
-	private array $parameters;
+	/** @var string */
+	private $value;
+
+	/** @var array */
+	private $parameters;
 
 
 	public function __construct(string $value, array $parameters = [])

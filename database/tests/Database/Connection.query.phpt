@@ -31,7 +31,7 @@ test('', function () use ($connection) {
 
 
 test('', function () use ($connection) {
-	$res = @$connection->queryArgs('SELECT id FROM author WHERE id = ? OR id = ?', [11, 12]); // is deprecated
+	$res = $connection->queryArgs('SELECT id FROM author WHERE id = ? OR id = ?', [11, 12]);
 	Assert::same('SELECT id FROM author WHERE id = ? OR id = ?', $res->getQueryString());
 	Assert::same([11, 12], $res->getParameters());
 });

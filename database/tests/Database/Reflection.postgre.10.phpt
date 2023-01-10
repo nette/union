@@ -7,9 +7,6 @@
 
 declare(strict_types=1);
 
-use Nette\Database\Reflection\Column;
-use Nette\Database\Reflection\Index;
-use Nette\Database\Reflection\Table;
 use Tester\Assert;
 use Tester\Environment;
 
@@ -24,11 +21,13 @@ if (version_compare($ver, '10') < 0) {
 
 function shortInfo(array $columns): array
 {
-	return array_map(fn(Column $col): array => [
-		'name' => $col->name,
-		'autoincrement' => $col->autoIncrement,
-		'sequence' => $col->vendor['sequence'],
-	], $columns);
+	return array_map(function (array $col): array {
+		return [
+			'name' => $col['name'],
+			'autoincrement' => $col['autoincrement'],
+			'sequence' => $col['vendor']['sequence'],
+		];
+	}, $columns);
 }
 
 
@@ -117,14 +116,14 @@ test('Materialized view columns', function () use ($connection) {
 
 	$connection->query('SET search_path TO reflection_10');
 
-	Assert::equal([
-		new Table(name: 'source', view: false, fullName: 'reflection_10.source'),
-		new Table(name: 'source_mt', view: true, fullName: 'reflection_10.source_mt'),
+	Assert::same([
+		['name' => 'source', 'view' => false, 'fullName' => 'reflection_10.source'],
+		['name' => 'source_mt', 'view' => true, 'fullName' => 'reflection_10.source_mt'],
 	], $driver->getTables());
 
 	Assert::same(
 		['name', 'id'],
-		array_column($driver->getColumns('source_mt'), 'name'),
+		array_column($driver->getColumns('source_mt'), 'name')
 	);
 });
 
@@ -146,18 +145,18 @@ test('Partitioned table', function () use ($connection) {
 
 	$connection->query('SET search_path TO reflection_10');
 
-	Assert::equal([
-		new Table(name: 'part_1', view: false, fullName: 'reflection_10.part_1'),
-		new Table(name: 'parted', view: false, fullName: 'reflection_10.parted'),
+	Assert::same([
+		['name' => 'part_1', 'view' => false, 'fullName' => 'reflection_10.part_1'],
+		['name' => 'parted', 'view' => false, 'fullName' => 'reflection_10.parted'],
 	], $driver->getTables());
 
 	Assert::same(['id', 'value'], array_column($driver->getColumns('parted'), 'name'));
 	Assert::same(['id', 'value'], array_column($driver->getColumns('part_1'), 'name'));
 
-	Assert::equal([new Index(
-		name: 'parted_pkey',
-		unique: true,
-		primary: true,
-		columns: ['id'],
-	)], $driver->getIndexes('parted'));
+	Assert::same([[
+		'name' => 'parted_pkey',
+		'unique' => true,
+		'primary' => true,
+		'columns' => ['id'],
+	]], $driver->getIndexes('parted'));
 });

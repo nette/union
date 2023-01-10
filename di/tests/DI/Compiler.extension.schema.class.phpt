@@ -14,9 +14,6 @@ require __DIR__ . '/../bootstrap.php';
 
 class FooExtension extends Nette\DI\CompilerExtension
 {
-	public $loadedConfig;
-
-
 	public function __construct()
 	{
 		$this->config = new class {
@@ -24,18 +21,12 @@ class FooExtension extends Nette\DI\CompilerExtension
 			public $key;
 		};
 	}
-
-
-	public function loadConfiguration()
-	{
-		$this->loadedConfig = $this->config;
-	}
 }
 
 
-Assert::exception(function () {
+testException('Unexpected configuration item', function () {
 	$compiler = new Nette\DI\Compiler;
-	$compiler->addExtension('foo', $foo = new FooExtension);
+	$compiler->addExtension('foo', new FooExtension);
 	createContainer($compiler, '
 	foo:
 		unknown: 123
@@ -43,9 +34,9 @@ Assert::exception(function () {
 }, Nette\DI\InvalidConfigurationException::class, "Unexpected item 'foo\u{a0}›\u{a0}unknown'.");
 
 
-Assert::exception(function () {
+testException('Mismatched data type for configuration key', function () {
 	$compiler = new Nette\DI\Compiler;
-	$compiler->addExtension('foo', $foo = new FooExtension);
+	$compiler->addExtension('foo', new FooExtension);
 	createContainer($compiler, '
 	foo:
 		key: 123
@@ -53,34 +44,34 @@ Assert::exception(function () {
 }, Nette\DI\InvalidConfigurationException::class, "The item 'foo\u{a0}›\u{a0}key' expects to be ?string, 123 given.");
 
 
-test('', function () {
+test('Successful configuration with a provided key', function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', $foo = new FooExtension);
 	createContainer($compiler, '
 	foo:
 		key: hello
 	');
-	Assert::type('object', $foo->loadedConfig);
-	Assert::equal(['key' => 'hello'], (array) $foo->loadedConfig);
+	Assert::type('object', $foo->getConfig());
+	Assert::equal(['key' => 'hello'], (array) $foo->getConfig());
 });
 
 
-test('', function () {
+test('Successful configuration without any specific key', function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', $foo = new FooExtension);
 	createContainer($compiler, '
 	foo:
 	');
-	Assert::type('object', $foo->loadedConfig);
-	Assert::equal(['key' => null], (array) $foo->loadedConfig);
+	Assert::type('object', $foo->getConfig());
+	Assert::equal(['key' => null], (array) $foo->getConfig());
 });
 
 
-test('', function () {
+test('Successful configuration with default values', function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', $foo = new FooExtension);
 	createContainer($compiler, '
 	');
-	Assert::type('object', $foo->loadedConfig);
-	Assert::equal(['key' => null], (array) $foo->loadedConfig);
+	Assert::type('object', $foo->getConfig());
+	Assert::equal(['key' => null], (array) $foo->getConfig());
 });

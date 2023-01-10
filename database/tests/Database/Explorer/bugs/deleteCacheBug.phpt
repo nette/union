@@ -20,11 +20,9 @@ test('', function () use ($explorer) {
 
 		if ($i === 1) {
 			$book->delete();
-			Assert::exception(
-				fn() => $book->toArray(),
-				Nette\InvalidStateException::class,
-				"Database refetch failed; row with signature '1' does not exist!",
-			);
+			Assert::exception(function () use ($book) {
+				$book->toArray();
+			}, Nette\InvalidStateException::class, "Database refetch failed; row with signature '1' does not exist!");
 		}
 
 		$booksSelection->__destruct();
@@ -42,11 +40,9 @@ test('', function () use ($explorer) {
 				->wherePrimary($book->id)
 				->delete();
 
-			Assert::exception(
-				fn() => $book->toArray(),
-				Nette\InvalidStateException::class,
-				"Database refetch failed; row with signature '2' does not exist!",
-			);
+			Assert::exception(function () use ($book) {
+				$book->toArray();
+			}, Nette\InvalidStateException::class, "Database refetch failed; row with signature '2' does not exist!");
 		}
 
 		$booksSelection->__destruct();
@@ -84,11 +80,9 @@ test('', function () use ($explorer) {
 
 		if ($i === 1) {
 			$explorer->query('DELETE FROM book WHERE id = 3');
-			Assert::exception(
-				fn() => $book->title,
-				Nette\InvalidStateException::class,
-				"Database refetch failed; row with signature '3' does not exist!",
-			);
+			Assert::exception(function () use ($book) {
+				$book->title;
+			}, Nette\InvalidStateException::class, "Database refetch failed; row with signature '3' does not exist!");
 		}
 
 		$booksSelection->__destruct();
