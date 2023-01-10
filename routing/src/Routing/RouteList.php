@@ -17,6 +17,8 @@ use Nette;
  */
 class RouteList implements Router
 {
+	private const OneWay = 'oneWay';
+
 	protected ?self $parent;
 
 	/** @var array of [Router, flags] */
@@ -137,7 +139,7 @@ class RouteList implements Router
 		$candidates = [];
 		$routers = [];
 		foreach ($this->list as [$router, $flags]) {
-			if ($flags & self::ONE_WAY) {
+			if ($flags[self::OneWay]) {
 				continue;
 			} elseif ($router instanceof self) {
 				$router->warmupCache();
@@ -187,9 +189,9 @@ class RouteList implements Router
 	/**
 	 * Adds a router.
 	 */
-	public function add(Router $router, int $flags = 0): static
+	public function add(Router $router, bool $oneWay = false): static
 	{
-		$this->list[] = [$router, $flags];
+		$this->list[] = [$router, [self::OneWay => $oneWay]];
 		$this->ranks = null;
 		return $this;
 	}
@@ -198,9 +200,9 @@ class RouteList implements Router
 	/**
 	 * Prepends a router.
 	 */
-	public function prepend(Router $router, int $flags = 0): void
+	public function prepend(Router $router, bool $oneWay = false): void
 	{
-		array_splice($this->list, 0, 0, [[$router, $flags]]);
+		array_splice($this->list, 0, 0, [[$router, [self::OneWay => $oneWay]]]);
 		$this->ranks = null;
 	}
 
@@ -220,9 +222,9 @@ class RouteList implements Router
 	}
 
 
-	public function addRoute(string $mask, array $metadata = [], int $flags = 0): static
+	public function addRoute(string $mask, array $metadata = [], bool $oneWay = false): static
 	{
-		$this->add(new Route($mask, $metadata), $flags);
+		$this->add(new Route($mask, $metadata), $oneWay);
 		return $this;
 	}
 
@@ -268,7 +270,7 @@ class RouteList implements Router
 
 
 	/**
-	 * @return int[]
+	 * @return bool[]
 	 */
 	public function getFlags(): array
 	{
