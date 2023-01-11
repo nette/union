@@ -26,16 +26,14 @@ use Tracy\Helpers;
 	#tracy-debug .nette-ContainerPanel table pre {
 		display: inline;
 		background: transparent;
-		padding: 0;
-		word-break: normal;
 	}
 </style>
 
-<h1>Nette DI Container</h1>
+<h1><?= get_class($container) ?></h1>
 
 <div class="tracy-inner nette-ContainerPanel">
 <div class="tracy-inner-container">
-	<p>Source: <?= Helpers::editorLink($file) ?></p>
+	<h2>Services</h2>
 
 	<table class="tracy-sortable">
 		<thead>
@@ -75,7 +73,9 @@ use Tracy\Helpers;
 	<h2>Parameters</h2>
 
 	<div class="nette-ContainerPanel-parameters">
-		<?= $container->parameters ? Dumper::toHtml($container->parameters) : "<i>disabled via 'di › export › parameters'</i>" ?>
+		<?= Dumper::toHtml($container->parameters); ?>
 	</div>
+
+	<p>Source: <?= Helpers::editorLink($file) ?></p>
 </div>
 </div>

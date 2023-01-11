@@ -16,16 +16,14 @@ require __DIR__ . '/../bootstrap.php';
 Assert::exception(function () {
 	$def = new ImportedDefinition;
 	$def->setType('Foo');
-}, Nette\InvalidArgumentException::class, "[Service ?]
-Class or interface 'Foo' not found.");
+}, Nette\InvalidArgumentException::class, "Service '': Class or interface 'Foo' not found.");
 
 
 Assert::exception(function () {
 	$def = new ImportedDefinition;
 	$resolver = new Nette\DI\Resolver(new Nette\DI\ContainerBuilder);
 	$resolver->resolveDefinition($def);
-}, Nette\DI\ServiceCreationException::class, '[Service ?]
-Type of service is unknown.');
+}, Nette\DI\ServiceCreationException::class, 'Type of service is unknown.');
 
 
 test('', function () {
@@ -44,11 +42,12 @@ test('', function () {
 
 	Assert::match(
 		<<<'XX'
-			public function createServiceAbc(): void
-			{
-				throw new Nette\DI\ServiceCreationException('Unable to create imported service \'abc\', it must be added using addService()');
-			}
-			XX,
-		$method->__toString(),
+public function createServiceAbc(): void
+{
+	throw new Nette\DI\ServiceCreationException('Unable to create imported service \'abc\', it must be added using addService()');
+}
+XX
+		,
+		$method->__toString()
 	);
 });

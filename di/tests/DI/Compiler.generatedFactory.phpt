@@ -7,6 +7,7 @@
 declare(strict_types=1);
 
 use Nette\DI;
+use Nette\DI\Config\Adapters as Adapt;
 use Tester\Assert;
 
 
@@ -28,6 +29,14 @@ class Lorem
 	{
 		$this->ipsum = $ipsum;
 	}
+}
+
+interface IFinderFactory
+{
+	/**
+	 * @return Adapt\NeonAdapter comment
+	 */
+	public function create();
 }
 
 interface IArticleFactory
@@ -132,6 +141,7 @@ class TestExtension extends DI\CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 		$builder->addFactoryDefinition('fooFactory2')
+			->setParameters(['Baz baz' => null])
 			->setImplement(IFooFactory::class)
 			->getResultDefinition()
 				->setCreator(Foo::class)
@@ -147,7 +157,7 @@ class TestExtension extends DI\CompilerExtension
 
 $compiler = new DI\Compiler;
 $compiler->addExtension('test', new TestExtension);
-$container = createContainer($compiler, 'files/compiler.generatedFactory.neon');
+@$container = createContainer($compiler, 'files/compiler.generatedFactory.neon'); // missing type triggers warning
 
 
 Assert::type(ILoremFactory::class, $container->getService('lorem'));
@@ -157,6 +167,11 @@ Assert::type(Ipsum::class, $lorem->ipsum);
 Assert::same($container->getService('ipsum'), $lorem->ipsum);
 
 Assert::type(ILoremFactory::class, $container->getByType(ILoremFactory::class));
+
+Assert::type(IFinderFactory::class, $container->getService('finder'));
+$finder = $container->getService('finder')->create();
+Assert::type(Nette\DI\Config\Adapters\NeonAdapter::class, $finder);
+
 
 Assert::type(IArticleFactory::class, $container->getService('article'));
 $article = $container->getService('article')->create('nemam');
@@ -266,8 +281,7 @@ Assert::exception(function () {
 	$builder->addFactoryDefinition('one')
 		->setImplement(Bad2::class);
 	$builder->complete();
-}, Nette\InvalidStateException::class, "[Service 'one' of type Bad2]
-Type of \$bar in Bad2::create() doesn't match type in Bad1 constructor.");
+}, Nette\InvalidStateException::class, "Service 'one' (type of Bad2): Type of \$bar in Bad2::create() doesn't match type in Bad1 constructor.");
 
 
 
@@ -288,8 +302,7 @@ Assert::exception(function () {
 	$builder->addFactoryDefinition('one')
 		->setImplement(Bad4::class);
 	$builder->complete();
-}, Nette\InvalidStateException::class, "[Service 'one' of type Bad4]
-Cannot implement Bad4::create(): factory method parameters (\$baz) are not matching Bad3::__construct() parameters (\$bar). Did you mean to use '\$bar' in factory method?");
+}, Nette\InvalidStateException::class, "Service 'one' (type of Bad4): Unused parameter \$baz when implementing method Bad4::create(), did you mean \$bar?");
 
 
 
@@ -310,8 +323,7 @@ Assert::exception(function () {
 	$builder->addFactoryDefinition('one')
 		->setImplement(Bad6::class);
 	$builder->complete();
-}, Nette\InvalidStateException::class, "[Service 'one' of type Bad6]
-Cannot implement Bad6::create(): factory method parameters (\$baz) are not matching Bad5::__construct() parameters (\$xxx).");
+}, Nette\InvalidStateException::class, "Service 'one' (type of Bad6): Unused parameter \$baz when implementing method Bad6::create().");
 
 
 

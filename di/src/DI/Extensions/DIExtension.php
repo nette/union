@@ -18,10 +18,17 @@ use Tracy;
  */
 final class DIExtension extends Nette\DI\CompilerExtension
 {
-	public array $exportedTags = [];
-	public array $exportedTypes = [];
-	private bool $debugMode;
-	private float $time;
+	/** @var array */
+	public $exportedTags = [];
+
+	/** @var array */
+	public $exportedTypes = [];
+
+	/** @var bool */
+	private $debugMode;
+
+	/** @var float */
+	private $time;
 
 
 	public function __construct(bool $debugMode = false)
@@ -30,23 +37,27 @@ final class DIExtension extends Nette\DI\CompilerExtension
 		$this->time = microtime(true);
 
 		$this->config = new class {
-			public ?bool $debugger = null;
+			/** @var ?bool */
+			public $debugger;
 
 			/** @var string[] */
-			public array $excluded = [];
+			public $excluded = [];
 
-			public ?string $parentClass = null;
+			/** @var ?string */
+			public $parentClass;
 
-			public object $export;
+			/** @var object */
+			public $export;
 		};
 		$this->config->export = new class {
-			public bool $parameters = true;
+			/** @var bool */
+			public $parameters = true;
 
 			/** @var string[]|bool|null */
-			public array|bool|null $tags = true;
+			public $tags = true;
 
 			/** @var string[]|bool|null */
-			public array|bool|null $types = true;
+			public $types = true;
 		};
 	}
 
@@ -106,7 +117,7 @@ final class DIExtension extends Nette\DI\CompilerExtension
 		$prop = $class->getProperty('wiring');
 		$prop->setValue(array_intersect_key(
 			$prop->getValue(),
-			$this->exportedTypes + (is_array($option) ? array_flip($option) : []),
+			$this->exportedTypes + (is_array($option) ? array_flip($option) : [])
 		));
 	}
 

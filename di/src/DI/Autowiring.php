@@ -19,16 +19,17 @@ class Autowiring
 {
 	use Nette\SmartObject;
 
-	private ContainerBuilder $builder;
+	/** @var ContainerBuilder */
+	private $builder;
 
 	/** @var array[]  type => services, used by getByType() */
-	private array $highPriority = [];
+	private $highPriority = [];
 
 	/** @var array[]  type => services, used by findByType() */
-	private array $lowPriority = [];
+	private $lowPriority = [];
 
 	/** @var string[] of classes excluded from autowiring */
-	private array $excludedClasses = [];
+	private $excludedClasses = [];
 
 
 	public function __construct(ContainerBuilder $builder)
@@ -39,6 +40,7 @@ class Autowiring
 
 	/**
 	 * Resolves service name by type.
+	 * @param  bool  $throw exception if service not found?
 	 * @throws MissingServiceException when not found
 	 * @throws ServiceCreationException when multiple found
 	 */
@@ -63,13 +65,13 @@ class Autowiring
 		} else {
 			$list = $types[$type];
 			natsort($list);
-			$hint = count($list) === 2 && ($tmp = str_contains($list[0], '.') xor str_contains($list[1], '.'))
+			$hint = count($list) === 2 && ($tmp = strpos($list[0], '.') xor strpos($list[1], '.'))
 				? '. If you want to overwrite service ' . $list[$tmp ? 0 : 1] . ', give it proper name.'
 				: '';
 			throw new ServiceCreationException(sprintf(
 				"Multiple services of type $type found: %s%s",
 				implode(', ', $list),
-				$hint,
+				$hint
 			));
 		}
 	}
@@ -131,7 +133,7 @@ class Autowiring
 						throw new ServiceCreationException(sprintf(
 							"Incompatible class %s in autowiring definition of service '%s'.",
 							$autowiredType,
-							$name,
+							$name
 						));
 					}
 				}

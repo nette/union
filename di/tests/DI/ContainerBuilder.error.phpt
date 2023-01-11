@@ -7,7 +7,6 @@
 declare(strict_types=1);
 
 use Nette\DI;
-use Nette\DI\Definitions\Statement;
 use Tester\Assert;
 
 
@@ -21,8 +20,7 @@ $builder->addDefinition('one')
 
 Assert::exception(function () use ($builder) {
 	$builder->complete();
-}, Nette\InvalidStateException::class, "[Service 'one' of type stdClass]
-Expected function, method or property name, '1234' given.");
+}, Nette\InvalidStateException::class, "Service 'one' (type of stdClass): Expected function, method or property name, '1234' given.");
 
 
 
@@ -45,28 +43,4 @@ $builder->addDefinition('one')
 
 Assert::exception(function () use ($builder) {
 	$builder->complete();
-}, Nette\InvalidStateException::class, "[Service 'one' of type stdClass]
-Missing argument for \$prop[].");
-
-
-
-$builder = new DI\ContainerBuilder;
-$builder->addDefinition(null)
-	->setFactory([new Statement('Unknown'), 'foo']);
-
-Assert::exception(function () use ($builder) {
-	$builder->complete();
-}, Nette\DI\ServiceCreationException::class, "[Service Unknown()::foo()]
-Class 'Unknown' not found.");
-
-
-
-$builder = new DI\ContainerBuilder;
-$builder->addDefinition(null)
-	->setFactory('stdClass')
-	->addSetup([new Statement('Unknown'), 'foo']);
-
-Assert::exception(function () use ($builder) {
-	$builder->complete();
-}, Nette\DI\ServiceCreationException::class, "[Service of type stdClass]
-Class 'Unknown' not found.");
+}, Nette\InvalidStateException::class, "Service 'one' (type of stdClass): Missing argument for \$prop[].");

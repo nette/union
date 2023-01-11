@@ -30,17 +30,26 @@ class ContainerBuilder
 	/** @deprecated use ContainerBuilder::ThisContainer */
 	public const THIS_CONTAINER = self::ThisContainer;
 
-	public array $parameters = [];
+	/** @var array */
+	public $parameters = [];
 
 	/** @var Definition[] */
-	private array $definitions = [];
+	private $definitions = [];
 
-	/** alias => service */
-	private array $aliases = [];
-	private Autowiring $autowiring;
-	private bool $needsResolve = true;
-	private bool $resolving = false;
-	private array $dependencies = [];
+	/** @var array of alias => service */
+	private $aliases = [];
+
+	/** @var Autowiring */
+	private $autowiring;
+
+	/** @var bool */
+	private $needsResolve = true;
+
+	/** @var bool */
+	private $resolving = false;
+
+	/** @var array */
+	private $dependencies = [];
 
 
 	public function __construct()
@@ -66,7 +75,7 @@ class ContainerBuilder
 			$name = '0' . $i; // prevents converting to integer in array key
 
 		} elseif (is_int(key([$name => 1])) || !preg_match('#^\w+(\.\w+)*$#D', $name)) {
-			throw new Nette\InvalidArgumentException(sprintf("Service name must be a alpha-numeric string and not a number, '%s' given.", $name));
+			throw new Nette\InvalidArgumentException(sprintf('Service name must be a alpha-numeric string and not a number, %s given.', gettype($name)));
 
 		} else {
 			$name = $this->aliases[$name] ?? $name;
@@ -80,7 +89,7 @@ class ContainerBuilder
 					throw new Nette\InvalidStateException(sprintf(
 						"Service '%s' has the same name as '%s' in a case-insensitive manner.",
 						$name,
-						$nm,
+						$nm
 					));
 				}
 			}
@@ -167,10 +176,10 @@ class ContainerBuilder
 	public function addAlias(string $alias, string $service): void
 	{
 		if (!$alias) { // builder is not ready for falsy names such as '0'
-			throw new Nette\InvalidArgumentException(sprintf("Alias name must be a non-empty string, '%s' given.", $alias));
+			throw new Nette\InvalidArgumentException(sprintf('Alias name must be a non-empty string, %s given.', gettype($alias)));
 
 		} elseif (!$service) { // builder is not ready for falsy names such as '0'
-			throw new Nette\InvalidArgumentException(sprintf("Service name must be a non-empty string, '%s' given.", $service));
+			throw new Nette\InvalidArgumentException(sprintf('Service name must be a non-empty string, %s given.', gettype($service)));
 
 		} elseif (isset($this->aliases[$alias])) {
 			throw new Nette\InvalidStateException(sprintf("Alias '%s' has already been added.", $alias));
@@ -203,8 +212,9 @@ class ContainerBuilder
 
 	/**
 	 * @param  string[]  $types
+	 * @return static
 	 */
-	public function addExcludedClasses(array $types): static
+	public function addExcludedClasses(array $types)
 	{
 		$this->needsResolve = true;
 		$this->autowiring->addExcludedClasses($types);
@@ -214,6 +224,7 @@ class ContainerBuilder
 
 	/**
 	 * Resolves autowired service name by type.
+	 * @param  bool  $throw exception if service doesn't exist?
 	 * @throws MissingServiceException
 	 */
 	public function getByType(string $type, bool $throw = false): ?string
@@ -331,9 +342,11 @@ class ContainerBuilder
 
 	/**
 	 * Adds item to the list of dependencies.
+	 * @param  \ReflectionClass|\ReflectionFunctionAbstract|string  $dep
+	 * @return static
 	 * @internal
 	 */
-	public function addDependency(\ReflectionClass|\ReflectionFunctionAbstract|string $dep): static
+	public function addDependency($dep)
 	{
 		$this->dependencies[] = $dep;
 		return $this;
@@ -392,7 +405,7 @@ class ContainerBuilder
 	public static function literal(string $code, ?array $args = null): Nette\PhpGenerator\PhpLiteral
 	{
 		return new Nette\PhpGenerator\PhpLiteral(
-			$args === null ? $code : (new Nette\PhpGenerator\Dumper)->format($code, ...$args),
+			$args === null ? $code : (new Nette\PhpGenerator\Dumper)->format($code, ...$args)
 		);
 	}
 
