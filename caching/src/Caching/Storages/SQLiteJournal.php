@@ -22,7 +22,9 @@ class SQLiteJournal implements Journal
 
 	/** @string */
 	private $path;
-	private \PDO $pdo;
+
+	/** @var \PDO */
+	private $pdo;
 
 
 	public function __construct(string $path)
@@ -65,7 +67,7 @@ class SQLiteJournal implements Journal
 
 	public function write(string $key, array $dependencies): void
 	{
-		if (!isset($this->pdo)) {
+		if (!$this->pdo) {
 			$this->open();
 		}
 
@@ -94,7 +96,7 @@ class SQLiteJournal implements Journal
 
 	public function clean(array $conditions): ?array
 	{
-		if (!isset($this->pdo)) {
+		if (!$this->pdo) {
 			$this->open();
 		}
 

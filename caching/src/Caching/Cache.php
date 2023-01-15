@@ -32,46 +32,29 @@ class Cache
 		Namespaces = 'namespaces',
 		All = 'all';
 
-	/** @deprecated use Cache::Priority */
-	public const PRIORITY = self::Priority;
-
-	/** @deprecated use Cache::Expire */
-	public const EXPIRATION = self::Expire;
-
-	/** @deprecated use Cache::Expire */
-	public const EXPIRE = self::Expire;
-
-	/** @deprecated use Cache::Sliding */
-	public const SLIDING = self::Sliding;
-
-	/** @deprecated use Cache::Tags */
-	public const TAGS = self::Tags;
-
-	/** @deprecated use Cache::Files */
-	public const FILES = self::Files;
-
-	/** @deprecated use Cache::Items */
-	public const ITEMS = self::Items;
-
-	/** @deprecated use Cache::Constants */
-	public const CONSTS = self::Constants;
-
-	/** @deprecated use Cache::Callbacks */
-	public const CALLBACKS = self::Callbacks;
-
-	/** @deprecated use Cache::Namespaces */
-	public const NAMESPACES = self::Namespaces;
-
-	/** @deprecated use Cache::All */
-	public const ALL = self::All;
+	public const
+		PRIORITY = self::Priority,
+		EXPIRATION = self::Expire,
+		EXPIRE = self::Expire,
+		SLIDING = self::Sliding,
+		TAGS = self::Tags,
+		FILES = self::Files,
+		ITEMS = self::Items,
+		CONSTS = self::Constants,
+		CALLBACKS = self::Callbacks,
+		NAMESPACES = self::Namespaces,
+		ALL = self::All;
 
 	/** @internal */
 	public const
 		NamespaceSeparator = "\x00",
 		NAMESPACE_SEPARATOR = self::NamespaceSeparator;
 
-	private Storage $storage;
-	private string $namespace;
+	/** @var Storage */
+	private $storage;
+
+	/** @var string */
+	private $namespace;
 
 
 	public function __construct(Storage $storage, ?string $namespace = null)
@@ -101,8 +84,9 @@ class Cache
 
 	/**
 	 * Returns new nested cache object.
+	 * @return static
 	 */
-	public function derive(string $namespace): static
+	public function derive(string $namespace)
 	{
 		return new static($this->storage, $this->namespace . $namespace);
 	}
@@ -110,8 +94,10 @@ class Cache
 
 	/**
 	 * Reads the specified item from the cache or generate it.
+	 * @param  mixed  $key
+	 * @return mixed
 	 */
-	public function load(mixed $key, ?callable $generator = null, ?array $dependencies = null): mixed
+	public function load($key, ?callable $generator = null)
 	{
 		$storageKey = $this->generateKey($key);
 		$data = $this->storage->read($storageKey);
@@ -152,8 +138,10 @@ class Cache
 				$result[$key] = $this->load(
 					$key,
 					$generator
-						? fn(&$dependencies) => $generator(...[$key, &$dependencies])
-						: null,
+						? function (&$dependencies) use ($key, $generator) {
+							return $generator(...[$key, &$dependencies]);
+						}
+						: null
 				);
 			}
 
@@ -167,7 +155,9 @@ class Cache
 			if (isset($cacheData[$storageKey])) {
 				$result[$key] = $cacheData[$storageKey];
 			} elseif ($generator) {
-				$result[$key] = $this->load($key, fn(&$dependencies) => $generator(...[$key, &$dependencies]));
+				$result[$key] = $this->load($key, function (&$dependencies) use ($key, $generator) {
+					return $generator(...[$key, &$dependencies]);
+				});
 			} else {
 				$result[$key] = null;
 			}
@@ -180,17 +170,20 @@ class Cache
 	/**
 	 * Writes item into the cache.
 	 * Dependencies are:
-	 * - Cache::Priority => (int) priority
-	 * - Cache::Expire => (timestamp) expiration
+	 * - Cache::Priortiy => (int) priority
+	 * - Cache::Exprie => (timestamp) expiration
 	 * - Cache::Sliding => (bool) use sliding expiration?
 	 * - Cache::Tags => (array) tags
 	 * - Cache::Files => (array|string) file names
 	 * - Cache::Items => (array|string) cache items
-	 * - Cache::Constants => (array|string) cache items
+	 * - Cache::Consts => (array|string) cache items
+	 *
+	 * @param  mixed  $key
+	 * @param  mixed  $data
 	 * @return mixed  value itself
 	 * @throws Nette\InvalidArgumentException
 	 */
-	public function save(mixed $key, mixed $data, ?array $dependencies = null): mixed
+	public function save($key, $data, ?array $dependencies = null)
 	{
 		$key = $this->generateKey($key);
 
@@ -206,7 +199,6 @@ class Cache
 
 		if ($data === null) {
 			$this->storage->remove($key);
-			return null;
 		} else {
 			$dependencies = $this->completeDependencies($dependencies);
 			if (isset($dependencies[self::Expire]) && $dependencies[self::Expire] <= 0) {
@@ -270,8 +262,9 @@ class Cache
 
 	/**
 	 * Removes item from the cache.
+	 * @param  mixed  $key
 	 */
-	public function remove(mixed $key): void
+	public function remove($key): void
 	{
 		$this->save($key, null);
 	}
@@ -297,15 +290,18 @@ class Cache
 
 	/**
 	 * Caches results of function/method calls.
+	 * @return mixed
 	 */
-	public function call(callable $function): mixed
+	public function call(callable $function)
 	{
 		$key = func_get_args();
 		if (is_array($function) && is_object($function[0])) {
 			$key[0][0] = get_class($function[0]);
 		}
 
-		return $this->load($key, fn() => $function(...array_slice($key, 1)));
+		return $this->load($key, function () use ($function, $key) {
+			return $function(...array_slice($key, 1));
+		});
 	}
 
 
@@ -330,8 +326,9 @@ class Cache
 
 	/**
 	 * Starts the output cache.
+	 * @param  mixed  $key
 	 */
-	public function capture(mixed $key): ?OutputHelper
+	public function capture($key): ?OutputHelper
 	{
 		$data = $this->load($key);
 		if ($data === null) {

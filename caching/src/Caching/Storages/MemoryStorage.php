@@ -19,10 +19,11 @@ class MemoryStorage implements Nette\Caching\Storage
 {
 	use Nette\SmartObject;
 
-	private array $data = [];
+	/** @var array */
+	private $data = [];
 
 
-	public function read(string $key): mixed
+	public function read(string $key)
 	{
 		return $this->data[$key] ?? null;
 	}

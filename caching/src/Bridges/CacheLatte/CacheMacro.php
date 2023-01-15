@@ -21,7 +21,8 @@ final class CacheMacro implements Latte\IMacro
 {
 	use Nette\SmartObject;
 
-	private bool $used;
+	/** @var bool */
+	private $used;
 
 
 	/**
@@ -62,7 +63,7 @@ final class CacheMacro implements Latte\IMacro
 			->write(
 				'<?php if (Nette\Bridges\CacheLatte\CacheMacro::createCache($this->global->cacheStorage, %var, $this->global->cacheStack, %node.array?)) /* line %var */ try { ?>',
 				Nette\Utils\Random::generate(),
-				$node->startLine,
+				$node->startLine
 			);
 	}
 
@@ -80,7 +81,7 @@ final class CacheMacro implements Latte\IMacro
 				} catch (\Throwable $ʟ_e) {
 					Nette\Bridges\CacheLatte\CacheMacro::rollback($this->global->cacheStack); throw $ʟ_e;
 				} ?>',
-				$node->startLine,
+				$node->startLine
 			);
 	}
 
@@ -101,14 +102,14 @@ final class CacheMacro implements Latte\IMacro
 
 	/**
 	 * Starts the output cache. Returns Nette\Caching\OutputHelper object if buffering was started.
+	 * @return Nette\Caching\OutputHelper|\stdClass
 	 */
 	public static function createCache(
 		Nette\Caching\Storage $cacheStorage,
 		string $key,
 		?array &$parents,
-		?array $args = null,
-	): Nette\Caching\OutputHelper|\stdClass|null
-	{
+		?array $args = null
+	) {
 		if ($args) {
 			if (array_key_exists('if', $args) && !$args['if']) {
 				return $parents[] = new \stdClass;
@@ -122,7 +123,7 @@ final class CacheMacro implements Latte\IMacro
 		}
 
 		$cache = new Cache($cacheStorage, 'Nette.Templating.Cache');
-		if ($helper = $cache->capture($key)) {
+		if ($helper = $cache->start($key)) {
 			$parents[] = $helper;
 		}
 

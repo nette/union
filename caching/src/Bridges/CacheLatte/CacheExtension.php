@@ -42,7 +42,7 @@ final class CacheExtension extends Latte\Extension
 		return [
 			'cache' => function (Tag $tag): \Generator {
 				$this->used = true;
-				return yield from Nodes\CacheNode::create($tag);
+				return Nodes\CacheNode::create($tag);
 			},
 		];
 	}
@@ -53,7 +53,7 @@ final class CacheExtension extends Latte\Extension
 		return [
 			'cacheInitialization' => function (TemplateNode $node): void {
 				if ($this->used) {
-					$node->head->append(new AuxiliaryNode(fn() => '$this->global->cache->initialize($this);'));
+					$node->head->append(new AuxiliaryNode(fn() => Nodes\CacheNode::class . '::initRuntime($this);'));
 				}
 			},
 		];
@@ -63,13 +63,7 @@ final class CacheExtension extends Latte\Extension
 	public function getProviders(): array
 	{
 		return [
-			'cache' => new Runtime($this->storage),
+			'cacheStorage' => $this->storage,
 		];
-	}
-
-
-	public function getCacheKey(Latte\Engine $engine): array
-	{
-		return ['version' => 2];
 	}
 }
