@@ -28,7 +28,7 @@ $input = [
 $encoder = new Neon\Encoder;
 $node = $encoder->valueToNode($input);
 
-Assert::same(
-	strtr(file_get_contents(__DIR__ . '/fixtures/Encoder.nodes.txt'), ["\r\n" => "\n"]),
+Assert::matchFile(
+	__DIR__ . '/fixtures/Encoder.nodes.txt',
 	Dumper::toText($node, [Dumper::HASH => false, Dumper::DEPTH => 20]),
 );
