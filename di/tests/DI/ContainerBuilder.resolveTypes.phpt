@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Test of simple resolving
+ *
+ * services:
+ *    - Factory::createClass()
+ */
+
 declare(strict_types=1);
 
 use Nette\DI;
