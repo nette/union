@@ -1,10 +1,16 @@
 <?php
 
+/** @phpVersion 8.0 */
+
 declare(strict_types=1);
 
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
+
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
+}
 
 Tester\Environment::bypassFinals();
 
@@ -67,11 +73,3 @@ Assert::exception(
 	LogicException::class, // missing template
 );
 Assert::same('layout.latte', $template->getParentName());
-
-
-$latte->setLoader(new Latte\Loaders\StringLoader([
-	'main.latte' => '{extends foo.latte}',
-	'foo.latte' => '{extends auto}',
-	'layout.latte' => 'layout',
-]));
-Assert::same('layout', $template = $latte->renderToString('main.latte'));

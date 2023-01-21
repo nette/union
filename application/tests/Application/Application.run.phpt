@@ -127,7 +127,6 @@ test('no route with error presenter', function () use ($httpRequest, $httpRespon
 
 	Assert::equal($requests[0], $errorPresenter->request);
 	Assert::null($errorPresenter->request->getParameter('request'));
-	Assert::null($errorPresenter->request->getParameter('previousPresenter'));
 	Assert::type(BadRequestException::class, $errorPresenter->request->getParameter('exception'));
 });
 
@@ -155,7 +154,6 @@ test('route to error presenter', function () use ($httpRequest, $httpResponse) {
 
 	Assert::equal($requests[1], $errorPresenter->request);
 	Assert::equal($requests[0], $errorPresenter->request->getParameter('request'));
-	Assert::null($errorPresenter->request->getParameter('previousPresenter'));
 	Assert::type(BadRequestException::class, $errorPresenter->request->getParameter('exception'));
 });
 
@@ -197,7 +195,6 @@ test('missing presenter with error presenter', function () use ($httpRequest, $h
 
 	Assert::equal($requests[1], $errorPresenter->request);
 	Assert::equal($requests[0], $errorPresenter->request->getParameter('request'));
-	Assert::null($errorPresenter->request->getParameter('previousPresenter'));
 	Assert::type(BadRequestException::class, $errorPresenter->request->getParameter('exception'));
 });
 
@@ -216,11 +213,10 @@ Assert::exception(function () use ($httpRequest, $httpResponse) {
 
 
 test('presenter error with error presenter', function () use ($httpRequest, $httpResponse) {
-	$badPresenter = new BadPresenter;
 	$errorPresenter = new ErrorPresenter;
 
 	$presenterFactory = Mockery::mock(IPresenterFactory::class);
-	$presenterFactory->shouldReceive('createPresenter')->with('Bad')->andReturn($badPresenter);
+	$presenterFactory->shouldReceive('createPresenter')->with('Bad')->andReturn(new BadPresenter);
 	$presenterFactory->shouldReceive('createPresenter')->with('Error')->andReturn($errorPresenter);
 
 	$router = Mockery::mock(Router::class);
@@ -240,7 +236,6 @@ test('presenter error with error presenter', function () use ($httpRequest, $htt
 
 	Assert::equal($requests[1], $errorPresenter->request);
 	Assert::equal($requests[0], $errorPresenter->request->getParameter('request'));
-	Assert::equal($badPresenter, $errorPresenter->request->getParameter('previousPresenter'));
 	Assert::type(BadException::class, $errorPresenter->request->getParameter('exception'));
 });
 
@@ -318,11 +313,9 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 	$app->catchExceptions = true;
 	$app->errorPresenter = 'Error';
 
-	Assert::exception(
-		fn() => $app->run(),
-		RuntimeException::class,
-		'Error at shutdown',
-	);
+	Assert::exception(function () use ($app) {
+		$app->run();
+	}, RuntimeException::class, 'Error at shutdown');
 
 	Assert::count(2, $errors);
 	Assert::equal('Error at startup', $errors[0]->getMessage());
@@ -345,8 +338,8 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 
 	$errors = [];
 
-	$presenter->injectPrimary($httpRequest, $httpResponse, $presenterFactory, $router);
-	$errorPresenter->injectPrimary($httpRequest, $httpResponse, $presenterFactory, $router);
+	$presenter->injectPrimary(null, $presenterFactory, $router, $httpRequest, $httpResponse);
+	$errorPresenter->injectPrimary(null, $presenterFactory, $router, $httpRequest, $httpResponse);
 
 	$app = new Application($presenterFactory, $router, $httpRequest, $httpResponse);
 	$app->catchExceptions = true;
@@ -362,7 +355,9 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 		$errors[] = $e;
 	};
 
-	Assert::noError(fn() => $app->run());
+	Assert::noError(function () use ($app) {
+		$app->run();
+	});
 
 	Assert::count(1, $errors);
 	Assert::same('Error on presenter', $errors[0]->getMessage());
@@ -396,22 +391,18 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 
 	// Use default maxLoop
 	$app1 = clone $app;
-	Assert::exception(
-		fn() => $app1->run(),
-		ApplicationException::class,
-		'Too many loops detected in application life cycle.',
-	);
+	Assert::exception(function () use ($app1) {
+		$app1->run();
+	}, ApplicationException::class, 'Too many loops detected in application life cycle.');
 
 	Assert::count(21, $app1->getRequests());
 
 	// Redefine maxLoop
 	$app2 = clone $app;
 	$app2->maxLoop = 2;
-	Assert::exception(
-		fn() => $app2->run(),
-		ApplicationException::class,
-		'Too many loops detected in application life cycle.',
-	);
+	Assert::exception(function () use ($app2) {
+		$app2->run();
+	}, ApplicationException::class, 'Too many loops detected in application life cycle.');
 
 	Assert::count(3, $app2->getRequests());
 });

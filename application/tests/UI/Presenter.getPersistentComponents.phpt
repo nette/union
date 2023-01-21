@@ -37,4 +37,6 @@ Assert::same([], OnePresenter::getPersistentComponents());
 
 Assert::same(['a', 'b'], TwoPresenter::getPersistentComponents());
 
-Assert::same(['a', 'b'], ThreePresenter::getPersistentComponents());
+if (PHP_VERSION_ID >= 80000) {
+	Assert::same(['a', 'b'], ThreePresenter::getPersistentComponents());
+}

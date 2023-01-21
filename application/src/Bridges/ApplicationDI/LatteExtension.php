@@ -21,9 +21,11 @@ use Tracy;
  */
 final class LatteExtension extends Nette\DI\CompilerExtension
 {
-	private bool $debugMode;
+	/** @var bool */
+	private $debugMode;
 
-	private string $tempDir;
+	/** @var string */
+	private $tempDir;
 
 
 	public function __construct(string $tempDir, bool $debugMode = false)
@@ -37,12 +39,11 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 	{
 		return Expect::structure([
 			'debugger' => Expect::anyOf(true, false, 'all'),
+			'xhtml' => Expect::bool(false)->deprecated(),
+			'macros' => Expect::arrayOf('string'),
 			'extensions' => Expect::arrayOf('string|Nette\DI\Definitions\Statement'),
 			'templateClass' => Expect::string(),
 			'strictTypes' => Expect::bool(false),
-			'strictParsing' => Expect::bool(false),
-			'phpLinter' => Expect::string(),
-			'variables' => Expect::array([]),
 		]);
 	}
 
@@ -56,25 +57,31 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 		$config = $this->config;
 		$builder = $this->getContainerBuilder();
 
-		$builder->addFactoryDefinition($this->prefix('latteFactory'))
+		$latteFactory = $builder->addFactoryDefinition($this->prefix('latteFactory'))
 			->setImplement(ApplicationLatte\LatteFactory::class)
 			->getResultDefinition()
 				->setFactory(Latte\Engine::class)
 				->addSetup('setTempDirectory', [$this->tempDir])
 				->addSetup('setAutoRefresh', [$this->debugMode])
-				->addSetup('setStrictTypes', [$config->strictTypes])
-				->addSetup('setStrictParsing', [$config->strictParsing])
-				->addSetup('enablePhpLinter', [$config->phpLinter]);
+				->addSetup('setStrictTypes', [$config->strictTypes]);
 
-		foreach ($config->extensions as $extension) {
-			$this->addExtension($extension);
+		if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+			$latteFactory->addSetup('setContentType', [$config->xhtml ? Latte\Compiler::CONTENT_XHTML : Latte\Compiler::CONTENT_HTML]);
+			if ($config->xhtml) {
+				$latteFactory->addSetup('Nette\Utils\Html::$xhtml = ?', [true]);
+			}
+			foreach ($config->macros as $macro) {
+				$this->addMacro($macro);
+			}
+		} else {
+			foreach ($config->extensions as $extension) {
+				$this->addExtension($extension);
+			}
 		}
 
 		$builder->addDefinition($this->prefix('templateFactory'))
-			->setFactory(ApplicationLatte\TemplateFactory::class, [
-				'templateClass' => $config->templateClass,
-				'configVars' => $config->variables,
-			]);
+			->setFactory(ApplicationLatte\TemplateFactory::class)
+			->setArguments(['templateClass' => $config->templateClass]);
 
 		if ($this->name === 'latte') {
 			$builder->addAlias('nette.latteFactory', $this->prefix('latteFactory'));
@@ -101,7 +108,7 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 	public static function initLattePanel(
 		Nette\Application\UI\TemplateFactory $factory,
 		Tracy\Bar $bar,
-		bool $all = false,
+		bool $all = false
 	) {
 		if (!$factory instanceof ApplicationLatte\TemplateFactory) {
 			return;
@@ -111,9 +118,37 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 			$control = $template->getLatte()->getProviders()['uiControl'] ?? null;
 			if ($all || $control instanceof Nette\Application\UI\Presenter) {
 				$name = $all && $control ? (new \ReflectionObject($control))->getShortName() : '';
-				$template->getLatte()->addExtension(new Latte\Bridges\Tracy\TracyExtension($name));
+				if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+					$bar->addPanel(new Latte\Bridges\Tracy\LattePanel($template->getLatte(), $name));
+				} else {
+					$template->getLatte()->addExtension(new Latte\Bridges\Tracy\TracyExtension($name));
+				}
 			}
 		};
+	}
+
+
+	public function addMacro(string $macro): void
+	{
+		$builder = $this->getContainerBuilder();
+		$definition = $builder->getDefinition($this->prefix('latteFactory'))->getResultDefinition();
+
+		if (($macro[0] ?? null) === '@') {
+			if (strpos($macro, '::') === false) {
+				$method = 'install';
+			} else {
+				[$macro, $method] = explode('::', $macro);
+			}
+
+			$definition->addSetup('?->onCompile[] = function ($engine) { ?->' . $method . '($engine->getCompiler()); }', ['@self', $macro]);
+
+		} else {
+			if (strpos($macro, '::') === false && class_exists($macro)) {
+				$macro .= '::install';
+			}
+
+			$definition->addSetup('?->onCompile[] = function ($engine) { ' . $macro . '($engine->getCompiler()); }', ['@self']);
+		}
 	}
 
 

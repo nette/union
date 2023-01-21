@@ -21,7 +21,7 @@ class TestPresenter extends UI\Presenter
 test('', function () {
 	$presenter = new TestPresenter;
 	$form = new UI\Form($presenter, 'name');
-	$form->setMethod($form::Get); // must not throw exception
+	$form->setMethod($form::GET); // must not throw exception
 });
 
 
@@ -30,5 +30,5 @@ test('compatibility with 2.0', function () {
 	$form = new UI\Form;
 	$form->setAction('action');
 	$presenter['name'] = $form;
-	Assert::false(isset($form[TestPresenter::SignalKey]));
+	Assert::false(isset($form[TestPresenter::SIGNAL_KEY]));
 });
