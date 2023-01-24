@@ -19,8 +19,11 @@ class Context
 {
 	use Nette\SmartObject;
 
-	private IRequest $request;
-	private IResponse $response;
+	/** @var IRequest */
+	private $request;
+
+	/** @var IResponse */
+	private $response;
 
 
 	public function __construct(IRequest $request, IResponse $response)
@@ -32,8 +35,9 @@ class Context
 
 	/**
 	 * Attempts to cache the sent entity by its last modification date.
+	 * @param  string|int|\DateTimeInterface  $lastModified
 	 */
-	public function isModified(string|int|\DateTimeInterface|null $lastModified = null, ?string $etag = null): bool
+	public function isModified($lastModified = null, ?string $etag = null): bool
 	{
 		if ($lastModified) {
 			$this->response->setHeader('Last-Modified', Helpers::formatDate($lastModified));
@@ -50,7 +54,7 @@ class Context
 		} elseif ($ifNoneMatch !== null) {
 			$etag = $this->response->getHeader('ETag');
 
-			if ($etag === null || !str_contains(' ' . strtr($ifNoneMatch, ",\t", '  '), ' ' . $etag)) {
+			if ($etag === null || strpos(' ' . strtr($ifNoneMatch, ",\t", '  '), ' ' . $etag) === false) {
 				return true;
 
 			} else {

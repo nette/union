@@ -34,12 +34,23 @@ final class FileUpload
 	/** @deprecated use FileUpload::ImageMimeTypes */
 	public const IMAGE_MIME_TYPES = self::ImageMimeTypes;
 
-	private string $name;
-	private string|null $fullPath;
-	private string|false|null $type = null;
-	private int $size;
-	private string $tmpName;
-	private int $error;
+	/** @var string */
+	private $name;
+
+	/** @var string|null */
+	private $fullPath;
+
+	/** @var string|false|null */
+	private $type;
+
+	/** @var int */
+	private $size;
+
+	/** @var string */
+	private $tmpName;
+
+	/** @var int */
+	private $error;
 
 
 	public function __construct(?array $value)
@@ -64,7 +75,6 @@ final class FileUpload
 	 */
 	public function getName(): string
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use getUntrustedName()', E_USER_DEPRECATED);
 		return $this->name;
 	}
 
@@ -183,8 +193,9 @@ final class FileUpload
 
 	/**
 	 * Moves an uploaded file to a new location. If the destination file already exists, it will be overwritten.
+	 * @return static
 	 */
-	public function move(string $dest): static
+	public function move(string $dest)
 	{
 		$dir = dirname($dest);
 		Nette\Utils\FileSystem::createDir($dir);
@@ -194,7 +205,7 @@ final class FileUpload
 			[$this->tmpName, $dest],
 			function (string $message) use ($dest): void {
 				throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'. $message");
-			},
+			}
 		);
 		@chmod($dest, 0666); // @ - possible low permission to chmod
 		$this->tmpName = $dest;

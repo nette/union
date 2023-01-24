@@ -42,29 +42,52 @@ class UrlImmutable implements \JsonSerializable
 {
 	use Nette\SmartObject;
 
-	private string $scheme = '';
-	private string $user = '';
-	private string $password = '';
-	private string $host = '';
-	private ?int $port = null;
-	private string $path = '';
-	private array $query = [];
-	private string $fragment = '';
-	private string $authority = '';
+	/** @var string */
+	private $scheme = '';
+
+	/** @var string */
+	private $user = '';
+
+	/** @var string */
+	private $password = '';
+
+	/** @var string */
+	private $host = '';
+
+	/** @var int|null */
+	private $port;
+
+	/** @var string */
+	private $path = '';
+
+	/** @var array */
+	private $query = [];
+
+	/** @var string */
+	private $fragment = '';
+
+	/** @var string */
+	private $authority = '';
 
 
 	/**
+	 * @param  string|self|Url  $url
 	 * @throws Nette\InvalidArgumentException if URL is malformed
 	 */
-	public function __construct(string|self|Url $url)
+	public function __construct($url)
 	{
+		if (!$url instanceof Url && !$url instanceof self && !is_string($url)) {
+			throw new Nette\InvalidArgumentException;
+		}
+
 		$url = is_string($url) ? new Url($url) : $url;
 		[$this->scheme, $this->user, $this->password, $this->host, $this->port, $this->path, $this->query, $this->fragment] = $url->export();
 		$this->build();
 	}
 
 
-	public function withScheme(string $scheme): static
+	/** @return static */
+	public function withScheme(string $scheme)
 	{
 		$dolly = clone $this;
 		$dolly->scheme = $scheme;
@@ -79,7 +102,8 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withUser(string $user): static
+	/** @return static */
+	public function withUser(string $user)
 	{
 		$dolly = clone $this;
 		$dolly->user = $user;
@@ -94,7 +118,8 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withPassword(string $password): static
+	/** @return static */
+	public function withPassword(string $password)
 	{
 		$dolly = clone $this;
 		$dolly->password = $password;
@@ -109,7 +134,8 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withoutUserInfo(): static
+	/** @return static */
+	public function withoutUserInfo()
 	{
 		$dolly = clone $this;
 		$dolly->user = $dolly->password = '';
@@ -118,7 +144,8 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withHost(string $host): static
+	/** @return static */
+	public function withHost(string $host)
 	{
 		$dolly = clone $this;
 		$dolly->host = $host;
@@ -145,7 +172,8 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withPort(int $port): static
+	/** @return static */
+	public function withPort(int $port)
 	{
 		$dolly = clone $this;
 		$dolly->port = $port;
@@ -166,7 +194,8 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withPath(string $path): static
+	/** @return static */
+	public function withPath(string $path)
 	{
 		$dolly = clone $this;
 		$dolly->path = $path;
@@ -181,7 +210,11 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withQuery(string|array $query): static
+	/**
+	 * @param  string|array  $query
+	 * @return static
+	 */
+	public function withQuery($query)
 	{
 		$dolly = clone $this;
 		$dolly->query = is_array($query) ? $query : Url::parseQuery($query);
@@ -196,7 +229,11 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function withQueryParameter(string $name, mixed $value): static
+	/**
+	 * @param mixed  $value  null unsets the parameter
+	 * @return static
+	 */
+	public function withQueryParameter(string $name, $value)
 	{
 		$dolly = clone $this;
 		$dolly->query[$name] = $value;
@@ -210,13 +247,15 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function getQueryParameter(string $name): array|string|null
+	/** @return array|string|null */
+	public function getQueryParameter(string $name)
 	{
 		return $this->query[$name] ?? null;
 	}
 
 
-	public function withFragment(string $fragment): static
+	/** @return static */
+	public function withFragment(string $fragment)
 	{
 		$dolly = clone $this;
 		$dolly->fragment = $fragment;
@@ -267,7 +306,10 @@ class UrlImmutable implements \JsonSerializable
 	}
 
 
-	public function isEqual(string|Url|self $url): bool
+	/**
+	 * @param  string|Url|self  $url
+	 */
+	public function isEqual($url): bool
 	{
 		return (new Url($this))->isEqual($url);
 	}
@@ -288,7 +330,7 @@ class UrlImmutable implements \JsonSerializable
 
 	protected function build(): void
 	{
-		if ($this->host && !str_starts_with($this->path, '/')) {
+		if ($this->host && substr($this->path, 0, 1) !== '/') {
 			$this->path = '/' . $this->path;
 		}
 

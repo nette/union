@@ -13,7 +13,9 @@ require __DIR__ . '/../bootstrap.php';
 
 
 test('', function () {
-	$request = new Http\Request(new Http\UrlScript, rawBodyCallback: fn() => 'raw body');
+	$request = new Http\Request(new Http\UrlScript, null, null, null, null, null, null, null, function () {
+		return 'raw body';
+	});
 
 	Assert::same('raw body', $request->getRawBody());
 });

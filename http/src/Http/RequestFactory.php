@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Nette\Http;
 
 use Nette;
-use Nette\Utils\Arrays;
 use Nette\Utils\Strings;
 
 
@@ -24,18 +23,21 @@ class RequestFactory
 	/** @internal */
 	private const ValidChars = '\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}';
 
-	public array $urlFilters = [
+	/** @var array */
+	public $urlFilters = [
 		'path' => ['#//#' => '/'], // '%20' => ''
 		'url' => [], // '#[.,)]$#D' => ''
 	];
 
-	private bool $binary = false;
+	/** @var bool */
+	private $binary = false;
 
 	/** @var string[] */
-	private array $proxies = [];
+	private $proxies = [];
 
 
-	public function setBinary(bool $binary = true): static
+	/** @return static */
+	public function setBinary(bool $binary = true)
 	{
 		$this->binary = $binary;
 		return $this;
@@ -44,8 +46,9 @@ class RequestFactory
 
 	/**
 	 * @param  string|string[]  $proxy
+	 * @return static
 	 */
-	public function setProxy($proxy): static
+	public function setProxy($proxy)
 	{
 		$this->proxies = (array) $proxy;
 		return $this;
@@ -72,7 +75,9 @@ class RequestFactory
 			$this->getMethod(),
 			$remoteAddr,
 			$remoteHost,
-			fn(): string => file_get_contents('php://input')
+			function (): string {
+				return file_get_contents('php://input');
+			}
 		);
 	}
 
@@ -88,7 +93,7 @@ class RequestFactory
 			$url->setHost(rtrim(strtolower($pair[1]), '.'));
 			if (isset($pair[2])) {
 				$url->setPort((int) substr($pair[2], 1));
-			} elseif ($tmp === 'SERVER_NAME' && isset($_SERVER['SERVER_PORT'])) {
+			} elseif (isset($_SERVER['SERVER_PORT'])) {
 				$url->setPort((int) $_SERVER['SERVER_PORT']);
 			}
 		}
@@ -132,7 +137,7 @@ class RequestFactory
 
 	private function getGetPostCookie(Url $url): array
 	{
-		$useFilter = (!in_array((string) ini_get('filter.default'), ['', 'unsafe_raw'], true) || ini_get('filter.default_flags'));
+		$useFilter = (!in_array(ini_get('filter.default'), ['', 'unsafe_raw'], true) || ini_get('filter.default_flags'));
 
 		$query = $url->getQueryParameters();
 		$post = $useFilter
@@ -159,7 +164,7 @@ class RequestFactory
 						$list[$key][$k] = (string) preg_replace('#[^' . self::ValidChars . ']+#u', '', $v);
 
 					} else {
-						throw new Nette\InvalidStateException(sprintf('Invalid value in $_POST/$_COOKIE in key %s, expected string, %s given.', "'$k'", get_debug_type($v)));
+						throw new Nette\InvalidStateException(sprintf('Invalid value in $_POST/$_COOKIE in key %s, expected string, %s given.', "'$k'", gettype($v)));
 					}
 				}
 			}
@@ -273,25 +278,28 @@ class RequestFactory
 
 	private function getClient(Url $url): array
 	{
-		$remoteAddr = !empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
+		$remoteAddr = !empty($_SERVER['REMOTE_ADDR'])
+			? trim($_SERVER['REMOTE_ADDR'], '[]') // workaround for PHP 7.3.0
+			: null;
+		$remoteHost = !empty($_SERVER['REMOTE_HOST'])
+			? $_SERVER['REMOTE_HOST']
+			: null;
 
 		// use real client address and host if trusted proxy is used
-		$usingTrustedProxy = $remoteAddr && Arrays::some($this->proxies, fn(string $proxy): bool => Helpers::ipMatch($remoteAddr, $proxy));
+		$usingTrustedProxy = $remoteAddr && array_filter($this->proxies, function (string $proxy) use ($remoteAddr): bool {
+			return Helpers::ipMatch($remoteAddr, $proxy);
+		});
 		if ($usingTrustedProxy) {
-			$remoteHost = null;
-			$remoteAddr = empty($_SERVER['HTTP_FORWARDED'])
-				? $this->useNonstandardProxy($url)
-				: $this->useForwardedProxy($url);
-
-		} else {
-			$remoteHost = !empty($_SERVER['REMOTE_HOST']) ? $_SERVER['REMOTE_HOST'] : null;
+			empty($_SERVER['HTTP_FORWARDED'])
+				? $this->useNonstandardProxy($url, $remoteAddr, $remoteHost)
+				: $this->useForwardedProxy($url, $remoteAddr, $remoteHost);
 		}
 
 		return [$remoteAddr, $remoteHost];
 	}
 
 
-	private function useForwardedProxy(Url $url): ?string
+	private function useForwardedProxy(Url $url, &$remoteAddr, &$remoteHost): void
 	{
 		$forwardParams = preg_split('/[,;]/', $_SERVER['HTTP_FORWARDED']);
 		foreach ($forwardParams as $forwardParam) {
@@ -301,39 +309,40 @@ class RequestFactory
 
 		if (isset($proxyParams['for'])) {
 			$address = $proxyParams['for'][0];
-			$remoteAddr = str_contains($address, '[')
-				? substr($address, 1, strpos($address, ']') - 1) // IPv6
-				: explode(':', $address)[0];  // IPv4
-		}
-
-		if (isset($proxyParams['proto']) && count($proxyParams['proto']) === 1) {
-			$url->setScheme(strcasecmp($proxyParams['proto'][0], 'https') === 0 ? 'https' : 'http');
-			$url->setPort($url->getScheme() === 'https' ? 443 : 80);
+			$remoteAddr = strpos($address, '[') === false
+				? explode(':', $address)[0]  // IPv4
+				: substr($address, 1, strpos($address, ']') - 1); // IPv6
 		}
 
 		if (isset($proxyParams['host']) && count($proxyParams['host']) === 1) {
 			$host = $proxyParams['host'][0];
 			$startingDelimiterPosition = strpos($host, '[');
 			if ($startingDelimiterPosition === false) { //IPv4
-				$pair = explode(':', $host);
-				$url->setHost($pair[0]);
-				if (isset($pair[1])) {
-					$url->setPort((int) $pair[1]);
+				$remoteHostArr = explode(':', $host);
+				$remoteHost = $remoteHostArr[0];
+				$url->setHost($remoteHost);
+				if (isset($remoteHostArr[1])) {
+					$url->setPort((int) $remoteHostArr[1]);
 				}
 			} else { //IPv6
 				$endingDelimiterPosition = strpos($host, ']');
-				$url->setHost(substr($host, strpos($host, '[') + 1, $endingDelimiterPosition - 1));
-				$pair = explode(':', substr($host, $endingDelimiterPosition));
-				if (isset($pair[1])) {
-					$url->setPort((int) $pair[1]);
+				$remoteHost = substr($host, strpos($host, '[') + 1, $endingDelimiterPosition - 1);
+				$url->setHost($remoteHost);
+				$remoteHostArr = explode(':', substr($host, $endingDelimiterPosition));
+				if (isset($remoteHostArr[1])) {
+					$url->setPort((int) $remoteHostArr[1]);
 				}
 			}
 		}
-		return $remoteAddr ?? null;
+
+		$scheme = (isset($proxyParams['proto']) && count($proxyParams['proto']) === 1)
+			? $proxyParams['proto'][0]
+			: 'http';
+		$url->setScheme(strcasecmp($scheme, 'https') === 0 ? 'https' : 'http');
 	}
 
 
-	private function useNonstandardProxy(Url $url): ?string
+	private function useNonstandardProxy(Url $url, &$remoteAddr, &$remoteHost): void
 	{
 		if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
 			$url->setScheme(strcasecmp($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') === 0 ? 'https' : 'http');
@@ -345,11 +354,11 @@ class RequestFactory
 		}
 
 		if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-			$xForwardedForWithoutProxies = array_filter(
-				explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']),
-				fn(string $ip): bool => filter_var($ip = trim($ip), FILTER_VALIDATE_IP) === false
-					|| !Arrays::some($this->proxies, fn(string $proxy): bool => Helpers::ipMatch($ip, $proxy)),
-			);
+			$xForwardedForWithoutProxies = array_filter(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']), function (string $ip): bool {
+				return !array_filter($this->proxies, function (string $proxy) use ($ip): bool {
+					return filter_var(trim($ip), FILTER_VALIDATE_IP) !== false && Helpers::ipMatch(trim($ip), $proxy);
+				});
+			});
 			if ($xForwardedForWithoutProxies) {
 				$remoteAddr = trim(end($xForwardedForWithoutProxies));
 				$xForwardedForRealIpKey = key($xForwardedForWithoutProxies);
@@ -359,18 +368,16 @@ class RequestFactory
 		if (isset($xForwardedForRealIpKey) && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
 			$xForwardedHost = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
 			if (isset($xForwardedHost[$xForwardedForRealIpKey])) {
-				$url->setHost(trim($xForwardedHost[$xForwardedForRealIpKey]));
+				$remoteHost = trim($xForwardedHost[$xForwardedForRealIpKey]);
+				$url->setHost($remoteHost);
 			}
 		}
-
-		return $remoteAddr ?? null;
 	}
 
 
-	/** @deprecated use fromGlobals() */
+	/** @deprecated */
 	public function createHttpRequest(): Request
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use fromGlobals()', E_USER_DEPRECATED);
 		return $this->fromGlobals();
 	}
 }
