@@ -19,10 +19,11 @@ class TestHandler extends SessionHandler
 	public $called = false;
 
 
-	public function open(string $savePath, string $sessionName): bool
+	#[ReturnTypeWillChange]
+	public function open($save_path, $session_name)
 	{
 		$this->called = true;
-		return parent::open($savePath, $sessionName);
+		return parent::open($save_path, $session_name);
 	}
 }
 

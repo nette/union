@@ -16,6 +16,10 @@ $url = new Url('http://hostname/path?arg=value');
 Assert::same('arg=value', $url->query);
 Assert::same(['arg' => 'value'], $url->getQueryParameters());
 
+$url->appendQuery(null);
+Assert::same('arg=value', $url->query);
+Assert::same(['arg' => 'value'], $url->getQueryParameters());
+
 $url->appendQuery([null]);
 Assert::same('arg=value', $url->query);
 Assert::same([null, 'arg' => 'value'], $url->getQueryParameters());

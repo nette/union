@@ -58,19 +58,22 @@ interface IRequest
 	/**
 	 * Returns variable provided to the script via URL query ($_GET).
 	 * If no key is passed, returns the entire array.
+	 * @return mixed
 	 */
-	function getQuery(?string $key = null): mixed;
+	function getQuery(?string $key = null);
 
 	/**
 	 * Returns variable provided to the script via POST method ($_POST).
 	 * If no key is passed, returns the entire array.
+	 * @return mixed
 	 */
-	function getPost(?string $key = null): mixed;
+	function getPost(?string $key = null);
 
 	/**
 	 * Returns uploaded file.
+	 * @return FileUpload|array|null
 	 */
-	function getFile(string $key): ?FileUpload;
+	function getFile(string $key);
 
 	/**
 	 * Returns uploaded files.
@@ -79,8 +82,9 @@ interface IRequest
 
 	/**
 	 * Returns variable provided to the script via HTTP cookies.
+	 * @return mixed
 	 */
-	function getCookie(string $key): mixed;
+	function getCookie(string $key);
 
 	/**
 	 * Returns variables provided to the script via HTTP cookies.
