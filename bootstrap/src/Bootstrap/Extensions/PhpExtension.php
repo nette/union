@@ -20,10 +20,7 @@ final class PhpExtension extends Nette\DI\CompilerExtension
 {
 	public function getConfigSchema(): Nette\Schema\Schema
 	{
-		return Expect::arrayOf(
-			Expect::type('scalar|null')->dynamic(),
-			Expect::string(),
-		);
+		return Expect::arrayOf(Expect::scalar()->dynamic());
 	}
 
 

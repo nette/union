@@ -21,6 +21,8 @@ use Tracy;
  */
 class Configurator
 {
+	use Nette\SmartObject;
+
 	public const CookieSecret = 'nette-debug';
 
 	/** @deprecated  use Configurator::CookieSecret */
@@ -350,7 +352,7 @@ class Configurator
 			$list[] = '[::1]'; // workaround for PHP < 7.3.4
 		}
 
-		return in_array($addr, $list, strict: true) || in_array("$secret@$addr", $list, strict: true);
+		return in_array($addr, $list, true) || in_array("$secret@$addr", $list, true);
 	}
 }
 
