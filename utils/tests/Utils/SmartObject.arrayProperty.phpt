@@ -18,7 +18,7 @@ class TestClass
 {
 	use Nette\SmartObject;
 
-	private array $items = [];
+	private $items = [];
 
 
 	public function &getItems()

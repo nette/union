@@ -51,28 +51,22 @@ test('copy', function () {
 
 	FileSystem::write(getTempDir() . '/5/newfile', 'World');
 
-	Assert::exception(
-		fn() => FileSystem::copy(getTempDir() . '/5/newfile', getTempDir() . '/3/x/file', overwrite: false),
-		Nette\InvalidStateException::class,
-		"File or directory '%a%' already exists.",
-	);
+	Assert::exception(function () {
+		FileSystem::copy(getTempDir() . '/5/newfile', getTempDir() . '/3/x/file', false);
+	}, Nette\InvalidStateException::class, "File or directory '%a%' already exists.");
 	Assert::same('Hello', FileSystem::read(getTempDir() . '/3/x/file'));
 
-	Assert::exception(
-		fn() => FileSystem::copy('remote://example.com', getTempDir() . '/3/x/file', overwrite: false),
-		Nette\InvalidStateException::class,
-		"File or directory '%a%' already exists.",
-	);
+	Assert::exception(function () {
+		FileSystem::copy('remote://example.com', getTempDir() . '/3/x/file', false);
+	}, Nette\InvalidStateException::class, "File or directory '%a%' already exists.");
 	Assert::same('Hello', FileSystem::read(getTempDir() . '/3/x/file'));
 
 	FileSystem::copy(getTempDir() . '/5/newfile', getTempDir() . '/3/x/file');
 	Assert::same('World', FileSystem::read(getTempDir() . '/3/x/file'));
 
-	Assert::exception(
-		fn() => FileSystem::copy(getTempDir() . '/5', getTempDir() . '/3', overwrite: false),
-		Nette\InvalidStateException::class,
-		"File or directory '%a%' already exists.",
-	);
+	Assert::exception(function () {
+		FileSystem::copy(getTempDir() . '/5', getTempDir() . '/3', false);
+	}, Nette\InvalidStateException::class, "File or directory '%a%' already exists.");
 	Assert::true(is_dir(getTempDir() . '/3/x/y'));
 	Assert::false(file_exists(getTempDir() . '/3/newfile'));
 
@@ -81,8 +75,6 @@ test('copy', function () {
 	Assert::true(is_file(getTempDir() . '/3/newfile'));
 });
 
-Assert::exception(
-	fn() => FileSystem::copy(getTempDir() . '/6', getTempDir() . '/3'),
-	Nette\IOException::class,
-	"File or directory '%S%' not found.",
-);
+Assert::exception(function () {
+	FileSystem::copy(getTempDir() . '/6', getTempDir() . '/3');
+}, Nette\IOException::class, "File or directory '%S%' not found.");

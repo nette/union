@@ -32,7 +32,7 @@ test('', function () use ($main) {
 
 
 test('', function () use ($main) {
-	if (!Image::isTypeSupported(Image::WEBP)) {
+	if (!function_exists('imagewebp')) {
 		return;
 	}
 
@@ -47,7 +47,7 @@ test('', function () use ($main) {
 
 
 test('', function () use ($main) {
-	if (!Image::isTypeSupported(Image::AVIF)) {
+	if (!function_exists('imageavif')) {
 		return;
 	}
 
@@ -76,15 +76,11 @@ test('', function () use ($main) {
 });
 
 
-Assert::exception(
-	fn() => $main->save('foo', null, IMG_WBMP),
-	Nette\InvalidArgumentException::class,
-	sprintf('Unsupported image type \'%d\'.', IMG_WBMP),
-);
+Assert::exception(function () use ($main) { // invalid image type
+	$main->save('foo', null, IMG_WBMP);
+}, Nette\InvalidArgumentException::class, sprintf('Unsupported image type \'%d\'.', IMG_WBMP));
 
 
-Assert::exception(
-	fn() => $main->save('foo.psd'),
-	Nette\InvalidArgumentException::class,
-	'Unsupported file extension \'psd\'.',
-);
+Assert::exception(function () use ($main) { // invalid file extension
+	$main->save('foo.psd');
+}, Nette\InvalidArgumentException::class, 'Unsupported file extension \'psd\'.');

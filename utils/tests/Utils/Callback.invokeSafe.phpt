@@ -31,19 +31,18 @@ Assert::same('OK1', $res);
 
 
 // ignored error
-Callback::invokeSafe('preg_match', ['ab', 'foo'], fn() => false);
+Callback::invokeSafe('preg_match', ['ab', 'foo'], function () {
+	return false;
+});
 Assert::match('preg_match(): Delimiter must not be alphanumeric%a%', $res);
 
 
 // error -> exception
-Assert::exception(
-	fn() => Callback::invokeSafe('preg_match', ['ab', 'foo'], function ($message, $severity) {
+Assert::exception(function () {
+	Callback::invokeSafe('preg_match', ['ab', 'foo'], function ($message, $severity) {
 		throw new Exception($message, $severity);
-	}),
-	'Exception',
-	'Delimiter must not be alphanumeric%a%',
-	E_WARNING,
-);
+	});
+}, 'Exception', 'Delimiter must not be alphanumeric%a%', E_WARNING);
 
 trigger_error('OK2', E_USER_WARNING);
 Assert::same('OK2', $res);
@@ -60,13 +59,11 @@ Assert::same(PHP_VERSION_ID < 80000 ? 'Undefined variable: a' : 'Undefined varia
 
 
 // exception inside
-Assert::exception(
-	fn() => Callback::invokeSafe('preg_replace_callback', ['#.#', function () {
+Assert::exception(function () {
+	Callback::invokeSafe('preg_replace_callback', ['#.#', function () {
 		throw new Exception('in callback');
-	}, 'x'], function () {}),
-	'Exception',
-	'in callback',
-);
+	}, 'x'], function () {});
+}, 'Exception', 'in callback');
 
 trigger_error('OK3', E_USER_WARNING);
 Assert::same('OK3', $res);

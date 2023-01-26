@@ -24,17 +24,14 @@ Assert::same(-1, Floats::compare(20, 30));
 Assert::same(1, Floats::compare(-20, -30));
 Assert::same(-1, Floats::compare(-50, -30));
 
-Assert::exception(
-	fn() => Floats::compare(NAN, -30),
-	LogicException::class,
-);
+Assert::exception(function () {
+	Floats::compare(NAN, -30);
+}, LogicException::class);
 
-Assert::exception(
-	fn() => Floats::compare(6, NAN),
-	LogicException::class,
-);
+Assert::exception(function () {
+	Floats::compare(6, NAN);
+}, LogicException::class);
 
-Assert::exception(
-	fn() => Floats::compare(NAN, NAN),
-	LogicException::class,
-);
+Assert::exception(function () {
+	Floats::compare(NAN, NAN);
+}, LogicException::class);

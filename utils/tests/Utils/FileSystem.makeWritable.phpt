@@ -28,8 +28,6 @@ if (!defined('PHP_WINDOWS_VERSION_BUILD')) {
 	});
 }
 
-Assert::exception(
-	fn() => FileSystem::makeWritable(getTempDir() . '/13'),
-	Nette\IOException::class,
-	"File or directory '%S%' not found.",
-);
+Assert::exception(function () {
+	FileSystem::makeWritable(getTempDir() . '/13');
+}, Nette\IOException::class, "File or directory '%S%' not found.");

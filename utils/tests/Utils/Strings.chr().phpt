@@ -25,9 +25,7 @@ Assert::same("\u{10000}", Strings::chr(0x010000));
 Assert::same("\u{10FFFF}", Strings::chr(0x10FFFF));
 
 foreach ([-1, 0xD800, 0xDFFF, 0x110000] as $code) {
-	Assert::exception(
-		fn() => Strings::chr($code),
-		Nette\InvalidArgumentException::class,
-		'Code point must be in range 0x0 to 0xD7FF or 0xE000 to 0x10FFFF.',
-	);
+	Assert::exception(function () use ($code) {
+		Strings::chr($code);
+	}, Nette\InvalidArgumentException::class, 'Code point must be in range 0x0 to 0xD7FF or 0xE000 to 0x10FFFF.');
 }
