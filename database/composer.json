@@ -22,7 +22,7 @@
 		"jetbrains/phpstorm-attributes": "dev-master"
 	},
 	"require-dev": {
-		"nette/tester": "^2.4",
+		"nette/tester": "^2.5",
 		"nette/di": "^3.1 || ^4.0",
 		"mockery/mockery": "^1.4.3",
 		"tracy/tracy": "^2.8",
