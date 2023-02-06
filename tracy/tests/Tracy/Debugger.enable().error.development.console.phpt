@@ -13,4 +13,4 @@ use Tracy\Debugger;
 
 require __DIR__ . '/../bootstrap.php';
 
-Debugger::enable(Debugger::Development, 'relative');
+Debugger::enable(Debugger::DEVELOPMENT, 'relative');

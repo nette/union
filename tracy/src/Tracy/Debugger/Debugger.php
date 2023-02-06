@@ -17,97 +17,86 @@ use ErrorException;
  */
 class Debugger
 {
-	public const Version = '3.0-dev';
+	public const VERSION = '2.9.5';
 
 	/** server modes for Debugger::enable() */
 	public const
-		Development = false,
-		Production = true,
-		Detect = null;
+		DEVELOPMENT = false,
+		PRODUCTION = true,
+		DETECT = null;
 
-	public const CookieSecret = 'tracy-debug';
+	public const COOKIE_SECRET = 'tracy-debug';
 
-	/** @deprecated use Debugger::Version */
-	public const VERSION = self::Version;
+	/** @var bool in production mode is suppressed any debugging output */
+	public static $productionMode = self::DETECT;
 
-	/** @deprecated use Debugger::Development */
-	public const DEVELOPMENT = self::Development;
+	/** @var bool whether to display debug bar in development mode */
+	public static $showBar = true;
 
-	/** @deprecated use Debugger::Production */
-	public const PRODUCTION = self::Production;
+	/** @var bool whether to send data to FireLogger in development mode */
+	public static $showFireLogger = true;
 
-	/** @deprecated use Debugger::Detect */
-	public const DETECT = self::Detect;
+	/** @var int size of reserved memory */
+	public static $reservedMemorySize = 500000;
 
-	/** @deprecated use Debugger::CookieSecret */
-	public const COOKIE_SECRET = self::CookieSecret;
+	/** @var bool */
+	private static $enabled = false;
 
-	/** in production mode is suppressed any debugging output */
-	public static ?bool $productionMode = self::Detect;
+	/** @var string|null reserved memory; also prevents double rendering */
+	private static $reserved;
 
-	/** whether to display debug bar in development mode */
-	public static bool $showBar = true;
+	/** @var int initial output buffer level */
+	private static $obLevel;
 
-	/** size of reserved memory */
-	public static int $reservedMemorySize = 500_000;
-
-	private static bool $enabled = false;
-
-	/** reserved memory; also prevents double rendering */
-	private static ?string $reserved = null;
-
-	/** initial output buffer level */
-	private static int $obLevel;
-
-	/** output buffer status @internal */
-	public static ?array $obStatus = null;
+	/** @var ?array output buffer status @internal */
+	public static $obStatus;
 
 	/********************* errors and exceptions reporting ****************d*g**/
 
-	/** determines whether any error will cause immediate death in development mode; if integer that it's matched against error severity */
-	public static bool|int $strictMode = false;
+	/** @var bool|int determines whether any error will cause immediate death in development mode; if integer that it's matched against error severity */
+	public static $strictMode = false;
 
-	/** disables the @ (shut-up) operator so that notices and warnings are no longer hidden; if integer than it's matched against error severity */
-	public static bool|int $scream = false;
+	/** @var bool|int disables the @ (shut-up) operator so that notices and warnings are no longer hidden; if integer than it's matched against error severity */
+	public static $scream = false;
 
 	/** @var callable[] functions that are automatically called after fatal error */
-	public static array $onFatalError = [];
+	public static $onFatalError = [];
 
 	/********************* Debugger::dump() ****************d*g**/
 
-	/** how many nested levels of array/object properties display by dump() */
-	public static int $maxDepth = 15;
+	/** @var int  how many nested levels of array/object properties display by dump() */
+	public static $maxDepth = 15;
 
-	/** how long strings display by dump() */
-	public static int $maxLength = 150;
+	/** @var int  how long strings display by dump() */
+	public static $maxLength = 150;
 
-	/** how many items in array/object display by dump() */
-	public static int $maxItems = 100;
+	/** @var int  how many items in array/object display by dump() */
+	public static $maxItems = 100;
 
-	/** display location by dump()? */
-	public static ?bool $showLocation = null;
+	/** @var bool display location by dump()? */
+	public static $showLocation;
 
 	/** @var string[] sensitive keys not displayed by dump() */
-	public static array $keysToHide = [];
+	public static $keysToHide = [];
 
-	/** theme for dump() */
-	public static string $dumpTheme = 'light';
+	/** @var string theme for dump() */
+	public static $dumpTheme = 'light';
 
 	/** @deprecated */
 	public static $maxLen;
 
 	/********************* logging ****************d*g**/
 
-	/** name of the directory where errors should be logged */
-	public static ?string $logDirectory = null;
+	/** @var string|null name of the directory where errors should be logged */
+	public static $logDirectory;
 
-	/** log bluescreen in production mode for this error severity */
-	public static int $logSeverity = 0;
+	/** @var int  log bluescreen in production mode for this error severity */
+	public static $logSeverity = 0;
 
-	/** email(s) to which send error notifications */
-	public static string|array|null $email = null;
+	/** @var string|array email(s) to which send error notifications */
+	public static $email;
 
-	/** for Debugger::log() */
+	/** for Debugger::log() and Debugger::fireLog() */
 	public const
 		DEBUG = ILogger::DEBUG,
 		INFO = ILogger::INFO,
@@ -118,41 +107,52 @@ class Debugger
 
 	/********************* misc ****************d*g**/
 
-	/** timestamp with microseconds of the start of the request */
-	public static float $time;
+	/** @var float timestamp with microseconds of the start of the request */
+	public static $time;
 
-	/** URI pattern mask to open editor */
-	public static ?string $editor = 'editor://%action/?file=%file&line=%line&search=%search&replace=%replace';
+	/** @var string URI pattern mask to open editor */
+	public static $editor = 'editor://%action/?file=%file&line=%line&search=%search&replace=%replace';
 
-	/** replacements in path */
-	public static array $editorMapping = [];
+	/** @var array replacements in path */
+	public static $editorMapping = [];
 
-	/** command to open browser (use 'start ""' in Windows) */
-	public static ?string $browser = null;
+	/** @var string command to open browser (use 'start ""' in Windows) */
+	public static $browser;
 
-	/** custom static error template */
-	public static ?string $errorTemplate = null;
-
-	/** @var string[] */
-	public static array $customCssFiles = [];
+	/** @var string custom static error template */
+	public static $errorTemplate;
 
 	/** @var string[] */
-	public static array $customJsFiles = [];
+	public static $customCssFiles = [];
+
+	/** @var string[] */
+	public static $customJsFiles = [];
 
 	/** @var callable[] */
 	private static $sourceMappers = [];
 
-	private static ?array $cpuUsage = null;
+	/** @var array|null */
+	private static $cpuUsage;
 
 	/********************* services ****************d*g**/
 
-	private static BlueScreen $blueScreen;
-	private static Bar $bar;
-	private static ILogger $logger;
+	/** @var BlueScreen */
+	private static $blueScreen;
+
+	/** @var Bar */
+	private static $bar;
+
+	/** @var ILogger */
+	private static $logger;
+
+	/** @var ILogger */
+	private static $fireLogger;
 
 	/** @var array{DevelopmentStrategy, ProductionStrategy} */
-	private static array $strategy;
-	private static SessionStorage $sessionStorage;
+	private static $strategy;
+
+	/** @var SessionStorage */
+	private static $sessionStorage;
 
 
 	/**
@@ -166,15 +166,11 @@ class Debugger
 
 	/**
 	 * Enables displaying or logging errors and exceptions.
-	 * @param  bool|string|string[]  $mode  use constant Debugger::Production, Development, Detect (autodetection) or IP address(es) whitelist.
+	 * @param  bool|string|string[]  $mode  use constant Debugger::PRODUCTION, DEVELOPMENT, DETECT (autodetection) or IP address(es) whitelist.
 	 * @param  string  $logDirectory  error log directory
 	 * @param  string|array  $email  administrator email; enables email sending in production mode
 	 */
-	public static function enable(
-		bool|string|array|null $mode = null,
-		?string $logDirectory = null,
-		string|array|null $email = null,
-	): void
+	public static function enable($mode = null, ?string $logDirectory = null, $email = null): void
 	{
 		if ($mode !== null || self::$productionMode === null) {
 			self::$productionMode = is_bool($mode)
@@ -235,12 +231,12 @@ class Debugger
 			'Bar/Bar',
 			'Bar/DefaultBarPanel',
 			'BlueScreen/BlueScreen',
-			'BlueScreen/CodeHighlighter',
 			'Dumper/Describer',
 			'Dumper/Dumper',
 			'Dumper/Exposer',
 			'Dumper/Renderer',
 			'Dumper/Value',
+			'Logger/FireLogger',
 			'Logger/Logger',
 			'Session/SessionStorage',
 			'Session/FileSession',
@@ -318,7 +314,7 @@ class Debugger
 		self::$obStatus = ob_get_status(true);
 
 		if (!headers_sent()) {
-			http_response_code(isset($_SERVER['HTTP_USER_AGENT']) && str_contains($_SERVER['HTTP_USER_AGENT'], 'MSIE ') ? 503 : 500);
+			http_response_code(isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE ') !== false ? 503 : 500);
 		}
 
 		Helpers::improveException($exception);
@@ -333,7 +329,7 @@ class Debugger
 		} catch (\Throwable $e) {
 			try {
 				self::log($e, self::EXCEPTION);
-			} catch (\Throwable) {
+			} catch (\Throwable $e) {
 			}
 		}
 	}
@@ -350,6 +346,7 @@ class Debugger
 		string $message,
 		string $file,
 		int $line,
+		?array $context = null
 	): bool
 	{
 		$error = error_get_last();
@@ -358,14 +355,30 @@ class Debugger
 			self::errorHandler($error['type'], $error['message'], $error['file'], $error['line']);
 		}
 
+		if ($context) {
+			$context = (array) (object) $context; // workaround for PHP bug #80234
+		}
+
 		if ($severity === E_RECOVERABLE_ERROR || $severity === E_USER_ERROR) {
-			throw new ErrorException($message, 0, $severity, $file, $line);
+			if (Helpers::findTrace(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), '*::__toString')) { // workaround for PHP < 7.4
+				$previous = isset($context['e']) && $context['e'] instanceof \Throwable
+					? $context['e']
+					: null;
+				$e = new ErrorException($message, 0, $severity, $file, $line, $previous);
+				@$e->context = $context; // dynamic properties are deprecated since PHP 8.2
+				self::exceptionHandler($e);
+				exit(255);
+			}
+
+			$e = new ErrorException($message, 0, $severity, $file, $line);
+			@$e->context = $context; // dynamic properties are deprecated since PHP 8.2
+			throw $e;
 
 		} elseif (
 			($severity & error_reporting())
 			|| (is_int(self::$scream) ? $severity & self::$scream : self::$scream)
 		) {
-			self::getStrategy()->handleError($severity, $message, $file, $line);
+			self::getStrategy()->handleError($severity, $message, $file, $line, $context);
 		}
 
 		return false; // calls normal error handler to fill-in error_get_last()
@@ -396,12 +409,12 @@ class Debugger
 
 	public static function getBlueScreen(): BlueScreen
 	{
-		if (empty(self::$blueScreen)) {
+		if (!self::$blueScreen) {
 			self::$blueScreen = new BlueScreen;
 			self::$blueScreen->info = [
 				'PHP ' . PHP_VERSION,
 				$_SERVER['SERVER_SOFTWARE'] ?? null,
-				'Tracy ' . self::Version,
+				'Tracy ' . self::VERSION,
 			];
 		}
 
@@ -411,7 +424,7 @@ class Debugger
 
 	public static function getBar(): Bar
 	{
-		if (empty(self::$bar)) {
+		if (!self::$bar) {
 			self::$bar = new Bar;
 			self::$bar->addPanel($info = new DefaultBarPanel('info'), 'Tracy:info');
 			$info->cpuUsage = self::$cpuUsage;
@@ -430,7 +443,7 @@ class Debugger
 
 	public static function getLogger(): ILogger
 	{
-		if (empty(self::$logger)) {
+		if (!self::$logger) {
 			self::$logger = new Logger(self::$logDirectory, self::$email, self::getBlueScreen());
 			self::$logger->directory = &self::$logDirectory; // back compatiblity
 			self::$logger->email = &self::$email;
@@ -440,8 +453,18 @@ class Debugger
 	}
 
 
-	/** @internal */
-	public static function getStrategy(): ProductionStrategy|DevelopmentStrategy
+	public static function getFireLogger(): ILogger
+	{
+		if (!self::$fireLogger) {
+			self::$fireLogger = new FireLogger;
+		}
+
+		return self::$fireLogger;
+	}
+
+
+	/** @return ProductionStrategy|DevelopmentStrategy @internal */
+	public static function getStrategy()
 	{
 		if (empty(self::$strategy[self::$productionMode])) {
 			self::$strategy[self::$productionMode] = self::$productionMode
@@ -455,7 +478,7 @@ class Debugger
 
 	public static function setSessionStorage(SessionStorage $storage): void
 	{
-		if (isset(self::$sessionStorage)) {
+		if (self::$sessionStorage) {
 			throw new \Exception('Storage is already set.');
 		}
 
@@ -466,7 +489,7 @@ class Debugger
 	/** @internal */
 	public static function getSessionStorage(): SessionStorage
 	{
-		if (empty(self::$sessionStorage)) {
+		if (!self::$sessionStorage) {
 			self::$sessionStorage = @is_dir($dir = session_save_path())
 				|| @is_dir($dir = ini_get('upload_tmp_dir'))
 				|| @is_dir($dir = sys_get_temp_dir())
@@ -489,7 +512,7 @@ class Debugger
 	 * @param  bool   $return  return output instead of printing it? (bypasses $productionMode)
 	 * @return mixed  variable itself or dump
 	 */
-	public static function dump(mixed $var, bool $return = false): mixed
+	public static function dump($var, bool $return = false)
 	{
 		if ($return) {
 			$options = [
@@ -499,7 +522,9 @@ class Debugger
 			];
 			return Helpers::isCli()
 				? Dumper::toText($var)
-				: Helpers::capture(fn() => Dumper::dump($var, $options));
+				: Helpers::capture(function () use ($var, $options) {
+					Dumper::dump($var, $options);
+				});
 
 		} elseif (!self::$productionMode) {
 			$html = Helpers::isHtmlMode();
@@ -526,19 +551,20 @@ class Debugger
 	public static function timer(?string $name = null): float
 	{
 		static $time = [];
-		$now = hrtime(true);
+		$now = microtime(true);
 		$delta = isset($time[$name]) ? $now - $time[$name] : 0;
 		$time[$name] = $now;
-		return $delta / 1e9;
+		return $delta;
 	}
 
 
 	/**
 	 * Dumps information about a variable in Tracy Debug Bar.
 	 * @tracySkipLocation
+	 * @param  mixed  $var
 	 * @return mixed  variable itself
 	 */
-	public static function barDump(mixed $var, ?string $title = null, array $options = []): mixed
+	public static function barDump($var, ?string $title = null, array $options = [])
 	{
 		if (!self::$productionMode) {
 			static $panel;
@@ -548,7 +574,6 @@ class Debugger
 
 			$panel->data[] = ['title' => $title, 'dump' => Dumper::toHtml($var, $options + [
 				Dumper::DEPTH => self::$maxDepth,
-				Dumper::ITEMS => self::$maxItems,
 				Dumper::TRUNCATE => self::$maxLength,
 				Dumper::LOCATION => self::$showLocation ?: Dumper::LOCATION_CLASS | Dumper::LOCATION_SOURCE,
 				Dumper::LAZY => true,
@@ -561,10 +586,24 @@ class Debugger
 
 	/**
 	 * Logs message or exception.
+	 * @param  mixed  $message
+	 * @return mixed
 	 */
-	public static function log(mixed $message, string $level = ILogger::INFO): mixed
+	public static function log($message, string $level = ILogger::INFO)
 	{
 		return self::getLogger()->log($message, $level);
+	}
+
+
+	/**
+	 * Sends message to FireLogger console.
+	 * @param  mixed  $message
+	 */
+	public static function fireLog($message): bool
+	{
+		return !self::$productionMode && self::$showFireLogger
+			? self::getFireLogger()->log($message)
+			: false;
 	}
 
 
@@ -592,11 +631,11 @@ class Debugger
 	 * Detects debug mode by IP address.
 	 * @param  string|array  $list  IP addresses or computer names whitelist detection
 	 */
-	public static function detectDebugMode(string|array|null $list = null): bool
+	public static function detectDebugMode($list = null): bool
 	{
 		$addr = $_SERVER['REMOTE_ADDR'] ?? php_uname('n');
-		$secret = isset($_COOKIE[self::CookieSecret]) && is_string($_COOKIE[self::CookieSecret])
-			? $_COOKIE[self::CookieSecret]
+		$secret = isset($_COOKIE[self::COOKIE_SECRET]) && is_string($_COOKIE[self::COOKIE_SECRET])
+			? $_COOKIE[self::COOKIE_SECRET]
 			: null;
 		$list = is_string($list)
 			? preg_split('#[,\s]+#', $list)

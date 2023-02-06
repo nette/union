@@ -16,34 +16,51 @@ namespace Tracy\Dumper;
 final class Value implements \JsonSerializable
 {
 	public const
-		TypeArray = 'array',
-		TypeBinaryHtml = 'bin',
-		TypeNumber = 'number',
-		TypeObject = 'object',
-		TypeRef = 'ref',
-		TypeResource = 'resource',
-		TypeStringHtml = 'string',
-		TypeText = 'text';
+		TYPE_ARRAY = 'array',
+		TYPE_BINARY_HTML = 'bin',
+		TYPE_NUMBER = 'number',
+		TYPE_OBJECT = 'object',
+		TYPE_REF = 'ref',
+		TYPE_RESOURCE = 'resource',
+		TYPE_STRING_HTML = 'string',
+		TYPE_TEXT = 'text';
 
 	public const
-		PropertyPublic = 0,
-		PropertyProtected = 1,
-		PropertyPrivate = 2,
-		PropertyDynamic = 3,
-		PropertyVirtual = 4;
+		PROP_PUBLIC = 0,
+		PROP_PROTECTED = 1,
+		PROP_PRIVATE = 2,
+		PROP_DYNAMIC = 3,
+		PROP_VIRTUAL = 4;
 
-	public string $type;
-	public string|int|null $value;
-	public ?int $length;
-	public ?int $depth = null;
-	public int|string|null $id = null;
-	public object $holder;
-	public ?array $items = null;
-	public ?\stdClass $editor = null;
-	public ?bool $collapsed = null;
+	/** @var string */
+	public $type;
+
+	/** @var string|int */
+	public $value;
+
+	/** @var ?int */
+	public $length;
+
+	/** @var ?int */
+	public $depth;
+
+	/** @var int|string */
+	public $id;
+
+	/** @var object */
+	public $holder;
+
+	/** @var ?array */
+	public $items;
+
+	/** @var ?\stdClass */
+	public $editor;
+
+	/** @var ?bool */
+	public $collapsed;
 
 
-	public function __construct(string $type, string|int|null $value = null, ?int $length = null)
+	public function __construct(string $type, $value = null, ?int $length = null)
 	{
 		$this->type = $type;
 		$this->value = $value;

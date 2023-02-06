@@ -24,51 +24,47 @@ $keys = [
 	'<a> &amp;' => 0,
 ];
 
-Assert::match(
-	<<<'XX'
-		array (%i%)
-		   '' => 0
-		   '"' => 0
-		   ''' => 0
-		   'key' => 0
-		   ' key' => 0
-		   'key ' => 0
-		   0 => 0
-		   '01' => 0
-		   'true' => 0
-		   'false' => 0
-		   'null' => 0
-		   'NULL' => 0
-		   '<a> &amp;' => 0
-		XX,
-	Dumper::toText($keys),
-);
+Assert::match(<<<'XX'
+array (%i%)
+   '' => 0
+   '"' => 0
+   ''' => 0
+   'key' => 0
+   ' key' => 0
+   'key ' => 0
+   0 => 0
+   '01' => 0
+   'true' => 0
+   'false' => 0
+   'null' => 0
+   'NULL' => 0
+   '<a> &amp;' => 0
+XX
+	, Dumper::toText($keys));
 
-Assert::match(
-	<<<'XX'
-		stdClass #%d%
-		   '': 0
-		   '"': 0
-		   ''': 0
-		   key: 0
-		   ' key': 0
-		   'key ': 0
-		   0: 0
-		   01: 0
-		   'true': 0
-		   'false': 0
-		   'null': 0
-		   'NULL': 0
-		   '<a> &amp;': 0
-		XX,
-	Dumper::toText((object) $keys),
-);
+Assert::match(<<<'XX'
+stdClass #%d%
+   '': 0
+   '"': 0
+   ''': 0
+   key: 0
+   ' key': 0
+   'key ': 0
+   0: 0
+   01: 0
+   'true': 0
+   'false': 0
+   'null': 0
+   'NULL': 0
+   '<a> &amp;': 0
+XX
+	, Dumper::toText((object) $keys));
 
 
 $snapshot = [];
 Assert::match(
 	'<pre class="tracy-dump tracy-light" data-tracy-dump=\'{"ref":%d%}\'></pre>',
-	Dumper::toHtml((object) $keys, [Dumper::SNAPSHOT => &$snapshot]),
+	Dumper::toHtml((object) $keys, [Dumper::SNAPSHOT => &$snapshot])
 );
 
 Assert::equal([
@@ -90,4 +86,4 @@ Assert::equal([
 			[['string' => '&lt;a> &amp;amp;', 'length' => 9], 0, 3],
 		],
 	],
-], array_values(json_decode(explode("'", Dumper::formatSnapshotAttribute($snapshot))[1], associative: true)));
+], array_values(json_decode(explode("'", Dumper::formatSnapshotAttribute($snapshot))[1], true)));
