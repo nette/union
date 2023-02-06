@@ -18,4 +18,4 @@ if (PHP_SAPI === 'cli') {
 }
 
 setHtmlMode();
-Debugger::enable(Debugger::Production, 'relative');
+Debugger::enable(Debugger::PRODUCTION, 'relative');

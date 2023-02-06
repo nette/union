@@ -13,6 +13,6 @@ use Tracy\Debugger;
 
 require __DIR__ . '/../bootstrap.php';
 
-Debugger::enable(Debugger::Development);
+Debugger::enable(Debugger::DEVELOPMENT);
 Debugger::$logDirectory = 'unknown';
 throw new Exception;

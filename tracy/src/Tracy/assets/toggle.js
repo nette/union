@@ -39,11 +39,6 @@ class Toggle
 			expand = collapsed;
 		}
 
-		el.dispatchEvent(new CustomEvent('tracy-beforetoggle', {
-			bubbles: true,
-			detail: {collapsed: !expand, originalEvent: e}
-		}));
-
 		if (!ref || ref === '#') {
 			ref = '+';
 		} else if (ref.substr(0, 1) === '#') {

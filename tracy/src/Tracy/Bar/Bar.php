@@ -16,8 +16,10 @@ namespace Tracy;
 class Bar
 {
 	/** @var IBarPanel[] */
-	private array $panels = [];
-	private bool $loaderRendered = false;
+	private $panels = [];
+
+	/** @var bool */
+	private $loaderRendered = false;
 
 
 	/**
@@ -29,7 +31,7 @@ class Bar
 		if ($id === null) {
 			$c = 0;
 			do {
-				$id = $panel::class . ($c++ ? "-$c" : '');
+				$id = get_class($panel) . ($c++ ? "-$c" : '');
 			} while (isset($this->panels[$id]));
 		}
 

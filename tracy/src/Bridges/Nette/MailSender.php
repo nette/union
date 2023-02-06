@@ -20,10 +20,11 @@ class MailSender
 {
 	use Nette\SmartObject;
 
-	private Nette\Mail\IMailer $mailer;
+	/** @var Nette\Mail\IMailer */
+	private $mailer;
 
 	/** @var string|null sender of email notifications */
-	private ?string $fromEmail = null;
+	private $fromEmail;
 
 
 	public function __construct(Nette\Mail\IMailer $mailer, ?string $fromEmail = null)
@@ -33,7 +34,10 @@ class MailSender
 	}
 
 
-	public function send(mixed $message, string $email): void
+	/**
+	 * @param  mixed  $message
+	 */
+	public function send($message, string $email): void
 	{
 		$host = preg_replace('#[^\w.-]+#', '', $_SERVER['SERVER_NAME'] ?? php_uname('n'));
 

@@ -9,7 +9,7 @@ namespace Tracy;
  * @var callable $dump
  */
 
-if (count(get_mangled_object_vars($ex)) <= count(get_mangled_object_vars(new \Exception))) {
+if (count((array) $ex) <= count((array) new \Exception)) {
 	return;
 }
 ?>
