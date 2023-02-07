@@ -4,7 +4,6 @@ Random Strings Generator
 .[perex]
 [api:Nette\Utils\Random] is a static class for generating cryptographically secure pseudo-random strings.
 
-
 Installation:
 
 ```shell
@@ -23,3 +22,5 @@ use Nette\Utils\Random;
 Random::generate(10);       // '6zq3a1nl8n'
 Random::generate(5, 'A-Z'); // 'HLKUR'
 ```
+
+{{composer: nette/utils}}

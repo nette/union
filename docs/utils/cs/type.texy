@@ -1,9 +1,8 @@
 PHP Typ
 *******
 
-.[perex]
+.[perex]{data-version:3.2.5}
 [api:Nette\Utils\Type] je třída pro práci s datovými typy PHP.
-
 
 Instalace:
 
@@ -45,17 +44,19 @@ echo $type;      // 'Foo|Bar'
 ```
 
 
-getNames(): (string|array)[] .[method]
---------------------------------------
+getNames(): string[] .[method]
+------------------------------
 
 Vrací pole podtypů, ze kterých se skládá složený typ, jako řetězce.
 
 ```php
 $type = Type::fromString('string|null'); // nebo '?string'
+$type->isUnion();   // true
 $type->getNames();  // ['string', 'null']
 
-$type = Type::fromString('(Foo&Bar)|string');
-$type->getNames();  // [['Foo', 'Bar'], 'string']
+$type = Type::fromString('Foo&Bar');
+$type->isIntersection(); // true
+$type->getNames();  // ['Foo', 'Bar']
 ```
 
 
@@ -65,13 +66,12 @@ getTypes(): Type[] .[method]
 Vrací pole podtypů, ze kterých se skládá složený typ, jako objekty `ReflectionType`:
 
 ```php
-$type = Type::fromString('string|null'); // or '?string'
+$type = Type::fromString('string|null'); // nebo '?string'
+$type->isUnion();   // true
 $type->getTypes();  // [Type::fromString('string'), Type::fromString('null')]
 
-$type = Type::fromString('(Foo&Bar)|string');
-$type->getTypes();  // [Type::fromString('Foo&Bar'), Type::fromString('string')]
-
 $type = Type::fromString('Foo&Bar');
+$type->isIntersection(); // true
 $type->getTypes();  // [Type::fromString('Foo'), Type::fromString('Bar')]
 ```
 
@@ -79,7 +79,7 @@ $type->getTypes();  // [Type::fromString('Foo'), Type::fromString('Bar')]
 getSingleName(): ?string .[method]
 ----------------------------------
 
-U simple typů vrací název typu, jinak null.
+U single typů vrací název typu, jinak null.
 
 ```php
 $type = Type::fromString('string|null');
@@ -96,18 +96,18 @@ echo $type->getSingleName();      // null
 ```
 
 
-isSimple(): bool .[method]
+isSingle(): bool .[method]
 --------------------------
 
-Vrací, zda je o simple typ. Za simple typy se považují i jednoduché nullable typy:
+Vrací, zda je o single typ. Za single typy se považují i jednoduché nullable typy:
 
 ```php
 $type = Type::fromString('string');
-$type->isSimple();       // true
+$type->isSingle();       // true
 $type->isUnion();        // false
 
 $type = Type::fromString('?Foo'); // nebo 'Foo|null'
-$type->isSimple();       // true
+$type->isSingle();       // true
 $type->isUnion();        // true
 ```
 
@@ -138,7 +138,7 @@ $type->isIntersection(); // true
 isBuiltin(): bool .[method]
 ---------------------------
 
-Vrací, zda je typ simple a zároveň vestavěným typem PHP.
+Vrací, zda je typ single a zároveň vestavěným typem PHP.
 
 ```php
 $type = Type::fromString('string');
@@ -155,7 +155,7 @@ $type->isBuiltin(); // false
 isClass(): bool .[method]
 -------------------------
 
-Vrací, zda je typ simple a zároveň název třídy.
+Vrací, zda je typ single a zároveň název třídy.
 
 ```php
 $type = Type::fromString('string');
@@ -169,8 +169,8 @@ $type->isClass();   // false
 ```
 
 
-isClassKeyword(): bool .[method]
---------------------------------
+isClassKeyword(): bool .[method]{data-version:3.2.6}
+----------------------------------------------------
 
 Vrací, zda je typ jedním z interních typů `self`, `parent`, `static`.
 
@@ -183,8 +183,8 @@ $type->isClassKeyword();   // false
 ```
 
 
-allows(string $type): bool .[method]
-------------------------------------
+allow(string $type): bool .[method]
+-----------------------------------
 
 Metoda `allows()` ověřuje kompatibilitu typů. Například umožní zjistit, jestli hodnota určitého typu by mohla být předaná jako parametr.
 
@@ -197,3 +197,6 @@ $type->allows('Foo');    // false
 $type = Type::fromString('mixed');
 $type->allows('null');   // true
 ```
+
+
+{{composer: nette/utils}}

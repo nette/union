@@ -3,7 +3,7 @@ Caching
 
 <div class=perex>
 
-Cache accelerates your application by storing data - once hard retrieved - for future use. We will show you:
+Cache accelerates your application by storing data - once hardly retrieved - for future use. We will show you:
 
 - How to use the cache
 - How to change the cache storage
@@ -28,9 +28,6 @@ Basic Usage
 ===========
 
 The center of work with the cache is the object [api:Nette\Caching\Cache]. We create its instance and pass the so-called storage to the constructor as a parameter. Which is an object representing the place where the data will be physically stored (database, Memcached, files on disk, ...). You get the storage object by passing it using [dependency injection |dependency-injection:passing-dependencies] with type `Nette\Caching\Storage`. You will find out all the essentials in [section Storage |#Storages].
-
-.[warning]
-In version 3.0, the interface still had the `I` prefix, so the name was `Nette\Caching\IStorage`. Also, the constants of the `Cache` class were capitalized, so for example `Cache::EXPIRE` instead of `Cache::Expire`.
 
 For the following examples, suppose we have an alias `Cache` and a storage in the variable `$storage`.
 
@@ -108,7 +105,7 @@ The validity of the data is set at the time of saving using the third parameter 
 
 ```php
 $cache->save($key, $value, [
-	$cache::Expire => '20 minutes',
+	$cache::EXPIRE => '20 minutes',
 ]);
 ```
 
@@ -116,17 +113,9 @@ Or using the `$dependencies` parameter passed by reference to the callback in th
 
 ```php
 $value = $cache->load($key, function (&$dependencies) {
-	$dependencies[Cache::Expire] = '20 minutes';
+	$dependencies[Cache::EXPIRE] = '20 minutes';
 	return /* ... */;
 });
-```
-
-Or using the 3rd parameter in the `load()` method, eg:
-
-```php
-$value = $cache->load($key, function () {
-	return ...;
-}, [Cache::Expire => '20 minutes']);
 ```
 
 In the following examples, we will assume the second variant and thus the existence of a variable `$dependencies`.
@@ -135,31 +124,31 @@ In the following examples, we will assume the second variant and thus the existe
 Expiration
 ----------
 
-The simplest expiration is the time limit. Here's how to cache data valid for 20 minutes:
+The simplest exiration is the time limit. Here's how to cache data valid for 20 minutes:
 
 ```php
 // it also accepts the number of seconds or the UNIX timestamp
-$dependencies[Cache::Expire] = '20 minutes';
+$dependencies[Cache::EXPIRE] = '20 minutes';
 ```
 
 If we want to extend the validity period with each reading, it can be achieved this way, but beware, this will increase the cache overhead:
 
 ```php
-$dependencies[Cache::Sliding] = true;
+$dependencies[Cache::SLIDING] = true;
 ```
 
 The handy option is the ability to let the data expire when a particular file is changed or one of several files. This can be used, for example, for caching data resulting from procession these files. Use absolute paths.
 
 ```php
-$dependencies[Cache::Files] = '/path/to/data.yaml';
+$dependencies[Cache::FILES] = '/path/to/data.yaml';
 // or
-$dependencies[Cache::Files] = ['/path/to/data1.yaml', '/path/to/data2.yaml'];
+$dependencies[Cache::FILES] = ['/path/to/data1.yaml', '/path/to/data2.yaml'];
 ```
 
 We can let an item in the cache expired when another item (or one of several others) expires. This can be used when we cache the entire HTML page and fragments of it under other keys. Once the snippet changes, the entire page becomes invalid. If we have fragments stored under keys such as `frag1` and `frag2`, we will use:
 
 ```php
-$dependencies[Cache::Items] = ['frag1', 'frag2'];
+$dependencies[Cache::ITEMS] = ['frag1', 'frag2'];
 ```
 
 Expiration can also be controlled using custom functions or static methods, which always decide when reading whether the item is still valid. For example, we can let the item expire whenever the PHP version changes. We will create a function that compares the current version with the parameter, and when saving we will add an array in the form `[function name, ...arguments]` to the dependencies:
@@ -170,7 +159,7 @@ function checkPhpVersion($ver): bool
 	return $ver === PHP_VERSION_ID;
 }
 
-$dependencies[Cache::Callbacks] = [
+$dependencies[Cache::CALLBACKS] = [
 	['checkPhpVersion', PHP_VERSION_ID] // expire when checkPhpVersion(...) === false
 ];
 ```
@@ -178,25 +167,25 @@ $dependencies[Cache::Callbacks] = [
 Of course, all criteria can be combined. The cache then expires when at least one criterion is not met.
 
 ```php
-$dependencies[Cache::Expire] = '20 minutes';
-$dependencies[Cache::Files] = '/path/to/data.yaml';
+$dependencies[Cache::EXPIRE] = '20 minutes';
+$dependencies[Cache::FILES] = '/path/to/data.yaml';
 ```
 
 
-Invalidation Using Tags
+Invalidation using Tags
 -----------------------
 
 Tags are a very useful invalidation tool. We can assign a list of tags, which are arbitrary strings, to each item stored in the cache. For example, suppose we have an HTML page with an article and comments, which we want to cache. So we specify tags when saving to cache:
 
 ```php
-$dependencies[Cache::Tags] = ["article/$articleId", "comments/$articleId"];
+$dependencies[Cache::TAGS] = ["article/$articleId", "comments/$articleId"];
 ```
 
 Now, let's move to the administration. Here we have a form for article editing. Together with saving the article to a database, we call the `clean()` command, which will delete cached items by tag:
 
 ```php
 $cache->clean([
-	$cache::Tags => ["article/$articleId"],
+	$cache::TAGS => ["article/$articleId"],
 ]);
 ```
 
@@ -204,7 +193,7 @@ Likewise, in the place of adding a new comment (or editing a comment), we will n
 
 ```php
 $cache->clean([
-	$cache::Tags => ["comments/$articleId"],
+	$cache::TAGS => ["comments/$articleId"],
 ]);
 ```
 
@@ -220,14 +209,14 @@ Invalidation by Priority
 We can set the priority for individual items in the cache, and it will be possible to delete them in a controlled way when, for example, the cache exceeds a certain size:
 
 ```php
-$dependencies[Cache::Priority] = 50;
+$dependencies[Cache::PRIORITY] = 50;
 ```
 
 Delete all items with a priority equal to or less than 100:
 
 ```php
 $cache->clean([
-	$cache::Priority => 100,
+	$cache::PRIORITY => 100,
 ]);
 ```
 
@@ -238,11 +227,11 @@ Priorities require so-called [#Journal].
 Clear Cache
 -----------
 
-The `Cache::All` parameter clears everything:
+The `Cache::ALL` parameter clears everything:
 
 ```php
 $cache->clean([
-	$cache::All => true,
+	$cache::ALL => true,
 ]);
 ```
 
@@ -282,9 +271,6 @@ if ($capture = $cache->capture($key)) {
 
 In case that the output is already present in the cache, the `capture()` method prints it and returns `null`, so the condition will not be executed. Otherwise, it starts to buffer the output and returns the `$capture` object using which we finally save the data to the cache.
 
-.[note]
-In version 3.0 the method was called `$cache->start()`.
-
 
 Caching in Latte
 ================
@@ -293,8 +279,8 @@ Caching in [Latte|latte:] templates is very easy, just wrap part of the template
 
 In the tag it is possible to specify the keys to which the cache will be bound (here the variable `$id`) and set the expiration and [invalidation tags |#Invalidation using Tags]
 
-```latte
-{cache $id, expire: '20 minutes', tags: [tag1, tag2]}
+```html
+{cache $id, expire => '20 minutes', tags => [tag1, tag2]}
 	...
 {/cache}
 ```
@@ -303,8 +289,8 @@ All parameters are optional, so you don't have to specify expiration, tags, or k
 
 The use of the cache can also be conditioned by `if` - the content will then be cached only if the condition is met:
 
-```latte
-{cache $id, if: !$form->isSubmitted()}
+```html
+{cache $id, if => !$form->isSubmitted()}
 	{$form}
 {/cache}
 ```
@@ -402,7 +388,8 @@ use Nette;
 
 class ClassOne
 {
-	private Nette\Caching\Cache $cache;
+	/** @var Nette\Caching\Cache */
+	private $cache;
 
 	public function __construct(Nette\Caching\Storage $storage)
 	{
@@ -416,9 +403,12 @@ The second way is that you get the storage object `Cache`:
 ```php
 class ClassTwo
 {
-	public function __construct(
-		private Nette\Caching\Cache $cache,
-	) {
+	/** @var Nette\Caching\Cache */
+	private $cache;
+
+	public function __construct(Nette\Caching\Cache $cache)
+	{
+		$this->cache = $cache;
 	}
 }
 ```
@@ -444,28 +434,5 @@ services:
 ```
 
 
-DI Services
-===========
-
-These services are added to the DI container:
-
-| Name | Type | Description
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
-| `cache.storage` | [api:Nette\Caching\Storage] | repository
-
-
-Turning Off Cache
-=================
-
-One of the ways to turn off caching in the application is to set the storage to [DevNullStorage|#DevNullStorage]:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-This setting does not affect the caching of templates in Latte or the DI container, as these libraries do not use the services of nette/caching and manage their cache independently. Moreover, their cache [does not need to be turned off |nette:troubleshooting#how-to-disable-cache-during-development] in development mode.
-
-
+{{composer: nette/caching}}
 {{leftbar: nette:@menu-topics}}

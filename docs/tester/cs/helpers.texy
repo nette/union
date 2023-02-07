@@ -28,12 +28,14 @@ FileMock
 # Testovaná třída
 class Logger
 {
-	public function __construct(
-		private string $logFile,
-	) {
+	private $logFile;
+
+	public function __construct($logFile)
+	{
+		$this->logFile = $logFile;
 	}
 
-	public function log(string $message): void
+	public function log($message)
 	{
 		file_put_contents($this->logFile, $message . "\n", FILE_APPEND);
 	}
@@ -51,8 +53,8 @@ Assert::same("Login\nLogout\n", file_get_contents($file));
 ```
 
 
-Assert::with() .[filter]
-------------------------
+Assert::with()
+--------------
 Nejde o aserci, ale pomocníka pro testování privátních metod a property objektů.
 
 ```php
@@ -70,20 +72,20 @@ Assert::with($ent, function () {
 ```
 
 
-Helpers::purge() .[filter]
---------------------------
+Helpers::purge()
+----------------
 Metoda `purge()` vytvoří zadaný adresář, a pokud již existuje, smaže celý jeho obsah. Hodí se pro vytvoření dočasného adresáře. Například v `tests/bootstrap.php`:
 
 ```php
 @mkdir(__DIR__ . '/tmp');  # @ - adresář již může existovat
 
-define('TempDir', __DIR__ . '/tmp/' . getmypid());
-Tester\Helpers::purge(TempDir);
+define('TEMP_DIR', __DIR__ . '/tmp/' . getmypid());
+Tester\Helpers::purge(TEMP_DIR);
 ```
 
 
-Environment::lock() .[filter]
------------------------------
+Environment::lock()
+-------------------
 Testy se spouštějí paralelně. Někdy ovšem potřebujeme, aby se běh testů nepřekrýval. Typicky u databázových testů je nutné, aby si test připravil obsah databáze a jiný test mu po čas běhu do databáze nesahal. V těchto testech použijeme `Tester\Environment::lock($name, $dir)`:
 
 ```php
@@ -93,8 +95,8 @@ Tester\Environment::lock('database', __DIR__ . '/tmp');
 První parametr je jméno zámku, druhý je cesta k adresáři pro uložení zámku. Test, který získá zámek jako první, proběhne, ostatní testy musí počkat na jeho dokončení.
 
 
-Environment::bypassFinals() .[filter]
--------------------------------------
+Environment::bypassFinals()
+---------------------------
 Třídy anebo metody označené jako `final` se obtížně testují. Volání `Tester\Environment::bypassFinals()` na začátku testu způsobí, že jsou klíčová slova `final` během načítání kódu vypuštěna.
 
 ```php
@@ -109,33 +111,20 @@ class MyClass extends NormallyFinalClass  # <-- NormallyFinalClass už není fin
 ```
 
 
-Environment::setup() .[filter]
-------------------------------
+Environment::setup()
+--------------------
 - zlepší čitelnost výpisu chyb (včetně obarvování), jinak je vypsán výchozí PHP stack trace
 - zapne kontrolu, že byly v testu volány aserce, jinak test bez asercí (například zapomenutých) projde také
 - při použití `--coverage` spustí automaticky sběr informací o spuštěném kódu (popsáno dále)
 - vypíše stav OK nebo FAILURE na konci skriptu
 
 
-Environment::setupFunctions() .[filter]{data-version:2.5}
----------------------------------------------------------
-Vytvoří globální funkce `test()`, `setUp()` a `tearDown()`, do kterých můžete členit testy.
-
-```php
-test('popis testu', function () {
-	Assert::same(123, foo());
-	Assert::false(bar());
-	// ...
-});
-```
-
-
-Environment::VariableRunner .[filter]
--------------------------------------
+Environment::RUNNER
+-------------------
 Umožní zjistit, zda byl test puštěn přímo, anebo pomocí Testeru.
 
 ```php
-if (getenv(Tester\Environment::VariableRunner)) {
+if (getenv(Tester\Environment::RUNNER)) {
 	# spuštěno Testerem
 } else {
 	# spuštěno jinak
@@ -143,10 +132,10 @@ if (getenv(Tester\Environment::VariableRunner)) {
 ```
 
 
-Environment::VariableThread .[filter]
--------------------------------------
+Environment::THREAD
+-------------------
 Tester spouští testy paralelně v zadaném počtu vláken. Pokud nás zajímá číslo vlákna, zjistíme ho z proměnné prostředí:
 
 ```php
-echo "Běžím ve vlákně číslo " . getenv(Tester\Environment::VariableThread);
+echo "Běžím ve vlákně číslo " . getenv(Tester\Environment::THREAD);
 ```

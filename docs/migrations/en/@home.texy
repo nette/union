@@ -1,7 +1,6 @@
 Upgrade Guide
 *************
 
-- [from Nette 3.1 to 4.0 |to-4-0]
 - [from Nette 3.0 to 3.1 |to-3-1]
 - [from Nette 2.4 to 3.0 |to-3-0]
 - [from Nette 2.3 to 2.4 |to-2-4]
@@ -20,7 +19,7 @@ error_reporting(~E_USER_DEPRECATED); // note ~ before E_USER_DEPRECATED
 ```
 
 
-Upgrade to the Latest Versions
+Upgrade to the latest versions
 ------------------------------
 
 The easiest way to increase the package versions in the `composer.json` file to the latest one is to use the script [composer-frontline.php|https://gist.github.com/dg/734bebf55cf28ad6a5de1156d3099bff]. Run it in the directory where the `composer.json` file is located, using:

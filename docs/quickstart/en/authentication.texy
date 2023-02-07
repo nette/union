@@ -8,16 +8,17 @@ There are many ways how a user can authenticate himself. The most common way is 
 Normally you would write your own authenticator, but for this simple little blog we'll use the built-in authenticator, which authenticates based on a password and username stored in a configuration file. It's good for testing purposes. So we'll add the following *security* section to the `config/common.neon` configuration file:
 
 
-```neon .{file:config/common.neon}
+```neon .{data-file:config/common.neon}
 security:
 	users:
 		admin: secret  # user 'admin', password 'secret'
 ```
 
+
 Nette will automatically create a service in the DI container.
 
 
-Sign-In Form
+Sign-in Form
 ============
 
 We now have the backend part of authentication ready and we need to provide a user interface, through which the user would log in. Let's create a new presenter called *SignPresenter*, which will
@@ -28,8 +29,7 @@ We now have the backend part of authentication ready and we need to provide a us
 
 Let's start with the login form. You already know how forms work in a presenter. Create the `SignPresenter` and method `createComponentSignInForm`. It should look like this:
 
-```php .{file:app/Presenters/SignPresenter.php}
-<?php
+```php .{data-file:app/Presenters/SignPresenter.php}
 namespace App\Presenters;
 
 use Nette;
@@ -48,7 +48,7 @@ final class SignPresenter extends Nette\Application\UI\Presenter
 
 		$form->addSubmit('send', 'Sign in');
 
-		$form->onSuccess[] = $this->signInFormSucceeded(...);
+		$form->onSuccess[] = [$this, 'signInFormSucceeded'];
 		return $form;
 	}
 }
@@ -60,9 +60,9 @@ There is an input for username and password.
 Template
 --------
 
-The form will be rendered in the template `in.latte`
+The form will be rendered in the template `app/Presenters/templates/Sign/in.latte`
 
-```latte .{file:app/Presenters/templates/Sign/in.latte}
+```html .{data-file:app/Presenters/templates/Sign/in.latte}
 {block content}
 <h1 n:block=title>Sign in</h1>
 
@@ -77,12 +77,12 @@ We add also a *form handler* for signing in the user, that gets invoked right af
 
 The handler will just take the username and password the user entered and will pass it to the authenticator defined earlier. After the user has logged in, we will redirect him to the homepage.
 
-```php .{file:app/Presenters/SignPresenter.php}
-private function signInFormSucceeded(Form $form, \stdClass $data): void
+```php .{data-file:app/Presenters/SignPresenter.php}
+public function signInFormSucceeded(Form $form, \stdClass $data): void
 {
 	try {
 		$this->getUser()->login($data->username, $data->password);
-		$this->redirect('Home:');
+		$this->redirect('Homepage:');
 
 	} catch (Nette\Security\AuthenticationException $e) {
 		$form->addError('Incorrect username or password.');
@@ -102,7 +102,7 @@ We will secure a form for adding and editing posts. It is defined in the present
 
 We create a method `startup()` that is started immediately at the beginning of the [presenter life cycle|application:presenters#life-cycle-of-presenter]. This redirects non-logged-in users to the login form.
 
-```php .{file:app/Presenters/EditPresenter.php}
+```php .{data-file:app/Presenters/EditPresenter.php}
 public function startup(): void
 {
 	parent::startup();
@@ -117,17 +117,17 @@ public function startup(): void
 Hide Links
 ----------
 
-An unauthenticated user can no longer see the *create* nor *edit page*, but he can still see the links pointing to them. Let's hide those as well. One such link is in `app/Presenters/templates/Home/default.latte`, and it should be visible only if the user is logged in.
+An unauthenticated user can no longer see the *create* nor *edit page*, but he can still see the links pointing to them. Let's hide those as well. One such link is in `app/Presenters/templates/Homepage/default.latte`, and it should be visible only if the user is logged in.
 
 We can hide it using *n:attribute* called `n:if`. If the statement inside it is `false`, the whole `<a>` tag and it's contents will be not displayed:
 
-```latte
+```html
 <a n:href="Edit:create" n:if="$user->isLoggedIn()">Create post</a>
 ```
 
 this is a shortcut for (do not confuse it with `tag-if`):
 
-```latte
+```html
 {if $user->isLoggedIn()}<a n:href="Edit:create">Create post</a>{/if}
 ```
 
@@ -137,31 +137,29 @@ You should hide the edit link located in `app/Presenters/templates/Post/show.lat
 Login Form Link
 ===============
 
-Hey, but how do we get to the login page? There is no link pointing to it. Let's add one in the `@layout.latte` template file. Try finding a nice place, it can be anywhere you like it the most.
+Hey, but how do we get to the login page? There is no link pointing to it. Let's add one in the `app/Presenters/templates/@layout.latte` template file. Try finding a nice place, it can be anywhere you like it the most.
 
-```latte .{file:app/Presenters/templates/@layout.latte}
-...
+```html .{data-file:app/Presenters/templates/@layout.latte}
 <ul class="navig">
-	<li><a n:href="Home:">Home</a></li>
+	<li><a n:href="Homepage:">Homepage</a></li>
 	{if $user->isLoggedIn()}
 		<li><a n:href="Sign:out">Sign out</a></li>
 	{else}
 		<li><a n:href="Sign:in">Sign in</a></li>
 	{/if}
 </ul>
-...
 ```
 
 If the user is not yet logged in, we will show the "Sign in" link. Otherwise, we will show the "Sign out" link. We add that action in SignPresenter.
 
 The logout action looks like this, and because we redirect the user immediately, there is no need for a view template.
 
-```php .{file:app/Presenters/SignPresenter.php}
+```php .{data-file:app/Presenters/SignPresenter.php}
 public function actionOut(): void
 {
 	$this->getUser()->logout();
 	$this->flashMessage('You have been signed out.');
-	$this->redirect('Home:');
+	$this->redirect('Homepage:');
 }
 ```
 

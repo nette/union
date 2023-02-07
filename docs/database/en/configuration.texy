@@ -20,7 +20,7 @@ database:
 	password: ...
 ```
 
-Creates the services `Nette\Database\Connection` and `Nette\Database\Explorer`, which are usually passed by [autowiring |dependency-injection:autowiring] or by referring to [their name |#DI Services].
+It creates services of type `Nette\Database\Connection` and also `Nette\Database\Explorer` for the [Database Explorer|explorer] layer. The database connection is usually passed by autowiring, if this is not possible, use the service names `@database.default.connection` resp. `@database.default.explorer`.
 
 Other settings:
 
@@ -45,6 +45,9 @@ database:
 		# PHP database driver class
 		driverClass:  # (string)
 
+		# you can list the options found in the PDO driver documentation
+		PDO::MYSQL_ATTR_COMPRESS: true
+
 		# only MySQL: sets sql_mode
 		sqlmode:      # (string)
 
@@ -53,14 +56,6 @@ database:
 
 		# only Oracle and SQLite: date format
 		formatDateTime: # (string) defaults to 'U'
-```
-
-The `options` key can contain other options that can be found in the [PDO driver documentation |https://www.php.net/manual/en/pdo.drivers.php], such as:
-
-```neon
-database:
-	options:
-		PDO::MYSQL_ATTR_COMPRESS: true
 ```
 
 
@@ -80,23 +75,9 @@ database:
 		dsn: 'sqlite::memory:'
 ```
 
-Autowiring is enabled only for services from the first section. This can be changed using `autowired: false` or `autowired: true`.
+Each defined connection creates services that includes section name in their name, ie `@database.main.connection` & `@database.main.explorer` and further `@database.another.connection` & `@database.another.explorer`.
 
-
-DI Services
------------
-
-These services are added to the DI container, where `###` represents the connection name:
-
-| Name | Type | Description
-|----------------------------------------------------------
-| `database.###.connection` | [api:Nette\Database\Connection] | database connection
-| `database.###.explorer` | [api:Nette\Database\Explorer] | [Database Explorer |explorer]
-
-
-If we define only one connection, the service names will be `database.default.connection` and `database.default.explorer`. If we define multiple connections as in the example above, the names will correspond to the sections, i.e. `database.main.connection`, `database.main.explorer` and then `database.another.connection` and `database.another.explorer`.
-
-We pass the non-authenticated services explicitly by referring to their name:
+Autowiring is enabled only for services from the first section. This can be changed with `autowired: false` or `autowired: true`. Non-autowired services are passed by name:
 
 ```neon
 services:

@@ -14,7 +14,7 @@ Tracy is a great tool for debugging your application. However, you sometimes nee
 You can find useful extensions for Tracy on "Componette":https://componette.org/search/tracy.
 
 
-Tracy Bar Extensions
+Tracy Bar extensions
 ====================
 
 Creating a new extension for Tracy Bar is simple. You need to implement `Tracy\IBarPanel` interface with methods `getTab()` and `getPanel()`. The methods must return the HTML code of a tab (small label on Tracy Bar) and a panel (pop-up displayed after clicking on the tab). If `getPanel()` returns nothing, only the tab will be displayed. If `getTab()` returns nothing, nothing is displayed and `getPanel()` will not be called.
@@ -53,12 +53,12 @@ tracy:
 ```
 
 
-Tab HTML Code
+Tab HTML code
 -------------
 
 Should look something like this:
 
-```latte
+```html
 <span title="Explaining tooltip">
 	<svg>...</svg>
 	<span class="tracy-label">Title</span>
@@ -68,12 +68,12 @@ Should look something like this:
 Image should be in format SVG. If you don't need tooltip, you can leave `<span>` out.
 
 
-Panel HTML Code
+Panel HTML code
 ---------------
 
 Should look something like this:
 
-```latte
+```html
 <h1>Title</h1>
 
 <div class="tracy-inner">
@@ -88,12 +88,12 @@ Title should either be the same as in tab or contain additional information.
 One extension can be registered multiple times, so it's recommended not to use `id` attribute for styling. You can use classes, preferably in `tracy-addons-<class-name>[-<optional>]` format. When creating CSS, it's better to use `#tracy-debug .class`, because such rule has a higher priority than reset.
 
 
-Default Styles
+Default styles
 --------------
 
 In the panel, elements `<a>`, `<table>`, `<pre>`, `<code>` have default styles. For creating a link for hiding or displaying other element, connect them with `href` and `id` attributes and class `tracy-toggle`.
 
-```latte
+```html
 <a href="#tracy-addons-className-{$counter}" class="tracy-toggle">Detail</a>
 
 <div id="tracy-addons-className-{$counter}">...</div>
@@ -104,7 +104,7 @@ If the default state is collapsed, add class `tracy-collapsed` to both elements.
 Use a static counter to prevent duplicate IDs on one page.
 
 
-Bluescreen Extensions
+Bluescreen extensions
 =====================
 
 You can add your own exception visualizations or panels, which will appear on the bluescreen.

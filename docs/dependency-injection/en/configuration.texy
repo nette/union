@@ -4,10 +4,6 @@ Configuring DI Container
 .[perex]
 Overview of configuration options for the Nette DI container.
 
-
-Configuration File
-==================
-
 Nette DI container is easy to control using configuration files. They are usually written in [NEON format|neon:format]. We recommend to use [editors with support|best-practices:editors-and-tools#ide-editor] for this format for editing.
 
 <pre>
@@ -17,10 +13,10 @@ Nette DI container is easy to control using configuration files. They are usuall
 "includes .[prism-token prism-atrule]":[#Including files]: 	"Including files .[prism-token prism-comment]"<br>
 "parameters .[prism-token prism-atrule]":[#Parameters]: 	"Parameters .[prism-token prism-comment]"<br>
 "search .[prism-token prism-atrule]":[#Search]: 		"Automatic service registration .[prism-token prism-comment]"<br>
-"services .[prism-token prism-atrule]":[services]: 		"Services .[prism-token prism-comment]"
+"services .[prism-token prism-atrule]":[services]: 		"Services .[prism-token prism-comment]"<br>
 </pre>
 
-To write a string containing the character `%`, you must escape it by doubling it to `%%`. .[note]
+If you use a string that starts with `@` or has `%` anywhere in it, you need to escape it by adding another `@` or `%`. .[note]
 
 
 Parameters
@@ -101,7 +97,7 @@ di:
 ```
 
 
-Metadata Export
+Metadata export
 ---------------
 
 The DI container class also contains a lot of metadata. You can reduce it by reducing the metadata export.
@@ -122,17 +118,17 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-If you don't use the `$container->getParameters()` array, you can disable parameter export. Furthermore, you can export only those tags through which you get services using the `$container->findByTag(...)` method.
+If you don't use the `$container->parameters` array, you can disable parameter export. Furthermore, you can export only those tags through which you get services using the `$container->findByTag(...)` method.
 If you don't call the method at all, you can completely disable tag export with `false`.
 
-You can significantly reduce the metadata for [autowiring] by specifying the classes you use as a parameter to the `$container->getByType()` method.
+You can significantly reduce the metadata for autowiring by specifying the classes you use as a parameter to the `$container->getByType()` method.
 And again, if you don't call the method at all (or only in [application:bootstrap] to get `Nette\Application\Application`), you can disable the export entirely with `false`.
 
 
 Extensions
 ==========
 
-Registration of other DI extensions. In this way we add, for example, DI extension `Dibi\Bridges\Nette\DibiExtension22` under the name `dibi`:
+Registration of other DI extensions. In this way we add, for exammple, DI extension `Dibi\Bridges\Nette\DibiExtension22` under the name `dibi`:
 
 ```neon
 extensions:
@@ -154,7 +150,7 @@ extensions:
 ```
 
 
-Including Files
+Including files
 ===============
 
 Additional configuration files can be inserted in the `includes` section:
@@ -191,15 +187,20 @@ Just specify in which directories (and subdirectories) the classes should be sea
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# you choose the section names yourself
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Usually, however, we don't want to add all the classes and interfaces, so we can filter them:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# filtering by file name (string|string[])
 		files:
@@ -215,7 +216,7 @@ Or we can select classes that inherit or implement at least one of the following
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,7 +227,7 @@ You can also define negative rules, ie class name masks or ancestors and if they
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
 			classes: ...
 			extends: ...
@@ -237,7 +238,7 @@ Tags can be set for added services:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

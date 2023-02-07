@@ -11,9 +11,6 @@ Návody, řešení častých úloh a *best practices* pro Nette.
 
 Nette Aplikace
 --------------
-- [Metody a atributy inject |inject-method-attribute]
-- [Skládání presenterů z trait |presenter-traits]
-- [Předání nastavení do presenterů |passing-settings-to-presenters]
 - [Jak se vrátit k dřívější stránce |restore-request]
 - [Stránkování výsledků databáze |pagination]
 - [Dynamické snippety |dynamic-snippets]
@@ -24,36 +21,28 @@ Nette Aplikace
 
 Formuláře
 ---------
-- [Znovupoužití formulářů |form-reuse]
 - [Formulář pro vytvoření i editaci záznamu |creating-editing-form]
-- [Vytváříme kontaktní formulář |lets-create-contact-form]
-- [Závislé selectboxy |https://blog.nette.org/cs/zavisle-selectboxy-elegantne-v-nette-a-cistem-javascriptu]
+- [Znovupoužití formulářů |form-reuse]
+- [Závislé selectboxy |https://blog.nette.org/cs/zavisle-selectboxy-elegantne-v-nette-a-cistem-js]
 
 </div>
 <div>
 
 
-Obecné
-------
+Další oblasti
+-------------
+- [Překládání formulářů a šablon |translations]
 - [Jak načíst konfigurační soubor |bootstrap:]
-- [Jak psát mikro-weby |microsites]
-- [Proč Nette používá PascalCase notaci konstant? |https://blog.nette.org/cs/za-mene-kriku-v-kodu]
-- [Proč Nette nepoužívá příponu Interface? |https://blog.nette.org/cs/predpony-a-pripony-do-nazvu-rozhrani-nepatri]
-- [Composer: tipy pro použití |composer]
-- [Tipy na editory & nástroje |editors-and-tools]
-- [Úvod do objektově orientovaného programování |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>
 
 
-Ukázkové řešení
----------------
-- [Nette examples |https://github.com/nette-examples]
-- [Doctrine & Nette |https://contributte.org/nettrine/]
-- [Contributte examples |https://contributte.org/examples.html]
-- [Doctrine ORM Website |https://github.com/MinecordNetwork/Website]
-- [Quick start |quickstart:]
+Nástroje
+--------
+- [Composer: tipy pro použití |composer]
+- [Jak používat Code Checker |code-checker:]
+- [Tipy na editory & nástroje |editors-and-tools]
 
 </div>
 <div>
@@ -61,10 +50,9 @@ Ukázkové řešení
 
 Videa
 -----
-Stovky záznamů z Posledních sobot a videí o Nette naleznete pod jednou střechou na "Youtube kanálu Nette Frameworku":https://www.youtube.com/user/NetteFramework.
+Stovky záznamů z Posledních sobot a videí o Nette naleznete pod jednou na "Youtube kanálu Nette Frameworku":https://www.youtube.com/user/NetteFramework.
 
 </div>
 </div>
 
 {{sitename: Best Practices}}
-{{leftbar: www:@menu-common}}

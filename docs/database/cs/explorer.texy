@@ -92,7 +92,7 @@ Podívejme se na možnosti filtrování a omezování výběru pomocí třídy [
 | `$table->group($columns)` | Nastaví GROUP BY
 | `$table->having($having)` | Nastaví HAVING
 
-Můžeme použít tzv. [fluent interface|nette:introduction-to-object-oriented-programming#fluent-interfaces], například `$table->where(...)->order(...)->limit(...)`.  Vícenásobné `where` nebo `whereOr` podmínky je spojeny operátorem `AND`.
+Můžeme použít tzv. fluent interface, například `$table->where(...)->order(...)->limit(...)`.  Vícenásobné `where` nebo `whereOr` podmínky je spojeny operátorem `AND`.
 
 
 where()
@@ -245,8 +245,8 @@ $table->having('COUNT(items) >', 100);  // HAVING COUNT(`items`) > 100
 ```
 
 
-Výběry hodnotou z jiné tabulky .[#toc-joining-key]
---------------------------------------------------
+Výběry hodnotou z jiné tabulky .[#joining-key]
+----------------------------------------------
 
 Často potřebujeme filtrovat výsledky pomocí podmínky, která zahrnuje jinou databázovou tabulku. Tento typ podmínek vyžaduje spojení tabulek, s Nette Database Explorer už je ale nikdy nemusíme psát ručně.
 
@@ -367,7 +367,7 @@ $explorer->table('users')->insert([
 	], [
 		'name' => 'Jack',
 		'year' => 1987,
-	],
+	]
 ]);
 // INSERT INTO users (`name`, `year`) VALUES ('Jim', 1978), ('Jack', 1987)
 ```
@@ -463,7 +463,7 @@ if ($book->translator) {
 }
 ```
 
-Pokud chceme získat autora více knih, použijeme stejný přístup. Nette Database Explorer vybere z databáze záznamy autorů a překladatelů pro všechny knihy najednou.
+Pokud chceme získat autora více knih, použijeme stejný přístup. Nette Database Explorer za nás z databáze záznamy autorů a překladatelů pro všechny knihy najednou.
 
 ```php
 $books = $explorer->table('book');
@@ -504,7 +504,6 @@ foreach ($author->related('book.translator_id') as $book) {
 ```
 
 Metoda `related()` přijímá popis spojení jako dva argumenty, nebo jako jeden argument spojený tečkou. První argument je cílová tabulka, druhý je sloupec.
-
 ```php
 $author->related('book.translator_id');
 // je stejné jako
@@ -548,3 +547,5 @@ $structure = new Nette\Database\Structure($connection, $storage);
 $conventions = new Nette\Database\Conventions\DiscoveredConventions($structure);
 $explorer = new Nette\Database\Explorer($connection, $structure, $conventions, $storage);
 ```
+
+{{composer: nette/database}}

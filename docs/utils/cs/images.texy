@@ -4,7 +4,6 @@ Práce s obrázky
 .[perex]
 Třída [api:Nette\Utils\Image] zjednodušuje manipulaci s obrázky, jako je změna velikosti, oříznutí, doostření, kreslení nebo spojování více obrázků.
 
-
 PHP disponuje rozsáhlou sadou funkcí pro manipulaci s obrázky. Ale jejich API není moc pohodlné. To by nebyl Nette Framework, aby nepřišel se sexy API.
 
 Instalace:
@@ -17,12 +16,11 @@ Všechny příklady předpokládají vytvořený alias:
 
 ```php
 use Nette\Utils\Image;
-use Nette\Utils\ImageColor;
 ```
 
 
-Vytvoření obrázku
-=================
+Vytvoření obázku
+================
 
 Vytvoříme nový true color obrázek, například s rozměry 100×200:
 
@@ -33,7 +31,7 @@ $image = Image::fromBlank(100, 200);
 Volitelně lze určit barvu pozadí (výchozí je černá):
 
 ```php
-$image = Image::fromBlank(100, 200, ImageColor::rgb(125, 0, 0));
+$image = Image::fromBlank(100, 200, Image::rgb(125, 0, 0));
 ```
 
 Nebo obrázek načteme ze souboru:
@@ -42,16 +40,14 @@ Nebo obrázek načteme ze souboru:
 $image = Image::fromFile('nette.jpg');
 ```
 
-Podporované formáty jsou JPEG, PNG, GIF, WebP, AVIF a BMP, nicméně musí je podporovat i vaše verze PHP (ověříte ve výpisu `phpinfo()` v sekci GD). Animace podporované nejsou.
-
 Potřebujete při načtení detekovat formát obrázku? Metoda ho vrátí v druhém parametru:
 
 ```php
 $image = Image::fromFile('nette.jpg', $type);
-// $type bude Image::JPEG, Image::PNG, Image::GIF, Image::WEBP, Image::AVIF nebo Image::BMP
+// $type bude Image::JPEG, Image::PNG, Image::GIF, Image::WEBP nebo Image::BMP
 ```
 
-Samotnou detekci bez načtení obrázku provádí `Image::detectTypeFromFile()`.
+Od nette/utils 3.2 lze použít `Image::detectTypeFromFile()`.
 
 
 Uložení obrázku
@@ -63,13 +59,13 @@ Obrázek lze uložit do souboru:
 $image->save('resampled.jpg');
 ```
 
-Můžeme určit kvalitu komprese v rozsahu 0..100 pro JPEG (výchozí 85), WEBP (výchozí 80) a AVIF (výchozí 30) a 0..9 pro PNG (výchozí 9):
+Můžeme určit kvalitu komprese v rozsahu 0..100 pro JPEG (výchozí 85) a WEBP (výchozí 80) a 0..9 pro PNG (výchozí 9):
 
 ```php
 $image->save('resampled.jpg', 80); // JPEG, kvalita 80%
 ```
 
-Pokud z přípony souboru není zřejmý formát, lze ho určit jednou z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` a `Image::BMP`:
+Pokud z přípony souboru není zřejmý formát, lze ho určit jednou z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` a `Image::BMP`:
 
 ```php
 $image->save('resampled.tmp', null, Image::JPEG);
@@ -114,28 +110,28 @@ Kterýkoliv rozměr je možné uvést i v procentech:
 $image->resize('75%', 300); // 75 % × 300px
 ```
 
-Chování `resize` lze ovlivnit následujícími příznaky. Všechny kromě `Image::Stretch` zachovávají poměr stran.
+Chování `resize` lze ovlivnit následujícími příznaky:
 
 |---------------------------------------------------------------------------------------
 | Příznak                | Popis
 |---------------------------------------------------------------------------------------
-| `Image::OrSmaller` (výchozí) | výsledné rozměry budou menší nebo rovny požadovaným rozměrům
-| `Image::OrBigger`         | vyplní (a případně přesáhne v jednom rozměru) cílovou plochu
-| `Image::Cover`            | vyplní cílovou plochu a ořízne to, co přesáhne
-| `Image::ShrinkOnly`       | pouze zmenšování (zabrání roztažení malého obrázku)
-| `Image::Stretch`          | nezachovávat poměr stran
+| `Image::FIT` (výchozí) | výsledné rozměry budou menší nebo rovny požadovaným rozměrům
+| `Image::FILL`          | vyplní (a případně přesáhne v jednom rozměru) cílovou plochu
+| `Image::EXACT`         | vyplní cílovou plochu a ořízne to, co přesáhne
+| `Image::SHRINK_ONLY`   | pouze zmenšování (zabrání roztažení malého obrázku)
+| `Image::STRETCH`       | nezachovávat poměr stran
 
 
 Příznaky se uvádějí jako třetí argument funkce:
 
 ```php
-$image->resize(500, 300, Image::OrBigger);
+$image->resize(500, 300, Image::STRETCH);
 ```
 
 Příznaky lze kombinovat:
 
 ```php
-$image->resize(500, 300, Image::ShrinkOnly | Image::Stretch);
+$image->resize(500, 300, Image::SHRINK_ONLY | Image::STRETCH);
 ```
 
 Obrázky lze vertikálně nebo horizontálně překlopit tak, že jeden z rozměrů (případně oba) uvedeme jako záporné číslo:
@@ -182,36 +178,18 @@ $image->cropAuto(IMG_CROP_BLACK);
 Metoda `cropAuto()` je objektovou náhradou funkce `imagecropauto()`, v [její dokumentaci|https://www.php.net/manual/en/function.imagecropauto] najdete další informace.
 
 
-Barvy .{data-version:4.0.2}
-===========================
-
-Metoda `ImageColor::rgb()` vám umožňuje definovat barvu pomocí hodnot červené, zelené a modré (RGB). Volitelně můžete také specifikovat hodnotu průhlednosti v rozmezí 0 (naprosto průhledné) až 1 (zcela neprůhledné), tedy stejně jako v CSS.
-
-```php
-$color = ImageColor::rgb(255, 0, 0); // Červená
-$transparentBlue = ImageColor::rgb(0, 0, 255, 0.5); // Poloprůhledná modrá
-```
-
-Metoda `ImageColor::hex()` umožňuje definovat barvu pomocí hexadecimálního formátu, podobně jako v CSS. Podporuje formáty `#rgb`, `#rrggbb`, `#rgba` a `#rrggbbaa`:
-
-```php
-$color = ImageColor::hex("#F00"); // Červená
-$transparentGreen = ImageColor::hex("#00FF0080"); // Poloprůhledná zelená
-```
-
-Barvy lze použít v dalších metodách, jako třeba `ellipse()`, `fill()` atd.
-
-
 Kreslení a úpravy
 =================
 
-Můžeš kreslit, můžeš psát, ale listy netrhat. Jsou vám k dispozici všechny funkce PHP pro práci s obrázky, viz [#Přehled metod], ale v objektovém hávu:
+Můžeš kreslit, můžeš psát, ale listy netrhat.
+
+Jsou vám k dispozici všechny funkce PHP pro práci s obrázky, jako například [imagefilledellipse|https://www.php.net/manual/en/function.imagefilledellipse.php], ale v objektovém hávu:
 
 ```php
-$image->filledEllipse($centerX, $centerY, $width, $height, ImageColor::rgb(255, 0, 0));
+$image->filledEllipse($cx, $cy, $width, $height, Image::rgb(255, 0, 0, 63));
 ```
 
-Protože PHP funkce pro kreslení obdelníků jsou nepraktické kvůli určení souřadnic, nabízí třída `Image` jejich náhrady v podobě funkcí [#rectangleWH()] a [#filledRectangleWH()].
+Viz [#Přehled metod].
 
 
 Spojení více obrázků
@@ -221,7 +199,7 @@ Do obrázku lze snadno vložit jiný obrázek:
 
 ```php
 $logo = Image::fromFile('logo.png');
-$blank = Image::fromBlank(320, 240, ImageColor::rgb(52, 132, 210));
+$blank = Image::fromBlank(320, 240, Image::rgb(52, 132, 210));
 
 // souřadnice lze uvést opět v procentech
 $blank->place($logo, '80%', '80%'); // vložíme poblíž pravého dolního rohu
@@ -240,58 +218,48 @@ Přehled metod
 =============
 
 
-static fromBlank(int $width, int $height, ImageColor $color=null): Image .[method]
-----------------------------------------------------------------------------------
+static fromBlank(int $width, int $height, array $color = null): Image .[method]
+-------------------------------------------------------------------------------
 Vytvoří nový true color obrázek daných rozměrů. Výchozí barva je černá.
 
 
-static fromFile(string $file, int &$detectedFormat=null): Image .[method]
--------------------------------------------------------------------------
-Načte obrázek ze souboru a vrací jeho typ v `$detectedFormat`. Podporované typy jsou `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` a `Image::BMP`.
+static fromFile(string $file, int &$detectedFormat = null): Image .[method]
+---------------------------------------------------------------------------
+Načte obrázek ze souboru a vrací jeho typ v `$detectedFormat`. Podporované typy jsou `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` a `Image::BMP`.
 
 
-static fromString(string $s, int &$detectedFormat=null): Image .[method]
+static fromString(string $s, int &$detectedFormat = null): Image .[method]
+--------------------------------------------------------------------------
+Načte obrázek z řetezce a vrací jeho typ v `$detectedFormat`. Podporované typy jsou `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` a `Image::BMP`.
+
+
+static rgb(int $red, int $green, int $blue, int $transparency = 0): array .[method]
+-----------------------------------------------------------------------------------
+Vytvoří barvu, kterou lze použít v dalších metodách, jako třeba `ellipse()`, `fill()` atd.
+
+
+static typeToExtension(int $type): string .[method]{data-version:v3.1.1}
 ------------------------------------------------------------------------
-Načte obrázek z řetezce a vrací jeho typ v `$detectedFormat`. Podporované typy jsou `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` a `Image::BMP`.
-
-
-static rgb(int $red, int $green, int $blue, int $transparency=0): array .[method][deprecated]
----------------------------------------------------------------------------------------------
-Tuto funkci nahradila třída `ImageColor`, viz [barvy|#Barvy].
-
-
-static typeToExtension(int $type): string .[method]
----------------------------------------------------
 Vrátí příponu souboru pro danou konstantu `Image::XXX`.
 
 
-static typeToMimeType(int $type): string .[method]
---------------------------------------------------
+static typeToMimeType(int $type): string .[method]{data-version:v3.1.1}
+-----------------------------------------------------------------------
 Vrátí mime type pro danou konstantu `Image::XXX`.
 
 
-static extensionToType(string $extension): int .[method]
---------------------------------------------------------
-Vrátí typ obrázku jako konstantu `Image::XXX` podle přípony souboru.
+static detectTypeFromFile(string $file): ?int .[method]{data-version:v3.2.0}
+----------------------------------------------------------------------------
+Vrátí typ obrázku jako konstantu `Image::XXX`.
 
 
-static detectTypeFromFile(string $file, int &$width=null, int &$height=null): ?int .[method]
---------------------------------------------------------------------------------------------
-Vrátí typ obrázku jako konstantu `Image::XXX` a v parametrech `$width` a `$height` také jeho rozměry.
+static detectTypeFromString(string $s): ?int .[method]{data-version:v3.2.0}
+---------------------------------------------------------------------------
+Vrátí typ obrázku z řetězce jako konstantu `Image::XXX`.
 
 
-static detectTypeFromString(string $s, int &$width=null, int &$height=null): ?int .[method]
--------------------------------------------------------------------------------------------
-Vrátí typ obrázku z řetězce jako konstantu `Image::XXX` a v parametrech `$width` a `$height` také jeho rozměry.
-
-
-static calculateTextBox(string $text, string $fontFile, float $size, float $angle=0, array $options=[]): array .[method]
-------------------------------------------------------------------------------------------------------------------------
-Spočítá rozměry obdélníku, který obepne text v určitém písmu a velikosti. Vrací asociativní pole obsahující klíče `left`, `top`, `width`, `height`. Levý okraj může být i záporný, pokud text začíná levým podřezáváním.
-
-
-affine(array $affine, array $clip=null): Image .[method]
---------------------------------------------------------
+affine(array $affine, array $clip = null): Image .[method]
+----------------------------------------------------------
 Vraťte obrázek obsahující afinně transformovaný obraz src pomocí volitelné oblasti oříznutí. ([více |https://www.php.net/manual/en/function.imageaffine]).
 
 
@@ -300,8 +268,8 @@ affineMatrixConcat(array $m1, array $m2): array .[method]
 Vrací zřetězení dvou afinních transformačních matic, což je užitečné, pokud by se na stejný obrázek mělo najednou použít více transformací. ([více |https://www.php.net/manual/en/function.imageaffinematrixconcat])
 
 
-affineMatrixGet(int $type, mixed $options=null): array .[method]
-----------------------------------------------------------------
+affineMatrixGet(int $type, mixed $options = null): array .[method]
+------------------------------------------------------------------
 Vrátí maticovou transformační matici. ([více |https://www.php.net/manual/en/function.imageaffinematrixget])
 
 
@@ -317,9 +285,19 @@ Aktivujte kreslení vyhlazených čar a polygonů. Nepodporuje alfa kanály. Fun
 Použití antialiased primitiv s průhlednou barvou pozadí může skončit s některými neočekávanými výsledky. Metoda prolnutí používá barvu pozadí jako všechny ostatní barvy. ([více |https://www.php.net/manual/en/function.imageantialias])
 
 
-arc(int $centerX, int $centerY, int $width, int $height, int $startAngle, int $endAngle, ImageColor $color): void .[method]
----------------------------------------------------------------------------------------------------------------------------
+arc(int $x, int $y, int $w, int $h, int $start, int $end, int $color): void .[method]
+-------------------------------------------------------------------------------------
 Nakreslí oblouk kruhu se středem v daných souřadnicích. ([více |https://www.php.net/manual/en/function.imagearc])
+
+
+char(int $font, int $x, int $y, string $char, int $color): void .[method]
+-------------------------------------------------------------------------
+Nakreslí první znak `$char` do obrázku s jeho levým horním rohem na `$x`, `$y` (vlevo nahoře je 0, 0) s barvou `$color`. ([více |https://www.php.net/manual/en/function.imagechar])
+
+
+charUp(int $font, int $x, int $y, string $char, int $color): void .[method]
+---------------------------------------------------------------------------
+Nakreslí znak `$char` svisle na určenou souřadnici na daném obrázku. ([více |https://www.php.net/manual/en/function.imagecharup])
 
 
 colorAllocate(int $red, int $green, int $blue): int .[method]
@@ -397,8 +375,8 @@ colorsTotal(): int .[method]
 Vrátí počet barev v obrazové paletě. ([více |https://www.php.net/manual/en/function.imagecolorstotal])
 
 
-colorTransparent(int $color=null): int .[method]
-------------------------------------------------
+colorTransparent(int $color = null): int .[method]
+--------------------------------------------------
 Získá nebo nastaví průhlednou barvu v obrázku. ([více |https://www.php.net/manual/en/function.imagecolortransparent])
 
 
@@ -448,48 +426,43 @@ crop(int|string $left, int|string $top, int|string $width, int|string $height): 
 Ořízne obrázek do dané obdélníkové oblasti. Rozměry je možné zadávat jako integery v pixelech nebo řetězce v procentech (například `'50%'`).
 
 
-cropAuto(int $mode=-1, float $threshold=.5, ?ImageColor $color=null): Image .[method]
--------------------------------------------------------------------------------------
+cropAuto(int $mode = -1, float $threshold = .5, int $color = -1): Image .[method]
+---------------------------------------------------------------------------------
 Automaticky ořízne obrázek podle daného `$mode`. ([více |https://www.php.net/manual/en/function.imagecropauto])
 
 
-ellipse(int $centerX, int $centerY, int $width, int $height, ImageColor $color): void .[method]
------------------------------------------------------------------------------------------------
+ellipse(int $cx, int $cy, int $w, int $h, int $color): void .[method]
+---------------------------------------------------------------------
 Nakreslí elipsu se středem na zadaných souřadnicích. ([více |https://www.php.net/manual/en/function.imageellipse])
 
 
-fill(int $x, int $y, ImageColor $color): void .[method]
--------------------------------------------------------
+fill(int $x, int $y, int $color): void .[method]
+------------------------------------------------
 Výplní oblast počínaje danou souřadnicí (vlevo nahoře je 0, 0) s daným `$color`. ([více |https://www.php.net/manual/en/function.imagefill])
 
 
-filledArc(int $centerX, int $centerY, int $width, int $height, int $startAngle, int $endAngle, ImageColor $color, int $style): void .[method]
----------------------------------------------------------------------------------------------------------------------------------------------
+filledArc(int $cx, int $cy, int $w, int $h, int $s, int $e, int $color, int $style): void .[method]
+---------------------------------------------------------------------------------------------------
 Nakreslí částečný oblouk se středem na zadaných souřadnicích. ([více |https://www.php.net/manual/en/function.imagefilledarc])
 
 
-filledEllipse(int $centerX, int $centerY, int $width, int $height, ImageColor $color): void .[method]
------------------------------------------------------------------------------------------------------
+filledEllipse(int $cx, int $cy, int $w, int $h, int $color): void .[method]
+---------------------------------------------------------------------------
 Nakreslí elipsu se středem na zadaných souřadnicích. ([více |https://www.php.net/manual/en/function.imagefilledellipse])
 
 
-filledPolygon(array $points, ImageColor $color): void .[method]
----------------------------------------------------------------
+filledPolygon(array $points, int $numPoints, int $color): void .[method]
+------------------------------------------------------------------------
 Vytvoří v obraze vyplněný mnohoúhelník. ([více |https://www.php.net/manual/en/function.imagefilledpolygon])
 
 
-filledRectangle(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------
-Vytvoří obdélník vyplněný `$color` v obrázku počínaje bodem `$x1` & `$y1` a končící bodem `$x2` & `$y2`. Bod 0, 0 je levý horní roh obrázku. ([více |https://www.php.net/manual/en/function.imagefilledrectangle])
+filledRectangle(int $x1, int $y1, int $x2, int $y2, int $color): void .[method]
+-------------------------------------------------------------------------------
+Vytvoří obdélník vyplněný `$color` v obrázku počínaje bodem 1 a končící bodem 2. Bod 0, 0 je levý horní roh obrázku. ([více |https://www.php.net/manual/en/function.imagefilledrectangle])
 
 
-filledRectangleWH(int $left, int $top, int $width, int $height, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------------------
-Vytvoří obdélník vyplněný `$color` v obrázku počínaje bodem `$left` & `$top` o šířce `$width` a výšce `$height`. Bod 0, 0 je levý horní roh obrázku.
-
-
-fillToBorder(int $x, int $y, int $border, ImageColor $color): void .[method]
-----------------------------------------------------------------------------
+fillToBorder(int $x, int $y, int $border, int $color): void .[method]
+---------------------------------------------------------------------
 Vykreslí výplň, jejíž barva okraje je definována pomocí `$border`. Výchozím bodem výplně je `$x`, `$y` (vlevo nahoře je 0, 0) a oblast je vyplněna barvou `$color`. ([více |https://www.php.net/manual/en/function.imagefilltoborder])
 
 
@@ -503,9 +476,9 @@ flip(int $mode): void .[method]
 Převrátí obrázek pomocí daného `$mode`. ([více |https://www.php.net/manual/en/function.imageflip])
 
 
-ftText(float $size, float $angle, int $x, int $y, ImageColor $color, string $fontFile, string $text, array $options=[]): array .[method]
-----------------------------------------------------------------------------------------------------------------------------------------
-Napište text do obrázku. ([více |https://www.php.net/manual/en/function.imagefttext])
+ftText(int $size, int $angle, int $x, int $y, int $col, string $fontFile, string $text, array $extrainfo = null): array .[method]
+---------------------------------------------------------------------------------------------------------------------------------
+Napište text do obrázku pomocí písem pomocí FreeType 2. ([více |https://www.php.net/manual/en/function.imagefttext])
 
 
 gammaCorrect(float $inputgamma, float $outputgamma): void .[method]
@@ -513,8 +486,8 @@ gammaCorrect(float $inputgamma, float $outputgamma): void .[method]
 Aplikuje gama korekci na obraz vzhledem k vstupnímu a výstupnímu gamma. ([více |https://www.php.net/manual/en/function.imagegammacorrect])
 
 
-getClip(): array .[method]
---------------------------
+getClip(): array .[method]{data-version:PHP 7.2}
+------------------------------------------------
 Vrátí aktuální ořez, tj. oblast, za kterou nebudou nakresleny žádné pixely. ([více |https://www.php.net/manual/en/function.imagegetclip])
 
 
@@ -533,8 +506,8 @@ getWidth(): int .[method]
 Vrátí šířku obrázku.
 
 
-interlace(int $interlace=null): int .[method]
----------------------------------------------
+interlace(int $interlace = null): int .[method]
+-----------------------------------------------
 Zapíná nebo vypíná prokládaný režim. Pokud je prokládaný režim nastaven a obrázek je uložen jako JPEG, bude uložen jako progresivní JPEG. ([více |https://www.php.net/manual/en/function.imageinterlace])
 
 
@@ -548,13 +521,13 @@ layerEffect(int $effect): void .[method]
 Nastavte příznak prolnutí alfa tak, aby používal efekty vrstvení. ([více |https://www.php.net/manual/en/function.imagelayereffect])
 
 
-line(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
----------------------------------------------------------------------------
+line(int $x1, int $y1, int $x2, int $y2, int $color): void .[method]
+--------------------------------------------------------------------
 Nakreslí čáru mezi dvěma danými body. ([více |https://www.php.net/manual/en/function.imageline])
 
 
-openPolygon(array $points, ImageColor $color): void .[method]
--------------------------------------------------------------
+openPolygon(array $points, int $numPoints, int $color): void .[method]{data-version:PHP 7.2}
+--------------------------------------------------------------------------------------------
 Nakreslí na obrázek otevřený mnohoúhelník. Na rozdíl od `polygon()` není mezi posledním a prvním bodem nakreslena žádná čára. ([více |https://www.php.net/manual/en/function.imageopenpolygon])
 
 
@@ -568,33 +541,33 @@ paletteToTrueColor(): void .[method]
 Převede obrázek založený na paletě na plnobarevný obrázek. ([více |https://www.php.net/manual/en/function.imagepalettetotruecolor])
 
 
-place(Image $image, int|string $left=0, int|string $top=0, int $opacity=100): Image .[method]
----------------------------------------------------------------------------------------------
+place(Image $image, int|string $left = 0, int|string $top = 0, int $opacity = 100): Image .[method]
+---------------------------------------------------------------------------------------------------
 Zkopíruje `$image` do obrázku na souřadnice `$left` a `$top`. Souřadnice je možné zadávat jako integery v pixelech nebo řetězce v procentech (například `'50%'`).
 
 
-polygon(array $points, ImageColor $color): void .[method]
----------------------------------------------------------
+polygon(array $points, int $numPoints, int $color): void .[method]
+------------------------------------------------------------------
 Vytvoří v obrazu mnohoúhelník. ([více |https://www.php.net/manual/en/function.imagepolygon])
 
 
-rectangle(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
---------------------------------------------------------------------------------
+psText(string $text, int $font, int $size, int $color, int $backgroundColor, int $x, int $y, int $space = null, int $tightness = null, float $angle = null, int $antialiasSteps = null): array .[method]
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Nakreslí text na obrázek pomocí písem PostScript Type1. ([více |https://www.php.net/manual/en/function.imagepstext])
+
+
+rectangle(int $x1, int $y1, int $x2, int $y2, int $col): void .[method]
+-----------------------------------------------------------------------
 Vytvoří obdélník na zadaných souřadnicích. ([více |https://www.php.net/manual/en/function.imagerectangle])
 
 
-rectangleWH(int $left, int $top, int $width, int $height, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------------
-Vytvoří obdélník na zadaných souřadnicích.
-
-
-resize(int|string $width, int|string $height, int $flags=Image::OrSmaller): Image .[method]
--------------------------------------------------------------------------------------------
+resize(int|string $width, int|string $height, int $flags = Image::FIT): Image .[method]
+---------------------------------------------------------------------------------------
 Změní velikost obrázku, [více informací|#Změna velikosti]. Rozměry je možné zadávat jako integery v pixelech nebo řetězce v procentech (například `'50%'`).
 
 
-resolution(int $resX=null, int $resY=null): mixed .[method]
------------------------------------------------------------
+resolution(int $resX = null, int $resY = null): mixed .[method]{data-version:PHP 7.2}
+-------------------------------------------------------------------------------------
 Nastaví nebo vrátí rozlišení obrázku v DPI (tečky na palec). Pokud není zadán žádný z volitelných parametrů, je aktuální rozlišení vráceno jako indexované pole. Pokud je zadáno pouze `$resX`, horizontální a vertikální rozlišení se nastaví na tuto hodnotu. Pokud jsou zadány oba volitelné parametry, horizontální a vertikální rozlišení se nastaví na tyto hodnoty.
 
 Rozlišení se používá pouze jako meta informace, když jsou obrázky čteny a zapisovány do formátů podporujících tento druh informací (aktuálně PNG a JPEG). Nemá to vliv na žádné operace kreslení. Výchozí rozlišení nových snímků je 96 DPI. ([více |https://www.php.net/manual/en/function.imageresolution])
@@ -608,11 +581,11 @@ Otočí obrázek pomocí zadaného `$angle` ve stupních. Střed otáčení je s
 Vyžaduje přítomnost *Bundled GD extension*, nemusí tedy fungovat všude.
 
 
-save(string $file, int $quality=null, int $type=null): void .[method]
----------------------------------------------------------------------
+save(string $file, int $quality = null, int $type = null): void .[method]
+-------------------------------------------------------------------------
 Uloží obrázek do souboru.
 
-Kvalita komprese je v rozsahu 0..100 pro JPEG (výchozí 85), WEBP (výchozí 80) a AVIF (výchozí 30) a 0..9 pro PNG (výchozí 9). Pokud typ není zřejmý z přípony souboru, můžete jej zadat pomocí jedné z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` a `Image::BMP`.
+Kvalita komprese je v rozsahu 0..100 pro JPEG (výchozí 85) a WEBP (výchozí 80) a 0..9 pro PNG (výchozí 9). Pokud typ není zřejmý z přípony souboru, můžete jej zadat pomocí jedné z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` a `Image::BMP`.
 
 
 saveAlpha(bool $saveflag): void .[method]
@@ -622,16 +595,16 @@ Nastavuje příznak, zda při ukládání obrazů PNG zachovat úplné informace
 Alfablending musí být deaktivován (`alphaBlending(false)`), aby si alfa kanál udržel na prvním místě. ([více |https://www.php.net/manual/en/function.imagesavealpha])
 
 
-scale(int $newWidth, int $newHeight=-1, int $mode=IMG_BILINEAR_FIXED): Image .[method]
---------------------------------------------------------------------------------------
+scale(int $newWidth, int $newHeight = -1, int $mode = IMG_BILINEAR_FIXED): Image .[method]
+------------------------------------------------------------------------------------------
 Měřítko obrázku pomocí daného interpolačního algoritmu. ([více |https://www.php.net/manual/en/function.imagescale])
 
 
-send(int $type=Image::JPEG, int $quality=null): void .[method]
---------------------------------------------------------------
+send(int $type = Image::JPEG, int $quality = null): void .[method]
+------------------------------------------------------------------
 Vypíše obrázek do prohlížeče.
 
-Kvalita komprese je v rozsahu 0..100 pro JPEG (výchozí 85), WEBP (výchozí 80) a AVIF (výchozí 30) a 0..9 pro PNG (výchozí 9). Typ je jednou z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` a `Image::BMP`.
+Kvalita komprese je v rozsahu 0..100 pro JPEG (výchozí 85) a WEBP (výchozí 80) a 0..9 pro PNG (výchozí 9). Typ je jednou z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` a `Image::BMP`.
 
 
 setBrush(Image $brush): void .[method]
@@ -639,18 +612,18 @@ setBrush(Image $brush): void .[method]
 Nastavuje obraz štětce, který se použije ve všech funkcích kreslení čar (například `line()` a `polygon()`) při kreslení se speciálními barvami IMG_COLOR_BRUSHED nebo IMG_COLOR_STYLEDBRUSHED. ([více |https://www.php.net/manual/en/function.imagesetbrush])
 
 
-setClip(int $x1, int $y1, int $x2, int $y2): void .[method]
------------------------------------------------------------
+setClip(int $x1, int $y1, int $x2, int $y2): void .[method]{data-version:PHP 7.2}
+---------------------------------------------------------------------------------
 Nastaví aktuální ořez, tj. oblast, za kterou nebudou nakresleny žádné pixely. ([více |https://www.php.net/manual/en/function.imagesetclip])
 
 
-setInterpolation(int $method=IMG_BILINEAR_FIXED): void .[method]
-----------------------------------------------------------------
+setInterpolation(int $method = IMG_BILINEAR_FIXED): void .[method]
+------------------------------------------------------------------
 Nastaví metodu interpolace, která ovlivní metody `rotate()` a `affine()`. ([více |https://www.php.net/manual/en/function.imagesetinterpolation])
 
 
-setPixel(int $x, int $y, ImageColor $color): void .[method]
------------------------------------------------------------
+setPixel(int $x, int $y, int $color): void .[method]
+----------------------------------------------------
 Nakreslí pixel na zadané souřadnici. ([více |https://www.php.net/manual/en/function.imagesetpixel])
 
 
@@ -679,11 +652,21 @@ Doostří obrázek.
 Vyžaduje přítomnost *Bundled GD extension*, nemusí tedy fungovat všude.
 
 
-toString(int $type=Image::JPEG, int $quality=null): string .[method]
---------------------------------------------------------------------
+string(int $font, int $x, int $y, string $str, int $col): void .[method]
+------------------------------------------------------------------------
+Vypíše řetězec na zadané souřadnice. ([více |https://www.php.net/manual/en/function.imagestring])
+
+
+stringUp(int $font, int $x, int $y, string $s, int $col): void .[method]
+------------------------------------------------------------------------
+Vypíše řetězec svisle na dané souřadnice. ([více |https://www.php.net/manual/en/function.imagestringup])
+
+
+toString(int $type = Image::JPEG, int $quality = null): string .[method]
+------------------------------------------------------------------------
 Uloží obrázek do řetezce.
 
-Kvalita komprese je v rozsahu 0..100 pro JPEG (výchozí 85), WEBP (výchozí 80) a AVIF (výchozí 30) a 0..9 pro PNG (výchozí 9). Typ je jednou z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` a `Image::BMP`.
+Kvalita komprese je v rozsahu 0..100 pro JPEG (výchozí 85) a WEBP (výchozí 80) a 0..9 pro PNG (výchozí 9). Typ je jednou z konstant `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` a `Image::BMP`.
 
 
 trueColorToPalette(bool $dither, int $ncolors): void .[method]
@@ -691,6 +674,9 @@ trueColorToPalette(bool $dither, int $ncolors): void .[method]
 Převede obraz truecolor na paletový. ([více |https://www.php.net/manual/en/function.imagetruecolortopalette])
 
 
-ttfText(float $size, float $angle, int $x, int $y, ImageColor $color, string $fontFile, string $text, array $options=[]): array .[method]
------------------------------------------------------------------------------------------------------------------------------------------
-Vypíše daný text do obrázku. ([více |https://www.php.net/manual/en/function.imagettftext])
+ttfText(int $size, int $angle, int $x, int $y, int $color, string $fontfile, string $text): array .[method]
+-----------------------------------------------------------------------------------------------------------
+Vypíše daný text do obrázku pomocí písem TrueType. ([více |https://www.php.net/manual/en/function.imagettftext])
+
+
+{{composer: nette/utils}}

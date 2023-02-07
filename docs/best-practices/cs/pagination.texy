@@ -11,12 +11,16 @@ namespace App\Model;
 
 use Nette;
 
-
 class ArticleRepository
 {
-	public function __construct(
-		private Nette\Database\Connection $database,
-	) {
+	use Nette\SmartObject;
+
+	/** @var Nette\Database\Connection */
+	private $database;
+
+	public function __construct(Nette\Database\Connection $database)
+	{
+		$this->database = $database;
 	}
 
 	public function findPublishedArticles(): Nette\Database\ResultSet
@@ -25,7 +29,7 @@ class ArticleRepository
 			SELECT * FROM articles
 			WHERE created_at < ?
 			ORDER BY created_at DESC',
-			new \DateTime,
+			new \DateTime
 		);
 	}
 }
@@ -39,11 +43,14 @@ namespace App\Presenters;
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
-	public function __construct(
-		private ArticleRepository $articleRepository,
-	) {
+	/** @var ArticleRepository */
+	private $articleRepository;
+
+	public function __construct(ArticleRepository $articleRepository)
+	{
+		$this->articleRepository = $articleRepository;
 	}
 
 	public function renderDefault(): void
@@ -55,7 +62,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 V šabloně se pak postaráme o výpis článků:
 
-```latte
+```html
 {block content}
 <h1>Články</h1>
 
@@ -79,12 +86,16 @@ namespace App\Model;
 
 use Nette;
 
-
 class ArticleRepository
 {
-	public function __construct(
-		private Nette\Database\Connection $database,
-	) {
+	use Nette\SmartObject;
+
+	/** @var Nette\Database\Connection */
+	private $database;
+
+	public function __construct(Nette\Database\Connection $database)
+	{
+		$this->database = $database;
 	}
 
 	public function findPublishedArticles(int $limit, int $offset): Nette\Database\ResultSet
@@ -95,7 +106,7 @@ class ArticleRepository
 			ORDER BY created_at DESC
 			LIMIT ?
 			OFFSET ?',
-			new \DateTime, $limit, $offset,
+			new \DateTime, $limit, $offset
 		);
 	}
 
@@ -111,7 +122,7 @@ class ArticleRepository
 
 Následně se pustíme do úprav presenteru. Do render metody budeme předávat číslo aktuálně zobrazené stránky. Pro případ, kdy nebude toto číslo součástí URL, nastavíme výchozí hodnotu první stránky.
 
-Dále také render metodu rozšíříme o získání instance Paginatoru, jeho nastavení a výběru správných článků pro zobrazení v šabloně. HomePresenter bude po úpravách vypadat takto:
+Dále také render metodu rozšíříme o získání instance Paginatoru, jeho nastavení a výběru správných článků pro zobrazení v šabloně. HomepagePresenter bude po úpravách vypadat takto:
 
 ```php
 namespace App\Presenters;
@@ -119,11 +130,15 @@ namespace App\Presenters;
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
-	public function __construct(
-		private ArticleRepository $articleRepository,
-	) {
+	/** @var ArticleRepository */
+	private $articleRepository;
+
+	public function __construct(ArticleRepository $articleRepository)
+	{
+		$this->articleRepository = $articleRepository;
 	}
 
 	public function renderDefault(int $page = 1): void
@@ -150,7 +165,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Šablona nám už nyní iteruje jen nad články jedné stránky, stačí nám přidat stránkovací odkazy:
 
-```latte
+```html
 {block content}
 <h1>Články</h1>
 
@@ -190,12 +205,17 @@ namespace App\Model;
 
 use Nette;
 
-
 class ArticleRepository
 {
-	public function __construct(
-		private Nette\Database\Explorer $database,
-	) {
+	use Nette\SmartObject;
+
+	/** @var Nette\Database\Explorer */
+	private $database;
+
+
+	public function __construct(Nette\Database\Explorer $database)
+	{
+		$this->database = $database;
 	}
 
 
@@ -208,6 +228,7 @@ class ArticleRepository
 }
 ```
 
+
 V presenteru nemusíme vytvářet Paginator, použijeme místo něj metodu třídy `Selection`, kterou nám vrací repositář:
 
 ```php
@@ -216,11 +237,14 @@ namespace App\Presenters;
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
-	public function __construct(
-		private ArticleRepository $articleRepository,
-	) {
+	/** @var ArticleRepository */
+	private $articleRepository;
+
+	public function __construct(ArticleRepository $articleRepository)
+	{
+		$this->articleRepository = $articleRepository;
 	}
 
 	public function renderDefault(int $page = 1): void
@@ -241,7 +265,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Protože do šablony nyní neposíláme Paginator, upravíme část zobrazující stránkovací odkazy:
 
-```latte
+```html
 {block content}
 <h1>Články</h1>
 

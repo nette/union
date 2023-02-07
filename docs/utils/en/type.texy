@@ -1,9 +1,8 @@
 PHP Type
 ********
 
-.[perex]
+.[perex]{data-version:3.2.5}
 [api:Nette\Utils\Type] is a PHP data type class.
-
 
 Installation:
 
@@ -45,17 +44,19 @@ echo $type;      // 'Foo|Bar'
 ```
 
 
-getNames(): (string|array)[] .[method]
---------------------------------------
+getNames(): string[] .[method]
+------------------------------
 
 Returns the array of subtypes that make up the compound type as strings.
 
 ```php
-$type = Type::fromString('string|null'); // nebo '?string'
+$type = Type::fromString('string|null'); // or '?string'
+$type->isUnion();   // true
 $type->getNames();  // ['string', 'null']
 
-$type = Type::fromString('(Foo&Bar)|string');
-$type->getNames();  // [['Foo', 'Bar'], 'string']
+$type = Type::fromString('Foo&Bar');
+$type->isIntersection(); // true
+$type->getNames();  // ['Foo', 'Bar']
 ```
 
 
@@ -66,12 +67,11 @@ Returns the array of subtypes that make up the compound type as `Type` objects:
 
 ```php
 $type = Type::fromString('string|null'); // or '?string'
+$type->isUnion();   // true
 $type->getTypes();  // [Type::fromString('string'), Type::fromString('null')]
 
-$type = Type::fromString('(Foo&Bar)|string');
-$type->getTypes();  // [Type::fromString('Foo&Bar'), Type::fromString('string')]
-
 $type = Type::fromString('Foo&Bar');
+$type->isIntersection(); // true
 $type->getTypes();  // [Type::fromString('Foo'), Type::fromString('Bar')]
 ```
 
@@ -79,7 +79,7 @@ $type->getTypes();  // [Type::fromString('Foo'), Type::fromString('Bar')]
 getSingleName(): ?string .[method]
 ----------------------------------
 
-Returns the type name for simple types, otherwise null.
+Returns the type name for single types, otherwise null.
 
 ```php
 $type = Type::fromString('string|null');
@@ -96,18 +96,18 @@ echo $type->getSingleName();      // null
 ```
 
 
-isSimple(): bool .[method]
+isSingle(): bool .[method]
 --------------------------
 
-Returns whether it is a simple type. Simple nullable types are also considered to be simple types:
+Returns whether it is a single type. Simple nullable types are also considered to be single types:
 
 ```php
 $type = Type::fromString('string');
-$type->isSimple();       // true
+$type->isSingle();       // true
 $type->isUnion();        // false
 
 $type = Type::fromString('?Foo'); // nebo 'Foo|null'
-$type->isSimple();       // true
+$type->isSingle();       // true
 $type->isUnion();        // true
 ```
 
@@ -138,7 +138,7 @@ $type->isIntersection(); // true
 isBuiltin(): bool .[method]
 ---------------------------
 
-Returns whether the type is both a simple and a PHP built-in type.
+Returns whether the type is both a single and a PHP built-in type.
 
 ```php
 $type = Type::fromString('string');
@@ -155,7 +155,7 @@ $type->isBuiltin(); // false
 isClass(): bool .[method]
 -------------------------
 
-Returns whether the type is both a simple and a class name.
+Returns whether the type is both a single and a class name.
 
 ```php
 $type = Type::fromString('string');
@@ -169,8 +169,8 @@ $type->isClass();   // false
 ```
 
 
-isClassKeyword(): bool .[method]
---------------------------------
+isClassKeyword(): bool .[method]{data-version:3.2.6}
+----------------------------------------------------
 
 Determine whether the type is one of the internal types `self`, `parent`, `static`.
 
@@ -183,8 +183,8 @@ $type->isClassKeyword();   // false
 ```
 
 
-allows(string $type): bool .[method]
-------------------------------------
+allow(string $type): bool .[method]
+-----------------------------------
 
 The `allows()` method verifies type compatibility. For example, it allows to check if a value of a certain type could be passed as a parameter.
 
@@ -197,3 +197,6 @@ $type->allows('Foo');    // false
 $type = Type::fromString('mixed');
 $type->allows('null');   // true
 ```
+
+
+{{composer: nette/utils}}

@@ -30,11 +30,11 @@ The form in the presenter is an object of the class `Nette\Application\UI\Form`,
 
 From the presenter's point of view, the form is a common component. Therefore, it is treated as a component and incorporated into the presenter using [factory method |application:components#Factory Methods]. It will look like this:
 
-```php .{file:app/Presenters/HomePresenter.php}
+```php .{data-file:app/Presenters/HomepagePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	protected function createComponentRegistrationForm(): Form
 	{
@@ -52,14 +52,14 @@ class HomePresenter extends Nette\Application\UI\Presenter
 		// $data->name contains name
 		// $data->password contains password
 		$this->flashMessage('You have successfully signed up.');
-		$this->redirect('Home:');
+		$this->redirect('Homepage:');
 	}
 }
 ```
 
 And render in template is done using `{control}` tag:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```html .{data-file:app/Presenters/templates/Homepage/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -131,13 +131,13 @@ At the same time, you will not be able cheat the system by typing only spaces in
 The form is always validated on the server side, but JavaScript validation is also generated, which is quick and the user knows of the error immediately, without having to send the form to the server. This is handled by the script `netteForms.js`.
 Insert it into the layout template:
 
-```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+```html
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 If you look in the source code of the page with form, you may notice that Nette inserts the required fields into elements with a CSS class `required`. Try adding the following style to the template, and the "Name" label will be red. Elegantly, we mark the required fields for the users:
 
-```latte
+```html
 <style>
 .required label { color: maroon }
 </style>
@@ -145,36 +145,36 @@ If you look in the source code of the page with form, you may notice that Nette 
 
 Additional validation rules will be added by method `addRule()`. The first parameter is rule, the second is again the text of the error message, and the optional validation rule argument can follow. What does that mean?
 
-The form will get another optional input *age* with the condition, that it has to be a number (`addInteger()`) and in certain boundaries (`$form::Range`). And here we will use the third argument of `addRule()`, the range itself:
+The form will get another optional input *age* with the condition, that it has to be a number (`addInteger()`) and in certain boundaries (`$form::RANGE`). And here we will use the third argument of `addRule()`, the range itself:
 
 ```php
 $form->addInteger('age', 'Age:')
-	->addRule($form::Range, 'You must be older 18 years and be under 120.', [18, 120]);
+	->addRule($form::RANGE, 'You must be older 18 years and be under 120.', [18, 120]);
 ```
 
 .[tip]
 If the user does not fill in the field, the validation rules will not be verified, because the field is optional.
 
-Obviously room for a small refactoring is available. In the error message and in the third parameter, the numbers are listed in duplicate, which is not ideal. If we were creating a [multilingual form|rendering#translating] and the message containing numbers would have to be translated into multiple languages, it would make it more difficult to change values. For this reason, substitute characters `%d` can be used:
+Obviously room for a small refactoring is available. In the error message and in the third parameter, the numbers are listed in duplicate, which is not ideal. If we were creating a [multilingual form|best-practices:translations] and the message containing numbers would have to be translated into multiple languages, it would make it more difficult to change values. For this reason, substitute characters `%d` can be used:
 
 ```php
-	->addRule($form::Range, 'You must be older %d years and be under %d.', [18, 120]);
+	->addRule($form::RANGE, 'You must be older %d years and be under %d.', [18, 120]);
 ```
 
-Let's return to the *password* field, make it *required*, and verify the minimum password length (`$form::MinLength`), again using the substitute characters in the message:
+Let's return to the *password* field, make it *required*, and verify the minimum password length (`$form::MIN_LENGTH`), again using the substitute characters in the message:
 
 ```php
 $form->addPassword('password', 'Password:')
 	->setRequired('Pick a password')
-	->addRule($form::MinLength, 'Your password has to be at least %d long', 8);
+	->addRule($form::MIN_LENGTH, 'Your password has to be at least %d long', 8);
 ```
 
-We will add a field `passwordVerify` to the form, where the user enters the password again, for checking. Using validation rules, we check whether both passwords are the same (`$form::Equal`). And as an argument we give a reference to the first password using [square brackets |#Access to Controls]:
+We will add a field `passwordVerify` to the form, where the user enters the password again, for checking. Using validation rules, we check whether both passwords are the same (`$form::EQUAL`). And as an argument we give a reference to the first password using [square brackets |#Access to Controls]:
 
 ```php
 $form->addPassword('passwordVerify', 'Password again:')
 	->setRequired('Fill your password again to check for typo')
-	->addRule($form::Equal, 'Password mismatch', $form['password'])
+	->addRule($form::EQUAL, 'Password mismatch', $form['password'])
 	->setOmitted();
 ```
 
@@ -221,14 +221,18 @@ There are really a lot of ways to render a form, so it's dedicated [chapter abou
 Mapping to Classes
 ==================
 
-Let's go back to the `formSucceeded()` method, which in the second parameter `$data` gets the sent data as an `ArrayHash` object. Because this is a generic class, something like `stdClass`, we will lack some convenience when working with it, such as code completition for properties in editors or static code analysis. This could be solved by having a specific class for each form, whose properties represent the individual controls. E.g.:
+Let's go back to the `formSucceeded()` method, which in the second parameter `$data` gets the sent data as an `ArrayHash` object. Because this is a generic class, something like `stdClass`, we will lack some convenience when working with it, such as code completition for properties in editors
+or static code analysis. This could be solved by having a specific class for each form, whose properties represent the individual controls. E.g.:
 
 ```php
 class RegistrationFormData
 {
-	public string $name;
-	public int $age;
-	public string $password;
+	/** @var string */
+	public $name;
+	/** @var int */
+	public $age;
+	/** @var string */
+	public $password;
 }
 ```
 
@@ -264,34 +268,6 @@ In a similar way, you can use the `getValues()` method, which we pass as a class
 ```php
 $data = $form->getValues(RegistrationFormData::class);
 $name = $data->name;
-```
-
-If the forms consist of a multi-level structure composed of containers, create a separate class for each one:
-
-```php
-$form = new Form;
-$person = $form->addContainer('person');
-$person->addText('firstName');
-/* ... */
-
-class PersonFormData
-{
-	public string $firstName;
-	public string $lastName;
-}
-
-class RegistrationFormData
-{
-	public PersonFormData $person;
-	public int $age;
-	public string $password;
-}
-```
-
-The mapping then knows from the `$person` property type that it should map the container to the `PersonFormData` class. If the property would contain an array of containers, provide the `array` type and pass the class to be mapped directly to the container:
-
-```php
-$person->setMappedType(PersonFormData::class);
 ```
 
 
@@ -393,9 +369,9 @@ class SignInFormFactory
 We ask the class to produce the form in the factory method for components in the presenter:
 
 ```php
-public function __construct(
-	private SignInFormFactory $formFactory,
-) {
+public function __construct(SignInFormFactory $formFactory)
+{
+	$this->formFactory = $formFactory;
 }
 
 protected function createComponentSignInForm(): Form
@@ -429,3 +405,6 @@ class SignInFormFactory
 ```
 
 So, we have a quick introduction to forms in Nette. Try looking in the [examples |https://github.com/nette/forms/tree/master/examples] directory in the distribution for more inspiration.
+
+
+{{composer: nette/forms}}

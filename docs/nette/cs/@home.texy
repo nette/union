@@ -6,24 +6,19 @@ Dokumentace Nette
 <div>
 
 
-Seznámení
----------
-- [Proč používat Nette? |www:10-reasons-why-nette]
-- [Instalace |installation]
-- [Píšeme první aplikaci! |quickstart:]
-
-
-Obecné
+Úvodem
 ------
-- [Seznam balíčků |www:packages]
+- [Proč používat Nette? |www:10-reasons-why-nette]
+- <b>[Píšeme první aplikaci! |quickstart:getting-started]</b>
+
+
+- [Balíčky & instalace |www:packages]
 - [Údržba a PHP verze |www:maintenance]
 - [Release Notes |https://nette.org/releases]
 - [Přechod na novější verze|migrations:]
 - [Řešení problémů |nette:troubleshooting]
 - [Kdo tvoří Nette |https://nette.org/contributors]
-- [Historie Nette |www:history]
-- [Zapojte se |contributing:]
-- [Podpořte vývoj |https://nette.org/cs/donate]
+- [Zapojte se |contributing:code]
 - [API reference |https://api.nette.org/]
 </div>
 
@@ -36,8 +31,6 @@ Aplikace v Nette
 - [Jak fungují aplikace? |application:how-it-works]
 - [application:Bootstrap]
 - [Presentery |application:presenters]
-- [Šablony |application:templates]
-- [Moduly |application:modules]
 - [Routování |application:routing]
 - [Vytváření odkazů URL |application:creating-links]
 - [Interaktivní komponenty |application:components]
@@ -54,7 +47,7 @@ Aplikace v Nette
 Hlavní témata
 -------------
 - [Konfigurace |nette:configuring]
-- [Dependency Injection|dependency-injection:]
+- [Dependency Injection|dependency-injection:introduction]
 - [Latte: šablony |latte:]
 - [Tracy: ladění kódu |tracy:]
 - [Formuláře |forms:]
@@ -62,10 +55,10 @@ Hlavní témata
 - [Přihlašování uživatelů |security:authentication]
 - [Ověřování oprávnění |security:authorization]
 - [http:Sessions]
-- [HTTP request & response|http:]
+- [HTTP request|http:request] & [response|http:response]
 - [Cache |caching:]
 - [Odesílání e-mailů |mail:]
-- [Schema: validace dat |schema:]
+- [Schema |schema:]
 - [Generátor PHP kódu |php-generator:]
 - [Tester: testování |tester:]
 </div>
@@ -84,12 +77,10 @@ Utilities
 - [utils:JSON]
 - [NEON|neon:]
 - [Hashování hesel |security:passwords]
-- [PHP typy |utils:type]
+- [SmartObject |utils:smartobject]
+- [PHP reflexe |utils:reflection]
 - [Řetězce |utils:strings]
 - [Validátory |utils:validators]
-- [RobotLoader |robot-loader:]
-- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
-- [SafeStream |safe-stream:]
 - [...další |utils:]
 </div>
 

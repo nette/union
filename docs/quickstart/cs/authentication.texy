@@ -8,7 +8,7 @@ Existuje mnoho možností, jak může být uživatel ověřen. Nejčastější z
 Obyčejně bychom si napsali vlastní authenticator, ale pro tento jednoduchý malý blog použijeme vestavěný authenticator, který přihlašuje na základě hesla a uživatelského jména uloženého v konfiguračním souboru. Hodí se pro testovací účely. Přidáme tedy následující *security* sekci do konfiguračního souboru `config/common.neon`:
 
 
-```neon .{file:config/common.neon}
+```neon .{data-file:config/common.neon}
 security:
 	users:
 		admin: secret  # user 'admin', password 'secret'
@@ -28,8 +28,7 @@ Nyní máme autentifikaci připravenu a musíme připravit uživatelské rozhran
 
 Začneme s přihlašovacím formulářem. Již víme, jak formuláře v presenterech fungují. Vytvoříme si tedy presenter `SignPresenter` a zapíšeme metodu `createComponentSignInForm`. Měl by vypadat nějak takto:
 
-```php .{file:app/Presenters/SignPresenter.php}
-<?php
+```php .{data-file:app/Presenters/SignPresenter.php}
 namespace App\Presenters;
 
 use Nette;
@@ -48,7 +47,7 @@ final class SignPresenter extends Nette\Application\UI\Presenter
 
 		$form->addSubmit('send', 'Přihlásit');
 
-		$form->onSuccess[] = $this->signInFormSucceeded(...);
+		$form->onSuccess[] = [$this, 'signInFormSucceeded'];
 		return $form;
 	}
 }
@@ -60,9 +59,9 @@ Jsou zde políčka pro uživatelské jméno a heslo.
 Šablona
 -------
 
-Formulář se bude vykreslovat v šabloně `in.latte`:
+Formulář se bude vykreslovat v šabloně `app/Presenters/templates/Sign/in.latte`:
 
-```latte .{file:app/Presenters/templates/Sign/in.latte}
+```html .{data-file:app/Presenters/templates/Sign/in.latte}
 {block content}
 <h1 n:block=title>Přihlášení</h1>
 
@@ -77,12 +76,12 @@ Dále doplníme callback pro přihlášení uživatele, který bude volán hned 
 
 Callback pouze převezme uživatelské jméno a heslo, které uživatel vyplnil a předá je authenticatoru. Po přihlášení přesměrujeme na úvodní stránku.
 
-```php .{file:app/Presenters/SignPresenter.php}
-private function signInFormSucceeded(Form $form, \stdClass $data): void
+```php .{data-file:app/Presenters/SignPresenter.php}
+public function signInFormSucceeded(Form $form, \stdClass $data): void
 {
 	try {
 		$this->getUser()->login($data->username, $data->password);
-		$this->redirect('Home:');
+		$this->redirect('Homepage:');
 
 	} catch (Nette\Security\AuthenticationException $e) {
 		$form->addError('Nesprávné přihlašovací jméno nebo heslo.');
@@ -102,7 +101,7 @@ Zabezpečíme formulář pro přidávání a editování příspěvků. Ten je d
 
 Vytvoříme metodu `startup()`, která se spouští ihned na začátku [životního cyklu presenteru|application:presenters#zivotni-cyklus-presenteru]. Ta přesměruje nepřihlášené uživatele na formulář s přihlášením.
 
-```php .{file:app/Presenters/EditPresenter.php}
+```php .{data-file:app/Presenters/EditPresenter.php}
 public function startup(): void
 {
 	parent::startup();
@@ -117,17 +116,17 @@ public function startup(): void
 Skrytí odkazů
 -------------
 
-Neautorizovaný uživatel už nemůže vidět stránku *create* ani *edit*, ale stále na ně může vidět odkazy. Ty bychom měli také schovat. Jeden takový odkaz je v šabloně `app/Presenters/templates/Home/default.latte` a měli by jej vidět pouze přihlášení uživatelé.
+Neautorizovaný uživatel už nemůže vidět stránku *create* ani *edit*, ale stále na ně může vidět odkazy. Ty bychom měli také schovat. Jeden takový odkaz je v šabloně `app/Presenters/templates/Homepage/default.latte` a měli by jej vidět pouze přihlášení uživatelé.
 
 Můžeme jej schovat využitím *n:atributu* jménem `n:if`. Pokud je tato podmínka `false`, celý tag `<a>`, včetně obsahu, zůstane skrytý.
 
-```latte
+```html
 <a n:href="Edit:create" n:if="$user->isLoggedIn()">Vytvořit příspěvek</a>
 ```
 
 což je zkratka následujícího zápisu (neplést s `tag-if`):
 
-```latte
+```html
 {if $user->isLoggedIn()}<a n:href="Edit:create">Vytvořit příspěvek</a>{/if}
 ```
 
@@ -137,31 +136,29 @@ Stejným způsobem skryjeme také odkaz v šabloně `app/Presenters/templates/Po
 Odkaz na přihlášení
 ===================
 
-Jak se vlastně dostaneme na přihlašovací stránku? Není zde žádný odkaz, který by na ni vedl. Tak si ho tedy přidáme do šablony `@layout.latte`. Pokuste se najít vhodné místo - může to být téměř kdekoliv.
+Jak se vlastně dostaneme na přihlašovací stránku? Není zde žádný odkaz, který by na ni vedl. Tak si ho tedy přidáme do šablony `app/Presenters/templates/@layout.latte`. Pokuste se najít vhodné místo - může to být téměř kdekoliv.
 
-```latte .{file:app/Presenters/templates/@layout.latte}
-...
+```html .{data-file:app/Presenters/templates/@layout.latte}
 <ul class="navig">
-	<li><a n:href="Home:">Články</a></li>
+	<li><a n:href="Homepage:">Články</a></li>
 	{if $user->isLoggedIn()}
 		<li><a n:href="Sign:out">Odhlásit</a></li>
 	{else}
 		<li><a n:href="Sign:in">Přihlásit</a></li>
 	{/if}
 </ul>
-...
 ```
 
 Pokud není uživatel přihlášen, zobrazí se odkaz "Přihlásit". V opačném případě se zobrazí odkaz "Odhlásit". Tuto akci také doplníme do `SignPresenter`.
 
 Jelikož uživatele po odhlášení okamžitě přesměrujeme, není potřeba žádná šablona. Odhlášení vypadá takto:
 
-```php .{file:app/Presenters/SignPresenter.php}
+```php .{data-file:app/Presenters/SignPresenter.php}
 public function actionOut(): void
 {
 	$this->getUser()->logout();
 	$this->flashMessage('Odhlášení bylo úspěšné.');
-	$this->redirect('Home:');
+	$this->redirect('Homepage:');
 }
 ```
 

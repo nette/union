@@ -2,30 +2,12 @@ Tipy a triky
 ************
 
 
-Editory a IDE
-=============
-
-Pište šablony v editoru nebo IDE, který má podporu pro Latte. Bude to mnohem příjemnější.
-
-- NetBeans IDE má podporu vestavěnou
-- PhpStorm: nainstalujte v `Settings > Plugins > Marketplace` [plugin Latte|https://plugins.jetbrains.com/plugin/7457-latte]
-- VS Code: hledejte v markerplace "Nette Latte + Neon" plugin
-- Sublime Text 3: v Package Control najděte a nainstalujte balíček `Nette` a zvolte Latte ve `View > Syntax`
-- ve starých editorech použijte pro soubory .latte zvýrazňování Smarty
-
-Plugin pro PhpStorm je velmi pokročilý a umí výborně napovídat PHP kód. Aby fungoval optimálně, používejte [typované šablony|type-system].
-
-[* latte-phpstorm-plugin.webp *]
-
-Podporu pro Latte najdete také ve webovém zvýrazňovači kódu [Prism.js|https://prismjs.com/#supported-languages] a editoru [Ace|https://ace.c9.io].
-
-
 Latte uvnitř JavaScriptu nebo CSS
 =================================
 
 Latte lze velmi pohodlně používat i uvnitř JavaScriptu nebo CSS. Jak se však vyhnout situaci, kdy by Latte mylně považovalo JavaScriptový kód nebo CSS styl za Latte značku?
 
-```latte
+```html
 <style>
 	/* CHYBA: interpretuje jako značku {color} */
 	body {color: blue}
@@ -41,7 +23,7 @@ Latte lze velmi pohodlně používat i uvnitř JavaScriptu nebo CSS. Jak se vša
 
 Vyhněte se situaci, kdy následuje písmeno hned za `{`, třeba tím, že před něj vložíte mezeru, odřádkování nebo uvozovku:
 
-```latte
+```html
 <style>
 	body {
 		color: blue
@@ -57,7 +39,7 @@ Vyhněte se situaci, kdy následuje písmeno hned za `{`, třeba tím, že před
 
 Zcela vypněte zpracování Latte značek uvnitř elementu pomocí [n:syntax |tags#syntax]:
 
-```latte
+```html
 <script n:syntax="off">
 	var obj = {id: 123};
 </script>
@@ -67,7 +49,7 @@ Zcela vypněte zpracování Latte značek uvnitř elementu pomocí [n:syntax |ta
 
 Přepněte uvnitř elementu syntax Latte značek na zdvojené složené závorky:
 
-```latte
+```html
 <script n:syntax="double">
 	var obj = {id: 123};          // tohle je JavaScript
 
@@ -86,7 +68,7 @@ Jak v Latte nahradit klauzule `use`, které se používají v PHP, abyste nemuse
 ```php
 use Pets\Model\Dog;
 
-if ($dog->status === Dog::StatusHungry) {
+if ($dog->status === Dog::STATUS_HUNGRY) {
 	// ...
 }
 ```
@@ -95,11 +77,11 @@ if ($dog->status === Dog::StatusHungry) {
 
 Místo klausule `use` si uložíme název třídy do proměnné a následně místo `Dog` používáme `$Dog`:
 
-```latte
+```html
 {var $Dog = Pets\Model\Dog::class}
 
 <div>
-	{if $dog->status === $Dog::StatusHungry}
+	{if $dog->status === $Dog::STATUS_HUNGRY}
 		...
 	{/if}
 </div>
@@ -107,7 +89,7 @@ Místo klausule `use` si uložíme název třídy do proměnné a následně mí
 
 **Varianta 2**
 
-Pokud je objekt `$dog` instancí `Pets\Model\Dog`, pak lze použít `{if $dog->status === $dog::StatusHungry}`.
+Pokud je objekt `$dog` instancí `Pets\Model\Dog`, pak lze použít `{if $dog->status === $dog::STATUS_HUNGRY}`.
 
 
 Generování XML v Latte
@@ -115,7 +97,7 @@ Generování XML v Latte
 
 Latte může generovat jakýkoli textový formát (HTML, XML, CSV, iCal atd.), nicméně aby správě escapovalo vypisované data, musíme mu říct, jaký formát generujeme. K tomu slouží značka [`{contentType}`|tags#contentType].
 
-```latte
+```html
 {contentType application/xml}
 <?xml version="1.0" encoding="UTF-8"?>
 ...
@@ -123,7 +105,7 @@ Latte může generovat jakýkoli textový formát (HTML, XML, CSV, iCal atd.), n
 
 Poté můžeme například vygenerovat sitemapu podobným způsobem:
 
-```latte
+```html
 {contentType application/xml}
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" >
@@ -145,7 +127,7 @@ Pokud bychom si chtěli z inkludované šablony předat zpátky do inkludující
 
 Hlavní šablona:
 
-```latte
+```html
 {* vytvoří prázdný objekt $vars *}
 {var $vars = (object) null}
 
@@ -157,7 +139,7 @@ Hlavní šablona:
 
 Inkludovaná šablona `included.latte`:
 
-```latte
+```html
 {* zapíšeme data do property foo *}
 {var $vars->foo = 123}
 ```

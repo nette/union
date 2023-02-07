@@ -92,7 +92,7 @@ See possibilities how to filter and restrict rows [api:Nette\Database\Table\Sele
 | `$table->group($columns)` | Set GROUP BY
 | `$table->having($having)` | Set HAVING
 
-We can use a so-called [fluent interface |nette:introduction-to-object-oriented-programming#fluent-interfaces], for example `$table->where(...)->order(...)->limit(...)`. Multiple `where` or `whereOr` conditions are linked by the `AND` operator.
+Fluent interface can be used, for example `$table->where(...)->order(...)->limit(...)`. Multiple `where` or `whereOr` conditions are connected with the `AND` operator.
 
 
 where()
@@ -245,8 +245,8 @@ $table->having('COUNT(items) >', 100);  // HAVING COUNT(`items`) > 100
 ```
 
 
-Filtering by Another Table Value .[#toc-joining-key]
-----------------------------------------------------
+Filtering by Another Table Value .[#joining-key]
+------------------------------------------------
 
 Quite often you need filter results by some condition which involves another database table. These types of condition require table join. However, you don't need to write them anymore.
 
@@ -345,7 +345,7 @@ Fetching Data
 Insert, Update & Delete
 =======================
 
-Method `insert()` accepts array or Traversable objects (for example [ArrayHash |utils:arrays#ArrayHash] which returns [forms|forms:]):
+Method `insert()` accepts array of Traversable objects (for example [ArrayHash |utils:arrays#ArrayHash] which returns [forms|forms:]):
 
 ```php
 $row = $explorer->table('users')->insert([
@@ -367,7 +367,7 @@ $explorer->table('users')->insert([
 	], [
 		'name' => 'Jack',
 		'year' => 1987,
-	],
+	]
 ]);
 // INSERT INTO users (`name`, `year`) VALUES ('Jim', 1978), ('Jack', 1987)
 ```
@@ -548,3 +548,6 @@ $structure = new Nette\Database\Structure($connection, $storage);
 $conventions = new Nette\Database\Conventions\DiscoveredConventions($structure);
 $explorer = new Nette\Database\Explorer($connection, $structure, $conventions, $storage);
 ```
+
+
+{{composer: nette/database}}

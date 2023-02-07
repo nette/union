@@ -3,8 +3,6 @@ Nette Application
 - [How do applications work? |how-it-works]
 - [Bootstrap]
 - [Presenters]
-- [Templates]
-- [Modules]
 - [Routing]
 - [Creating URL Links |creating-links]
 - [Interactive Components |components]
@@ -13,10 +11,6 @@ Nette Application
 - [Configuration]
 
 
-Further Reading
+Further reading
 ***************
-- [Why Use Nette?|www:10-reasons-why-nette]
-- [Installation |nette:installation]
-- [Create Your First Application! |quickstart:]
 - [Best practices |best-practices:]
-- [Troubleshooting |nette:troubleshooting]

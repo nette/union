@@ -9,7 +9,6 @@ In addition to the common PHP functions, you can also use these in templates.
 | `divisibleBy`| [checks if a variable is divisible by a number |#divisibleBy]
 | `even`       | [checks if the given number is even |#even]
 | `first`      | [returns first element of array or character of string |#first]
-| `hasBlock`   | [detects the existence of a block |#hasBlock]
 | `last`       | [returns last element of array or character of string |#last]
 | `odd`        | [checks if the given number is odd |#odd]
 | `slice`      | [extracts a slice of an array or a string |#slice]
@@ -20,22 +19,24 @@ Usage
 
 Functions are used in the same way as common PHP functions and can be used in all expressions:
 
-```latte
+```html
 <p>{clamp($num, 1, 100)}</p>
 
 {if odd($num)} ... {/if}
 ```
 
-[Custom functions|extending-latte#functions] can be registered this way:
+Custom functions can be registered this way:
 
 ```php
 $latte = new Latte\Engine;
-$latte->addFunction('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0, $len));
+$latte->addFunction('shortify', function (string $s, int $len = 10): string {
+	return mb_substr($s, 0, $len);
+});
 ```
 
 We use it in a template like this:
 
-```latte
+```html
 <p>{shortify($text)}</p>
 <p>{shortify($text, 100)}</p>
 ```
@@ -45,37 +46,37 @@ Functions
 =========
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Returns value clamped to the inclusive range of min and max.
 
-```latte
+```html
 {=clamp($level, 0, 255)}
 ```
 
 See also [filter clamp|filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Checks if a variable is divisible by a number.
 
-```latte
+```html
 {if divisibleBy($num, 5)} ... {/if}
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Checks if the given number is even.
 
-```latte
+```html
 {if even($num)} ... {/if}
 ```
 
 
-first(string|array $value): mixed .[method]
--------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Returns the first element of array or character of string:
 
 ```latte
@@ -86,19 +87,8 @@ Returns the first element of array or character of string:
 See also [#last], [filter first|filters#first].
 
 
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Checks if the block of the specified name exists:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-See also [block existence check |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Returns the last element of array or character of string:
 
 ```latte
@@ -109,17 +99,17 @@ Returns the last element of array or character of string:
 See also [#first], [filter last|filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Checks if the given number is odd.
 
-```latte
+```html
 {if odd($num)} ... {/if}
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length = null, bool $preserveKeys = false): string|array .[method]{data-version:2.10.2}
+-----------------------------------------------------------------------------------------------------------------------------------
 Extracts a slice of an array or a string.
 
 ```latte
@@ -134,3 +124,6 @@ If the start is non-negative, the sequence will start at that start in the varia
 If length is given and is positive, then the sequence will have up to that many elements in it. If the variable is shorter than the length, then only the available variable elements will be present. If length is given and is negative then the sequence will stop that many elements from the end of the variable. If it is omitted, then the sequence will have everything from offset up until the end of the variable.
 
 Filter will reorder and reset the integer array keys by default. This behaviour can be changed by setting preserveKeys to true. String keys are always preserved, regardless of this parameter.
+
+
+{{composer: latte/latte}}

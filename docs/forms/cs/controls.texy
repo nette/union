@@ -20,12 +20,12 @@ Automaticky validuje UTF-8, ořezává levo- a pravostranné mezery a odstraňuj
 
 Maximální délku lze omezit pomocí `setMaxLength()`. Pozměnit uživatelem vloženou hodnotu umožňuje [addFilter()|validation#Úprava vstupu].
 
-Pomocí `setHtmlType()` lze změnit [charakter|https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] vstupního prvku na `search`, `tel`, `url`, `range`, `month`, `week`, `color`. Pro další typy jako `number`, `email`, `date`, `datetime-local` a `time` existují samostatné metody [#addInteger], [#addFloat], [#addEmail] [#addDate], [#addTime] a [#addDateTime], které disponují validací na straně serveru.
+Pomocí `setHtmlType()` lze změnit [charakter|https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] vstupního prvku na `search`, `tel`, `url`, `range`, `date`, `datetime-local`, `month`, `time`, `week`, `color`. Místo typů `number` a `email` doporučujeme použít [#addInteger] a [#addEmail], které disponují validací na straně serveru.
 
 ```php
 $form->addText('color', 'Vyberte barvu:')
 	->setHtmlType('color')
-	->addRule($form::Pattern, 'invalid value', '[0-9a-f]{6}');
+	->addRule($form::PATTERN, 'invalid value', '[0-9a-f]{6}');
 ```
 
 Prvku lze nastavit tzv. empty-value, což je něco jako výchozí hodnota, ale pokud ji uživatel nezmění, vrátí prvek prázdný řetězec či `null`.
@@ -44,7 +44,7 @@ Přidá pole pro zadání víceřádkového textu (třída [TextArea |api:Nette\
 
 ```php
 $form->addTextArea('note', 'Poznámka:')
-	->addRule($form::MaxLength, 'Poznámka je příliš dlouhá', 10000);
+	->addRule($form::MAX_LENGTH, 'Poznámka je příliš dlouhá', 10000);
 ```
 
 Automaticky validuje UTF-8 a normalizuje oddělovače řádků na `\n`. Na rozdíl od jednořádkového vstupního políčka k žádnému ořezávání mezer nedochází.
@@ -58,23 +58,10 @@ addInteger(string|int $name, $label=null): TextInput .[method]
 Přidá políčko pro zadání celočíselného čísla (třída [TextInput |api:Nette\Forms\Controls\TextInput]). Vrací buď integer, nebo `null`, pokud uživatel nic nezadá.
 
 ```php
-$form->addInteger('year', 'Rok:')
-	->addRule($form::Range, 'Rok musí být v rozsahu od %d do %d.', [1900, 2023]);
-```
-
-
-addFloat(string|int $name, $label=null): TextInput .[method]{data-version:3.1.12}
-=================================================================================
-
-Přidá políčko pro zadání desetinného čísla (třída [TextInput |api:Nette\Forms\Controls\TextInput]). Vrací buď float, nebo `null`, pokud uživatel nic nezadá.
-
-```php
-$form->addFloat('level', 'Úroveň:')
+$form->addInteger('level', 'Úroveň:')
 	->setDefaultValue(0)
-	->addRule($form::Range, 'Úroveň musí být v rozsahu od %d do %d.', [0, 100]);
+	->addRule($form::RANGE, 'Úroveň musí být v rozsahu mezi %d a %d.', [0, 100]);
 ```
-
-Nette a prohlížeč Chrome akceptují jako oddělovač desetinných míst čárku i tečku. Aby Firefox také akceptoval čárku, je potřeba nastavit odpovídající jazyk v HTML atributu `lang`, a to buď přímo tomuto prvku, nebo kterémukoliv nadřazenému elementu, například `<html lang="cs">`.
 
 
 addEmail(string|int $name, $label=null): TextInput .[method]
@@ -99,8 +86,8 @@ Přidá políčko pro zadání hesla (třída [TextInput |api:Nette\Forms\Contro
 ```php
 $form->addPassword('password', 'Heslo:')
 	->setRequired()
-	->addRule($form::MinLength, 'Heslo musí mít alespoň %d znaků', 8)
-	->addRule($form::Pattern, 'Musí obsahovat číslici', '.*[0-9].*');
+	->addRule($form::MIN_LENGTH, 'Heslo musí mít alespoň %d znaků', 8)
+	->addRule($form::PATTERN, 'Musí obsahovat číslici', '.*[0-9].*');
 ```
 
 Při znovuzobrazení formuláře bude políčko prázdné. Automaticky validuje UTF-8, ořezává levo- a pravostranné mezery a odstraňuje odřádkování, které by mohl odeslat útočník.
@@ -231,15 +218,15 @@ Přidá políčko pro upload souboru (třída [UploadControl |api:Nette\Forms\Co
 
 ```php
 $form->addUpload('avatar', 'Avatar:')
-	->addRule($form::Image, 'Avatar musí být JPEG, PNG, GIF, WebP or AVIF.')
-	->addRule($form::MaxFileSize, 'Maximální velikost je 1 MB.', 1024 * 1024);
+	->addRule($form::IMAGE, 'Avatar musí být JPEG, PNG, GIF or WebP.')
+	->addRule($form::MAX_FILE_SIZE, 'Maximální velikost je 1 MB.', 1024 * 1024);
 ```
 
 Pokud se soubor nepodaří korektně nahrát, formulář není úspěšně odeslaný a zobrazí se chyba. Tj. při úspěšném odeslání není potřeba ověřovat metodu `FileUpload::isOk()`.
 
 Nikdy nevěřte originálnímu názvu souboru vráceného metodou `FileUpload::getName()`, klient mohl odeslat škodlivý název souboru s úmyslem poškodit nebo hacknout vaši aplikaci.
 
-Pravidla `MimeType` a `Image` detekují požadovaný typ na základě signatury souboru a neověřují jeho integritu. Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|http:request#toImage].
+Pravidla `MIME_TYPE` a `IMAGE` detekují požadovaný typ na základě signatury souboru a neověřují jeho integritu. Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|http:request#toImage].
 
 
 addMultiUpload(string|int $name, $label=null): UploadControl .[method]
@@ -249,87 +236,14 @@ Přidá políčko pro upload více souboru najednou (třída [UploadControl |api
 
 ```php
 $form->addMultiUpload('files', 'Soubory:')
-	->addRule($form::MaxLength, 'Maximálně lze nahrát %d souborů', 10);
+	->addRule($form::MAX_LENGTH, 'Maximálně lze nahrát %d souborů', 10);
 ```
 
 Pokud se některý soubor nepodaří korektně nahrát, formulář není úspěšně odeslaný a zobrazí se chyba. Tj. při úspěšném odeslání není potřeba ověřovat metodu `FileUpload::isOk()`.
 
 Nikdy nevěřte originálním názvům souborů vráceným metodou `FileUpload::getName()`, klient mohl odeslat škodlivý název souboru s úmyslem poškodit nebo hacknout vaši aplikaci.
 
-Pravidla `MimeType` a `Image` detekují požadovaný typ na základě signatury souboru a neověřují jeho integritu. Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|http:request#toImage].
-
-
-addDate(string|int $name, $label=null): DateTimeControl .[method]{data-version:3.1.14}
-======================================================================================
-
-Přidá políčko, které umožní uživateli snadno zadat datum skládající se z roku, měsíce a dne (třída [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
-
-Jako výchozí hodnotu akceptuje buď objekty implementující rozhraní `DateTimeInterface`, řetězec s časem, nebo číslo představující UNIX timestamp. Totéž platí pro argumenty pravidel `Min`, `Max` nebo `Range`, jež definují minimální a maximální povolený datum.
-
-```php
-$form->addDate('date', 'Datum:')
-	->setDefaultValue(new DateTime)
-	->addRule($form::Min, 'Datum musí být minimálně měsíc staré.', new DateTime('-1 month'));
-```
-
-Standardně vrací objekt `DateTimeImmutable`, metodou `setFormat()` můžete specifikovat [textový formát|https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] či timestamp:
-
-```php
-$form->addDate('date', 'Datum:')
-	->setFormat('Y-m-d');
-```
-
-
-addTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
-=================================================================================================================
-
-Přidá políčko, které umožní uživateli snadno zadat čas skládající se z hodin, minut a volitelně i sekund (třída [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
-
-Jako výchozí hodnotu akceptuje buď objekty implementující rozhraní `DateTimeInterface`, řetězec s časem, nebo číslo představující UNIX timestamp. Z těchto vstupů je využita pouze časová informace, datum je ignorováno. Totéž platí pro argumenty pravidel `Min`, `Max` nebo `Range`, jež definují minimální a maximální povolený čas. Pokud je nastavená minimální hodnota vyšší než maximální, vytvoří se časový rozsah přesahující půlnoc.
-
-```php
-$form->addTime('time', 'Čas:', withSeconds: true)
-	->addRule($form::Range, 'Čas musí být v rozsahu od %d do %d.', ['12:30', '13:30']);
-```
-
-Standardně vrací objekt `DateTimeImmutable` (s fiktivním datem 1. ledna roku 0), metodou `setFormat()` můžete specifikovat [textový formát|https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters]:
-
-```php
-$form->addTime('time', 'Čas:')
-	->setFormat('H:i');
-```
-
-
-addDateTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
-=====================================================================================================================
-
-Přidá políčko, které umožní uživateli snadno zadat datum a čas skládající se z roku, měsíce, dne, hodin, minut a volitelně i sekund (třída [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
-
-Jako výchozí hodnotu akceptuje buď objekty implementující rozhraní `DateTimeInterface`, řetězec s časem, nebo číslo představující UNIX timestamp. Totéž platí pro argumenty pravidel `Min`, `Max` nebo `Range`, jež definují minimální a maximální povolený datum.
-
-```php
-$form->addDateTime('datetime', 'Datum a čas:')
-	->setDefaultValue(new DateTime)
-	->addRule($form::Min, 'Datum musí být minimálně měsíc staré.', new DateTime('-1 month'));
-```
-
-Standardně vrací objekt `DateTimeImmutable`, metodou `setFormat()` můžete specifikovat [textový formát|https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] či timestamp:
-
-```php
-$form->addDateTime('datetime')
-	->setFormat(DateTimeControl::FormatTimestamp);
-```
-
-
-addColor(string|int $name, $label=null): ColorPicker .[method]{data-version:3.1.14}
-===================================================================================
-
-Přidá políčko pro výběr barvy (třída [ColorPicker |api:Nette\Forms\Controls\ColorPicker]). Barva je řetězec ve tvaru `#rrggbb`. Pokud uživatel volbu neprovede, vrátí se černá barva `#000000`.
-
-```php
-$form->addColor('color', 'Barva:')
-	->setDefaultValue('#3C8ED7');
-```
+Pravidla `MIME_TYPE` a `IMAGE` detekují požadovaný typ na základě signatury souboru a neověřují jeho integritu. Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|http:request#toImage].
 
 
 addHidden(string|int $name, string $default=null): HiddenField .[method]
@@ -428,7 +342,7 @@ Odeslaná data pak vrací jako vícerozměrnou strukturu:
 Přehled nastavení
 =================
 
-U všech prvků můžeme volat následující metody (kompletní přehled v [API dokumetaci|https://api.nette.org/forms/master/Nette/Forms/Controls.html]):
+U všech prvků můžeme volat následující metody (kompletní přehled v [API dokumetaci|https://api.nette.org/3.1/Nette/Forms/Controls.html]):
 
 .[table-form-methods language-php]
 | `setDefaultValue($value)`	| nastaví výchozí hodnotu
@@ -438,28 +352,27 @@ U všech prvků můžeme volat následující metody (kompletní přehled v [API
 
 Vykreslování:
 .[table-form-methods language-php]
-| `setCaption($caption)`	| změní popisku prvku
-| `setTranslator($translator)` | nastaví [překladač|rendering#Překládání]
-| `setHtmlAttribute($name, $value)` | nastaví [HTML atribut |rendering#HTML atributy] elementu
-| `setHtmlId($id)` 			| nastaví HTML atribut `id`
-| `setHtmlType($type)` 		| nastaví HTML atribut `type`
-| `setHtmlName($name)`		| nastaví HTML atribut `name`
-| `setOption($key, $value)` | [nastavení pro vykreslování|rendering#Options]
+| `setCaption()` 			| změní popisku prvku
+| `setTranslator()` 		| nastaví [překladač|best-practices:translations#Překlad formulářů]
+| `setHtmlAttribute()` 		| nastaví [HTML atribut |rendering#HTML atributy] elementu
+| `setHtmlId()` 			| nastaví HTML atribut `id`
+| `setHtmlType()` 			| nastaví HTML atribut `type`
+| `setOption()` 			| [nastavení pro vykreslování|rendering#Další nastavení]
 
 Validace:
 .[table-form-methods language-php]
 | `setRequired()` 			| [povinný prvek |validation]
 | `addRule()` 				| nastavení [validační pravidlo |validation#Pravidla]
 | `addCondition()`, `addConditionOn()` | nastaví [validační podmínku|validation#Podmínky]
-| `addError($message)`		| [předání chybové zprávy|validation#chyby-pri-zpracovani]
+| `addError()` 				| [předání chybové zprávy|validation#chyby-pri-zpracovani]
 
 U prvků `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()` lze volat následující metody:
 
 .[table-form-methods language-php]
 | `setNullable()` 			| nastaví, zda getValue() vrátí `null` místo prázdného řetězce
-| `setEmptyValue($value)`	| nastaví speciální hodnotu, která se považuje za prázdný řetězec
-| `setMaxLength($length)`	| nastaví maximální počet povolených znaků
-| `addFilter($filter)`		| [úprava vstupu |validation#Úprava vstupu]
+| `setEmptyValue()` 		| nastaví speciální hodnotu, která se považuje za prázdný řetězec
+| `setMaxLength()` 			| nastaví maximální počet povolených znaků
+| `addFilter()` 			| [úprava vstupu |validation#Úprava vstupu]
 
 
 Vynechání hodnoty
@@ -470,7 +383,7 @@ Pokud nás uživatelem vyplněná hodnota nezajímá, můžeme ji pomocí `setOm
 ```php
 $form->addPassword('passwordVerify', 'Heslo pro kontrolu:')
 	->setRequired('Zadejte prosím heslo ještě jednou pro kontrolu')
-	->addRule($form::Equal, 'Hesla se neshodují', $form['password'])
+	->addRule($form::EQUAL, 'Hesla se neshodují', $form['password'])
 	->setOmitted();
 ```
 
@@ -485,9 +398,9 @@ $form->addText('username', 'Uživatelské jméno:')
 	->setDisabled();
 ```
 
-Disablované prvky prohlížeč vůbec neodesílá na server, tedy je ani nenajdete v datech vrácených funkcí `$form->getValues()`. Pokud však nastavíte `setOmitted(false)`, Nette jejich hodnotu do těchto dat zahrne.
+Upozorňujeme, že disablované prvky prohlížeč vůbec neodesílá na server, tedy je ani nenajdete v datech vrácených funkcí `$form->getValues()`.
 
-Při volání `setDisabled()` se smaže hodnota prvku. Pokud nastavujete výchozí hodnotu, je tak nutné učinit až po jeho deaktivaci:
+Pokud prvku nastavujete výchozí hodnotu, je tak nutné učinit až po jeho deaktivaci:
 
 ```php
 $form->addText('username', 'Uživatelské jméno:')
@@ -506,9 +419,6 @@ $form->addComponent(new DateInput('Datum:'), 'date');
 // alternativní syntax: $form['date'] = new DateInput('Datum:');
 ```
 
-.[note]
-Formulář je potomkem třídy [Container| component-model:#Container] a jednotlivé prvky jsou potomky [Component | component-model:#Component].
-
 Existuje způsob, jak definovat nové metody formuláře sloužící k přidávání vlastních prvků (např. `$form->addZip()`). Jde o tzv. extension methods. Nevýhoda je, že pro ně nebude fungovat napovídání v editorech.
 
 ```php
@@ -517,7 +427,7 @@ use Nette\Forms\Container;
 // přidáme metodu addZip(string $name, string $label = null)
 Container::extensionMethod('addZip', function (Container $form, string $name, string $label = null) {
 	return $form->addText($name, $label)
-		->addRule($form::Pattern, 'Alespoň 5 čísel', '[0-9]{5}');
+		->addRule($form::PATTERN, 'Alespoň 5 čísel', '[0-9]{5}');
 });
 
 // použití
@@ -530,7 +440,7 @@ Low-level prvky
 
 Lze používat i prvky, které zapíšeme pouze v šabloně a nepřidáme je do formuláře některou z metod `$form->addXyz()`. Když například vypisujeme záznamy z databáze a dopředu nevíme, kolik jich bude a jaké budou mít ID, a chceme u každého řádku zobrazit checkbox nebo radio button, stačí jej nakódovat v šabloně:
 
-```latte
+```html
 {foreach $items as $item}
 	<p><input type=checkbox name="sel[]" value={$item->id}> {$item->name}</p>
 {/foreach}
@@ -539,11 +449,11 @@ Lze používat i prvky, které zapíšeme pouze v šabloně a nepřidáme je do 
 A po odeslání hodnotu zjistíme:
 
 ```php
-$data = $form->getHttpData($form::DataText, 'sel[]');
-$data = $form->getHttpData($form::DataText | $form::DataKeys, 'sel[]');
+$data = $form->getHttpData($form::DATA_TEXT, 'sel[]');
+$data = $form->getHttpData($form::DATA_TEXT | $form::DATA_KEYS, 'sel[]');
 ```
 
-kde první parametr je typ elementu (`DataFile` pro `type=file`, `DataLine` pro jednořádkové vstupy jako `text`, `password`, `email` apod. a `DataText` pro všechny ostatní) a druhý parametr `sel[]` odpovídá HTML atributu name. Typ elementu můžeme kombinovat s hodnotou `DataKeys`, která zachová klíče prvků. To se hodí zejména pro `select`, `radioList` a `checkboxList`.
+kde první parametr je typ elementu (`DATA_FILE` pro `type=file`, `DATA_LINE` pro jednořádkové vstupy jako `text`, `password`, `email` apod. a `DATA_TEXT` pro všechny ostatní) a druhý parametr `sel[]` odpovídá HTML atributu name. Typ elementu můžeme kombinovat s hodnotou `DATA_KEYS`, která zachová klíče prvků. To se hodí zejména pro `select`, `radioList` a `checkboxList`.
 
 Podstatné je, že `getHttpData()` vrací sanitizovanou hodnotu, v tomto případě to bude vždy pole validních UTF-8 řetězců, ať už by se pokusil útočník serveru podstrčit cokoliv. Jde o obdobu přímé práce s `$_POST` nebo `$_GET` avšak s tím podstatným rozdílem, že vždy vrací čistá data, tak, jak jste zvyklí u standardních prvků Nette formulářů.
 
@@ -563,3 +473,6 @@ $form->addRadioList('gender', 'Pohlaví:', $sex)
 	->getSeparatorPrototype()->setName(null);
 ```
 \--
+
+
+{{composer: nette/forms}}
