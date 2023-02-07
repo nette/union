@@ -170,7 +170,7 @@ services:
 		DateTime::createFromFormat('Y-m-d')  # call static method
 		@anotherService                      # passing another service
 		@http.request::getRemoteAddress()    # calling another service method
-		::getenv(NetteMode)                  # call a global function
+		::getenv(NETTE_MODE)                 # call a global function
 	)
 ```
 
@@ -184,7 +184,7 @@ public function createServiceAnalyser(): My\Analyser
 		DateTime::createFromFormat('Y-m-d'),
 		$this->getService('anotherService'),
 		$this->getService('http.request')->getRemoteAddress(),
-		getenv('NetteMode')
+		getenv('NETTE_MODE')
 	);
 }
 ```
@@ -204,7 +204,7 @@ You can also use special functions in arguments to cast or negate values:
 ```neon
 services:
 	- Foo(
-		id: int(::getenv('ProjectId'))
+		id: int(::getenv('PROJECT_ID'))
 		productionMode: not(%debugMode%)
 	)
 ```
@@ -251,7 +251,7 @@ public function createService01(): Foo
 }
 ```
 
-Even anonymous services can be referenced using a callback, just specify their type (class or interface) instead of their name. However, this is usually not necessary due to [autowiring].
+Even anonymous services can be referenced using a callback, just specify their type (class or interface) instead of their name. However, this is usually not necessary due to [autowiring|autowiring].
 
 ```neon
 services:
@@ -389,7 +389,7 @@ $names = $container->findByTag('logger');
 Inject Mode
 ===========
 
-The `inject: true` flag is used to activate the passing of dependencies via public variables with the [inject |best-practices:inject-method-attribute#Inject Attributes] annotation and the [inject*() |best-practices:inject-method-attribute#inject Methods] methods.
+The `inject: true` flag is used to activate the passing of dependencies via public variables with the [inject |passing-dependencies#Inject Annotations] annotation and the [inject*() |passing-dependencies#Passing by an inject Method] methods.
 
 ```neon
 services:
@@ -445,3 +445,5 @@ A service added by extension can also be removed from the container:
 services:
 	cache.journal: false
 ```
+
+{{composer: nette/di}}

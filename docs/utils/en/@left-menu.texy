@@ -4,8 +4,7 @@ Package nette/utils
 - [Callback]
 - [Date and Time |datetime]
 - [Filesystem |filesystem]
-- [Finder]
-- [Helpers |helpers]
+- [Helper Functions |helpers]
 - [HTML Elements]
 - [Images]
 - [JSON]
@@ -22,5 +21,9 @@ Package nette/utils
 Other Utilities
 ***************
 - [NEON|neon:]
+- [Finder]
 - [Password Hashing |security:passwords]
 - [URL Parser and Builder |http:urls]
+- [Tokenizer |tokenizer:]
+- [SafeStream |safe-stream:]
+- [RobotLoader |robot-loader:]

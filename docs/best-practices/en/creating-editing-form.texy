@@ -18,9 +18,11 @@ use Nette\Application\UI\Form;
 
 class RecordPresenter extends Nette\Application\UI\Presenter
 {
-	public function __construct(
-		private Facade $facade,
-	) {
+	private $facade;
+
+	public function __construct(Facade $facade)
+	{
+		$this->facade = $facade;
 	}
 
 	protected function createComponentRecordForm(): Form
@@ -59,11 +61,13 @@ use Nette\Application\UI\Form;
 
 class RecordPresenter extends Nette\Application\UI\Presenter
 {
+	private $facade;
+
 	private $record;
 
-	public function __construct(
-		private Facade $facade,
-	) {
+	public function __construct(Facade $facade)
+	{
+		$this->facade = $facade;
 	}
 
 	public function actionEdit(int $id): void
@@ -106,7 +110,8 @@ class RecordPresenter extends Nette\Application\UI\Presenter
 
 In the *action* method, which is invoked right at the beginning of the [presenter lifecycle|application:presenters#Life Cycle of Presenter], we verify the existence of the record and the user's permission to edit it.
 
-We store the record in the `$record` property so that it is available in the `createComponentRecordForm()` method for setting defaults, and `recordFormSucceeded()` for the ID. An alternative solution would be to set the default values directly in `actionEdit()` and the ID value, which is part of the URL, is retrieved using `getParameter('id')`:
+We store the record in the `$record` property so that it is available in the `createComponentRecordForm()` method for setting defaults, and `recordFormSucceeded()` for the ID. An alternative solution would be to set the default values directly in `actionEdit()` and the ID value,
+which is part of the URL, is retrieved using `getParameter('id')`:
 
 
 ```php
@@ -145,9 +150,11 @@ And now we will combine both presenters into one. Either we could distinguish wh
 ```php
 class RecordPresenter extends Nette\Application\UI\Presenter
 {
-	public function __construct(
-		private Facade $facade,
-	) {
+	private $facade;
+
+	public function __construct(Facade $facade)
+	{
+		$this->facade = $facade;
 	}
 
 	public function actionAdd(): void

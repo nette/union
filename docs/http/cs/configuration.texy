@@ -24,10 +24,6 @@ http:
 
 Framework z bezpečnostních důvodů odesílá hlavičku `X-Frame-Options: SAMEORIGIN`, která říká, že stránku lze zobrazit uvnitř jiné stránky (v elementu `<iframe>`) pouze pokud se nachází na stejné doméně. To může být v některých situacích nežádoucí (například pokud vyvíjíte aplikaci pro Facebook), chování lze proto změnit nastavením `frames: http://allowed-host.com` nebo `frames: true`.
 
-
-Content Security Policy
------------------------
-
 Snadno lze sestavovat hlavičky `Content-Security-Policy` (dále CSP), jejich popis najdete v [popisu CSP |https://content-security-policy.com]. CSP direktivy (jako např. `script-src`) mohou být zapsány buď jako řetězce dle specifikace, nebo jako pole hodnot kvůli lepší čitelnosti. Pak není potřeba kolem klíčových slov, jako třeba `'self'`, psát uvozovky. Nette také automaticky vygeneruje hodnotu `nonce`, takže v hlavičce bude třeba `'nonce-y4PopTLM=='`.
 
 ```neon
@@ -77,13 +73,13 @@ Lze změnit vychozí hodnoty některých parametrů metody [Nette\Http\Response:
 ```neon
 http:
 	# dosah cookie podle cesty
-	cookiePath: ...          # (string) výchozí je '/'
+	cookiePath: ...        # (string) výchozí je '/'
 
 	# domény, které přijímají cookie
 	cookieDomain: 'example.com'  # (string|domain) výchozí je nenastaveno
 
 	# posílat cookie pouze přes HTTPS?
-	cookieSecure: ...        # (bool|auto) výchozí je auto
+	cookieSecure: ...      # (bool|auto) výchozí je auto
 
 	# vypne posílání cookie, kterou používá Nette jako ochranu před CSRF
 	disableNetteCookie: ...  # (bool) výchozí je false
@@ -99,7 +95,7 @@ Výchozí hodnota `auto` u atributu `cookieSecure` znamená, že pokud web běž
 HTTP proxy
 ----------
 
-Pokud web běží za HTTP proxy, zadejte její IP adresu, aby správně fungovala detekce spojení přes HTTPS a také IP adresy klienta. Tedy aby funkce [Nette\Http\Request::getRemoteAddress()|request#getRemoteAddress] a [isSecured()|request#isSecured] vracely správné hodnoty a v šablonách se generovaly odkazy s `https:` protokolem.
+Pokud web běží za HTTP proxy, zadejte její IP adresu, aby správně fungovala detekce IP adresy klienta [Nette\Http\Request::getRemoteAddress()|request#getRemoteAddress] a spojení přes HTTPS [isSecured()|request#isSecured].
 
 ```neon
 http:
@@ -128,7 +124,7 @@ session:
 	handler: @handlerService
 ```
 
-Volba `autoStart` řídí, kdy se má startovat session. Hodnota `always` znamená, že se session spustí vždy se spuštěním aplikace. Hodnota `smart` znamená, že session se spustí při startu aplikace pouze tehdy, pokud již existuje, nebo ve chvíli, z ní chceme číst nebo do ní zapisovat. A nakonec hodnota `never` zakazuje automatický start session.
+Volba `autoStart` řídí, kdy se má startovat session. Hodnota `always` znamená, že se session spustí vždy se spuštěním aplikace. Hodnota `smart` znamená, že session se spustí při startu aplikace pouze tehdy, pokud již existuje, nebo ve chvíli, z ní chceme číst nebo do ní zapisovat. A nakonec hodnota `never` zakazuje automatický start session. Toto platí od nette/http verze 3.1.3.
 
 Dále lze nastavovat všechny PHP [session direktivy |https://www.php.net/manual/en/session.configuration.php] (ve formátu camelCase) a také [readAndClose |https://www.php.net/manual/en/function.session-start.php#refsect1-function.session-start-parameters]. Příklad:
 

@@ -2,7 +2,7 @@ SafeStream: bezpečně na soubory
 *******************************
 
 .[perex]
-Nette SafeStream garantuje, že každé čtení a zápis do souboru proběhne izolovaně. To znamená, že žádné vlákno nezačne číst soubor, který ještě není celý zapsán, nebo více vláken nebude přepisovat tentýž soubor.
+Nette\Utils\SafeStream garantuje, že každé čtení a zápis do souboru proběhne izolovaně. To znamená, že žádné vlákno nezačne číst soubor, který ještě není celý zapsán, nebo více vláken nebude přepisovat tentýž soubor.
 
 Instalace:
 
@@ -59,4 +59,5 @@ $handle = fopen('nette.safe://file.txt', 'r');
 $ini = parse_ini_file('nette.safe://translations.neon');
 ```
 
-{{leftbar: nette:@menu-topics}}
+{{composer: nette/safe-stream}}
+{{leftbar: utils:@left-menu}}

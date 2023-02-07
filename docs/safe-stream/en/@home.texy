@@ -2,7 +2,7 @@ SafeStream: Safety for Files
 ****************************
 
 .[perex]
-Nette SafeStream guarantees that every read and write to a file is isolated. This means that no thread will start reading a file that is not yet fully written, or multiple threads will not overwrite the same file.
+Nette\Utils\SafeStream guarantees that every read and write to a file is isolated. This means that no thread will start reading a file that is not yet fully written, or multiple threads will not overwrite the same file.
 
 Installation:
 
@@ -11,7 +11,7 @@ composer require nette/safe-stream
 ```
 
 
-What Is It Good For?
+What is it good for?
 --------------------
 
 What are isolated operations actually good for? Let's start with a simple example that repeatedly writes to a file and then reads the same string from it:
@@ -38,7 +38,7 @@ Therefore, the code is not safe if it is executed multiple times at the same tim
 But as you can see, PHP's native file read and write functions are not isolated and atomic.
 
 
-How to Use SafeStream?
+How to use SafeStream?
 ----------------------
 
 SafeStream creates a secure protocol to read and write files in isolation using standard PHP functions. All you need to do is to specify `nette.safe://` before the file name:
@@ -59,4 +59,5 @@ $handle = fopen('nette.safe://file.txt', 'r');
 $ini = parse_ini_file('nette.safe://translations.neon');
 ```
 
-{{leftbar: nette:@menu-topics}}
+{{composer: nette/safe-stream}}
+{{leftbar: utils:@left-menu}}

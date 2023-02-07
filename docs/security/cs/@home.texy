@@ -13,3 +13,5 @@ Knihovnu stáhnete a nainstalujete pomocí nástroje [Composer|best-practices:co
 ```shell
 composer require nette/security
 ```
+
+{{composer: nette/security}}

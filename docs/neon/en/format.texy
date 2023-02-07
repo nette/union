@@ -209,7 +209,7 @@ There are other cases where you need to enclose strings in quotation marks:
 - NEON would understand them as [#dates]
 
 
-Multiline Strings
+Multiline strings
 -----------------
 
 A multiline string begins and ends with a triple quotation mark on separate lines. The indent of the first line is ignored for all lines:
@@ -309,7 +309,7 @@ Which is parsed in PHP as follows:
 
 ```php
 // PHP
-new Nette\Neon\Entity(Nette\Neon\Neon::Chain, [
+new Nette\Neon\Entity(Nette\Neon\Neon::CHAIN, [
 	new Nette\Neon\Entity('Column', ['type' => 'int', 'nulls' => true]),
 	new Nette\Neon\Entity('Field', ['id' => 1]),
 ])
@@ -337,7 +337,7 @@ country: USA
 ```
 
 
-NEON Versus JSON
+NEON versus JSON
 ================
 JSON is a subset of NEON. Each JSON can therefore be parsed as NEON:
 
@@ -435,5 +435,6 @@ users:
 You found NEON syntax!
 
 
+{{composer: nette/neon}}
 {{description: NEON is a human-friendly data serialization language. It is similar to YAML. The main difference is that the NEON supports “entities” and tab characters for indentation.}}
 {{leftbar: utils:@left-menu}}

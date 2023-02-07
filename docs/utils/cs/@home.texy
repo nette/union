@@ -4,27 +4,26 @@ Nástroje
 .[perex]
 V balíčku `nette/utils` najdete sadu užitečných tříd pro každodenní použití:
 
-| [Callback] | Nette\Utils\Callback
-| [Datum a čas |datetime] | Nette\Utils\DateTime
-| [Finder] | Nette\Utils\Finder
-| [HTML elementy |html-elements] | Nette\Utils\Html
-| [JSON |json] | Nette\Utils\Json
-| [Náhodné řetězce |random] | Nette\Utils\Random
-| [Objektový model |smartobject] | Nette\SmartObject & Nette\StaticClass
+| [Rozšíření objektů v PHP |smartobject] | Nette\SmartObject
 | [Obrázky |images] | Nette\Utils\Image
-| [PHP reflexe |reflection] | Nette\Utils\Reflection
-| [PHP typy |type] | Nette\Utils\Type
-| [Pole |arrays] | Nette\Utils\Arrays
-| [Pomocné funkce |helpers] | Nette\Utils\Helpers
-| [Porovnávání floatů |floats] | Nette\Utils\Floats
-| [Řetězce |strings] | Nette\Utils\Strings
-| [Souborový systém |filesystem] | Nette\Utils\FileSystem
 | [Stránkování |paginator] | Nette\Utils\Paginator
-| [Validátor |validators] | Nette\Utils\Validators
+| [Validace proměnných |validators] | Nette\Utils\Validators
+| [Řetězce |strings] | Nette\Utils\Strings
+| [Porovnávání floatů |floats] | Nette\Utils\Floats
+| [Callback] | Nette\Utils\Callback
+| [Pole |arrays] | Nette\Utils\Arrays
+| [Datum a čas |datetime] | Nette\Utils\DateTime
+| [Generování HTML kódu |html-elements] | Nette\Utils\Html
+| [Generování náhodných řetězců |random] | Nette\Utils\Random
+| [Parsování a generování JSON |json] | Nette\Utils\Json
+| [Reflexe PHP |reflection] | Nette\Utils\Reflection
+| [Souborový systém |filesystem] | Nette\Utils\FileSystem
+| [Pomocné funkce |helpers] | Nette\Utils\Helpers
+| [Typy |type] | Nette\Utils\Type
 
 
 Instalace
----------
+=========
 
 Knihovnu stáhnete a nainstalujete pomocí nástroje [Composer|best-practices:composer]:
 
@@ -34,9 +33,12 @@ composer require nette/utils
 
 | verze     | kompatibilní s PHP
 |-----------|-------------------
-| Nette Utils 4.0 | PHP 8.0 – 8.2
-| Nette Utils 3.2 | PHP 7.2 – 8.2
+| Nette Utils 4.0 | PHP 8.0 – 8.1
+| Nette Utils 3.2 | PHP 7.2 – 8.1
 | Nette Utils 3.0 – 3.1 | PHP 7.1 – 8.0
 | Nette Utils 2.5 | PHP 5.6 – 8.0
 
 Platí pro poslední patch verze.
+
+
+{{composer: nette/utils}}

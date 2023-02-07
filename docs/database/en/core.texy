@@ -40,10 +40,12 @@ The connection object we [receive as a service from a DI container |dependency-i
 ```php
 class Model
 {
+	private $database;
+
 	// pass Nette\Database\Explorer to work with the Database Explorer layer
-	public function __construct(
-		private Nette\Database\Connection $database,
-	) {
+	public function __construct(Nette\Database\Connection $database)
+	{
+		$this->database = $database;
 	}
 }
 ```
@@ -140,7 +142,7 @@ $database->query('INSERT INTO users', [
 	], [
 		'name' => 'Jack',
 		'year' => 1987,
-	],
+	]
 ]);
 // INSERT INTO users (`name`, `year`) VALUES ('Jim', 1978), ('Jack', 1987)
 ```
@@ -219,8 +221,8 @@ If the detection did not work, you can specify the form of the assembly with a w
 
 | ?values | (key1, key2, ...) VALUES (value1, value2, ...)
 | ?set    | key1 = value1, key2 = value2, ...
-| ?and    | key1 = value1 AND key2 = value2 ...
-| ?or     | key1 = value1 OR key2 = value2 ...
+| ?and    | key1 = value1 OR key2 = value2 ...
+| ?or     | key1 = value1 AND key2 = value2 ...
 | ?order  | key1 ASC, key2 DESC
 
 The WHERE clause uses the `?and` operator so conditions are linked by `AND`:
@@ -308,7 +310,7 @@ $result = $database->query('SELECT * FROM users WHERE', [
 ```
 
 
-Variable Name
+Variable name
 =============
 
 There is a `?name` wildcard that you use if the table name or column name is a variable. (Beware, do not allow the user to manipulate the content of such a variable):
@@ -348,3 +350,6 @@ $id = $database->transaction(function ($database) {
 As you can see, the `transaction()` method returns the return value of the callback.
 
 The transaction() can also be nested, which simplifies the implementation of independent repositories.
+
+
+{{composer: nette/database}}

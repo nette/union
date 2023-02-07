@@ -4,7 +4,6 @@ String Functions
 .[perex]
 [api:Nette\Utils\Strings] is a static class, which contains many useful functions for working with UTF-8 encoded strings.
 
-
 Installation:
 
 ```shell
@@ -21,7 +20,8 @@ use Nette\Utils\Strings;
 Letter Case
 ===========
 
-These functions require the PHP extension `mbstring`.
+.[caution]
+Requires PHP extension `mbstring`.
 
 
 lower(string $s): string .[method]
@@ -84,23 +84,13 @@ normalize(string $s): string .[method]
 Removes control characters, normalizes line breaks to `\n`, removes leading and trailing blank lines, trims end spaces on lines, normalizes UTF-8 to the normal form of NFC.
 
 
-unixNewLines(string $s): string .[method]
------------------------------------------
+normalizeNewLines(string $s): string .[method]
+----------------------------------------------
 
-Converts line breaks to `\n` used on Unix systems. The line breaks are: `\n`, `\r`, `\r\n`, U+2028 line separator, U+2029 paragraph separator.
-
-```php
-$unixLikeLines = Strings::unixNewLines($string);
-```
-
-
-platformNewLines(string $s): string .[method]
----------------------------------------------
-
-Converts line breaks to characters specific to the current platform, i.e. `\r\n` on Windows and `\n` elsewhere. The line breaks are `\n`, `\r`, `\r\n`, U+2028 line separator, U+2029 paragraph separator.
+Standardize line endings to unix-like.
 
 ```php
-$platformLines = Strings::platformNewLines($string);
+$unixLikeLines = Strings::normalizeNewLines($string);
 ```
 
 
@@ -221,8 +211,8 @@ Strings::length('red');   // 3
 ```
 
 
-startsWith(string $haystack, string $needle): bool .[method deprecated]
------------------------------------------------------------------------
+startsWith(string $haystack, string $needle): bool .[method]
+------------------------------------------------------------
 
 Checks if `$haystack` string begins with `$needle`.
 
@@ -232,12 +222,9 @@ $needle = 'Be';
 Strings::startsWith($haystack, $needle); // true
 ```
 
-.[note]
-Use native `str_starts_with()`:https://www.php.net/manual/en/function.str-starts-with.php.
 
-
-endsWith(string $haystack, string $needle): bool .[method deprecated]
----------------------------------------------------------------------
+endsWith(string $haystack, string $needle): bool .[method]
+----------------------------------------------------------
 
 Checks if `$haystack` string end with `$needle`.
 
@@ -247,12 +234,9 @@ $needle = 'ds';
 Strings::endsWith($haystack, $needle); // true
 ```
 
-.[note]
-Use native `str_ends_with()`:https://www.php.net/manual/en/function.str-ends-with.php.
 
-
-contains(string $haystack, string $needle): bool .[method deprecated]
----------------------------------------------------------------------
+contains(string $haystack, string $needle): bool .[method]
+----------------------------------------------------------
 
 Checks if `$haystack` string contains `$needle`.
 
@@ -261,9 +245,6 @@ $haystack = 'Contains';
 $needle = 'tai';
 Strings::contains($haystack, $needle); // true
 ```
-
-.[note]
-Use native `str_contains()`:https://www.php.net/manual/en/function.str-contains.php.
 
 
 compare(string $left, string $right, int $length=null): bool .[method]
@@ -302,6 +283,9 @@ Strings::before('Nette_is_great', ' ');     // null
 Strings::before('Nette_is_great', '_', 3);  // null
 ```
 
+.[note]
+Version 2 returns `false` instead of `null`.
+
 
 after(string $haystack, string $needle, int $nth=1): ?string .[method]
 ----------------------------------------------------------------------
@@ -315,6 +299,9 @@ Strings::after('Nette_is_great', ' ');     // null
 Strings::after('Nette_is_great', '_', 3);  // null
 ```
 
+.[note]
+Version 2 returns `false` instead of `null`.
+
 
 indexOf(string $haystack, string $needle, int $nth=1): ?int .[method]
 ---------------------------------------------------------------------
@@ -326,6 +313,9 @@ Strings::indexOf('abc abc abc', 'abc', 2);  // 4
 Strings::indexOf('abc abc abc', 'abc', -1); // 8
 Strings::indexOf('abc abc abc', 'd');       // null
 ```
+
+.[note]
+Version 2 returns `false` instead of `null`.
 
 
 Encoding
@@ -342,17 +332,14 @@ $correctStrings = Strings::fixEncoding($string);
 ```
 
 
-checkEncoding(string $s): bool .[method deprecated]
----------------------------------------------------
+checkEncoding(string $s): bool .[method]
+----------------------------------------
 
 Checks if the string is valid in UTF-8 encoding.
 
 ```php
 $isUtf8 = Strings::checkEncoding($string);
 ```
-
-.[note]
-Use [Nette\Utils\Validator::isUnicode() |validators#isUnicode].
 
 
 toAscii(string $s): string .[method]
@@ -378,250 +365,79 @@ Strings::chr(0xA9); // '©'
 ```
 
 
-ord(string $char): int .[method]
---------------------------------
-
-Returns a code point of specific character in UTF-8 (number in range 0x0000..D7FF or 0xE000..10FFFF).
-
-```php
-Strings::ord('©'); // 0xA9
-```
-
-
 Regular Expressions
 ===================
 
-The Strings class provides functions for working with regular expressions. Unlike native PHP functions, they have a more understandable API, better Unicode support, and most importantly, error detection. Any compilation or expression processing error will throw a `Nette\RegexpException` exception.
+Class Strings contains a few methods for working with regular expressions. Unlike native php functions, it provides readable API and throws `Nette\RegexpException` if any regexp error occurs.
 
 
-split(string $subject, string $pattern, bool $captureOffset=false, bool $skipEmpty=false, int $limit=-1, bool $utf8=false): array .[method]
--------------------------------------------------------------------------------------------------------------------------------------------
+split(string $subject, string $pattern, int $flags=null): array .[method]
+-------------------------------------------------------------------------
 
-Divides the string into arrays according to the regular expression. Expressions in parentheses will be captured and returned as well.
-
-```php
-Strings::split('hello, world', '~,\s*~');
-// ['hello', 'world']
-
-Strings::split('hello, world', '~(,)\s*~');
-// ['hello', ',', 'world']``
-```
-
-If `$skipEmpty` is `true`, only non-empty items will be returned:
+Splits a string into array by the regular expression. Argument `$flag` takes same arguments as [php:preg_split], but `PREG_SPLIT_DELIM_CAPTURE` is set by default.
 
 ```php
-Strings::split('hello, world, ', '~,\s*~');
-// ['hello', 'world', '']
-
-Strings::split('hello, world, ', '~,\s*~', skipEmpty: true);
-// ['hello', 'world']
-```
-
-If `$limit` is specified, only substrings up to the limit will be returned and the rest of the string will be placed in the last element. A limit of -1 or 0 means no limit.
-
-```php
-Strings::split('hello, world, third', '~,\s*~', limit: 2);
-// ['hello', 'world, third']
-```
-
-If `$utf8` is `true`, the evaluation switches to Unicode mode. This is similar to specifying the `u` modifier.
-
-If `$captureOffset` is `true`, for each occurring match, its position in the string will also be returned (in bytes; in characters if `$utf8` is set). This changes the return value to an array where each element is a pair consisting of the matched string and its position.
-
-```php
-Strings::split('žlutý, kůň', '~,\s*~', captureOffset: true);
-// [['žlutý', 0], ['kůň', 9]]
-
-Strings::split('žlutý, kůň', '~,\s*~', captureOffset: true, utf8: true);
-// [['žlutý', 0], ['kůň', 7]]
+$res = Strings::split('One,  two,three', '~,\s*~');
+// ['One', 'two', 'three']
+$res = Strings::split('One,  two,three', '~(,)\s*~');
+// ['One', ',', 'two', ',', 'three']
 ```
 
 
-match(string $subject, string $pattern, bool $captureOffset=false, int $offset=0, bool $unmatchedAsNull=false, bool $utf8=false): ?array .[method]
---------------------------------------------------------------------------------------------------------------------------------------------------
+match(string $subject, string $pattern, int $flags=null, int $offset=0): array .[method]
+----------------------------------------------------------------------------------------
 
-Searches the string for the part matching the regular expression and returns an array with the found expression and individual subexpressions, or `null`.
+Checks if given string matches a regular expression and returns an array with first found match and each subpattern. Argument `$flag` takes same arguments as function [php:preg_match].
 
-```php
-Strings::match('hello!', '~\w+(!+)~');
-// ['hello!', '!']
-
-Strings::match('hello!', '~X~');
-// null
-```
-
-If `$unmatchedAsNull` is `true`, unmatched subpatterns are returned as null; otherwise they are returned as an empty string or not returned:
+The optional parameter `$offset` can be used to specify the alternate place from which to start the search (in bytes, not in characters!).
 
 ```php
-Strings::match('hello', '~\w+(!+)?~');
-// ['hello']
-
-Strings::match('hello', '~\w+(!+)?~', unmatchedAsNull: true);
-// ['hello', null]
-```
-
-If `$utf8` is `true`, the evaluation switches to Unicode mode. This is similar to specifying the `u` modifier:
-
-```php
-Strings::match('žlutý kůň', '~\w+~');
-// ['lut']
-
-Strings::match('žlutý kůň', '~\w+~', utf8: true);
-// ['žlutý']
-```
-
-The `$offset` parameter can be used to specify the position from which to start the search (in bytes; in characters if `$utf8` is set).
-
-If `$captureOffset` is `true`, for each occurring match, its position in the string will also be returned (in bytes; in characters if `$utf8` is set). This changes the return value to an array where each element is a pair consisting of the matched string and its offset:
-
-```php
-Strings::match('žlutý!', '~\w+(!+)?~', captureOffset: true);
-// [['lut', 2]]
-
-Strings::match('žlutý!', '~\w+(!+)?~', captureOffset: true, utf8: true);
-// [['žlutý!', 0], ['!', 5]]
+list($res) = Strings::match('One,  two,three', '~[a-z]+~i'); // 'One'
+list($res) = Strings::match('One,  two,three', '~\d+~'); // null
 ```
 
 
-matchAll(string $subject, string $pattern, bool $captureOffset=false, int $offset=0, bool $unmatchedAsNull=false, bool $patternOrder=false, bool $utf8=false): array .[method]
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+matchAll(string $subject, string $pattern, int $flags=null, int $offset=0): array .[method]
+-------------------------------------------------------------------------------------------
 
-Searches the string for all occurrences matching the regular expression and returns an array of arrays containing the found expression and each subexpression.
+Finds all occurrences matching regular expression pattern and returns a two-dimensional array. Argument `$flag` takes same arguments as function [php:preg_match_all], but `PREG_SET_ORDER` is set by default.
 
-```php
-Strings::matchAll('hello, world!!', '~\w+(!+)?~');
-/* [
-	0 => ['hello'],
-	1 => ['world!!', '!!'],
-] */
-```
-
-If `$patternOrder` is `true`, the structure of the results changes so that the first item is an array of full pattern matches, the second is an array of strings corresponding to the first subpattern in parentheses, and so on:
+The optional parameter `$offset` can be used to specify the alternate place from which to start the search (in bytes, not in characters!).
 
 ```php
-Strings::matchAll('hello, world!!', '~\w+(!+)?~', patternOrder: true);
-/* [
-	0 => ['hello', 'world!!'],
-	1 => ['', '!!'],
-] */
-```
+$res = Strings::matchAll('One,  two,tree', '~[a-z]+~i');
+/*
+[
+	0 => ['One'],
+	1 => ['two'],
+	2 => ['three'],
+]
+*/
 
-If `$unmatchedAsNull` is `true`, unmatched subpatterns are returned as null; otherwise they are returned as an empty string or not returned:
-
-```php
-Strings::matchAll('hello, world!!', '~\w+(!+)?~', unmatchedAsNull: true);
-/* [
-	0 => ['hello', null],
-	1 => ['world!!', '!!'],
-] */
-```
-
-If `$utf8` is `true`, the evaluation switches to Unicode mode. This is similar to specifying the `u` modifier:
-
-```php
-Strings::matchAll('žlutý kůň', '~\w+~');
-/* [
-	0 => ['lut'],
-	1 => ['k'],
-] */
-
-Strings::matchAll('žlutý kůň', '~\w+~', utf8: true);
-/* [
-	0 => ['žlutý'],
-	1 => ['kůň'],
-] */
-```
-
-The `$offset` parameter can be used to specify the position from which to start the search (in bytes; in characters if `$utf8` is set).
-
-If `$captureOffset` is `true`, for each occurring match, its position in the string will also be returned (in bytes; in characters if `$utf8` is set). This changes the return value to an array where each element is a pair consisting of the matched string and its position:
-
-```php
-Strings::matchAll('žlutý kůň', '~\w+~', captureOffset: true);
-/* [
-	0 => [['lut', 2]],
-	1 => [['k', 8]],
-] */
-
-Strings::matchAll('žlutý kůň', '~\w+~', captureOffset: true, utf8: true);
-/* [
-	0 => [['žlutý', 0]],
-	1 => [['kůň', 6]],
-] */
+$res = Strings::matchAll('One,  two,three', '~\d+~'); // []
 ```
 
 
-replace(string $subject, string|array $pattern, string|callable $replacement='', int $limit=-1, bool $captureOffset=false, bool $unmatchedAsNull=false, bool $utf8=false): string .[method]
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+replace(string $subject, string|array $pattern, string|callable $replacement='', int $limit=-1): string .[method]
+-----------------------------------------------------------------------------------------------------------------
 
-Replaces all occurrences matching the regular expression. The `$replacement` is either a replacement string mask or a callback.
-
-```php
-Strings::replace('hello, world!', '~\w+~', '--');
-// '--, --!'
-
-Strings::replace('hello, world!', '~\w+~', fn($m) => strrev($m[0]));
-// 'olleh, dlrow!'
-```
-
-The function also allows multiple replacements by passing an array of the form `pattern => replacement` in the second parameter:
+Replaces all occurrences matching regular expression `$pattern` which can be string or array in the form `pattern` => `replacement`. The third argument is a replacement string or a callback and the fourth limits the count of replacements.
 
 ```php
-Strings::replace('hello, world!', [
-	'~\w+~' => '--',
-	'~,\s+~' => ' ',
+Strings::replace('One, two,three', '~[a-z]+~i', '*');
+// '*,  *,*'
+
+Strings::replace('One,  two,three', [
+	'~[a-z]+~i' => '*',
+	'~\s+~' => '+',
 ]);
-// '-- --!'
+// '*,+*,*'
+
+Strings::replace('One,  two,three', '~[a-z]+~i', function (array $m): string {
+	return strrev($m[0]);
+});
+// 'enO,  owt,eerht'
 ```
 
-The `$limit` parameter limits the number of substitutions. Limit -1 means no limit.
 
-If `$utf8` is `true`, the evaluation switches to Unicode mode. This is similar to specifying the `u` modifier.
-
-```php
-Strings::replace('žlutý kůň', '~\w+~', '--');
-// 'ž--ý --ůň'
-
-Strings::replace('žlutý kůň', '~\w+~', '--', utf8: true);
-// '-- --'
-```
-
-If `$captureOffset` is `true`, for each occurring match, its position in the string (in bytes; in characters if `$utf8` is set) is also passed to the callback. This changes the form of the passed array, where each element is a pair consisting of the matched string and its position.
-
-```php
-Strings::replace(
-	'žlutý kůň',
-	'~\w+~',
-	function (array $m) { dump($m); return ''; },
-	captureOffset: true,
-);
-// dumps [['lut', 2]] a [['k', 8]]
-
-Strings::replace(
-	'žlutý kůň',
-	'~\w+~',
-	function (array $m) { dump($m); return ''; },
-	captureOffset: true,
-	utf8: true,
-);
-// dumps [['žlutý', 0]] a [['kůň', 6]]
-```
-
-If `$unmatchedAsNull` is `true`, unmatched subpatterns are passed to the callback as null; otherwise they are passed as an empty string or not passed:
-
-```php
-Strings::replace(
-	'ac',
-	'~(a)(b)*(c)~',
-	function (array $m) { dump($m); return ''; },
-);
-// dumps ['ac', 'a', '', 'c']
-
-Strings::replace(
-	'ac',
-	'~(a)(b)*(c)~',
-	function (array $m) { dump($m); return ''; },
-	unmatchedAsNull: true,
-);
-// dumps ['ac', 'a', null, 'c']
-```
+{{composer: nette/utils}}

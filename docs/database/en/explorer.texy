@@ -245,8 +245,8 @@ $table->having('COUNT(items) >', 100);  // HAVING COUNT(`items`) > 100
 ```
 
 
-Filtering by Another Table Value .[#toc-joining-key]
-----------------------------------------------------
+Filtering by Another Table Value .[#joining-key]
+------------------------------------------------
 
 Quite often you need filter results by some condition which involves another database table. These types of condition require table join. However, you don't need to write them anymore.
 
@@ -367,7 +367,7 @@ $explorer->table('users')->insert([
 	], [
 		'name' => 'Jack',
 		'year' => 1987,
-	],
+	]
 ]);
 // INSERT INTO users (`name`, `year`) VALUES ('Jim', 1978), ('Jack', 1987)
 ```
@@ -548,3 +548,6 @@ $structure = new Nette\Database\Structure($connection, $storage);
 $conventions = new Nette\Database\Conventions\DiscoveredConventions($structure);
 $explorer = new Nette\Database\Explorer($connection, $structure, $conventions, $storage);
 ```
+
+
+{{composer: nette/database}}

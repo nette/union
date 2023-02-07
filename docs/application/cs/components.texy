@@ -25,7 +25,7 @@ Jak se do presenteru komponenty vkládají a následně používají? Obvykle po
 
 Továrna na komponenty představuje elegantní způsob, jak komponenty vytvářet teprve ve chvíli, kdy jsou skutečně potřeba (lazy / on demand). Celé kouzlo spočívá v implementaci metody s názvem `createComponent<Name>()`, kde `<Name>` je název vytvářené komponenty, a která komponentu vytvoří a vrátí.
 
-```php .{file:DefaultPresenter.php}
+```php .{data-file:DefaultPresenter.php}
 class DefaultPresenter extends Nette\Application\UI\Presenter
 {
 	protected function createComponentPoll(): PollControl
@@ -44,7 +44,7 @@ Názvy komponent začínají vždy malým písmenem, přestože se v názvu meto
 
 Továrny nikdy nevoláme přímo, zavolají se samy ve chvíli, kdy komponentu poprvé použijeme. Díky tomu je komponenta vytvořena ve správný okamžik a pouze v případě, když je skutečně potřeba. Pokud komponentu nepoužijeme (třeba při AJAXovém požadavku, kdy se přenáší jen část stránky, nebo při cachování šablony), nevytvoří se vůbec a ušetříme výkon serveru.
 
-```php .{file:DefaultPresenter.php}
+```php .{data-file:DefaultPresenter.php}
 // přistoupíme ke komponentě a pokud to bylo poprvé,
 // zavolá se createComponentPoll() která ji vytvoří
 $poll = $this->getComponent('poll');
@@ -53,7 +53,7 @@ $poll = $this->getComponent('poll');
 
 V šabloně je možné vykreslit komponentu pomocí značky [{control} |#Vykreslení]. Není proto potřeba manuálně komponenty předávat do šablony.
 
-```latte
+```html
 <h2>Hlasujte</h2>
 
 {control poll}
@@ -75,7 +75,7 @@ Píšeme komponentu
 
 Pod pojmem komponenta obvykle myslíme potomka třídy [api:Nette\Application\UI\Control]. (Přesnější by tedy bylo používat termín „controls“, ale „kontroly“ mají v češtině zcela jiný význam a spíš se ujaly „komponenty“.) Samotný presenter [api:Nette\Application\UI\Presenter] je mimochodem také potomkem třídy `Control`.
 
-```php .{file:PollControl.php}
+```php .{data-file:PollControl.php}
 use Nette\Application\UI\Control;
 
 class PollControl extends Control
@@ -89,7 +89,7 @@ Vykreslení
 
 Už víme, že k vykreslení komponenty se používá značka `{control componentName}`. Ta vlastně zavolá metodu `render()` komponenty, ve které se postáráme o vykreslení. K dispozici máme, úplně stejně jako v presenteru, [Latte|latte:] šablonu v proměnné `$this->template`, do které předáme parametry. Na rozdíl od presenteru musíme uvést soubor se šablonou a nechat ji vykreslit:
 
-```php .{file:PollControl.php}
+```php .{data-file:PollControl.php}
 public function render(): void
 {
 	// vložíme do šablony nějaké parametry
@@ -101,11 +101,11 @@ public function render(): void
 
 Značka `{control}` umožňuje do metody `render()` předat parametry:
 
-```latte
+```html
 {control poll $id, $message}
 ```
 
-```php .{file:PollControl.php}
+```php .{data-file:PollControl.php}
 public function render(int $id, string $message): void
 {
 	// ...
@@ -114,7 +114,7 @@ public function render(int $id, string $message): void
 
 Někdy se může komponenta skládat z několika částí, které chceme vykreslovat odděleně. Pro každou z nich si vytvoříme vlastní vykreslovací metodu, zde v příkladu třeba `renderPaginator()`:
 
-```php .{file:PollControl.php}
+```php .{data-file:PollControl.php}
 public function renderPaginator(): void
 {
 	// ...
@@ -123,13 +123,13 @@ public function renderPaginator(): void
 
 A v šabloně ji pak vyvoláme pomocí:
 
-```latte
+```html
 {control poll:paginator}
 ```
 
 Pro lepší pochopení je dobré vědět, jak se tato značka přeloží do PHP.
 
-```latte
+```html
 {control poll}
 {control poll:paginator 123, 'hello'}
 ```
@@ -146,8 +146,8 @@ Metoda `getComponent()` vrací komponentu `poll` a nad touto komponentou volá m
 .[caution]
 Pozor, pokud se kdekoliv v parametrech objeví **`=>`**, všechny parametry budou zabaleny do pole a předány jako první argument:
 
-```latte
-{control poll, id: 123, message: 'hello'}
+```html
+{control poll, id => 123, message => 'hello'}
 ```
 
 se přeloží jako:
@@ -158,7 +158,7 @@ $control->getComponent('poll')->render(['id' => 123, 'message' => 'hello']);
 
 Vykreslení sub-komponety:
 
-```latte
+```html
 {control cartControl-someForm}
 ```
 
@@ -194,7 +194,7 @@ public function handleClick(int $x, int $y): void
 
 Odkaz, který zavolá signál, vytvoříme obvyklým způsobem, tedy v šabloně atributem `n:href` nebo značkou `{link}`, v kódu metodou `link()`. Více v kapitole [Vytváření odkazů URL|creating-links#Odkazy na signál].
 
-```latte
+```html
 <a n:href="click! $x, $y">click here</a>
 ```
 
@@ -223,7 +223,7 @@ $this->redirect(/* ... */); // a přesměrujeme
 
 Šabloně jsou tyto zprávy k dispozici v proměnné `$flashes` jako objekty `stdClass`, které obsahují vlastnosti `message` (text zprávy), `type` (typ zprávy) a mohou obsahovat již zmíněné uživatelské informace. Vykreslíme je třeba takto:
 
-```latte
+```html
 {foreach $flashes as $flash}
 	<div class="flash {$flash->type}">{$flash->message}</div>
 {/foreach}
@@ -233,34 +233,31 @@ $this->redirect(/* ... */); // a přesměrujeme
 Persistentní parametry
 ======================
 
-Persistentní parametry slouží k udržování stavu v komponentách mezi různými požadavky. Jejich hodnota zůstává stejná i po kliknutí na odkaz. Na rozdíl od dat v session se přenášejí v URL. A to zcela automaticky, včetně odkazů vytvořených v jiných komponentách na téže stránce.
+Často se stává, že je v komponentách potřeba držet nějaký parametr pro uživatele po celou dobu, kdy se s komponentou pracuje. Může to být například číslo stránky ve stránkování. Takový parametr označíme jako persistentní pomocí anotace `@persistent`.
 
-Máte např. komponentu pro stránkování obsahu. Takových komponent může být na stránce několik. A přejeme si, aby po kliknutí na odkaz zůstaly všechny komponenty na své aktuální stránce. Proto z čísla stránky (`page`) uděláme persistentní parametr.
+```php
+class PollControl extends Control
+{
+	/** @persistent */
+	public $page = 1;
+}
+```
 
-Vytvoření persistentního parametru je v Nette nesmírně jednoduché. Stačí vytvořit veřejnou property a označit ji atributem: (dříve se používalo `/** @persistent */`)
+Tento parametr bude automaticky přenášen v každém odkazu jako GET parametr, a to až do chvíle, kdy uživatel stránku s touto komponentou opustí.
+
+.[caution]
+Nikdy slepě nevěřte persistentním parametrům, protože mohou být snadno podvrženy (přepsáním v URL adrese stránky). Ověřte si například, zda je číslo stránky v platném rozsahu.
+
+V PHP 8 můžete pro označení persistentních parametrů použít také atributy:
 
 ```php
 use Nette\Application\Attributes\Persistent;
 
-class PaginatingControl extends Control
+class PollControl extends Control
 {
 	#[Persistent]
-	public int $page = 1; // musí být public
+	public $page = 1;
 }
-```
-
-U property doporučujeme uvádět i datový typ (např. `int`) a můžete uvést i výchozí hodnotu. Hodnoty parametrů lze [validovat |#Validace persistentních parametrů].
-
-Při vytváření odkazu lze persistentnímu parametru změnit hodnotu:
-
-```latte
-<a n:href="this page: $page + 1">next</a>
-```
-
-Nebo jej lze *vyresetovat*, tj. odstranit z URL. Pak bude nabývat svou výchozí hodnotu:
-
-```latte
-<a n:href="this page: null">reset</a>
 ```
 
 
@@ -294,40 +291,42 @@ class DefaultPresenter extends Nette\Application\UI\Presenter
 
 Komponenty se závislostmi
 =========================
-
-Jak vytvářet komponenty se závislostmi, aniž bychom si „zaneřádili“ presentery, které je budou používat? Díky chytrým vlastnostem DI kontejneru v Nette lze stejně jako u používání klasických služeb nechat většinu práce na frameworku.
-
-Vezměme si jako příklad komponentu, která má závislost na službě `PollFacade`:
+Co když ale naše komponenta potřebuje nějaké závislosti k tomu, aby fungovala, třeba PollControl potřebuje PollFacade, přes který by hlasovala a ukládala ankety? Pak je předáme přes konstruktoru:
 
 ```php
 class PollControl extends Control
 {
-	public function __construct(
-		private int $id, //  Id ankety pro kterou vytváříme komponentu
-		private PollFacade $facade,
-	) {
+	/** @var PollFacade */
+	private $facade;
+
+	/** @var int Id ankety pro kterou vytváříme komponentu */
+	private $id;
+
+	public function __construct(int $id, PollFacade $facade)
+	{
+		$this->facade = $facade;
+		$this->id = $id;
 	}
 
 	public function handleVote(int $voteId): void
 	{
 		$this->facade->vote($id, $voteId);
-		// ...
+		//...
 	}
 }
 ```
 
-Pokud bychom psali klasickou službu, nebylo by co řešit. O předání všech závislostí by se neviditelně postaral DI kontejner. Jenže s komponentami obvykle zacházíme tak, že jejich novou instanci vytváříme přímo v presenteru v [továrních metodách |#Tovární metody] `createComponent…()`. Ale předávat si všechny závislosti všech komponent do presenteru, abychom je pak předali komponentám, je těžkopádné. A toho napsaného kódu…
-
-Logickou otázkou je, proč prostě nezaregistrujeme komponentu jako klasickou službu, nepředáme ji do presenteru a poté v metodě `createComponent…()` nevracíme? Takový přístup je ale nevhodný, protože komponentu chceme mít možnost vytvářet klidně i vícekrát.
-
-Správným řešením je napsat pro komponentu továrnu, tedy třídu, která nám komponentu vytvoří:
+No jo, ale jak se to do toho konstruktoru dostane? Na to si napíšeme továrnu, tedy třídu, která nám komponentu vytvoří. Tahle továrna se bude chovat jako služba, takže ji zároveň musíme zaregistrovat jako službu do konfigurace.
 
 ```php
 class PollControlFactory
 {
-	public function __construct(
-		private PollFacade $facade,
-	) {
+	/** @var PollFacade */
+	private $facade;
+
+	public function __construct(PollFacade $facade)
+	{
+		$this->facade = $facade;
 	}
 
 	public function create(int $id): PollControl
@@ -349,9 +348,12 @@ a nakonec ji použijeme v našem presenteru:
 ```php
 class PollPresenter extends Nette\UI\Application\Presenter
 {
-	public function __construct(
-		private PollControlFactory $pollControlFactory,
-	) {
+	/** @var PollControlFactory */
+	private $pollControlFactory;
+
+	public function __construct(PollControlFactory $pollControlFactory)
+	{
+		$this->pollControlFactory = $pollControlFactory;
 	}
 
 	protected function createComponentPollControl(): PollControl
@@ -362,7 +364,7 @@ class PollPresenter extends Nette\UI\Application\Presenter
 }
 ```
 
-Skvělé je, že Nette DI takovéhle jednoduché továrny umí [generovat |dependency-injection:factory], takže místo jejího celého kódu stačí napsat jenom její rozhraní:
+Naštěstí Nette takovéhle jednoduché továrny umí generovat, takže místo ní můžeme napsat jenom její interface a továrnu nám vygeneruje DI kontejner:
 
 ```php
 interface PollControlFactory
@@ -371,66 +373,135 @@ interface PollControlFactory
 }
 ```
 
+Interface zaregistrujeme do našeho kontejneru v konfiguraci:
+
+```neon
+services:
+	- PollControlFactory
+```
+
+a do presenteru si ho opět necháme předat a pracujeme s ním jako s původní továrnou.
+
 A to je vše. Nette vnitřně tento interface naimplementuje a předá do presenteru, kde jej už můžeme používat. Magicky nám právě do naší komponenty přidá i parametr `$id` a instanci třídy `PollFacade`.
+
+Další použití komponent v souvislosti s DI je [popsáno tady |dependency-injection:factory#tovarna-na-komponenty]
 
 
 Komponenty do hloubky
 =====================
 
-Komponenty v Nette Application představují znovupoužitelné součásti webové aplikace, které vkládáme do stránek a kterým se ostatně věnuje celá tato kapitola. Jaké přesně schopnosti taková komponenta má?
+[* lifecycle-component.svg *] *** *Životní cyklus componenty* .<>
 
-1) je vykreslitelná v šabloně
-2) ví, kterou svou část má vykreslit při [AJAXovém požadavku |ajax#invalidace] (snippety)
-3) má schopnost ukládat svůj stav do URL (persistentní parametry)
-4) má schopnost reagovat na uživatelské akce (signály)
-5) vytváří hierarchickou strukturu (kde kořenem je presenter)
+Komponenty bývají ve většině případů vykreslitelné. Vedle nich však existují i nevykreslitelné komponenty. Stejně tak některé komponenty mohou mít potomky, jiné zase ne. Nette Framework pro všechny tyto typy komponent zavádí několik tříd a rozhraní.
 
-Každou z těchto funkcí obstarává některá z tříd dědičné linie. Vykreslování (1 + 2) má na starosti [api:Nette\Application\UI\Control], začlenění do [životního cyklu |presenters#zivotni-cyklus-presenteru] (3, 4) třída [api:Nette\Application\UI\Component] a vytváření hierachické struktury (5) třídy [Container a Component |component-model:].
+Dědičnost objektů nám umožňuje třídy zařadit do hierarchické struktury, stejně jako je to v reálném světě. Můžeme totiž vytvářet nové třídy odvozením od jiných. Tyto odvozené třídy jsou pak potomkem původní třídy a dědí jeho členské proměnné a metody. Odvozená třída může přidávat další funkcionalitu (metody a členské proměnné) k již zděděným schopnostem.
+
+Ke správnému pochopení "jak věci pracují", je potřeba vědět, kde má která třída své kořeny.
 
 ```
 Nette\ComponentModel\Component  { IComponent }
 |
 +- Nette\ComponentModel\Container  { IContainer }
-	|
-	+- Nette\Application\UI\Component  { SignalReceiver, StatePersistent }
-		|
-		+- Nette\Application\UI\Control  { Renderable }
-			|
-			+- Nette\Application\UI\Presenter  { IPresenter }
+   |
+   +- Nette\Application\UI\Component  { SignalReceiver, StatePersistent }
+      |
+      +- Nette\Application\UI\Control  { Renderable }
+         |
+         +- Nette\Application\UI\Presenter  { IPresenter }
 ```
 
 
-Životní cyklus componenty
--------------------------
+Nette\ComponentModel\IComponent .{toc: IComponent}
+--------------------------------------------------
 
-[* lifecycle-component.svg *] *** *Životní cyklus componenty* .<>
+Rozhraní [api:Nette\ComponentModel\IComponent] musí implementovat každá komponenta. Vyžaduje metodu `getName()` vracející její název a metodu `getParent()` vracející jejího rodiče. Obojí lze nastavit metodou `setParent()` - první parametr je rodič a druhý název komponenty.
 
 
-Validace persistentních parametrů
----------------------------------
+Nette\ComponentModel\Component .{toc: Component}
+------------------------------------------------
 
-Hodnoty [persistentních parametrů |#Persistentní parametry] přijatých z URL zapisuje do properties metoda `loadState()`. Ta také kontroluje, zda odpovídá datový typ uvedený u property, jinak odpoví chybou 404 a stránka se nezobrazí.
+[api:Nette\ComponentModel\Component] je standardní implementací `IComponent`. Je společným předkem všech komponent, vycházejí z ní všechny prvky formulářů. Obsahuje metody zjišťují příbuznost objektů a hlavně propojení (provázání) s rodiči:
 
-Nikdy slepě nevěřte persistentním parametrům, protože mohou být snadno uživatelem přepsány v URL. Takto například ověříme, zda je číslo stránky `$this->page` větší než 0. Vhodnou cestou je přepsat zmíněnou metodu `loadState()`:
+[lookup($type)|api:Nette\ComponentModel\Component::lookup()] vyhledá v hierarchii směrem nahoru objekt požadované třídy nebo rozhraní. Například `$component->lookup(Nette\Application\UI\Presenter::class)` vrací presenter, pokud je k němu, i přes několik úrovní, komponenta připojena.
+
+[lookupPath($type)|api:Nette\ComponentModel\Component::lookupPath()] vrací tzv. cestu, což je řetězec vzniklý spojením jmen všech komponent na cestě mezi aktuální a hledanou komponentou. Takže např. `$component->lookupPath(Nette\Application\UI\Presenter::class)` vrací jedinečný identifikátor komponenty vůči presenteru.
+
+
+Nette\ComponentModel\IContainer .{toc: IContainer}
+--------------------------------------------------
+
+Rodičovské komponenty kromě rozhraní `IComponent` implementují i [api:Nette\ComponentModel\IContainer], které obsahuje metody pro přidání, odebrání, získání a iterací nad komponentami. Komponenty pak mohou vytvářet hierarchii - např. presentery mohou obsahovat formuláře obsahující textová políčka a tlačítka. Celý strom komponent je tedy tvořen větvemi v podobě objektů `IContainer` a listů `IComponent`.
+
+
+Nette\ComponentModel\Container .{toc: Container}
+------------------------------------------------
+
+[api:Nette\ComponentModel\Container] je standardní implementací rozhraní `IContainer`. Je předkem například formuláře a tříd `Control` či `Presenter`.
+
+Disponuje metodami pro snadné přidávání, získávání a odstraňování objektů a samozřejmě iteraci nad svým obsahem. Při pokusu o získání nedefinovaného potomka je zavolána továrna `createComponent($name)`. Metoda `createComponent($name)` zavolá v aktuální komponentě metodu `createComponent<název komponenty>` a jako parametr jí předá název komponenty. Vytvořená komponenta je poté přidána do aktuální komponenty jako její potomek. Těmto metodám říkáme továrny na komponenty a mohou je implementovat potomci třídy `Container`.
+
+
+Nette\Application\UI\Component .{toc: Component}
+------------------------------------------------
+
+Třída [api:Nette\Application\UI\Component] je předek všech komponent používaných v presenteru. Komponenty presenteru jsou objekty, které si presenter uchovává počas svého [životního cyklu |presenters#zivotni-cyklus-presenteru].
+
+Mají schopnost vzájemně ovlivňovat ostatní poděděné komponenty, ukládat své stavy do URL a odpovídat na uživatelské příkazy (signály) a nemusí být vykreslitelné.
+
+
+Nette\Application\UI\Control .{toc: Control}
+--------------------------------------------
+
+[Control |api:Nette\Application\UI\Control] je vykreslitelná komponenta, znovupoužitelná součást webové aplikace, které se věnuje celá tato kapitola. Tuto třídu (nebo její potomky) máme obvykle na mysli, když hovoříme o komponentách. Navíc si umí pamatovat, kterou svou část má vykreslit při [AJAXovém požadavku |ajax#invalidace], jak [jsme si už ukázali|#invalidace a snippety].
+
+`Control` nepředstavuje výseč stránky, ale její logickou část. Je možné ji renderovat opakovaně, nebo podmíněně a klidně pokaždé s jinou šablonou.
+
+Znovupoužitelná součást aplikace.
+
+
+Monitorování předků
+-------------------
+
+Komponentový model Nette umožňuje velmi dynamickou práci se stromem (komponenty můžeme vyjímat, přesouvat, přidávat), proto by byla chyba se spoléhat na to, že po vytvoření komponenty je hned (v konstruktoru) znám rodič, rodič rodiče atd. Většinou totiž rodič při vytvoření vůbec známý není.
+
+Jak poznat, kdy byla komponenta připojena do stromu presenteru? Sledovat změnu rodiče nestačí, protože k presenteru mohl být připojen třeba rodič rodiče. Pomůže metoda [monitor($type, $attached, $detached)|api:Nette\ComponentModel\Component::monitor()]. Každá komponenta může monitorovat libovolný počet tříd a rozhraní. Připojení nebo odpojení je ohlášeno zavoláním callbacku `$attached` resp. `$detached`, a předáním objektu sledované třídy.
+
+Pro lepší pochopení příklad: třída `UploadControl`, reprezentující formulářový prvek pro upload souborů v Nette Forms, musí formuláři nastavit atribut `enctype` na hodnotu `multipart/form-data`. V době vytvoření objektu ale k žádnému formuláři připojena být nemusí. Ve kterém okamžiku tedy formulář modifikovat? Řešení je jednoduché - v konstruktoru se požádá o monitoring:
 
 ```php
-class PaginatingControl extends Control
+class UploadControl extends Nette\Forms\Controls\BaseControl
 {
-	#[Persistent]
-	public int $page = 1;
-
-	public function loadState(array $params): void
+	public function __construct($label)
 	{
-		parent::loadState($params); // zde se nastaví $this->page
-		// následuje vlastní kontrola hodnoty:
-		if ($this->page < 1) {
-			$this->error();
-		}
+		$this->monitor(Nette\Forms\Form::class, function ($form): void {
+			$form->setHtmlAttribute('enctype', 'multipart/form-data');
+		});
+		// ...
 	}
+
+	// ...
 }
 ```
 
-Opačný proces, tedy sesbírání hodnot z persistentních properites, má na starosti metoda `saveState()`.
+a jakmile je formulář k dispozici, zavolá se callback. (Dříve se místo něj používala společná metoda `attached` resp. `detached`).
+
+
+Iterování nad dětmi
+-------------------
+
+K iterování slouží metoda [getComponents($deep = false, $type = null)|api:Nette\ComponentModel\Container::getComponents()]. První parametr určuje, zda se mají komponenty procházet do hloubky (neboli rekurzivně). S hodnotou `true` tedy nejen projde všechny komponenty, jichž je rodičem, ale také potomky svých potomků atd. Druhý parametr slouží jako volitelný filtr podle tříd nebo rozhraní.
+
+Například takto nějak se "interně"((dělá to framework sám v jádru, není třeba tento kód volat explicitně)) provádí ověření validace prvků:
+
+```php
+$valid = true;
+foreach ($form->getComponents(true, Nette\Forms\IControl::class) as $control) {
+	if (!$control->getRules()->validate()) {
+		$valid = false;
+		break;
+	}
+}
+```
 
 
 Signály do hloubky
@@ -452,6 +523,7 @@ Metoda [isSignalReceiver()|api:Nette\Application\UI\Presenter::isSignalReceiver(
 
 V kterékoliv fázi předcházející `handle{signal}` můžeme vykonat signál manuálně zavoláním metody [processSignal()|api:Nette\Application\UI\Presenter::processSignal()], která si bere na starosti vyřízení signálu – vezme komponentu, která se určila jako příjemce signálu (pokud není určen příjemce signálu, je to presenter samotný) a pošle jí signál.
 
+
 Příklad:
 
 ```php
@@ -468,9 +540,23 @@ Tím je signál provedený předčasně a už se nebude znovu volat.
 	public $onAnchor;
 
 	/**
+	 * Loads state informations.
+	 */
+	public function loadState(array $params): void
+
+	/**
+	 * Saves state informations for next request.
+	 */
+	public function saveState(array &$params): void
+
+
+	/**
 	 * Returns destination as Link object.
 	 * @param  string   $destination in format "[homepage] [[[module:]presenter:]action | signal! | this] [#fragment]"
 	 * @param  array|mixed  $args
 	 */
 	public function lazyLink(string $destination, $args = []): Link
 \--
+
+
+{{composer: nette/application}}

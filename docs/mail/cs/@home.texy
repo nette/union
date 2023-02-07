@@ -60,7 +60,7 @@ Do HTML těla lze také neobyčejně snadno vkládat obrázky. Stačí jako druh
 // automaticky přidá /path/to/images/background.gif do e-mailu
 $mail->setHtmlBody(
 	'<b>Hello</b> <img src="background.gif">',
-	'/path/to/images',
+	'/path/to/images'
 );
 ```
 
@@ -104,13 +104,13 @@ $mail->setFrom('Franta <franta@example.com>')
 	->addTo('petr@example.com')
 	->setHtmlBody(
 		$latte->renderToString('/path/to/email.latte', $params),
-		'/path/to/images',
+		'/path/to/images'
 	);
 ```
 
 Soubor `email.latte`:
 
-```latte
+```html
 <html>
 <head>
 	<meta charset="utf-8">
@@ -142,10 +142,19 @@ use Nette;
 
 class MailSender
 {
+	/** @var Nette\Application\LinkGenerator */
+	private $linkGenerator;
+
+	/** @var Nette\Bridges\ApplicationLatte\TemplateFactory */
+	private $templateFactory;
+
 	public function __construct(
-		private Nette\Application\LinkGenerator $linkGenerator,
-		private Nette\Bridges\ApplicationLatte\TemplateFactory $templateFactory,
-	) {
+		Nette\Application\LinkGenerator $linkGenerator,
+		Nette\Bridges\ApplicationLatte\TemplateFactory $templateFactory
+	)
+	{
+		$this->linkGenerator = $linkGenerator;
+		$this->templateFactory = $templateFactory;
 	}
 
 	private function createTemplate(): Nette\Application\UI\Template
@@ -170,7 +179,7 @@ class MailSender
 
 V šabloně potom vytváříme odkazy tak, jak jsme zvyklí. Všechny odkazy vytvořene přes LinkGenerator budou absolutní.
 
-```latte
+```html
 <a n:href="Presenter:action">Odkaz</a>
 ```
 
@@ -202,22 +211,22 @@ SmtpMailer
 K odeslání pošty přes SMTP server slouží `SmtpMailer`.
 
 ```php
-$mailer = new Nette\Mail\SmtpMailer(
-	host: 'smtp.gmail.com',
-	username: 'franta@gmail.com',
-	password: '*****',
-	encryption: 'ssl',
-);
+$mailer = new Nette\Mail\SmtpMailer([
+	'host' => 'smtp.gmail.com',
+	'username' => 'franta@gmail.com',
+	'password' => '*****',
+	'secure' => 'ssl',
+]);
 $mailer->send($mail);
 ```
 
-Konstruktoru lze předat tyto další parametry:
+Pokud neuvedete `host`, použije se hodnota z php.ini. V poli lze uvést další tyto klíče:
 
 * `port` - pokud není nastaven, použije se výchozí 25 nebo 465 pro `ssl`
+* `context` - umožňuje nastavit "SSL context options":https://www.php.net/manual/en/context.ssl.php pro spojení
 * `timeout` - timeout pro SMTP spojení
 * `persistent` - použít persistent spojení
 * `clientHost` - nastavení hlavičky Host klienta
-* `streamOptions` - umožňuje nastavit "SSL context options":https://www.php.net/manual/en/context.ssl.php pro spojení
 
 
 FallbackMailer
@@ -229,7 +238,7 @@ E-maily přímo neodesílá, ale odesílání zprostředkovává přes sadu mail
 $mailer = new Nette\Mail\FallbackMailer([
 	$smtpMailer,
 	$backupSmtpMailer,
-	$sendmailMailer,
+	$sendmailMailer
 ]);
 $mailer->send($mail);
 ```
@@ -246,15 +255,15 @@ Server příjemce porovná tento podpis s veřejným klíčem uloženým v DNS z
 Podepisování e-mailů můžete maileru nastavit přímo v [konfiguraci|#Konfigurace]. Pokud nepoužíváte dependency injection, používá se tímto způsobem:
 
 ```php
-$signer = new Nette\Mail\DkimSigner(
-	domain: 'nette.org',
-	selector: 'dkim',
-	privateKey: file_get_contents('../dkim/dkim.key'),
-	passPhrase: '****',
-);
+$options = [
+	'domain' => 'nette.org',
+	'selector' => 'dkim',
+	'privateKey' => file_get_contents('../dkim/dkim.key'),
+	'passPhrase' => '****',
+];
 
 $mailer = new Nette\Mail\SendmailMailer; // nebo SmtpMailer
-$mailer->setSigner($signer);
+$mailer->setSigner(new Nette\Mail\DkimSigner($options));
 $mailer->send($mail);
 ```
 
@@ -276,21 +285,13 @@ mail:
 	username: ...    # (string)
 	password: ...    # (string)
 	timeout: ...     # (int)
-	encryption: ...  # (ssl|tls|null) výchozí je null (má alias 'secure')
+	secure: ...      # (ssl|tls|null) výchozí je null
 	clientHost: ...  # (string) výchozí je $_SERVER['HTTP_HOST']
 	persistent: ...  # (bool) výchozí je false
 
-	# kontext pro připojení k SMTP serveru, výchozí je stream_context_get_default()
-	context:
-		ssl:         # přehled voleb na https://www.php.net/manual/en/context.ssl.php
-			allow_self_signed: ...
-			...
-		http:        # přehled voleb na https://www.php.net/manual/en/context.http.php
-			header: ...
-			...
+	# kontext pro připojení k SMTP serveru, viz stream_context_create()
+	context:         # (array) výchozí je stream_context_get_default()
 ```
-
-Pomocí volby `context › ssl › verify_peer: false` lze vypnout ověřování SSL certifikátů. **Důrazně nedoporučujeme** tohle dělat, protože se aplikace stane zranitelnou. Místo toho "přidejte certifikáty do uložiště":https://www.php.net/manual/en/openssl.configuration.php.
 
 Pro zvýšení důvěryhodnosti můžeme e-maily podpisovat pomocí [technologie DKIM |https://blog.nette.org/cs/podepisujte-emaily-pomoci-dkim]:
 
@@ -304,4 +305,5 @@ mail:
 ```
 
 
+{{composer: nette/mail}}
 {{leftbar: nette:@menu-topics}}

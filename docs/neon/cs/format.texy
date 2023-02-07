@@ -309,7 +309,7 @@ Což se v PHP se naparsuje tímto způsobem:
 
 ```php
 // PHP
-new Nette\Neon\Entity(Nette\Neon\Neon::Chain, [
+new Nette\Neon\Entity(Nette\Neon\Neon::CHAIN, [
 	new Nette\Neon\Entity('Column', ['type' => 'int', 'nulls' => true]),
 	new Nette\Neon\Entity('Field', ['id' => 1]),
 ])
@@ -339,6 +339,7 @@ country: USA
 
 Neon versus JSON
 ================
+
 JSON je podmnožinou NEONu. Každý JSON se dá proto parsovat jako NEON:
 
 ```neon
@@ -435,5 +436,6 @@ users:
 Hurá, teď znáte syntaxi NEONu!
 
 
+{{composer: nette/neon}}
 {{description: NEON je snadno čitelný formát pro serializaci dat. Je podobný YAMLu. Hlavní rozdíl je v tom, že NEON podporuje „entity“ a k odsazování můžeme použít jak mezery, tak tabulátory.}}
 {{leftbar: utils:@left-menu}}

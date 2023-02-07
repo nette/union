@@ -4,7 +4,6 @@ Array Functions
 .[perex]
 This page is about the [Nette\Utils\Arrays|#Arrays], [#ArrayHash] and [#ArrayList] classes, which are related to arrays.
 
-
 Installation:
 
 ```shell
@@ -24,8 +23,8 @@ use Nette\Utils\Arrays;
 ```
 
 
-contains(array $array, $value): bool .[method]
-----------------------------------------------
+contains(array $array, $value): bool .[method]{data-version:3.2.1}
+------------------------------------------------------------------
 
 Tests an array for the presence of value. Uses a strict comparison (`===`)
 
@@ -42,15 +41,15 @@ Tests whether all elements in the array pass the test implemented by the provide
 
 ```php
 $array = [1, 30, 39, 29, 10, 13];
-$isBelowThreshold = fn($value) => $value < 40;
+$isBelowThreshold = function ($value): bool { return $value < 40; };
 $res = Arrays::every($array, $isBelowThreshold); // true
 ```
 
 See [#some()].
 
 
-first(array $array): mixed .[method]
-------------------------------------
+first(array $array): mixed .[method]{data-version:3.2.1}
+--------------------------------------------------------
 
 Returns the first item from the array or null if array is empty. It does not change the internal pointer unlike `reset()`.
 
@@ -112,15 +111,17 @@ $value = & Arrays::get($array, ['color', 'favorite']);
 ```
 
 
-grep(array $array, string $pattern, bool $invert=false): array .[method]
-------------------------------------------------------------------------
+grep(array $array, string $pattern, int $flags=null): array .[method]
+---------------------------------------------------------------------
 
-Returns only those array items, which matches a regular expression `$pattern`. If `$invert` is `true`, it returns elements that do not match. Regex compilation or runtime error throws `Nette\RegexpException`.
+Returns only those array items, which matches a regular expression `$pattern`. Regex compilation or runtime error throws `Nette\RegexpException`.
 
 ```php
 $filteredArray = Arrays::grep($array, '~^\d+$~');
 // returns only numerical items
 ```
+
+Value `PREG_GREP_INVERT` may be set as `$flags`, which inverts the selection.
 
 
 insertAfter(array &$array, string|int|null $key, array $inserted): void .[method]
@@ -147,15 +148,15 @@ Arrays::insertBefore($array, 'first', ['hello' => 'world']);
 ```
 
 
-invoke(iterable $callbacks, ...$args): array .[method]
-------------------------------------------------------
+invoke(iterable $callbacks, ...$args): array .[method]{data-version:3.2.1}
+--------------------------------------------------------------------------
 
 Invokes all callbacks and returns array of results.
 
 ```php
 $callbacks = [
-	'+' => fn($a, $b) => $a + $b,
-	'*' => fn($a, $b) => $a * $b,
+	'+' => function ($a, $b) { return $a + $b; },
+	'*' => function ($a, $b) { return $a * $b; },
 ];
 
 $array = Arrays::invoke($callbacks, 5, 11);
@@ -163,8 +164,8 @@ $array = Arrays::invoke($callbacks, 5, 11);
 ```
 
 
-invokeMethod(iterable $objects, string $method, ...$args): array .[method]
---------------------------------------------------------------------------
+invokeMethod(iterable $objects, string $method, ...$args): array .[method]{data-version:3.2.1}
+----------------------------------------------------------------------------------------------
 
 Invokes method on every object in an array and returns array of results.
 
@@ -188,8 +189,8 @@ Arrays::isList(['a' => 1, 'b' => 2]); // false
 ```
 
 
-last(array $array): mixed .[method]
------------------------------------
+last(array $array): mixed .[method]{data-version:3.2.1}
+-------------------------------------------------------
 
 Returns the last item from the array or null if array is empty. It does not change the internal pointer unlike `end()`.
 
@@ -206,7 +207,7 @@ Calls `$callback` on all elements in the array and returns the array of return v
 
 ```php
 $array = ['foo', 'bar', 'baz'];
-$res = Arrays::map($array, fn($value) => $value . $value);
+$res = Arrays::map($array, function ($value): string { return $value . $value; });
 // $res = ['foofoo', 'barbar', 'bazbaz']
 ```
 
@@ -262,7 +263,7 @@ $c = Arrays::pick($array, 'not-exists');
 renameKey(array &$array, string|int $oldKey, string|int $newKey): bool .[method]
 --------------------------------------------------------------------------------
 
-Renames a key. Returns `true` if the key was found in the array.
+Renames a key. Returns `true` if the key was found in the array (since v3.1.3).
 
 ```php
 $array = ['first' => 10, 'second' => 20];
@@ -278,10 +279,13 @@ Returns zero-indexed position of given array key. Returns `null` if key is not f
 
 ```php
 $array = ['first' => 10, 'second' => 20];
-$position = Arrays::getKeyOffset($array, 'first'); // returns 0
-$position = Arrays::getKeyOffset($array, 'second'); // returns 1
-$position = Arrays::getKeyOffset($array, 'not-exists'); // returns null
+$position = Arrays::searchKey($array, 'first'); // returns 0
+$position = Arrays::searchKey($array, 'second'); // returns 1
+$position = Arrays::searchKey($array, 'not-exists'); // returns null
 ```
+
+.[note]
+Prior to nette/utils 3.2, the method was named `searchKey()`. In version 2, it returned `false` instead of `null`.
 
 
 some(iterable $array, callable $callback): bool .[method]
@@ -291,15 +295,15 @@ Tests whether at least one element in the array passes the test implemented by t
 
 ```php
 $array = [1, 2, 3, 4];
-$isEven = fn($value) => $value % 2 === 0;
+$isEven = function ($value): bool { return $value % 2 === 0; };
 $res = Arrays::some($array, $isEven); // true
 ```
 
 See [#every()].
 
 
-toKey(mixed $key): string|int .[method]
----------------------------------------
+toKey(mixed $key): string|int .[method]{data-version:3.1.3}
+-----------------------------------------------------------
 
 Converts a value to an array key, which is either an integer or a string.
 
@@ -321,8 +325,8 @@ Arrays::toObject($array, $obj); // it sets $obj->foo = 1; $obj->bar = 2;
 ```
 
 
-wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
-----------------------------------------------------------------------------
+wrap(iterable $array, string $prefix = '', string $suffix = ''): array .[method]{data-version:3.2.2}
+----------------------------------------------------------------------------------------------------
 
 It casts each element of array to string and encloses it with `$prefix` and `$suffix`.
 
@@ -344,18 +348,12 @@ $hash->bar = 456; // also works object notation
 $hash->foo; // 123
 ```
 
-You can use the `count($hash)` function to get the number of elements.
-
-You can iterate over an object as you would an array, even with a reference:
+You can use `count()` and iterate over the object, as in the case of the array:
 
 ```php
-foreach ($hash as $key => $value) {
-	// ...
-}
+count($hash); // 2
 
-foreach ($hash as $key => &$value) {
-	$value = 'new value';
-}
+foreach ($hash as $key => $value) // ...
 ```
 
 Existing arrays can be transformed to `ArrayHash` using `from()`:
@@ -407,19 +405,7 @@ $list[] = 'c';
 count($list); // 3
 ```
 
-You can use the `count($list)` function to get the number of items.
-
-You can iterate over an object as you would an array, even with a reference:
-
-```php
-foreach ($list as $key => $value) {
-	// ...
-}
-
-foreach ($list as $key => &$value) {
-	$value = 'new value';
-}
-```
+Over the object you can iterate or call `count()`, as in the case of an array.
 
 Existing arrays can be transformed to `ArrayList` using `from()`:
 
@@ -448,3 +434,6 @@ You can add a new element to the beginning using `prepend()`:
 $list->prepend('d');
 // ArrayList(0 => 'd', 1 => 'a', 2 => 'c')
 ```
+
+
+{{composer: nette/utils}}

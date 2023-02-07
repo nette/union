@@ -19,22 +19,24 @@ Použití
 
 Funkce se používají strejně jaké běžné PHP funkce a lze je použít ve všechn výrazech:
 
-```latte
+```html
 <p>{clamp($num, 1, 100)}</p>
 
 {if odd($num)} ... {/if}
 ```
 
-[Vlastní funkce|extending-latte#funkce] lze registrovat tímto způsobem:
+Jako funkci lze do šablony zaregistrovat libovolný callback:
 
 ```php
 $latte = new Latte\Engine;
-$latte->addFunction('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0, $len));
+$latte->addFunction('shortify', function (string $s, int $len = 10): string {
+	return mb_substr($s, 0, $len);
+});
 ```
 
 V šabloně se potom volá takto:
 
-```latte
+```html
 <p>{shortify($text)}</p>
 <p>{shortify($text, 100)}</p>
 ```
@@ -48,7 +50,7 @@ clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{dat
 ----------------------------------------------------------------------------------------------
 Ohraničí hodnotu do daného inkluzivního rozsahu min a max.
 
-```latte
+```html
 {=clamp($level, 0, 255)}
 ```
 
@@ -59,7 +61,7 @@ divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
 ---------------------------------------------------------------------
 Zkontroluje, zda je proměnná dělitelná číslem.
 
-```latte
+```html
 {if divisibleBy($num, 5)} ... {/if}
 ```
 
@@ -68,7 +70,7 @@ even(int $value): bool .[method]{data-version:2.10.2}
 -----------------------------------------------------
 Zkontroluje, zda je dané číslo sudé.
 
-```latte
+```html
 {if even($num)} ... {/if}
 ```
 
@@ -101,18 +103,18 @@ odd(int $value): bool .[method]{data-version:2.10.2}
 ----------------------------------------------------
 Zkontroluje, zda je dané číslo liché.
 
-```latte
+```html
 {if odd($num)} ... {/if}
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
--------------------------------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length = null, bool $preserveKeys = false): string|array .[method]{data-version:2.10.2}
+-----------------------------------------------------------------------------------------------------------------------------------
 Extrahuje část pole nebo řetězce.
 
 ```latte
-{=slice('hello', 1, 2)}           {* vypíše 'el' *}
-{=slice(['a', 'b', 'c'], 1, 2)}   {* vypíše ['b', 'c'] *}
+{=slice('hello', 1, 2)}           {* outputs 'el' *}
+{=slice(['a', 'b', 'c'], 1, 2)}   {* outputs ['b', 'c'] *}
 ```
 
 Filtr funguje jako funkce PHP `array_slice` pro pole nebo `mb_substr` pro řetězce s fallbackem na funkci `iconv_substr` v režimu UTF‑8.
@@ -122,3 +124,7 @@ Pokud je start kladný, posloupnost začné posunutá o tento počet od začátk
 Pokud je zadaný parametr length a je kladný, posloupnost bude obsahovat tolik prvků. Pokud je do této funkce předán záporný parametr length, posloupnost bude obsahovat všechny prvky původního pole, začínající na pozici start a končicí na pozici menší na length prvků od konce pole. Pokud tento parametr nezadáte, posloupnost bude obsahovat všechny prvky původního pole, začínající pozici start.
 
 Ve výchozím nastavení filtr změní pořadí a resetuje celočíselného klíče pole. Toto chování lze změnit nastavením preserveKeys na true. Řetězcové klíče jsou vždy zachovány, bez ohledu na tento parametr.
+
+
+
+{{composer: latte/latte}}

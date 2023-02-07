@@ -22,8 +22,7 @@ New Presenter
 
 Name the new presenter `EditPresenter` and save it in `app/Presenters/EditPresenter.php`. It also needs to connect to the database, so here again we write a constructor that will require a database connection:
 
-```php .{file:app/Presenters/EditPresenter.php}
-<?php
+```php .{data-file:app/Presenters/EditPresenter.php}
 namespace App\Presenters;
 
 use Nette;
@@ -31,9 +30,11 @@ use Nette\Application\UI\Form;
 
 final class EditPresenter extends Nette\Application\UI\Presenter
 {
-	public function __construct(
-		private Nette\Database\Explorer $database,
-	) {
+	private Nette\Database\Explorer $database;
+
+	public function __construct(Nette\Database\Explorer $database)
+	{
+		$this->database = $database;
 	}
 }
 ```
@@ -46,7 +47,7 @@ Forms and components have been already covered when we were adding support for c
 
 Now add this method to the `EditPresenter`:
 
-```php .{file:app/Presenters/EditPresenter.php}
+```php .{data-file:app/Presenters/EditPresenter.php}
 protected function createComponentPostForm(): Form
 {
 	$form = new Form;
@@ -68,7 +69,7 @@ Saving New Post from Form
 
 Continue by adding a handler method.
 
-```php .{file:app/Presenters/EditPresenter.php}
+```php .{data-file:app/Presenters/EditPresenter.php}
 public function postFormSucceeded(array $data): void
 {
 	$post = $this->database
@@ -86,9 +87,9 @@ Just a quick explanation: it fetches the values from the form, inserts them into
 Page for Creating a New Post
 ============================
 
-Let’s just create the template `Edit/create.latte`:
+Let’s just create the template (`app/Presenters/templates/Edit/create.latte`):
 
-```latte .{file:app/Presenters/templates/Edit/create.latte}
+```html .{data-file:app/Presenters/templates/Edit/create.latte}
 {block content}
 <h1>New post</h1>
 
@@ -105,9 +106,9 @@ Link for Creating Posts
 
 You probably already know how to add a link to `EditPresenter` and its `create` action. Try it out.
 
-Just add to the `app/Presenters/templates/Home/default.latte` file:
+Just add to the `app/Presenters/templates/Homepage/default.latte` file:
 
-```latte
+```html
 <a n:href="Edit:create">Write new post</a>
 ```
 
@@ -119,7 +120,7 @@ Let’s also add the capability to edit existing posts. It shall be pretty simpl
 
 We’ll add a new `edit` page to the `EditPresenter`:
 
-```php .{file:app/Presenters/EditPresenter.php}
+```php .{data-file:app/Presenters/EditPresenter.php}
 public function renderEdit(int $postId): void
 {
 	$post = $this->database
@@ -135,9 +136,9 @@ public function renderEdit(int $postId): void
 }
 ```
 
-And create the template `Edit/edit.latte`:
+And create the template (`app/Presenters/templates/Edit/edit.latte`):
 
-```latte .{file:app/Presenters/templates/Edit/edit.latte}
+```html .{data-file:app/Presenters/templates/Edit/edit.latte}
 {block content}
 <h1>Edit post</h1>
 
@@ -146,7 +147,7 @@ And create the template `Edit/edit.latte`:
 
 And update the method `postFormSucceeded`, which will be able either to add a new post (as it does now), or to edit existing ones:
 
-```php .{file:app/Presenters/EditPresenter.php}
+```php .{data-file:app/Presenters/EditPresenter.php}
 public function postFormSucceeded(array $data): void
 {
 	$postId = $this->getParameter('postId');
@@ -174,7 +175,7 @@ But where does the `postId` come from? It is the parameter passed to `renderEdit
 
 You can now add a link to the `app/Presenters/templates/Post/show.latte` template:
 
-```latte
+```html
 <a n:href="Edit:edit $post->id">Edit this post</a>
 ```
 

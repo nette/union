@@ -81,8 +81,6 @@ Vývojářský režim můžeme také vypnout úplně, i pro localhost:
 $configurator->setDebugMode(false);
 ```
 
-Pozor, hodnota `true` zapne vývojářský režim natvrdo, což se nikdy nesmí stát na produkčním serveru.
-
 
 Debugovací nástroj Tracy
 ========================
@@ -174,7 +172,7 @@ $configurator->addStaticParameters([
 ]);
 ```
 
-Na parametr `projectId` se lze v konfiguraci odkázat obvyklým zápisem `%projectId%`.
+Na parametr `projectId` se lze v konfiguraci odkázat obvyklým zápisem `%projectId%`. Třída Configurator automaticky přidává parametry `appDir`, `wwwDir`, `tempDir`, `vendorDir`, `debugMode` a `consoleMode`.
 
 
 Dynamické parametry
@@ -195,19 +193,6 @@ $configurator->addDynamicParameters([
 	'env' => getenv(),
 ]);
 ```
-
-
-Výchozí parametry
------------------
-
-V konfiguračních souborech můžete využít tyto statické parametry:
-
-- `%appDir%` je absolutní cesta k adresáři se souborem `Bootstrap.php`
-- `%wwwDir%` je absolutní cesta k adresáři se vstupním souborem `index.php`
-- `%tempDir%` je absolutní cesta k adresáři pro dočasné soubory
-- `%vendorDir%` je absolutní cesta k adresáři, kam Composer instaluje knihovny
-- `%debugMode%` udává, zda je aplikace v debugovacím režimu
-- `%consoleMode%` udává, zda request přišel přes příkazovou řádku
 
 
 Importované služby
@@ -244,3 +229,6 @@ public static function bootForTests(): Configurator
 	return $configurator;
 }
 ```
+
+
+{{composer: nette/bootstrap}}

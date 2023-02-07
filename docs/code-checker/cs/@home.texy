@@ -61,5 +61,3 @@ Co všechno dělá?
 - odstraňuje ukončovací `?>` u PHP souborů
 - odstraňuje pravostranné mezery a zbytečné řádky na konci souboru
 - normalizuje oddělovače řádků na systémové (pokud uvedete volbu `-l`)
-
-{{leftbar: www:@menu-common}}
