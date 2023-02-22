@@ -55,14 +55,10 @@ Assert::null($two->getB());
 Assert::null($two->createD());
 
 // undefined
-Assert::exception(
-	fn() => $two->getA(),
-	Nette\DI\MissingServiceException::class,
-	'Service is not defined.',
-);
+Assert::exception(function () use ($two) {
+	$two->getA();
+}, Nette\DI\MissingServiceException::class, 'Service is not defined.');
 
-Assert::exception(
-	fn() => $two->createC(),
-	Nette\DI\MissingServiceException::class,
-	'Service is not defined.',
-);
+Assert::exception(function () use ($two) {
+	$two->createC();
+}, Nette\DI\MissingServiceException::class, 'Service is not defined.');

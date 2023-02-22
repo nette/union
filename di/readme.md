@@ -37,7 +37,7 @@ The recommended way to install is via Composer:
 composer require nette/di
 ```
 
-It requires PHP version 8.0 and supports PHP up to 8.3.
+It requires PHP version 7.2 and supports PHP up to 8.2.
 
 
 Usage
@@ -50,8 +50,8 @@ We have the object representing email:
 ```php
 class Mail
 {
-	public string $subject;
-	public string $message;
+	public $subject;
+	public $message;
 }
 ```
 
@@ -60,7 +60,7 @@ An object which can send emails:
 ```php
 interface Mailer
 {
-	function send(Mail $mail, string $to): void;
+	function send(Mail $mail, $to);
 }
 ```
 
@@ -69,7 +69,7 @@ A support for logging:
 ```php
 interface Logger
 {
-	function log(string $message): void;
+	function log($message);
 }
 ```
 
@@ -78,25 +78,23 @@ And finally, a class that provides sending newsletters:
 ```php
 class NewsletterManager
 {
-	private Mailer $mailer;
-	private Logger $logger;
+	private $mailer;
+	private $logger;
 
-	public function __construct(Mailer $mailer, Logger $logger)
+	function __construct(Mailer $mailer, Logger $logger)
 	{
 		$this->mailer = $mailer;
 		$this->logger = $logger;
 	}
 
-	public function distribute(array $recipients): void
+	function distribute(array $recipients)
 	{
 		$mail = new Mail;
-		$mail->subject = '...';
-		$mail->message = '...';
-
+		...
 		foreach ($recipients as $recipient) {
 			$this->mailer->send($mail, $recipient);
 		}
-		$this->logger->log('...');
+		$this->logger->log(...);
 	}
 }
 ```
@@ -108,7 +106,7 @@ Also, we have a ability to implement own `Logger` or `Mailer`, like this:
 ```php
 class SendMailMailer implements Mailer
 {
-	public function send(Mail $mail, string $to): void
+	function send(Mail $mail, $to)
 	{
 		mail($to, $mail->subject, $mail->message);
 	}
@@ -116,14 +114,14 @@ class SendMailMailer implements Mailer
 
 class FileLogger implements Logger
 {
-	private string $file;
+	private $file;
 
-	public function __construct(string $file)
+	function __construct($file)
 	{
 		$this->file = $file;
 	}
 
-	public function log(string $message): void
+	function log($message)
 	{
 		file_put_contents($this->file, $message . "\n", FILE_APPEND);
 	}
@@ -137,26 +135,26 @@ Container for our application might look like this:
 ```php
 class Container
 {
-	private ?Logger $logger;
-	private ?Mailer $mailer;
+	private $logger;
+	private $mailer;
 
-	public function getLogger(): Logger
+	function getLogger()
 	{
-		if (!isset($this->logger)) {
+		if (!$this->logger) {
 			$this->logger = new FileLogger('log.txt');
 		}
 		return $this->logger;
 	}
 
-	public function getMailer(): Mailer
+	function getMailer()
 	{
-		if (!isset($this->mailer)) {
+		if (!$this->mailer) {
 			$this->mailer = new SendMailMailer;
 		}
 		return $this->mailer;
 	}
 
-	public function createNewsletterManager(): NewsletterManager
+	function createNewsletterManager()
 	{
 		return new NewsletterManager($this->getMailer(), $this->getLogger());
 	}
@@ -215,7 +213,7 @@ The container will be generated only once and the code is stored in cache (in di
 During development it is useful to activate auto-refresh mode which automatically regenerate the container when any class or configuration file is changed. Just in the constructor `ContainerLoader` append `true` as the second argument:
 
 ```php
-$loader = new Nette\DI\ContainerLoader(__DIR__ . '/temp', autoRebuild: true);
+$loader = new Nette\DI\ContainerLoader(__DIR__ . '/temp', true);
 ```
 
 
@@ -246,9 +244,9 @@ Class of the service:
 ```php
 class NewsletterManager
 {
-	private AnotherService $anotherService;
+	private $anotherService;
 
-	public function setAnotherService(AnotherService $service): void
+	public function setAnotherService(AnotherService $service)
 	{
 		$this->anotherService = $service;
 	}
@@ -256,7 +254,7 @@ class NewsletterManager
 ...
 ```
 
-We can also add the `inject: yes` directive. This directive will enable automatic call of `inject*` methods and passing dependencies to public variables with #[Inject] attribute:
+We can also add the `inject: yes` directive. This directive will enable automatic call of `inject*` methods and passing dependencies to public variables with `@inject` annotations:
 
 ```neon
 services:
@@ -268,23 +266,21 @@ services:
 Dependency `Service1` will be passed by calling the `inject*` method, dependency `Service2` will be assigned to the `$service2` variable:
 
 ```php
-use Nette\DI\Attributes\Inject;
-
 class FooClass
 {
-	private Service1 $service1;
+	private $service1;
 
 	// 1) inject* method:
 
-	public function injectService1(Service1 $service): void
+	public function injectService1(Service1 $service)
 	{
 		$this->service1 = $service1;
 	}
 
-	// 2) Assign to the variable with the #[Inject] attribute:
+	// 2) Assign to the variable with the @inject annotation:
 
-	#[Inject]
-	public Service2 $service2;
+	/** @inject @var Service2 */
+	public $service2;
 }
 ```
 
@@ -295,14 +291,17 @@ However, this method is not ideal, because the variable must be declared as publ
 Factories
 ---------
 
-We can use factories generated from an interface. The interface must declare the returning type of the method. Nette will generate a proper implementation of the interface.
+We can use factories generated from an interface. The interface must declare the returning type in the `@return` annotation of the method. Nette will generate a proper implementation of the interface.
 
 The interface must have exactly one method named `create`. Our factory interface could be declared in the following way:
 
 ```php
-interface BarFactory
+interface IBarFactory
 {
-	function create(): Bar;
+	/**
+	 * @return Bar
+	 */
+	public function create();
 }
 ```
 
@@ -311,7 +310,7 @@ The `create` method will instantiate an `Bar` with the following definition:
 ```php
 class Bar
 {
-	private Logger $logger;
+	private $logger;
 
 	public function __construct(Logger $logger)
 	{
@@ -324,7 +323,7 @@ The factory will be registered in the `config.neon` file:
 
 ```neon
 services:
-	- BarFactory
+	- IBarFactory
 ```
 
 Nette will check if the declared service is an interface. If yes, it will also generate the corresponding implementation of the factory. The definition can be also written in a more verbose form:
@@ -332,7 +331,7 @@ Nette will check if the declared service is an interface. If yes, it will also g
 ```neon
 services:
 	barFactory:
-		implement: BarFactory
+		implement: IBarFactory
 ```
 
 This full definition allows us to declare additional configuration of the object using the `arguments` and `setup` sections, similarly as for all other services.
@@ -342,14 +341,14 @@ In our code, we only have to obtain the factory instance and call the `create` m
 ```php
 class Foo
 {
-	private BarFactory $barFactory;
+	private $barFactory;
 
-	function __construct(BarFactory $barFactory)
+	function __construct(IBarFactory $barFactory)
 	{
 		$this->barFactory = $barFactory;
 	}
 
-	function bar(): void
+	function bar()
 	{
 		$bar = $this->barFactory->create();
 	}

@@ -30,7 +30,7 @@ class Bar extends Foo implements IBar
 }
 
 
-test('Autowiring limited to Bar class and its subclasses', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -43,7 +43,7 @@ test('Autowiring limited to Bar class and its subclasses', function () {
 });
 
 
-test('Autowiring limited to Bar class via self', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -56,7 +56,7 @@ test('Autowiring limited to Bar class via self', function () {
 });
 
 
-test('Autowiring limited to IBar interface and its implementations', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -69,7 +69,7 @@ test('Autowiring limited to IBar interface and its implementations', function ()
 });
 
 
-test('Autowiring limited to Foo class and its subclasses', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -82,7 +82,7 @@ test('Autowiring limited to Foo class and its subclasses', function () {
 });
 
 
-test('Autowiring limited to IFoo interface and its implementations', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -95,7 +95,7 @@ test('Autowiring limited to IFoo interface and its implementations', function ()
 });
 
 
-test('Autowiring limited to two interfaces', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -108,7 +108,7 @@ test('Autowiring limited to two interfaces', function () {
 });
 
 
-test('Autowiring limited to two classes', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -121,7 +121,7 @@ test('Autowiring limited to two classes', function () {
 });
 
 
-test('Autowiring limited to class and interface', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -134,7 +134,7 @@ test('Autowiring limited to class and interface', function () {
 });
 
 
-test('Autowiring limited to class and interface', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -147,7 +147,7 @@ test('Autowiring limited to class and interface', function () {
 });
 
 
-test('Distribution between two services with parent-child relation', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('bar')
 		->setType(Bar::class)
@@ -164,7 +164,7 @@ test('Distribution between two services with parent-child relation', function ()
 });
 
 
-test('Distribution between two services of same type', function () {
+test('', function () {
 	$builder = new DI\ContainerBuilder;
 	$builder->addDefinition('one')
 		->setType(stdClass::class);
@@ -207,17 +207,13 @@ test('', function () {
 	Assert::same('bar', $builder->getByType(Bar::class));
 	Assert::null($builder->getByType(IBar::class));
 
-	Assert::exception(
-		fn() => $builder->getByType(Foo::class),
-		DI\ServiceCreationException::class,
-		'Multiple services of type Foo found: bar, foo',
-	);
+	Assert::exception(function () use ($builder) {
+		$builder->getByType(Foo::class);
+	}, DI\ServiceCreationException::class, 'Multiple services of type Foo found: bar, foo');
 
-	Assert::exception(
-		fn() => $builder->getByType(IFoo::class),
-		DI\ServiceCreationException::class,
-		'Multiple services of type IFoo found: bar, foo',
-	);
+	Assert::exception(function () use ($builder) {
+		$builder->getByType(IFoo::class);
+	}, DI\ServiceCreationException::class, 'Multiple services of type IFoo found: bar, foo');
 });
 
 
@@ -227,9 +223,7 @@ test('', function () {
 		->setType(Foo::class)
 		->setAutowired([Bar::class]);
 
-	Assert::exception(
-		fn() => $builder->getByType(Foo::class),
-		DI\ServiceCreationException::class,
-		"Incompatible class Bar in autowiring definition of service 'bar'.",
-	);
+	Assert::exception(function () use ($builder) {
+		$builder->getByType(Foo::class);
+	}, DI\ServiceCreationException::class, "Incompatible class Bar in autowiring definition of service 'bar'.");
 });

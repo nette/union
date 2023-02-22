@@ -17,6 +17,8 @@ use Nette;
  */
 final class PhpAdapter implements Nette\DI\Config\Adapter
 {
+	use Nette\SmartObject;
+
 	/**
 	 * Reads configuration from PHP file.
 	 */

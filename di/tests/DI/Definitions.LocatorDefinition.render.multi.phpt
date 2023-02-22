@@ -39,28 +39,32 @@ test('', function () {
 
 	Assert::match(
 		<<<'XX'
-			public function createServiceAbc(): Good
-			{
-				return new class ($this) implements Good {
-					public function __construct(
-						private $container,
-					) {
-					}
+public function createServiceAbc(): Good
+{
+	return new class ($this) implements Good {
+		private $container;
 
 
-					public function createFirst(): stdClass
-					{
-						return $this->container->createServiceA();
-					}
+		public function __construct($container)
+		{
+			$this->container = $container;
+		}
 
 
-					public function getSecond(): ?stdClass
-					{
-						return $this->container->getService('a');
-					}
-				};
-			}
-			XX,
-		$method->__toString(),
+		public function createFirst(): stdClass
+		{
+			return $this->container->createServiceA();
+		}
+
+
+		public function getSecond(): ?stdClass
+		{
+			return $this->container->getService('a');
+		}
+	};
+}
+XX
+		,
+		$method->__toString()
 	);
 });
