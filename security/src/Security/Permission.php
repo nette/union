@@ -21,18 +21,18 @@ class Permission implements Authorizator
 {
 	use Nette\SmartObject;
 
-	/** Role storage */
-	private array $roles = [];
+	/** @var array  Role storage */
+	private $roles = [];
 
-	/** Resource storage */
-	private array $resources = [];
+	/** @var array  Resource storage */
+	private $resources = [];
 
-	/** Access Control List rules; whitelist (deny everything to all) by default */
-	private array $rules = [
+	/** @var array  Access Control List rules; whitelist (deny everything to all) by default */
+	private $rules = [
 		'allResources' => [
 			'allRoles' => [
 				'allPrivileges' => [
-					'type' => self::Deny,
+					'type' => self::DENY,
 					'assert' => null,
 				],
 				'byPrivilege' => [],
@@ -42,7 +42,9 @@ class Permission implements Authorizator
 		'byResource' => [],
 	];
 
-	private mixed $queriedRole;
+	/** @var mixed */
+	private $queriedRole;
+
 	private $queriedResource;
 
 
@@ -59,7 +61,7 @@ class Permission implements Authorizator
 	 */
 	public function addRole(string $role, $parents = null)
 	{
-		$this->checkRole($role, exists: false);
+		$this->checkRole($role, false);
 		if (isset($this->roles[$role])) {
 			throw new Nette\InvalidStateException("Role '$role' already exists in the list.");
 		}
@@ -92,7 +94,7 @@ class Permission implements Authorizator
 	 */
 	public function hasRole(string $role): bool
 	{
-		$this->checkRole($role, exists: false);
+		$this->checkRole($role, false);
 		return isset($this->roles[$role]);
 	}
 
@@ -232,7 +234,7 @@ class Permission implements Authorizator
 	 */
 	public function addResource(string $resource, ?string $parent = null)
 	{
-		$this->checkResource($resource, exists: false);
+		$this->checkResource($resource, false);
 
 		if (isset($this->resources[$resource])) {
 			throw new Nette\InvalidStateException("Resource '$resource' already exists in the list.");
@@ -257,7 +259,7 @@ class Permission implements Authorizator
 	 */
 	public function hasResource(string $resource): bool
 	{
-		$this->checkResource($resource, exists: false);
+		$this->checkResource($resource, false);
 		return isset($this->resources[$resource]);
 	}
 
@@ -386,12 +388,12 @@ class Permission implements Authorizator
 	 * @return static
 	 */
 	public function allow(
-		$roles = self::All,
-		$resources = self::All,
-		$privileges = self::All,
-		?callable $assertion = null,
+		$roles = self::ALL,
+		$resources = self::ALL,
+		$privileges = self::ALL,
+		?callable $assertion = null
 	) {
-		$this->setRule(true, self::Allow, $roles, $resources, $privileges, $assertion);
+		$this->setRule(true, self::ALLOW, $roles, $resources, $privileges, $assertion);
 		return $this;
 	}
 
@@ -406,12 +408,12 @@ class Permission implements Authorizator
 	 * @return static
 	 */
 	public function deny(
-		$roles = self::All,
-		$resources = self::All,
-		$privileges = self::All,
-		?callable $assertion = null,
+		$roles = self::ALL,
+		$resources = self::ALL,
+		$privileges = self::ALL,
+		?callable $assertion = null
 	) {
-		$this->setRule(true, self::Deny, $roles, $resources, $privileges, $assertion);
+		$this->setRule(true, self::DENY, $roles, $resources, $privileges, $assertion);
 		return $this;
 	}
 
@@ -424,9 +426,9 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function removeAllow($roles = self::All, $resources = self::All, $privileges = self::All): static
+	public function removeAllow($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL)
 	{
-		$this->setRule(false, self::Allow, $roles, $resources, $privileges);
+		$this->setRule(false, self::ALLOW, $roles, $resources, $privileges);
 		return $this;
 	}
 
@@ -439,9 +441,9 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function removeDeny($roles = self::All, $resources = self::All, $privileges = self::All): static
+	public function removeDeny($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL)
 	{
-		$this->setRule(false, self::Deny, $roles, $resources, $privileges);
+		$this->setRule(false, self::DENY, $roles, $resources, $privileges);
 		return $this;
 	}
 
@@ -457,8 +459,8 @@ class Permission implements Authorizator
 	protected function setRule(bool $toAdd, bool $type, $roles, $resources, $privileges, ?callable $assertion = null)
 	{
 		// ensure that all specified Roles exist; normalize input to array of Roles or null
-		if ($roles === self::All) {
-			$roles = [self::All];
+		if ($roles === self::ALL) {
+			$roles = [self::ALL];
 
 		} else {
 			if (!is_array($roles)) {
@@ -471,8 +473,8 @@ class Permission implements Authorizator
 		}
 
 		// ensure that all specified Resources exist; normalize input to array of Resources or null
-		if ($resources === self::All) {
-			$resources = [self::All];
+		if ($resources === self::ALL) {
+			$resources = [self::ALL];
 
 		} else {
 			if (!is_array($resources)) {
@@ -485,7 +487,7 @@ class Permission implements Authorizator
 		}
 
 		// normalize privileges to array
-		if ($privileges === self::All) {
+		if ($privileges === self::ALL) {
 			$privileges = [];
 
 		} elseif (!is_array($privileges)) {
@@ -495,7 +497,7 @@ class Permission implements Authorizator
 		if ($toAdd) { // add to the rules
 			foreach ($resources as $resource) {
 				foreach ($roles as $role) {
-					$rules = &$this->getRules($resource, $role, create: true);
+					$rules = &$this->getRules($resource, $role, true);
 					if (count($privileges) === 0) {
 						$rules['allPrivileges']['type'] = $type;
 						$rules['allPrivileges']['assert'] = $assertion;
@@ -519,11 +521,11 @@ class Permission implements Authorizator
 					}
 
 					if (count($privileges) === 0) {
-						if ($resource === self::All && $role === self::All) {
+						if ($resource === self::ALL && $role === self::ALL) {
 							if ($type === $rules['allPrivileges']['type']) {
 								$rules = [
 									'allPrivileges' => [
-										'type' => self::Deny,
+										'type' => self::DENY,
 										'assert' => null,
 									],
 									'byPrivilege' => [],
@@ -569,10 +571,10 @@ class Permission implements Authorizator
 	 * @param  string|null  $privilege
 	 * @throws Nette\InvalidStateException
 	 */
-	public function isAllowed($role = self::All, $resource = self::All, $privilege = self::All): bool
+	public function isAllowed($role = self::ALL, $resource = self::ALL, $privilege = self::ALL): bool
 	{
 		$this->queriedRole = $role;
-		if ($role !== self::All) {
+		if ($role !== self::ALL) {
 			if ($role instanceof Role) {
 				$role = $role->getRoleId();
 			}
@@ -581,7 +583,7 @@ class Permission implements Authorizator
 		}
 
 		$this->queriedResource = $resource;
-		if ($resource !== self::All) {
+		if ($resource !== self::ALL) {
 			if ($resource instanceof Resource) {
 				$resource = $resource->getResourceId();
 			}
@@ -593,15 +595,15 @@ class Permission implements Authorizator
 			// depth-first search on $role if it is not 'allRoles' pseudo-parent
 			if (
 				$role !== null
-				&& ($result = $this->searchRolePrivileges($privilege === self::All, $role, $resource, $privilege)) !== null
+				&& ($result = $this->searchRolePrivileges($privilege === self::ALL, $role, $resource, $privilege)) !== null
 			) {
 				break;
 			}
 
-			if ($privilege === self::All) {
-				if ($rules = $this->getRules($resource, self::All)) { // look for rule on 'allRoles' psuedo-parent
+			if ($privilege === self::ALL) {
+				if ($rules = $this->getRules($resource, self::ALL)) { // look for rule on 'allRoles' psuedo-parent
 					foreach ($rules['byPrivilege'] as $privilege => $rule) {
-						if (($result = $this->getRuleType($resource, null, $privilege)) === self::Deny) {
+						if (($result = $this->getRuleType($resource, null, $privilege)) === self::DENY) {
 							break 2;
 						}
 					}
@@ -668,8 +670,8 @@ class Permission implements Authorizator
 			if ($all) {
 				if ($rules = $this->getRules($resource, $role)) {
 					foreach ($rules['byPrivilege'] as $privilege2 => $rule) {
-						if ($this->getRuleType($resource, $role, $privilege2) === self::Deny) {
-							return self::Deny;
+						if ($this->getRuleType($resource, $role, $privilege2) === self::DENY) {
+							return self::DENY;
 						}
 					}
 
@@ -709,7 +711,7 @@ class Permission implements Authorizator
 			return null;
 		}
 
-		if ($privilege === self::All) {
+		if ($privilege === self::ALL) {
 			if (isset($rules['allPrivileges'])) {
 				$rule = $rules['allPrivileges'];
 			} else {
@@ -725,14 +727,14 @@ class Permission implements Authorizator
 		if ($rule['assert'] === null || $rule['assert']($this, $role, $resource, $privilege)) {
 			return $rule['type'];
 
-		} elseif ($resource !== self::All || $role !== self::All || $privilege !== self::All) {
+		} elseif ($resource !== self::ALL || $role !== self::ALL || $privilege !== self::ALL) {
 			return null;
 
-		} elseif ($rule['type'] === self::Allow) {
-			return self::Deny;
+		} elseif ($rule['type'] === self::ALLOW) {
+			return self::DENY;
 
 		} else {
-			return self::Allow;
+			return self::ALLOW;
 		}
 	}
 
@@ -746,7 +748,7 @@ class Permission implements Authorizator
 	private function &getRules($resource, $role, bool $create = false): ?array
 	{
 		$null = null;
-		if ($resource === self::All) {
+		if ($resource === self::ALL) {
 			$visitor = &$this->rules['allResources'];
 		} else {
 			if (!isset($this->rules['byResource'][$resource])) {
@@ -760,7 +762,7 @@ class Permission implements Authorizator
 			$visitor = &$this->rules['byResource'][$resource];
 		}
 
-		if ($role === self::All) {
+		if ($role === self::ALL) {
 			if (!isset($visitor['allRoles'])) {
 				if (!$create) {
 					return $null;

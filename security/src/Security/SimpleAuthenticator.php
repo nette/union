@@ -19,6 +19,16 @@ class SimpleAuthenticator implements Authenticator
 {
 	use Nette\SmartObject;
 
+	/** @var array */
+	private $passwords;
+
+	/** @var array */
+	private $roles;
+
+	/** @var array */
+	private $data;
+
+
 	/**
 	 * @param  array  $passwords list of pairs username => password
 	 * @param  array  $roles list of pairs username => role[]
@@ -26,10 +36,13 @@ class SimpleAuthenticator implements Authenticator
 	 */
 	public function __construct(
 		#[\SensitiveParameter]
-		private array $passwords,
-		private array $roles = [],
-		private array $data = [],
+		array $passwords,
+		array $roles = [],
+		array $data = []
 	) {
+		$this->passwords = $passwords;
+		$this->roles = $roles;
+		$this->data = $data;
 	}
 
 
@@ -41,7 +54,7 @@ class SimpleAuthenticator implements Authenticator
 	public function authenticate(
 		string $username,
 		#[\SensitiveParameter]
-		string $password,
+		string $password
 	): IIdentity
 	{
 		foreach ($this->passwords as $name => $pass) {
@@ -49,12 +62,12 @@ class SimpleAuthenticator implements Authenticator
 				if ($this->verifyPassword($password, $pass)) {
 					return new SimpleIdentity($name, $this->roles[$name] ?? null, $this->data[$name] ?? []);
 				} else {
-					throw new AuthenticationException('Invalid password.', self::InvalidCredential);
+					throw new AuthenticationException('Invalid password.', self::INVALID_CREDENTIAL);
 				}
 			}
 		}
 
-		throw new AuthenticationException("User '$username' not found.", self::IdentityNotFound);
+		throw new AuthenticationException("User '$username' not found.", self::IDENTITY_NOT_FOUND);
 	}
 
 

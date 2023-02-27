@@ -26,10 +26,10 @@ class Authenticator implements Nette\Security\Authenticator
 	public function authenticate(string $username, string $password): IIdentity
 	{
 		if ($username !== 'john') {
-			throw new Nette\Security\AuthenticationException('Unknown user', self::IdentityNotFound);
+			throw new Nette\Security\AuthenticationException('Unknown user', self::IDENTITY_NOT_FOUND);
 
 		} elseif ($password !== 'xxx') {
-			throw new Nette\Security\AuthenticationException('Password not match', self::InvalidCredential);
+			throw new Nette\Security\AuthenticationException('Password not match', self::INVALID_CREDENTIAL);
 
 		} else {
 			return new SimpleIdentity('John Doe', ['admin', new TesterRole]);
@@ -40,9 +40,9 @@ class Authenticator implements Nette\Security\Authenticator
 
 class Authorizator implements Nette\Security\Authorizator
 {
-	public function isAllowed($role = self::All, $resource = self::All, $privilege = self::All): bool
+	public function isAllowed($role = self::ALL, $resource = self::ALL, $privilege = self::ALL): bool
 	{
-		return $role === 'admin' && !str_contains($resource, 'jany');
+		return $role === 'admin' && strpos($resource, 'jany') === false;
 	}
 }
 
@@ -54,7 +54,7 @@ class TesterRole implements Role
 	}
 }
 
-$user = new Nette\Security\User(new MockUserStorage);
+$user = new Nette\Security\User(null, null, null, new MockUserStorage);
 
 // guest
 Assert::false($user->isLoggedIn());
@@ -81,11 +81,9 @@ Assert::false($user->isInRole('guest'));
 
 
 // authorization
-Assert::exception(
-	fn() => $user->isAllowed('delete_file'),
-	Nette\InvalidStateException::class,
-	'Authorizator has not been set.',
-);
+Assert::exception(function () use ($user) {
+	$user->isAllowed('delete_file');
+}, Nette\InvalidStateException::class, 'Authorizator has not been set.');
 
 $handler = new Authorizator;
 $user->setAuthorizator($handler);
