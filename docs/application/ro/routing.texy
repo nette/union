@@ -93,12 +93,12 @@ Ruta va accepta acum URL-ul `https://any-domain.com/chronicle/` cu parametrul `y
 Bineînțeles, numele prezentatorului și al acțiunii pot fi, de asemenea, un parametru. De exemplu:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 Această rută acceptă, de exemplu, un URL de forma `/article/edit` resp. `/catalog/list` și le traduce în prezentatorii și acțiunile `Article:edit` resp. `Catalog:list`.
 
-De asemenea, oferă parametrilor `presenter` și `action` valori implicite`Home` și `default` și, prin urmare, aceștia sunt opționali. Astfel, ruta acceptă și un URL `/article` și îl traduce ca `Article:default`. Sau invers, un link către `Product:default` generează o cale `/product`, un link către `Home:default` implicit generează o cale `/`.
+De asemenea, oferă parametrilor `presenter` și `action` valori implicite`Homepage` și `default` și, prin urmare, aceștia sunt opționali. Astfel, ruta acceptă și un URL `/article` și îl traduce ca `Article:default`. Sau invers, un link către `Product:default` generează o cale `/product`, un link către `Homepage:default` implicit generează o cale `/`.
 
 Masca poate descrie nu numai calea relativă bazată pe rădăcina site-ului, ci și calea absolută atunci când începe cu o bară oblică, sau chiar întregul URL absolut atunci când începe cu două bare oblice:
 
@@ -160,7 +160,7 @@ Secvențele pot fi liber imbricate și combinate:
 ```php
 $router->addRoute(
 	'[<lang [a-z]{2}>[-<sublang>]/]<name>[/page-<page=0>]',
-	'Home:default',
+	'Homepage:default',
 );
 
 // URL-uri acceptate:
@@ -183,16 +183,16 @@ $router->addRoute('<name>[!.html]', /* ... */);
 Parametrii opționali (adică parametrii cu valoare implicită) fără paranteze pătrate se comportă ca și cum ar fi înfășurați astfel:
 
 ```php
-$router->addRoute('<presenter=Home>/<action=default>/<id=>', /* ... */);
+$router->addRoute('<presenter=Homepage>/<action=default>/<id=>', /* ... */);
 
 // este egal cu:
-$router->addRoute('[<presenter=Home>/[<action=default>/[<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>/[<action=default>/[<id>]]]', /* ... */);
 ```
 
-Pentru a schimba modul în care este generată cea mai din dreapta bară oblică, adică în loc de `/home/` obțineți un `/home`, ajustați traseul în acest fel:
+Pentru a schimba modul în care este generată cea mai din dreapta bară oblică, adică în loc de `/homepage/` obțineți un `/homepage`, ajustați traseul în acest fel:
 
 ```php
-$router->addRoute('[<presenter=Home>[/<action=default>[/<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>[/<action=default>[/<id>]]]', /* ... */);
 ```
 
 
@@ -220,7 +220,7 @@ Al doilea parametru al traseului, pe care îl scriem adesea în formatul `Presen
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 ]);
 ```
@@ -232,7 +232,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>[/<id>]', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 	],
 	'action' => [
 		Route::Value => 'default',
@@ -252,7 +252,7 @@ Filtre și traduceri .[#toc-filters-and-translations]
 Este o bună practică să scrieți codul sursă în limba engleză, dar ce se întâmplă dacă aveți nevoie ca site-ul dvs. să aibă URL-ul tradus în altă limbă? Rute simple, cum ar fi:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 va genera URL-uri în limba engleză, cum ar fi `/product/123` sau `/cart`. Dacă dorim ca prezentatorii și acțiunile din URL să fie traduse în limba germană (de exemplu, `/produkt/123` sau `/einkaufswagen`), putem utiliza un dicționar de traducere. Pentru a-l adăuga, avem deja nevoie de o variantă "mai vorbăreață" a celui de-al doilea parametru:
@@ -262,7 +262,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterTable => [
 			// șir de caractere în URL => prezentator
 			'produkt' => 'Product',
@@ -290,7 +290,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>/<id>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterIn => function (string $s): string { /* ... */ },
 		Route::FilterOut => function (string $s): string { /* ... */ },
 	],
@@ -313,7 +313,7 @@ Filtre generale .[#toc-general-filters]
 use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 	null => [
 		Route::FilterIn => function (array $params): array { /* ... */ },
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 La accesarea vechiului URL, prezentatorul redirecționează automat către noul URL, astfel încât motoarele de căutare să nu indexeze aceste pagini de două ori (a se vedea [SEO și canonizarea |#SEO and canonization]).
-
-
-Rutarea dinamică cu callback-uri .[#toc-dynamic-routing-with-callbacks]
------------------------------------------------------------------------
-
-Rutarea dinamică cu callback-uri vă permite să atribuiți direct funcții (callback-uri) la rute, care vor fi executate atunci când este vizitată calea specificată. Această funcție flexibilă vă permite să creați rapid și eficient diverse puncte finale pentru aplicația dumneavoastră:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-De asemenea, puteți defini parametri în mască, care vor fi trecuți automat către callback-ul dumneavoastră:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Module .[#toc-modules]
@@ -477,10 +454,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Integrare .[#toc-integration]
 =============================
 
-Pentru a conecta routerul nostru la aplicație, trebuie să informăm containerul DI despre acesta. Cel mai simplu este să pregătim fabrica care va construi obiectul router și să spunem configurației containerului să o folosească. Să spunem că scriem o metodă în acest scop `App\Core\RouterFactory::createRouter()`:
+Pentru a conecta routerul nostru la aplicație, trebuie să informăm containerul DI despre acesta. Cel mai simplu este să pregătim fabrica care va construi obiectul router și să spunem configurației containerului să o folosească. Să spunem că scriem o metodă în acest scop `App\Router\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Application\Routers\RouteList;
 
@@ -499,7 +476,7 @@ Apoi scriem în [configurație |dependency-injection:services]:
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 ```
 
 Orice dependență, cum ar fi o conexiune la o bază de date etc., este transmisă metodei factory ca parametru al acesteia folosind [autowiring |dependency-injection:autowiring]:
@@ -526,15 +503,15 @@ http://example.com/?presenter=Product&action=detail&id=123
 Parametrul constructorului `SimpleRouter` este un prezentator și o acțiune implicită, adică acțiunea care va fi executată dacă deschidem, de exemplu, `http://example.com/` fără parametri suplimentari.
 
 ```php
-// implicit la prezentatorul "Home" și acțiunea "default
-$router = new Nette\Application\Routers\SimpleRouter('Home:default');
+// implicit la prezentatorul "Homepage" și acțiunea "default
+$router = new Nette\Application\Routers\SimpleRouter('Homepage:default');
 ```
 
 Vă recomandăm să definiți SimpleRouter direct în [configurare |dependency-injection:services]:
 
 ```neon
 services:
-	- Nette\Application\Routers\SimpleRouter('Home:default')
+	- Nette\Application\Routers\SimpleRouter('Homepage:default')
 ```
 
 
@@ -634,7 +611,7 @@ Atunci când procesăm cererea, trebuie să returnăm cel puțin prezentatorul �
 
 ```php
 [
-	'presenter' => 'Front:Home',
+	'presenter' => 'Front:Homepage',
 	'action' => 'default',
 ]
 ```
@@ -663,7 +640,7 @@ Prin utilizare separată se înțelege utilizarea capacităților routerului în
 Deci, din nou, vom crea o metodă care va construi un router, de exemplu:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Routing\RouteList;
 
@@ -694,7 +671,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Sau vom crea obiecte direct:
 
 ```php
-$router = App\Core\RouterFactory::createRouter();
+$router = App\Router\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

@@ -38,7 +38,7 @@ Lehetőség van nevesített paraméterek átadására is. A következő hivatkoz
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Ha a `ProductPresenter::renderShow()` metódus aláírásában nem szerepel a `$lang`, akkor a paraméter értékét a `$lang = $this->getParameter('lang')` segítségével vagy a [tulajdonságból |presenters#Request Parameters] tudja lekérdezni.
+Ha a `ProductPresenter::renderShow()` metódus szignatúrájában nem szerepel a `$lang`, akkor a paraméter értékét a `$lang = $this->getParameter('lang')` segítségével tudja beolvasni.
 
 Ha a paraméterek egy tömbben vannak tárolva, akkor a `...` operátorral (vagy a Latte 2.x-ben a `(expand)` operátorral) bővíthetők:
 
@@ -52,7 +52,7 @@ Az úgynevezett [tartós paraméterek |presenters#persistent parameters] is auto
 A `n:href` attribútum nagyon hasznos a HTML címkékhez. `<a>`. Ha a linket máshol, például a szövegben akarjuk kiírni, akkor a `{link}` attribútumot használjuk:
 
 ```latte
-URL is: {link Home:default}
+URL is: {link Homepage:default}
 ```
 
 
@@ -88,19 +88,19 @@ A formátumot az összes Latte tag és az összes olyan presenter módszer támo
 Az alapforma tehát `Presenter:action`:
 
 ```latte
-<a n:href="Home:default">home</a>
+<a n:href="Homepage:default">homepage</a>
 ```
 
 Ha az aktuális bemutató akciójára hivatkozunk, elhagyhatjuk a nevét:
 
 ```latte
-<a n:href="default">home</a>
+<a n:href="default">homepage</a>
 ```
 
 Ha a művelet a `default`, elhagyhatjuk, de a kettőspontnak meg kell maradnia:
 
 ```latte
-<a n:href="Home:">home</a>
+<a n:href="Homepage:">homepage</a>
 ```
 
 A linkek más [modulokra |modules] is mutathatnak. Itt a linkeket megkülönböztetjük az almodulokhoz viszonyított, illetve abszolút linkekre. Az elv analóg a lemezes elérési utakkal, csak a kötőjelek helyett kettőspontok vannak. Tegyük fel, hogy a tényleges bemutató a `Front` modul része, akkor azt írjuk:
@@ -119,7 +119,7 @@ Speciális eset a [saját magára való hivatkozás |#Links to Current Page]. It
 A HTML oldal egy bizonyos részére a `#` hash szimbólum után egy úgynevezett fragmentummal tudunk hivatkozni:
 
 ```latte
-<a n:href="Home:#main">link to Home:default and fragment #main</a>
+<a n:href="Homepage:#main">link to Homepage:default and fragment #main</a>
 ```
 
 
@@ -128,7 +128,7 @@ Abszolút elérési utak .[#toc-absolute-paths]
 
 A `link()` vagy `n:href` által generált linkek mindig abszolút elérési utak (azaz `/`-vel kezdődnek), de nem abszolút URL-ek protokollal és domainnel, mint például `https://domain`.
 
-Abszolút URL létrehozásához adjon hozzá két kötőjelet az elejéhez (pl. `n:href="//Home:"`). Vagy a `$this->absoluteUrls = true` beállítással úgy is beállíthatja a prezentert, hogy csak abszolút linkeket generáljon.
+Abszolút URL létrehozásához adjon hozzá két kötőjelet az elejéhez (pl. `n:href="//Homepage:"`). Vagy a `$this->absoluteUrls = true` beállítással úgy is beállíthatja a prezentert, hogy csak abszolút linkeket generáljon.
 
 
 Link az aktuális oldalra .[#toc-link-to-current-page]
@@ -140,7 +140,7 @@ A cél `this` létrehoz egy linket az aktuális oldalra:
 <a n:href="this">refresh</a>
 ```
 
-Ugyanakkor az összes paraméter, amelyet a `action<Action>()` vagy a `render<View>()` metódusban megadott paraméterek, ha a `action<Action>()` nincs definiálva, átadásra kerül. Tehát ha a `Product:show` és a `id:123` oldalakon vagyunk, akkor a `this` linkje is átadja ezt a paramétert.
+Ugyanakkor az összes, az aláírásában megadott paramétert a `render<View>()` vagy `action<Action>()` metódusban megadott paraméterek átadásra kerülnek. Tehát ha a `Product:show` és a `id:123` oldalakon vagyunk, akkor a `this` link is átadja ezt a paramétert.
 
 Természetesen lehetőség van a paraméterek közvetlen megadására is:
 
@@ -213,38 +213,14 @@ Mivel a [komponensek |components] különálló, újrafelhasználható egységek
 Ha a komponenssablonban előadókra akarunk hivatkozni, akkor a `{plink}` címkét használjuk:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Homepage:default}">homepage</a>
 ```
 
 vagy a kódban
 
 ```php
-$this->getPresenter()->link('Home:default')
+$this->getPresenter()->link('Homepage:default')
 ```
-
-
-Álnevek .[#toc-aliases]{data-version:v3.2.2}
-============================================
-
-Néha hasznos, ha egy könnyen megjegyezhető álnevet rendelünk egy Presenter:action pároshoz. Például a `Front:Home:default` honlapot egyszerűen elnevezheti `home` -nek, vagy a `Admin:Dashboard:default` -t `admin`-nak.
-
-Az aliasok a [konfigurációban |configuration] a `application › aliases` kulcs alatt kerülnek meghatározásra:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-A hivatkozásokban az at szimbólummal íródnak, például:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-A linkekkel dolgozó összes módszer támogatja őket, például a `redirect()` és hasonlók.
 
 
 Érvénytelen hivatkozások .[#toc-invalid-links]

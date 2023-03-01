@@ -16,7 +16,6 @@ Resumen y descripción de todas las etiquetas Latte incorporadas.
 | `{ifset}`... `{elseifset}`... `{/ifset}` | [condición ifset |#ifset-elseifset]
 | `{ifchanged}`... `{/ifchanged}` | [prueba si ha habido un cambio |#ifchanged]
 | `{switch}` `{case}` `{default}` `{/switch}` | [condition switch |#switch-case-default]
-| `n:else` | [contenido alternativo para las condiciones |#n:else]
 
 .[table-latte-tags language-latte]
 |## Bucles
@@ -80,7 +79,6 @@ Resumen y descripción de todas las etiquetas Latte incorporadas.
 | `{debugbreak}` | [establece un punto de interrupción en el código |#debugbreak]
 | `{do}` | [evalúa una expresión sin imprimirla |#do]
 | `{dump}` | [vuelca variables a la Tracy Bar |#dump]
-| `{php}` | [ejecuta cualquier código PHP |#php]
 | `{spaceless}`... `{/spaceless}` | [elimina los espacios en blanco innecesarios |#spaceless].
 | `{syntax}` | [cambia la sintaxis en tiempo de ejecución |#syntax]
 | `{trace}` | [muestra la traza de la pila |#trace]
@@ -98,18 +96,20 @@ Resumen y descripción de todas las etiquetas Latte incorporadas.
 | `{link}` | [imprime un enlace |application:creating-links#In the Presenter Template]
 | `{plink}` | [imprime un enlace a un [presentador |application:creating-links#In the Presenter Template]
 | `{control}` | [imprime un componente |application:components#Rendering]
-| `{snippet}`... `{/snippet}` | [un fragmento de plantilla que puede ser enviado por AJAX |application:ajax#snippets-in-latte]
-| `{snippetArea}` | [snippets sobre |application:ajax#snippet-areas]
+| `{snippet}`... `{/snippet}` | [un fragmento de plantilla que puede ser enviado por AJAX |application:ajax#tag-snippet]
+| `{snippetArea}` | snippets sobre
 | `{cache}`... `{/cache}` | [almacena en caché una sección de plantilla|caching:#caching-in-latte]
 
 .[table-latte-tags language-latte]
 |## Disponible sólo con Nette Forms
-| `{form}`... `{/form}` | [imprime un elemento de formulario|forms:rendering#form]
+| `{form}`... `{/form}` | [imprime un elemento de formulario|forms:rendering#latte]
 | `{label}`... `{/label}` | [imprime una etiqueta de entrada de formulario|forms:rendering#label-input]
 | `{input}` | [imprime un elemento del formulario|forms:rendering#label-input]
 | `{inputError}` | [imprime un mensaje de error para el elemento de entrada del formulario|forms:rendering#inputError]
 | `n:name` | [activa un elemento de entrada HTML |forms:rendering#n:name]
-| `{formContainer}`... `{/formContainer}` | [renderización del contenedor de formularios |forms:rendering#special-cases]
+| `{formPrint}` | [genera un modelo de formulario Latte |forms:rendering#formPrint]
+| `{formPrintClass}` | [imprime la clase PHP para los datos del formulario |forms:in-presenter#mapping-to-classes]
+| `{formContext}`... `{/formContext}` | [renderización parcial del formulario|forms:rendering#special-cases]
 
 
 Impresión .[#toc-printing]
@@ -245,20 +245,6 @@ Como cualquier etiqueta de par, un par de `{if} ... {/ if}` puede escribirse com
 Bien.
 
 
-`n:else` .{data-version:3.0.11}
--------------------------------
-
-Si escribe la condición `{if} ... {/if}` en forma de [atributo n: |syntax#n:attributes]tiene la opción de especificar una rama alternativa utilizando `n:else`:
-
-```latte
-<strong n:if="$count > 0">In stock {$count} items</strong>
-
-<em n:else>not available</em>
-```
-
-El atributo `n:else` también puede utilizarse junto con [`n:ifset` |#ifset-elseifset], [`n:foreach` |#foreach], [`n:try` |#try], [`n:ifcontent` |#n:ifcontent]y [`n:ifchanged` |#ifchanged].
-
-
 `{/if $cond}`
 -------------
 
@@ -292,12 +278,12 @@ Véase también [`{ifset block}` |template-inheritance#checking-block-existence]
 Utilice la condición `{ifset $var}` para determinar si una variable (o múltiples variables) existe y tiene un valor no nulo. En realidad es lo mismo que `if (isset($var))` en PHP. Como cualquier etiqueta de par, esto puede ser escrito en la forma de [n:attribute |syntax#n:attributes], así que vamos a mostrarlo en el ejemplo:
 
 ```latte
-<meta name="robots" content={$robots} n:ifset="$robots">
+<meta name="robots" content="{$robots}" n:ifset="$robots">
 ```
 
 
-`{ifchanged}`
--------------
+`{ifchanged}` .{data-version:2.9}
+---------------------------------
 
 `{ifchanged}` comprueba si el valor de una variable ha cambiado desde la última iteración del bucle (foreach, for o while).
 
@@ -343,7 +329,7 @@ Así que es el equivalente exacto de la estructura `match` con la que viene PHP 
 		Differently
 {/switch}
 ```
-
+.{data-version:2.9}
 La cláusula `{case}` puede contener múltiples valores separados por comas:
 
 ```latte
@@ -404,8 +390,8 @@ Así que imprime algo como:
 ```
 
 
-`{else}` .{toc: foreach-else}
------------------------------
+`{else}` .{data-version:2.9}{toc: foreach-else}
+-----------------------------------------------
 
 El bucle `foreach` puede tomar una cláusula opcional `{else}` cuyo texto se muestra si la matriz dada está vacía:
 
@@ -428,10 +414,10 @@ Dentro del bucle `foreach` se inicializa la variable `$iterator`. Contiene infor
 - `$iterator->first` - ¿es ésta la primera iteración?
 - `$iterator->last` - ¿es la última iteración?
 - `$iterator->counter` - contador de iteraciones, comienza en 1
-- `$iterator->counter0` - contador de iteraciones, comienza en 0
+- `$iterator->counter0` - contador de iteraciones, comienza en 0 .{data-version:2.9}
 - `$iterator->odd` - ¿es esta iteración impar?
 - `$iterator->even` - ¿es esta iteración par?
-- `$iterator->parent` - el iterador que rodea al actual
+- `$iterator->parent` - el iterador que rodea al actual .{data-version:2.9}
 - `$iterator->nextValue` - el siguiente elemento en el bucle
 - `$iterator->nextKey` - la clave del siguiente elemento del bucle
 
@@ -479,10 +465,10 @@ El contenido de `{sep}` se muestra si la iteración no es la última, por lo que
 Es bastante práctico, ¿no?
 
 
-`{iterateWhile}`
-----------------
+`{iterateWhile}` .{data-version:2.10}
+-------------------------------------
 
-Simplifica la agrupación de datos lineales durante la iteración en un bucle foreach iterando en un bucle anidado hasta que se cumpla una condición. [Lea las instrucciones detalladas |cookbook/grouping].
+Simplifica la agrupación de datos lineales durante la iteración en un bucle foreach realizando la iteración en un bucle anidado mientras se cumpla la condición. [Lee las instrucciones en el cookbook |cookbook/iteratewhile].
 
 También puede sustituir elegantemente a `{first}` y `{last}` en el ejemplo anterior:
 
@@ -500,8 +486,6 @@ También puede sustituir elegantemente a `{first}` y `{last}` en el ejemplo ante
 	</table>
 {/foreach}
 ```
-
-Véase también filtros [por lotes |filters#batch] y [grupos |filters#group].
 
 
 `{for}`
@@ -563,7 +547,7 @@ Hay etiquetas especiales que puedes utilizar para controlar cualquier bucle - `{
 {/foreach}
 ```
 
-
+.{data-version:2.9}
 La etiqueta `{skipIf}` es muy similar a `{continueIf}`, pero no incrementa el contador. Así no hay agujeros en la numeración cuando se imprime `$iterator->counter` y se saltan algunos elementos. Además, la cláusula {else} se mostrará cuando se salten todos los elementos.
 
 ```latte
@@ -611,10 +595,14 @@ La etiqueta `{include}` carga y renderiza la plantilla especificada. En nuestro 
 
 Las plantillas incluidas no tienen acceso a las variables del contexto activo, pero tienen acceso a las variables globales.
 
-Puede pasar variables a la plantilla insertada de la siguiente manera:
+Puede pasar variables de esta manera:
 
 ```latte
+{* since Latte 2.9 *}
 {include 'template.latte', foo: 'bar', id: 123}
+
+{* before Latte 2.9 *}
+{include 'template.latte', foo => 'bar', id => 123}
 ```
 
 El nombre de la plantilla puede ser cualquier expresión PHP:
@@ -630,7 +618,7 @@ El contenido insertado puede ser modificado usando [filtros |syntax#filters]. El
 <title>{include 'heading.latte' |stripHtml|capitalize}</title>
 ```
 
-La [herencia de plantillas |template inheritance] **no interviene** en esto por defecto. Aunque puede añadir etiquetas de bloque a las plantillas que se incluyen, no sustituirán a los bloques coincidentes de la plantilla en la que se incluyen. Piense en los includes como partes independientes y blindadas de páginas o módulos. Este comportamiento puede cambiarse utilizando el modificador `with blocks`:
+La [herencia de la |template inheritance] plantilla **no interviene** en esto por defecto. Aunque puede añadir etiquetas de bloque a las plantillas que se incluyen, no sustituirán a los bloques coincidentes de la plantilla en la que se incluyen. Piense en los includes como partes independientes y blindadas de páginas o módulos. Este comportamiento puede cambiarse usando el modificador `with blocks` (desde Latte 2.9.1):
 
 ```latte
 {include 'template.latte' with blocks}
@@ -639,8 +627,8 @@ La [herencia de plantillas |template inheritance] **no interviene** en esto por 
 La relación entre el nombre de archivo especificado en la etiqueta y el archivo en disco es una cuestión de [cargador |extending-latte#Loaders].
 
 
-`{sandbox}`
------------
+`{sandbox}` .{data-version:2.8}
+-------------------------------
 
 Cuando incluya una plantilla creada por un usuario final, debería considerar la posibilidad de ponerla en un sandbox (más información en [la documentación sobre sandbox |sandbox]):
 
@@ -670,8 +658,8 @@ Manejo de excepciones .[#toc-exception-handling]
 ================================================
 
 
-`{try}`
--------
+`{try}` .{data-version:2.9}
+---------------------------
 
 Estas etiquetas facilitan enormemente la creación de plantillas robustas.
 
@@ -712,8 +700,8 @@ La etiqueta también puede escribirse como [n:attribute |syntax#n:attributes]:
 También es posible definir [un gestor de excepciones propio |develop#exception handler] para, por ejemplo, el registro:
 
 
-`{rollback}`
-------------
+`{rollback}` .{data-version:2.9}
+--------------------------------
 
 El bloque `{try}` también puede detenerse y omitirse manualmente utilizando `{rollback}`. Así no es necesario comprobar todos los datos de entrada de antemano, y sólo durante el renderizado se puede decidir si tiene sentido renderizar el objeto.
 
@@ -754,7 +742,7 @@ La etiqueta `{default}` funciona de forma similar, salvo que crea variables sól
 {default $lang = 'cs'}
 ```
 
-También puede especificar [tipos de variables |type-system]. Por ahora, son informativas y Latte no las comprueba.
+A partir de Latte 2.7, también se pueden especificar [tipos de variables |type-system]. Por ahora, son informativas y Latte no las comprueba.
 
 ```latte
 {var string $name = $article->getTitle()}
@@ -762,8 +750,8 @@ También puede especificar [tipos de variables |type-system]. Por ahora, son inf
 ```
 
 
-`{parameters}`
---------------
+`{parameters}` .{data-version:2.9}
+----------------------------------
 
 Al igual que una función declara sus parámetros, una plantilla puede declarar sus variables al principio:
 
@@ -795,15 +783,13 @@ Utilizando la etiqueta `{capture}` puede capturar la salida a una variable:
 <p>Captured: {$var}</p>
 ```
 
-La etiqueta también puede escribirse como [n:attribute |syntax#n:attributes], como cualquier etiqueta de pares:
+La etiqueta también se puede escribir como [n:attribute |syntax#n:attributes]:
 
 ```latte
 <ul n:capture="$var">
 	<li>Hello World</li>
 </ul>
 ```
-
-La salida HTML se almacena en la variable `$var` como un objeto `Latte\Runtime\Html` para [evitar escapes no deseados |develop#disabling-auto-escaping-of-variable] al imprimir.
 
 
 Otros .[#toc-others]
@@ -855,11 +841,13 @@ Especifica el lugar donde se interrumpirá la ejecución del código. Se utiliza
 `{do}`
 ------
 
-Ejecuta el código PHP y no imprime nada. Al igual que con el resto de etiquetas, el código PHP es una única expresión, consulte las [limitaciones de PHP |syntax#PHP Limitations in Latte].
+Ejecuta el código y no imprime nada.
 
 ```latte
 {do $num++}
 ```
+
+En Latte 2.7 y anteriores, se utilizaba `{php}`.
 
 
 `{dump}`
@@ -875,12 +863,6 @@ Vuelca una variable o el contexto actual.
 
 .[caution]
 Requiere el paquete [Tracy |tracy:].
-
-
-`{php}`
--------
-
-Permite ejecutar cualquier código PHP. La etiqueta debe activarse mediante la extensión [RawPhpExtension |develop#RawPhpExtension].
 
 
 `{spaceless}`
@@ -926,8 +908,8 @@ Latte se puede utilizar muy cómodamente dentro de JavaScript, sólo hay que evi
 Si desactiva Latte con `{syntax off}` (es decir, la etiqueta, no el atributo n:attribute), ignorará estrictamente todas las etiquetas hasta `{/syntax}`.
 
 
-{trace}
--------
+{trace} .{data-version:2.10}
+----------------------------
 
 Lanza una excepción `Latte\RuntimeException`, cuya traza de pila sigue el espíritu de las plantillas. Así, en lugar de llamar a funciones y métodos, se trata de llamar a bloques e insertar plantillas. Si utiliza una herramienta para mostrar claramente las excepciones lanzadas, como [Tracy |tracy:], verá claramente la pila de llamadas, incluidos todos los argumentos pasados.
 
@@ -990,8 +972,8 @@ En función de los valores devueltos, muestra, por ejemplo
 ```
 
 
-n:tag
------
+n:tag .{data-version:2.10}
+--------------------------
 
 El atributo `n:tag` puede cambiar dinámicamente el nombre de un elemento HTML.
 
@@ -1004,8 +986,6 @@ Si `$heading === null`, la etiqueta `<h1>` se imprime sin cambios. De lo contrar
 ```latte
 <h3 class="main">...</h3>
 ```
-
-Como Latte es un sistema de plantillas seguro, comprueba que el nuevo nombre de la etiqueta sea válido y no contenga valores no deseados o maliciosos.
 
 
 n:ifcontent .[#toc-n-ifcontent]
@@ -1033,8 +1013,8 @@ Dependiendo de los valores de la variable `$error` se imprimirá:
 ```
 
 
-Traducción .[#toc-translation]
-==============================
+Traducción .{data-version:3.0}[#toc-translation]
+================================================
 
 Para que las etiquetas de traducción funcionen, necesitas [configurar el traductor |develop#TranslatorExtension]. También puede utilizar el [`translate` |filters#translate] para la traducción.
 

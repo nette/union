@@ -15,53 +15,12 @@ composer require nette/utils
 Tablice .[#toc-arrays]
 ======================
 
-[api:Nette\Utils\Arrays] to statyczna klasa, która zawiera kilka przydatnych funkcji tablicowych. Jej odpowiednikiem dla iteratorów jest [Nette\Utils\Iterables |iterables].
+[api:Nette\Utils\Arrays] jest klasą statyczną zawierającą przydatne funkcje do pracy z tablicami.
 
 Poniższe przykłady zakładają, że alias został utworzony:
 
 ```php
 use Nette\Utils\Arrays;
-```
-
-
-associate(array $array, mixed $path): array|\stdClass .[method]
----------------------------------------------------------------
-
-Funkcja elastycznie przekształca `$array` w tablicę asocjacyjną lub obiekty zgodnie z określoną ścieżką `$path`. Ścieżka może być łańcuchem lub tablicą. Składa się z nazw kluczy w tablicy wejściowej i operatorów takich jak "[]", "->", "=" i "|". Rzuca `Nette\InvalidArgumentException` jeśli ścieżka jest nieprawidłowa.
-
-```php
-// Konwersja do tablicy asocjacyjnej przy użyciu klucza prostego
-$arr = [
-    ['name' => 'John', 'age' => 11],
-    ['name' => 'Mary', 'age' => null],
-    //...
-];
-$result = Arrays::associate($arr, 'name');
-// $result = ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// przypisywanie wartości z jednego klucza do drugiego przy użyciu operatora =
-$result = Arrays::associate($arr, 'name=age'); // lub ['name', '=', 'age']
-// $result = ['John' => 11, 'Mary' => null, ...]
-```
-
-```php
-// tworzenie obiektu przy użyciu operatora ->
-$result = Arrays::associate($arr, '->name'); // lub ['->', 'name']
-// $result = (object) ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// łączenie kluczy za pomocą operatora |
-$result = Arrays::associate($arr, 'name|age'); // lub ['name', '|', 'age']
-// $result: ['John' => ['name' => 'John', 'age' => 11], 'Paul' => ['name' => 'Paul', 'age' => 44]]
-```
-
-```php
-// dodawanie do tablicy przy użyciu []
-$result = Arrays::associate($arr, 'name[]'); // lub ['name', '[]']
-// $result: ['John' => [['name' => 'John', 'age' => 22], ['name' => 'John', 'age' => 11]]]
 ```
 
 
@@ -76,10 +35,10 @@ Arrays::contains(['1', false], 1); // false
 ```
 
 
-every(array $array, callable $predicate): bool .[method]
---------------------------------------------------------
+every(iterable $array, callable $callback): bool .[method]
+----------------------------------------------------------
 
-Testuje czy wszystkie elementy w tablicy przechodzą test zaimplementowany w `$predicate` z podpisem `function ($value, $key, array $array): bool`.
+Testuje czy wszystkie elementy w tablicy przechodzą test zaimplementowany w `$callback` z podpisem `function ($value, $key, array $array): bool`.
 
 ```php
 $array = [1, 30, 39, 29, 10, 13];
@@ -90,51 +49,15 @@ $res = Arrays::every($array, $isBelowThreshold); // true
 Zobacz [some() |#some].
 
 
-filter(array $array, callable $predicate): array .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------
+first(array $array): mixed .[method]
+------------------------------------
 
-Zwraca nową tablicę zawierającą wszystkie pary klucz-wartość pasujące do podanego `$predicate`. Wywołanie zwrotne ma sygnaturę `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::filter(
-	['a' => 1, 'b' => 2, 'c' => 3],
-	fn($v) => $v < 3,
-);
-// ['a' => 1, 'b' => 2]
-```
-
-
-first(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
--------------------------------------------------------------------------------------
-
-Zwraca pierwszy element (pasujący do określonego predykatu, jeśli został podany). Jeśli nie ma takiego elementu, zwraca wynik wywołania `$else` lub null.
-Funkcja `$predicate` ma sygnaturę `function ($value, int|string $key, array $array): bool`.
-
-W przeciwieństwie do `reset()` nie zmienia wewnętrznego wskaźnika. Parametry `$predicate` i `$else` istnieją od wersji 4.0.4.
+Zwraca pierwszy wpis z tablicy lub null jeśli tablica jest pusta. Nie zmienia wewnętrznego wskaźnika w przeciwieństwie do `reset()`.
 
 ```php
-Arrays::first([1, 2, 3]);                   // 1
-Arrays::first([1, 2, 3], fn($v) => $v > 2); // 3
-Arrays::first([]);                          // null
-Arrays::first([], else: fn() => false);     // false
+Arrays::first([1, 2, 3]); // 1
+Arrays::first([]);        // null
 ```
-
-Zobacz [last() |#last()].
-
-
-firstKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------------------------
-
-Zwraca klucz pierwszego elementu (pasującego do określonego predykatu, jeśli został podany) lub null, jeśli nie ma takiego elementu. Funkcja `$predicate` ma sygnaturę `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::firstKey([1, 2, 3]);                   // 0
-Arrays::firstKey([1, 2, 3], fn($v) => $v > 2); // 2
-Arrays::firstKey(['a' => 1, 'b' => 2]);        // 'a'
-Arrays::firstKey([]);                          // null
-```
-
-Zobacz [lastKey() |#lastKey()].
 
 
 flatten(array $array, bool $preserveKeys=false): array .[method]
@@ -265,43 +188,21 @@ Arrays::isList(['a' => 1, 'b' => 2]); // false
 ```
 
 
-last(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
-------------------------------------------------------------------------------------
+last(array $array): mixed .[method]
+-----------------------------------
 
-Zwraca ostatni element (pasujący do określonego predykatu, jeśli został podany). Jeśli nie ma takiego elementu, zwraca wynik wywołania `$else` lub null.
-Funkcja `$predicate` ma sygnaturę `function ($value, int|string $key, array $array): bool`.
-
-W przeciwieństwie do `end()` nie zmienia wewnętrznego wskaźnika. Parametry `$predicate` i `$else` istnieją od wersji 4.0.4.
+Zwraca ostatni wpis tablicy lub null jeśli tablica jest pusta. Nie zmienia wewnętrznego wskaźnika w przeciwieństwie do `end()`.
 
 ```php
-Arrays::last([1, 2, 3]);                   // 3
-Arrays::last([1, 2, 3], fn($v) => $v < 3); // 2
-Arrays::last([]);                          // null
-Arrays::last([], else: fn() => false);     // false
+Arrays::last([1, 2, 3]); // 3
+Arrays::last([]);        // null
 ```
 
-Zobacz [first() |#first()].
 
-
-lastKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
------------------------------------------------------------------------------------------------
-
-Zwraca klucz ostatniego elementu (pasującego do określonego predykatu, jeśli został podany) lub null, jeśli nie ma takiego elementu. Funkcja `$predicate` ma sygnaturę `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::lastKey([1, 2, 3]);                    // 2
-Arrays::lastKey([1, 2, 3], fn($v) => $v < 3);  // 1
-Arrays::lastKey(['a' => 1, 'b' => 2]);         // 'b'
-Arrays::lastKey([]);                           // null
-```
-
-Zobacz [firstKey() |#firstKey()].
-
-
-map(array $array, callable $transformer): array .[method]
+map(iterable $array, callable $callback): array .[method]
 ---------------------------------------------------------
 
-Wywołuje `$transformer` na wszystkich elementach tablicy i zwraca tablicę wartości zwrotnych. Callback ma podpis `function ($value, $key, array $array): bool`.
+Wywołuje `$callback` na wszystkich elementach tablicy i zwraca tablicę wartości zwrotnych. Callback ma podpis `function ($value, $key, array $array): bool`.
 
 ```php
 $array = ['foo', 'bar', 'baz'];
@@ -383,10 +284,10 @@ $position = Arrays::getKeyOffset($array, 'not-exists'); // vrátí null
 ```
 
 
-some(array $array, callable $predicate): bool .[method]
--------------------------------------------------------
+some(iterable $array, callable $callback): bool .[method]
+---------------------------------------------------------
 
-Testuje czy przynajmniej jeden element w tablicy przechodzi test zaimplementowany w `$predicate` z podpisem `function ($value, $key, array $array): bool`.
+Testuje czy przynajmniej jeden element w tablicy przechodzi test zaimplementowany w `$callback` z podpisem `function ($value, $key, array $array): bool`.
 
 ```php
 $array = [1, 2, 3, 4];
@@ -420,8 +321,8 @@ Arrays::toObject($array, $obj); // nastaví $obj->foo = 1; $obj->bar = 2;
 ```
 
 
-wrap(array $array, string $prefix='', string $suffix=''): array .[method]
--------------------------------------------------------------------------
+wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
+----------------------------------------------------------------------------
 
 Wypisuje każdy element tablicy do łańcucha i opakowuje go prefiksem `$prefix` i sufiksem `$suffix`.
 

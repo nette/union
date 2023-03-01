@@ -38,7 +38,7 @@ Cliccare su un link è, in parole povere, come chiamare un metodo `ProductPresen
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Se il metodo `ProductPresenter::renderShow()` non ha `$lang` nella sua firma, può recuperare il valore del parametro usando `$lang = $this->getParameter('lang')` o dalla [proprietà |presenters#Request Parameters].
+Se il metodo `ProductPresenter::renderShow()` non ha `$lang` nella sua firma, può leggere il valore del parametro usando `$lang = $this->getParameter('lang')`.
 
 Se i parametri sono memorizzati in un array, possono essere espansi con l'operatore `...` (o `(expand)` in Latte 2.x):
 
@@ -52,7 +52,7 @@ Anche i cosiddetti [parametri persistenti |presenters#persistent parameters] ven
 L'attributo `n:href` è molto utile per i tag HTML `<a>`. Se vogliamo stampare il link altrove, per esempio nel testo, usiamo `{link}`:
 
 ```latte
-URL is: {link Home:default}
+URL is: {link Homepage:default}
 ```
 
 
@@ -88,19 +88,19 @@ Il formato è supportato da tutti i tag Latte e da tutti i metodi del presentato
 La forma base è quindi `Presenter:action`:
 
 ```latte
-<a n:href="Home:default">home</a>
+<a n:href="Homepage:default">homepage</a>
 ```
 
 Se ci si collega all'azione del presentatore corrente, si può omettere il suo nome:
 
 ```latte
-<a n:href="default">home</a>
+<a n:href="default">homepage</a>
 ```
 
 Se l'azione è `default`, possiamo ometterlo, ma i due punti devono rimanere:
 
 ```latte
-<a n:href="Home:">home</a>
+<a n:href="Homepage:">homepage</a>
 ```
 
 I collegamenti possono anche puntare ad altri [moduli |modules]. In questo caso, i collegamenti si distinguono in relativi ai sottomoduli o assoluti. Il principio è analogo a quello dei percorsi su disco, solo che al posto degli slash ci sono i punti. Supponiamo che il presentatore attuale faccia parte del modulo `Front`, quindi scriveremo:
@@ -119,7 +119,7 @@ Un caso particolare è il [collegamento a se stesso |#Links to Current Page]. Qu
 Possiamo collegarci a una determinata parte della pagina HTML tramite un cosiddetto frammento dopo il simbolo hash `#`:
 
 ```latte
-<a n:href="Home:#main">link to Home:default and fragment #main</a>
+<a n:href="Homepage:#main">link to Homepage:default and fragment #main</a>
 ```
 
 
@@ -128,7 +128,7 @@ Percorsi assoluti .[#toc-absolute-paths]
 
 I link generati da `link()` o `n:href` sono sempre percorsi assoluti (cioè iniziano con `/`), ma non URL assoluti con protocollo e dominio come `https://domain`.
 
-Per generare un URL assoluto, aggiungere due barre all'inizio (ad esempio, `n:href="//Home:"`). Oppure si può impostare il presentatore in modo che generi solo collegamenti assoluti, impostando `$this->absoluteUrls = true`.
+Per generare un URL assoluto, aggiungere due barre all'inizio (ad esempio, `n:href="//Homepage:"`). Oppure si può impostare il presentatore in modo che generi solo collegamenti assoluti, impostando `$this->absoluteUrls = true`.
 
 
 Collegamento alla pagina corrente .[#toc-link-to-current-page]
@@ -140,7 +140,7 @@ Il target `this` creerà un collegamento alla pagina corrente:
 <a n:href="this">refresh</a>
 ```
 
-Allo stesso tempo, tutti i parametri specificati nella firma dell'elemento `action<Action>()` o `render<View>()` se il metodo `action<Action>()` non è definito, vengono trasferiti. Quindi, se ci troviamo nelle pagine `Product:show` e `id:123`, il collegamento a `this` passerà anche questo parametro.
+Allo stesso tempo, tutti i parametri specificati nella firma del metodo `render<View>()` o `action<Action>()` vengono trasferiti. Quindi, se ci troviamo nelle pagine `Product:show` e `id:123`, anche il collegamento a `this` passerà questo parametro.
 
 Naturalmente, è possibile specificare direttamente i parametri:
 
@@ -213,38 +213,14 @@ Poiché i [componenti |components] sono unità riutilizzabili separate che non d
 Se vogliamo collegarci ai presentatori nel modello del componente, usiamo il tag `{plink}`:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Homepage:default}">homepage</a>
 ```
 
 o nel codice
 
 ```php
-$this->getPresenter()->link('Home:default')
+$this->getPresenter()->link('Homepage:default')
 ```
-
-
-Alias .[#toc-aliases]{data-version:v3.2.2}
-==========================================
-
-A volte è utile assegnare un alias facilmente memorizzabile a una coppia Presentatore:azione. Per esempio, si può nominare la pagina iniziale `Front:Home:default` semplicemente come `home` o `Admin:Dashboard:default` come `admin`.
-
-Gli alias sono definiti nella [configurazione |configuration] sotto la chiave `application › aliases`:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-Nei collegamenti, vengono scritti utilizzando il simbolo at, ad esempio:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-Sono supportati in tutti i metodi che lavorano con i collegamenti, come `redirect()` e simili.
 
 
 Collegamenti non validi .[#toc-invalid-links]

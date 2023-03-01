@@ -1,17 +1,15 @@
 Formulare Rendering
 *******************
 
-Das Erscheinungsbild von Formularen kann sehr unterschiedlich sein. In der Praxis können wir auf zwei Extreme stoßen. Einerseits besteht die Notwendigkeit, eine Reihe von Formularen in einer Anwendung darzustellen, die sich optisch ähneln, und wir schätzen die einfache Darstellung ohne Vorlage mit `$form->render()`. Dies ist normalerweise bei Verwaltungsschnittstellen der Fall.
+Das Erscheinungsbild von Formularen kann sehr unterschiedlich sein. In der Tat gibt es zwei Extreme. Die eine Seite ist die Notwendigkeit, eine Reihe sehr ähnlicher Formulare mit wenig bis gar keinem Aufwand immer wieder neu zu rendern. In der Regel sind das Verwaltungen und Back-Ends.
 
-Andererseits gibt es verschiedene Formulare, von denen jedes einzelne einzigartig ist. Ihr Aussehen wird am besten durch die HTML-Sprache in der Vorlage beschrieben. Und natürlich werden wir neben den beiden genannten Extremen auch viele Formulare finden, die irgendwo dazwischen liegen.
+Die andere Seite sind kleine, süße Formulare, von denen jedes einzelne ein Kunstwerk ist. Ihr Layout kann am besten in HTML geschrieben werden. Natürlich gibt es neben diesen Extremen auch viele Formulare, die genau dazwischen liegen.
 
 
-Rendering mit Latte .[#toc-rendering-with-latte]
-================================================
+Latte .[#toc-latte]
+===================
 
 Das [Latte-Templating-System |latte:] erleichtert das Rendern von Formularen und ihren Elementen grundlegend. Wir werden zunächst zeigen, wie man Formulare manuell, Element für Element, rendern kann, um die volle Kontrolle über den Code zu erhalten. Später werden wir zeigen, wie man dieses Rendering [automatisieren |#Automatic rendering] kann.
-
-Mit der Methode `Nette\Forms\Blueprint::latte($form)` können Sie sich den Vorschlag einer Lattenvorlage für das Formular generieren lassen, der dann auf der Browser-Seite ausgegeben wird. Dann brauchen Sie den Code nur noch mit einem Klick auszuwählen und in Ihr Projekt zu kopieren. .{data-version:3.1.15}
 
 
 `{control}`
@@ -90,6 +88,12 @@ Komplexere Formularelemente, wie z. B. RadioList oder CheckboxList, können Elem
 ```
 
 
+Code-Vorschlag `{formPrint}` .[#toc-formprint]
+----------------------------------------------
+
+Sie können einen ähnlichen Latte-Code für ein Formular mit dem Tag `{formPrint}` erzeugen. Wenn Sie ihn in eine Vorlage einfügen, sehen Sie den Code-Entwurf anstelle des normalen Renderings. Wählen Sie ihn dann einfach aus und kopieren Sie ihn in Ihr Projekt.
+
+
 `{label}` `{input}`
 -------------------
 
@@ -146,12 +150,6 @@ Wir können das Vorhandensein eines Fehlers mit der Methode `hasErrors()` erkenn
 	{inputError username}
 </div>
 ```
-
-
-`{form}`
---------
-
-Tags `{form signInForm}...{/form}` sind eine Alternative zu `<form n:name="signInForm">...</form>`.
 
 
 Automatisches Rendering .[#toc-automatic-rendering]
@@ -233,15 +231,15 @@ Sie brauchen den Block nur noch an einer Stelle zu importieren, nämlich am Anfa
 Besondere Fälle .[#toc-special-cases]
 -------------------------------------
 
-Wenn Sie nur den inneren Teil des Formulars ohne HTML-Tags darstellen wollen `<form>`darstellen wollen, z. B. beim Senden von Snippets, blenden Sie diese mit dem Attribut `n:tag-if` aus:
+Wenn Sie nur den inneren Inhalt eines Formulars darstellen müssen, ohne `<form>` & `</form>` HTML-Tags, z. B. in einer AJAX-Anfrage, können Sie das Formular mit `{formContext} … {/formContext}` öffnen und schließen. Es funktioniert im logischen Sinne ähnlich wie `{form}`, hier erlaubt es Ihnen, andere Tags zu verwenden, um Formularelemente zu zeichnen, aber gleichzeitig zeichnet es nichts.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 Das Tag `formContainer` hilft beim Rendern von Eingaben innerhalb eines Formular-Containers.
@@ -258,8 +256,8 @@ Das Tag `formContainer` hilft beim Rendern von Eingaben innerhalb eines Formular
 ```
 
 
-Rendering ohne Latte .[#toc-rendering-without-latte]
-====================================================
+Ohne Latte .[#toc-without-latte]
+================================
 
 Der einfachste Weg, ein Formular zu rendern, ist der Aufruf:
 
@@ -323,13 +321,13 @@ Wenn wir keinen benutzerdefinierten Renderer festlegen, wird der Standard-Render
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -359,12 +357,12 @@ Das Ergebnis ist der folgende Ausschnitt:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -430,8 +428,6 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
-Der Renderer zeichnet zuerst die Gruppen und dann die Elemente, die zu keiner Gruppe gehören.
-
 
 Bootstrap-Unterstützung .[#toc-bootstrap-support]
 -------------------------------------------------
@@ -442,7 +438,7 @@ Sie können [Beispiele |https://github.com/nette/forms/tree/master/examples] fü
 HTML-Attribute .[#toc-html-attributes]
 ======================================
 
-Um beliebige HTML-Attribute für Formularelemente zu setzen, verwenden Sie die Methode `setHtmlAttribute(string $name, $value = true)`:
+Mit `setHtmlAttribute(string $name, $value = true)` können Sie beliebige HTML-Attribute für Formularsteuerelemente festlegen:
 
 ```php
 $form->addInteger('number', 'Zahl:')
@@ -452,11 +448,11 @@ $form->addSelect('rank', 'Sortieren nach:', ['Preis', 'Name'])
 	->setHtmlAttribute('onchange', 'submit()'); // ruft JS-Funktion submit() bei Änderung auf
 
 
-// Zum Festlegen von Attributen der <form> selbst
+// Anwendung auf <form>
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Angabe der Art des Elements:
+Einstellung des Eingabetyps:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -464,11 +460,8 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-.[warning]
-Das Setzen des Typs und anderer Attribute dient nur der visuellen Darstellung. Die Überprüfung der Korrektheit der Eingabe muss auf dem Server erfolgen, was Sie durch die Wahl eines geeigneten [Formularsteuerelements | controls] und die Festlegung von [Validierungsregeln | validation] sicherstellen können.
-
-Für einzelne Elemente in Radio- oder Checkbox-Listen können wir ein HTML-Attribut mit unterschiedlichen Werten für jedes dieser Elemente setzen.
-Beachten Sie den Doppelpunkt nach `style:`, der sicherstellt, dass der Wert anhand des Schlüssels ausgewählt wird:
+Wir können HTML-Attribute für einzelne Elemente in Radio- oder Checkbox-Listen mit unterschiedlichen Werten für jedes dieser Elemente festlegen.
+Beachten Sie den Doppelpunkt nach `style:`, um sicherzustellen, dass der Wert nach Schlüssel ausgewählt wird:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -485,9 +478,10 @@ Renders:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-Für das Setzen von booleschen Attributen, wie z. B. `readonly`, können wir die Notation mit einem Fragezeichen verwenden:
+Für ein logisches HTML-Attribut (das keinen Wert hat, wie `readonly`) können Sie ein Fragezeichen verwenden:
 
 ```php
+$colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // use array for multiple keys, e.g. ['r', 'g']
 ```
@@ -541,6 +535,9 @@ Für Checkbox-, CheckboxList- und RadioList-Elemente können Sie die Elementvorl
 
 ```php
 $input = $form->addCheckbox('send');
+echo $input->getControl();
+// <label><input type="checkbox" name="send"></label>
+
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

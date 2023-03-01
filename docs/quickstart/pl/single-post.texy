@@ -5,13 +5,13 @@ Strona z wkładem
 Teraz stwórzmy kolejną stronę bloga, która będzie wyświetlała jeden konkretny post.
 
 
-Musimy stworzyć nową metodę renderującą, która pobiera jeden konkretny artykuł i przekazuje go do szablonu. Posiadanie tej metody w `HomePresenter` nie jest zbyt miłe, ponieważ mówimy o artykule, a nie o stronie głównej. Stwórzmy więc `PostPresenter` w `app/UI/Post/`. Ten prezenter również musi połączyć się z bazą danych, więc tutaj znowu napiszemy konstruktor, który będzie wymagał połączenia z bazą danych.
+Musimy stworzyć nową metodę renderującą, która pobiera jeden konkretny artykuł i przekazuje go do szablonu. Posiadanie tej metody w `HomepagePresenter` nie jest zbyt miłe, ponieważ mówimy o artykule, a nie o stronie głównej. Stwórzmy więc `PostPresenter` w `app/Presenters`. Ten prezenter również musi połączyć się z bazą danych, więc tutaj znowu napiszemy konstruktor, który będzie wymagał połączenia z bazą danych.
 
 `PostPresenter` Mogłoby to wtedy wyglądać tak:
 
-```php .{file:app/UI/Post/PostPresenter.php}
+```php .{file:app/Presenters/PostPresenter.php}
 <?php
-namespace App\UI\Post;
+namespace App\Presenters;
 
 use Nette;
 use Nette\Application\UI\Form;
@@ -23,22 +23,22 @@ final class PostPresenter extends Nette\Application\UI\Presenter
 	) {
 	}
 
-	public function renderShow(int $id): void
+	public function renderShow(int $postId): void
 	{
 		$this->template->post = $this->database
 			->table('posts')
-			->get($id);
+			->get($postId);
 	}
 }
 ```
 
-Nie zapomnij uwzględnić prawidłowej przestrzeni nazw `App\UI\Post`, która podlega ustawieniom [mapowania prezentera |https://github.com/nette-examples/quickstart/blob/v4.0/config/common.neon#L6-L7].
+Nie zapomnij uwzględnić prawidłowej przestrzeni nazw `App\Presenters`, która podlega ustawieniom [mapowania prezentera |https://github.com/nette-examples/quickstart/blob/v4.0/config/common.neon#L6-L7].
 
 Metoda `renderShow` wymaga jednego argumentu - ID jednego konkretnego artykułu, który ma być wyświetlony. Następnie pobiera ten artykuł z bazy danych i przekazuje go do szablonu.
 
-W szablonie `Home/default.latte` wstawiamy link do akcji `Post:show`.
+W szablonie `Homepage/default.latte` wstawiamy link do akcji `Post:show`.
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 ...
 <h2><a href="{link Post:show $post->id}">{$post->title}</a></h2>
 ...
@@ -49,7 +49,7 @@ Znacznik `{link}` generuje adres URL, który wskazuje na akcję `Post:show`. Prz
 
 To samo można napisać w skrócie, używając atrybutu n::
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 ...
 <h2><a n:href="Post:show $post->id">{$post->title}</a></h2>
 ...
@@ -63,10 +63,10 @@ Nie ma jednak jeszcze szablonu dla akcji `Post:show`. Możemy spróbować otworz
 
 Stwórzmy więc szablon `Post/show.latte` z tą treścią:
 
-```latte .{file:app/UI/Post/show.latte}
+```latte .{file:app/Presenters/templates/Post/show.latte}
 {block content}
 
-<p><a n:href="Home:default">← zpět na výpis příspěvků</a></p>
+<p><a n:href="Homepage:default">← zpět na výpis příspěvků</a></p>
 
 <div class="date">{$post->created_at|date:'F j, Y'}</div>
 
@@ -79,7 +79,7 @@ Teraz przejdźmy przez poszczególne części szablonu.
 
 Pierwsza linia zaczyna się od zdefiniowania bloku o nazwie "content" tak jak to było na stronie głównej. Ten blok będzie ponownie wyświetlany w głównym szablonie. Jak widać, brakuje znacznika końcowego `{/block}`. Jest to opcja.
 
-W kolejnym wierszu znajduje się link zwrotny do listy artykułów na blogu, dzięki czemu użytkownik może łatwo poruszać się między listą artykułów a jednym konkretnym. Ponieważ używamy atrybutu `n:href`, Nette samo zajmuje się generowaniem linków. Link wskazuje na działanie prezentera `default` `Home` (możemy też napisać `n:href="Home:"`, bo działanie o nazwie `default` można pominąć, zostanie wypełnione automatycznie).
+W kolejnym wierszu znajduje się link zwrotny do listy artykułów na blogu, dzięki czemu użytkownik może łatwo poruszać się między listą artykułów a jednym konkretnym. Ponieważ używamy atrybutu `n:href`, Nette samo zajmuje się generowaniem linków. Link wskazuje na działanie prezentera `default` `Homepage` (możemy też napisać `n:href="Homepage:"`, bo działanie o nazwie `default` można pominąć, zostanie wypełnione automatycznie).
 
 Trzecia linia formatuje datę zrzutu za pomocą znanego nam już filtra.
 
@@ -89,7 +89,7 @@ Czwarta linia wyświetla *tytuł* wpisu na blogu w znaczniku HTML `<h1>`. Ten zn
 {block title}<h1>{$post->title}</h1>{/block}
 ```
 
-Po prostu ten blok predefiniuje blok o nazwie `title`. Blok ten jest już zdefiniowany w głównym szablonie *layout* (`/app/UI/@layout.latte:11`) i podobnie jak w przypadku nakładek na metody w OOP, nakłada ten blok w szablonie głównym w dokładnie taki sam sposób. Więc `<title>` strona zawiera teraz nagłówek wyświetlanego postu, a wszystko co musieliśmy zrobić to użyć jednego prostego atrybutu `n:block="title"`. Świetnie, prawda?
+Po prostu ten blok predefiniuje blok o nazwie `title`. Blok ten jest już zdefiniowany w głównym szablonie *layout* (`/app/Presenters/templates/@layout.latte:11`) i podobnie jak w przypadku nakładek na metody w OOP, nakłada ten blok w szablonie głównym w dokładnie taki sam sposób. Więc `<title>` strona zawiera teraz nagłówek wyświetlanego postu, a wszystko co musieliśmy zrobić to użyć jednego prostego atrybutu `n:block="title"`. Świetnie, prawda?
 
 Piąta i ostatnia linia szablonu wyświetla całą zawartość jednego konkretnego postu.
 
@@ -99,12 +99,12 @@ Sprawdź identyfikator postu .[#toc-checking-post-id]
 
 Co się stanie jeśli ktoś zmieni ID w URL i umieści jakiś nieistniejący `postId`? Powinniśmy zaoferować użytkownikowi ładny błąd "page not found". Zmodyfikujmy więc nieco metodę render w `PostPresenter`:
 
-```php .{file:app/UI/Post/PostPresenter.php}
-public function renderShow(int $id): void
+```php .{file:app/Presenters/PostPresenter.php}
+public function renderShow(int $postId): void
 {
 	$post = $this->database
 		->table('posts')
-		->get($id);
+		->get($postId);
 	if (!$post) {
 		$this->error('Stránka nebyla nalezena');
 	}

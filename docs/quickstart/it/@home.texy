@@ -6,20 +6,30 @@ Imparate a conoscere Nette Framework creando un semplice blog con commenti. Iniz
 
 Dopo i primi due capitoli, avrete il vostro blog funzionante e sarete pronti a pubblicare i vostri fantastici post, anche se le funzionalità saranno piuttosto limitate dopo aver completato questi due capitoli. Per rendere le cose più piacevoli ai vostri utenti, dovreste leggere anche i capitoli successivi e continuare a migliorare la vostra applicazione.
 
-.[tip]
-Questa esercitazione presuppone che si sia completato il documento di [installazione |nette:installation] e che si sia configurato con successo lo strumento. Si presuppone inoltre che si conosca la [programmazione orientata agli oggetti in PHP |nette:introduction-to-object-oriented-programming].
+È possibile trovare l'[applicazione completa su GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
 
-Utilizzare PHP 8.1 o successivo. L'applicazione completa è disponibile [su GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
+Installate l'[IDE completo e tutti i plugin necessari |best-practices:editors-and-tools]: vi renderanno estremamente efficienti.
 
+Questo QuickStart è stato scritto per Nette Framework 3.1 e PHP 8.0 o più recente.
 
-La pagina di benvenuto .[#toc-the-welcome-page]
-===============================================
+È possibile scaricare manualmente Nette Framework, ma il modo consigliato per iniziare un nuovo progetto è usare [Composer |best-practices:composer]. Se non conoscete Composer, dovreste assolutamente iniziare con quello. È uno strumento davvero semplice e utile, date un'occhiata alla [sua documentazione |https://getcomposer.org/doc/].
 
-Iniziamo creando un nuovo progetto nella cartella `nette-blog`:
+Con Composer, è possibile scaricare e installare lo scheletro dell'applicazione noto come Web Project, compreso Nette Framework, in modo molto semplice. Per farlo, trovare la cartella webroot (ad esempio `/var/www` o `C:\InetPub`) nella riga di comando ed eseguire il seguente comando:
 
 ```shell
 composer create-project nette/web-project nette-blog
 ```
+
+Web Project verrà scaricato nella directory `nette-blog`.
+
+.[note]
+Se non si è potuto usare Composer, [scaricare |https://github.com/nette/web-project/archive/preloaded.zip] ed estrarre l'archivio e copiarlo nella directory principale del server Web e rinominarlo in `nette-blog`. L'intero framework si trova nella cartella `vendor`.
+
+Se si sta sviluppando su macOS o Linux (o qualsiasi altro sistema basato su Unix), è necessario [configurare i privilegi di scrittura |nette:troubleshooting#Setting directory permissions] sul server web.
+
+
+La pagina di benvenuto .[#toc-the-welcome-page]
+===============================================
 
 A questo punto, la pagina di benvenuto del progetto Web dovrebbe essere in esecuzione. Provatela aprendo il browser e accedendo al seguente URL:
 
@@ -45,9 +55,9 @@ Il progetto Web ha la seguente struttura:
 /--pre
 <b>nette-blog/</b>
 ├── <b>app/</b>              ← application directory
-│   ├── <b>Core/</b>         ← classi di base necessarie
-│   ├── <b>UI/</b>           ← presentatori, modelli & co.
-│   │   └── <b>Home/</b>     ← Elenco presentatori Home
+│   ├── <b>Presenters/</b>   ← presenter classes
+│   │   └── <b>templates/</b>← templates
+│   ├── <b>Router/</b>       ← configuration of URL addresses
 │   └── <b>Bootstrap.php</b> ← booting class Bootstrap
 ├── <b>bin/</b>              ← scripts for the command line
 ├── <b>config/</b>           ← configuration files
@@ -67,7 +77,7 @@ La directory più importante per voi è `app/`. Vi si trova il file `Bootstrap.p
 Pulire .[#toc-cleanup]
 ======================
 
-Il progetto Web contiene una pagina di benvenuto, che possiamo rimuovere: cancellate pure il file `app/UI/Home/default.latte` e sostituitelo con il testo "Hello world!".
+Il progetto Web contiene una pagina di benvenuto, che possiamo rimuovere: cancellate pure il file `app/Presenters/templates/Homepage/default.latte` e sostituitelo con il testo "Hello world!".
 
 
 [* qs-hello.webp .{url:-} *]
@@ -76,9 +86,9 @@ Il progetto Web contiene una pagina di benvenuto, che possiamo rimuovere: cancel
 Tracy (Debugger) .[#toc-tracy-debugger]
 =======================================
 
-Uno strumento estremamente importante per lo sviluppo è [un debugger chiamato Tracy |tracy:]. Provate a fare qualche errore nel vostro file `app/UI/Home/HomePresenter.php` (per esempio, rimuovendo una parentesi graffa dalla definizione della classe HomePresenter) e vedete cosa succede. Verrà visualizzata una pagina a schermo rosso con una descrizione comprensibile dell'errore.
+Uno strumento estremamente importante per lo sviluppo è [un debugger chiamato Tracy |tracy:]. Provate a fare qualche errore nel vostro file `app/Presenters/HomepagePresenter.php` (per esempio, rimuovendo una parentesi graffa dalla definizione della classe HomepagePresenter) e vedete cosa succede. Verrà visualizzata una pagina a schermo rosso con una descrizione comprensibile dell'errore.
 
-[* qs-tracy.avif .{url:-}(debugger screen) *]
+[* qs-tracy.webp .{url:-}(debugger screen) *]
 
 Tracy vi aiuterà notevolmente nella ricerca degli errori. Notate anche la barra Tracy fluttuante nell'angolo in basso a destra, che vi informa su importanti dati di runtime.
 

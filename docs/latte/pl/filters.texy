@@ -14,7 +14,6 @@ Możemy używać funkcji w szablonach, aby pomóc w edycji lub przeformatowaniu 
 | `date` | [formatuje datę |#date]
 | `explode` | [dzieli łańcuch na pola zgodnie z delimiterem |#explode]
 | `first` | [zwraca pierwszy element tablicy lub znak łańcucha|#first]
-| `group` | [grupuje dane według różnych kryteriów |#group]
 | `implode` | [łączy pola w ciąg znaków|#implode]
 | `indent` | [przesuwa tekst od lewej strony o podaną liczbę tabulatorów |#indent]
 | `join` | [konkatenuje tablicę w ciąg znaków|#implode]
@@ -119,8 +118,8 @@ Filtry .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Filtr, który upraszcza wyprowadzenie danych liniowych do tabeli. Zwraca tablicę pól o określonej liczbie elementów. Jeśli określisz drugi parametr, jest on używany do wypełnienia brakujących elementów w ostatnim wierszu.
 
 ```latte
@@ -152,8 +151,6 @@ Wydruki:
 	</tr>
 </table>
 ```
-
-Zobacz także tag [group |#group] i [iterateWhile |tags#iterateWhile].
 
 
 breakLines .[filter]
@@ -206,8 +203,8 @@ Wymusza sanityzację adresów URL. Sprawdza czy zmienna zawiera adres URL strony
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href={$link|checkUrl}>checked</a>
-<a data-href={$link}>unchecked</a>
+<a data-href="{$link|checkUrl}">checked</a>
+<a data-href="{$link}">unchecked</a>
 ```
 
 Wydruki:
@@ -220,8 +217,8 @@ Wydruki:
 Zobacz również [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Zwraca wartość zaciśniętą na inkluzywnym zakresie min i max.
 
 ```latte
@@ -238,7 +235,7 @@ Konwertuje zawartość na schemat URI danych. Może być używany do wstawiania 
 Załóżmy, że mamy obrazek w zmiennej `$img = Image::fromFile('obrazek.gif')`, to
 
 ```latte
-<img src={$img|dataStream}>
+<img src="{$img|dataStream}">
 ```
 
 Drukuje na przykład:
@@ -274,8 +271,8 @@ Ucieka od zmiennej, która ma być użyta jako parametr w URL.
 Zobacz również [zapytanie |#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Rozdziela łańcuch przez podany delimiter i zwraca tablicę łańcuchów. Alias dla `split`.
 
 ```latte
@@ -297,8 +294,8 @@ Możesz użyć także aliasu `split`:
 Zobacz również [implode |#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Zwraca pierwszy element tablicy lub znak łańcucha:
 
 ```latte
@@ -333,25 +330,6 @@ Konwertuje pierwszą literę wartości na duże. Wymaga rozszerzenia PHP `mbstri
 Zobacz także [capitalize |#capitalize], [lower |#lower], [upper |#upper].
 
 
-group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
--------------------------------------------------------------------
-Filtr grupuje dane według różnych kryteriów.
-
-W tym przykładzie wiersze w tabeli są pogrupowane według kolumny `categoryId`. Wynikiem jest tablica tablic, w której kluczem jest wartość w kolumnie `categoryId`. Przeczytaj [szczegółowe instrukcje |cookbook/grouping].
-
-```latte
-{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Zobacz także [batch |#batch], funkcję [group |functions#group] i znacznik [iterateWhile |tags#iterateWhile].
-
-
 implode(string glue = '') .[filter]
 -----------------------------------
 Zwraca łańcuch będący konkatenacją łańcuchów w tablicy. Alias dla `join`.
@@ -361,7 +339,7 @@ Zwraca łańcuch będący konkatenacją łańcuchów w tablicy. Alias dla `join`
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-Możesz również użyć aliasu `join`:
+Możesz również użyć aliasu `join`: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -389,8 +367,8 @@ Drukuje:
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Zwraca ostatni element tablicy lub znak łańcucha:
 
 ```latte
@@ -438,8 +416,8 @@ Jeśli link używa innego schematu, takiego jak `javascript:` lub `data:`, i jes
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href={$link}>checked</a>
-<a href={$link|nocheck}>unchecked</a>
+<a href="{$link}">checked</a>
+<a href="{$link|nocheck}">unchecked</a>
 ```
 
 Wydruki:
@@ -503,8 +481,8 @@ Wyrównuje ciąg do pewnej długości z innym ciągiem od prawej.
 ```
 
 
-query  .[filter]
-----------------
+query  .[filter]{data-version:2.10}
+-----------------------------------
 Dynamicznie generuje ciąg zapytania w adresie URL:
 
 ```latte
@@ -524,8 +502,8 @@ Klucze o wartości `null` są pomijane.
 Zobacz również [escapeUrl |#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Zwraca losowy element tablicy lub znak łańcucha:
 
 ```latte
@@ -553,7 +531,7 @@ Zastępuje wszystkie wystąpienia szukanego łańcucha łańcuchem zastępczym.
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Można dokonać wielu zamian jednocześnie:
+Można dokonać wielu zamian jednocześnie: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -595,8 +573,8 @@ Zaokrągla liczbę do określonej precyzji.
 Zobacz także [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Wyodrębnia fragment tablicy lub ciągu znaków.
 
 ```latte
@@ -613,9 +591,9 @@ Jeśli podana jest długość i jest ona dodatnia, to sekwencja będzie miała d
 Filtr domyślnie zmieni kolejność i wyzeruje klucze tablicy liczb całkowitych. To zachowanie można zmienić ustawiając preserveKeys na true. Klucze łańcuchowe są zawsze zachowywane, niezależnie od tego parametru.
 
 
-sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
------------------------------------------------------------------------------------------------------------
-Filtr służy do sortowania elementów w tablicy lub iteratorze przy jednoczesnym zachowaniu kluczy asocjacyjnych:
+sort  .[filter]{data-version:2.9}
+---------------------------------
+Filtr, który sortuje tablicę i zachowuje asocjację indeksów.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -631,41 +609,15 @@ Tablica posortowana w odwrotnej kolejności.
 {/foreach}
 ```
 
-Można określić niestandardową funkcję porównania do sortowania (przykład pokazuje, jak odwrócić sortowanie od największego do najmniejszego):
+Możesz przekazać własną funkcję porównania jako parametr: .{data-version:2.10.2}
 
 ```latte
-{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
-Filtr `|sort` umożliwia również sortowanie elementów według klucza:
 
-```latte
-{foreach ($names|sort: byKey: true) as $name}
-	...
-{/foreach}
-```
-
-Jeśli chcesz posortować tabelę według określonej kolumny, możesz użyć parametru `by`. Wartość `'name'` w przykładzie określa, że sortowanie zostanie wykonane według `$row->name` lub `$row['name']`w zależności od tego, czy `$row` jest tablicą czy obiektem:
-
-```latte
-{foreach ($items|sort: by: 'name') as $item}
-	{$item->name}
-{/foreach}
-```
-
-Można również zdefiniować funkcję zwrotną, która określa wartość do sortowania:
-
-```latte
-{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
-	{$item->name}
-{/foreach}
-```
-
-Parametr `byKey` może być używany w ten sam sposób.
-
-
-spaceless  .[filter]
---------------------
+spaceless  .[filter]{data-version:2.10.2}
+-----------------------------------------
 Usuwa niepotrzebne białe przestrzenie z wyjścia. Możesz również użyć aliasu `strip`.
 
 ```latte
@@ -703,8 +655,8 @@ Wyodrębnia fragment łańcucha. Ten filtr został zastąpiony przez filtr [slic
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Tłumaczy wyrażenia na inne języki. Aby udostępnić ten filtr, musisz skonfigurować [translator |develop#TranslatorExtension]. Możesz również użyć [tagów do tłumaczenia |tags#Translation].
 
 ```latte

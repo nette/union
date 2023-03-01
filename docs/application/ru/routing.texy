@@ -93,12 +93,12 @@ $router->addRoute('chronicle/<year=2020>', 'History:show');
 Конечно, имя презентера и действие также могут быть параметрами. Например:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 Этот маршрут принимает, например, URL в форме `/article/edit` и `/catalog/list` соответственно, и переводит их в презентеры и действия `Article:edit` и `Catalog:list` соответственно.
 
-Он также придает параметрам `presenter` и `action` значения по умолчанию `Home` и `default` и поэтому они являются необязательными. Поэтому маршрут также принимает URL `/article` и переводит его как `Article:default`. Или наоборот, ссылка на `Product:default` генерирует путь `/product`, ссылка на стандартную `Home:default` генерирует путь `/`.
+Он также придает параметрам `presenter` и `action` значения по умолчанию `Homepage` и `default` и поэтому они являются необязательными. Поэтому маршрут также принимает URL `/article` и переводит его как `Article:default`. Или наоборот, ссылка на `Product:default` генерирует путь `/product`, ссылка на стандартную `Homepage:default` генерирует путь `/`.
 
 Маска может описывать не только относительный путь, основанный на корне сайта, но и абсолютный путь, если он начинается со слэша, или даже весь абсолютный URL, если он начинается с двух слэшей:
 
@@ -160,7 +160,7 @@ $router->addRoute('//[<lang=en>.]example.com/<presenter>/<action>', /* ... */);
 ```php
 $router->addRoute(
 	'[<lang [a-z]{2}>[-<sublang>]/]<name>[page-<page=0>]',
-	'Home:default',
+	'Homepage:default',
 );
 
 // Принимаемые URL-адреса:
@@ -183,16 +183,16 @@ $router->addRoute('<name>[!.html]', /* ... */);
 Необязательные параметры (т. е. параметры, имеющие значение по умолчанию) без квадратных скобок ведут себя так, как если бы они были обернуты таким образом:
 
 ```php
-$router->addRoute('<presenter=Home>/<action=default>/<id=>', /* ... */);
+$router->addRoute('<presenter=Homepage>/<action=default>/<id=>', /* ... */);
 
 // equals to:
-$router->addRoute('[<presenter=Home>/[<action=default>/[<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>/[<action=default>/[<id>]]]', /* ... */);
 ```
 
-Чтобы изменить способ генерации самой правой косой черты, т. е. вместо `/home/` получить `/home`, настройте маршрут таким образом:
+Чтобы изменить способ генерации самой правой косой черты, т. е. вместо `/homepage/` получить `/homepage`, настройте маршрут таким образом:
 
 ```php
-$router->addRoute('[<presenter=Home>[/<action=default>[/<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>[/<action=default>[/<id>]]]', /* ... */);
 ```
 
 
@@ -220,7 +220,7 @@ $router->addRoute('//www.%sld%.%tld%/%basePath%/<presenter>/<action', /* ... */)
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 ]);
 ```
@@ -232,7 +232,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>[/<id>]', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 	],
 	'action' => [
 		Route::Value => 'default',
@@ -252,7 +252,7 @@ $router->addRoute('<presenter>/<action>[/<id>]', [
 Хорошей практикой является написание исходного кода на английском языке, но что если вам нужно, чтобы URL вашего сайта был переведен на другой язык?
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 будет генерировать английские URL, такие как `/product/123` или `/cart`. Если мы хотим, чтобы презентеры и действия в URL были переведены на немецкий язык (например, `/produkt/123` или `/einkaufswagen`), мы можем использовать словарь переводов. Чтобы добавить его, нам уже нужен «более понятный» вариант второго параметра:
@@ -262,7 +262,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterTable => [
 			// строка в URL => ведущий
 			'produkt' => 'Product',
@@ -290,7 +290,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>/<id>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterIn => function (string $s): string { /* ... */ },
 		Route::FilterOut => function (string $s): string { /* ... */ },
 	],
@@ -313,7 +313,7 @@ $router->addRoute('<presenter>/<action>/<id>', [
 use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 	null => [
 		Route::FilterIn => function (array $params): array { /* ... */ },
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 При обращении к старому URL-адресу презентер автоматически перенаправляет на новый URL-адрес, чтобы поисковые системы не индексировали эти страницы дважды (см. [SEO и канонизация|#seo-and-canonization]).
-
-
-Динамическая маршрутизация с обратными вызовами .[#toc-dynamic-routing-with-callbacks]
---------------------------------------------------------------------------------------
-
-Динамическая маршрутизация с обратными вызовами позволяет напрямую назначать маршрутам функции (обратные вызовы), которые будут выполняться при посещении указанного пути. Эта гибкая возможность позволяет быстро и эффективно создавать различные конечные точки для вашего приложения:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-Вы также можете задать параметры в маске, которые будут автоматически передаваться в обратный вызов:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Модули .[#toc-modules]
@@ -477,10 +454,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Интеграция .[#toc-integration]
 ==============================
 
-Чтобы подключить наш маршрутизатор к приложению, мы должны сообщить о нем контейнеру DI. Самый простой способ - это подготовить фабрику, которая будет создавать объект маршрутизатора, и сообщить конфигурации контейнера, чтобы она его использовала. Допустим, мы напишем для этого метод `App\Core\RouterFactory::createRouter()`:
+Чтобы подключить наш маршрутизатор к приложению, мы должны сообщить о нем контейнеру DI. Самый простой способ - это подготовить фабрику, которая будет создавать объект маршрутизатора, и сообщить конфигурации контейнера, чтобы она его использовала. Допустим, мы напишем для этого метод `App\Router\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Application\Routers\RouteList;
 
@@ -499,7 +476,7 @@ class RouterFactory
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 ```
 
 Любые зависимости, такие как подключение к базе данных и т.д., передаются методу фабрики в качестве параметров с помощью [autowiring |dependency-injection:autowiring]:
@@ -526,15 +503,15 @@ http://example.com/?presenter=Product&action=detail&id=123
 Параметром конструктора `SimpleRouter` является презентер и действие по умолчанию, т. е. действие, которое будет выполнено, если мы откроем, например, `http://example.com/` без дополнительных параметров.
 
 ```php
-// используем презентер 'Home' и действие 'default'
-$router = new Nette\Application\Routers\SimpleRouter('Home:default');
+// используем презентер 'Homepage' и действие 'default'
+$router = new Nette\Application\Routers\SimpleRouter('Homepage:default');
 ```
 
 Мы рекомендуем определять SimpleRouter непосредственно в [конфигурации |dependency-injection:services]:
 
 ```neon
 services:
-	- Nette\Application\Routers\SimpleRouter('Home:default')
+	- Nette\Application\Routers\SimpleRouter('Homepage:default')
 ```
 
 
@@ -634,7 +611,7 @@ class MyRouter implements Nette\Routing\Router
 
 ```php
 [
-	'presenter' => 'Front:Home',
+	'presenter' => 'Front:Homepage',
 	'action' => 'default',
 ]
 ```
@@ -663,7 +640,7 @@ $router->addRoute(/* ... */);
 Итак, мы снова добавим метод, который будет создавать, например, маршрутизатор:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Routing\RouteList;
 
@@ -694,7 +671,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Или мы будем создавать объекты напрямую:
 
 ```php
-$router = App\Core\RouterFactory::createRouter();
+$router = App\Router\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

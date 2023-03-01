@@ -7,7 +7,7 @@ DomQuery .[#toc-domquery]
 `Tester\DomQuery` це клас, що розширює `SimpleXMLElement` з методами, які полегшують тестування вмісту HTML або XML.
 
 ```php
-# в $html знаходиться рядок з HTML-документом, в $dom ми отримуємо кореневий елемент
+# let's have an HTML document in $html that we load
 $dom = Tester\DomQuery::fromHtml($html);
 
 # we can test the presence of elements using CSS selectors
@@ -17,9 +17,6 @@ Assert::true($dom->has('input[type="submit"]'));
 
 # or select elements as array of DomQuery
 $elems = $dom->find('input[data-autocomplete]');
-
-# або перевірка відповідності елемента селектору (починаючи з версії 2.5.3)
-Assert::true($elems[0]->matches('[type="submit"]'));
 ```
 
 
@@ -122,7 +119,7 @@ Environment::setup() .[filter]
 
 Environment::setupFunctions() .[filter]{data-version:2.5}
 ---------------------------------------------------------
-Створює глобальні функції `test()`, `testException()`, `setUp()` і `tearDown()`, на які можна розбити тести.
+Створює глобальні функції `test()`, `setUp()` і `tearDown()`, на які можна розбити тести.
 
 ```php
 test('опис тесту', function () {

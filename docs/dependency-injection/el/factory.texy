@@ -170,45 +170,39 @@ Multifactory/Accessor .[#toc-multifactory-accessor]
 interface MultiFactory
 {
 	function createArticle(): Article;
+	function createFoo(): Model\Foo;
 	function getDb(): PDO;
 }
 ```
 
 Αντί να περνάτε πολλαπλά παραγόμενα εργοστάσια και accessors, μπορείτε να περνάτε μόνο ένα σύνθετο multifactory.
 
-Εναλλακτικά, μπορείτε να χρησιμοποιήσετε το `get()` με μια παράμετρο αντί για πολλαπλές μεθόδους:
+Εναλλακτικά, μπορείτε να χρησιμοποιήσετε τις διευθύνσεις `create()` και `get()` με μια παράμετρο αντί για πολλαπλές μεθόδους:
 
 ```php
 interface MultiFactoryAlt
 {
+	function create($name);
 	function get($name): PDO;
 }
 ```
 
-Σε αυτή την περίπτωση, το `MultiFactory::getArticle()` κάνει το ίδιο πράγμα με το `MultiFactoryAlt::get('article')`. Ωστόσο, η εναλλακτική σύνταξη έχει μερικά μειονεκτήματα. Δεν είναι σαφές ποιες τιμές `$name` υποστηρίζονται και ο τύπος επιστροφής δεν μπορεί να καθοριστεί στη διεπαφή όταν χρησιμοποιούνται πολλές διαφορετικές τιμές `$name`.
+Στην περίπτωση αυτή, η `MultiFactory::createArticle()` κάνει το ίδιο πράγμα με την `MultiFactoryAlt::create('article')`. Ωστόσο, η εναλλακτική σύνταξη έχει μερικά μειονεκτήματα. Δεν είναι σαφές ποιες τιμές `$name` υποστηρίζονται και ο τύπος επιστροφής δεν μπορεί να καθοριστεί στη διεπαφή όταν χρησιμοποιούνται πολλαπλές διαφορετικές τιμές `$name`.
 
 
 Ορισμός με λίστα .[#toc-definition-with-a-list]
 -----------------------------------------------
-Αυτός ο τρόπος μπορεί να χρησιμοποιηθεί για τον ορισμό ενός πολλαπλού εργοστασίου στη διαμόρφωση: .{data-version:3.2.0}
-
-```neon
-services:
-	- MultiFactory(
-		article: Article                      # defines createArticle()
-		db: PDO(%dsn%, %user%, %password%)    # defines getDb()
-	)
-```
-
-Ή, στον ορισμό του εργοστασίου, μπορούμε να αναφερθούμε σε υπάρχουσες υπηρεσίες χρησιμοποιώντας μια αναφορά:
+Πώς να ορίσετε ένα multifactory στη διαμόρφωσή σας; Ας δημιουργήσουμε τρεις υπηρεσίες που θα επιστρέφονται από το multifactory, καθώς και το ίδιο το multifactory:
 
 ```neon
 services:
 	article: Article
+	- Model\Foo
 	- PDO(%dsn%, %user%, %password%)
 	- MultiFactory(
-		article: @article    # defines createArticle()
-		db: @\PDO            # defines getDb()
+		article: @article  # createArticle()
+		foo: @Model\Foo    # createFoo()
+		db: @\PDO          # getDb()
 	)
 ```
 
@@ -220,7 +214,7 @@ services:
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 	- App\Model\DatabaseAccessor(
 		db1: @database.db1.explorer
 	)

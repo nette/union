@@ -107,7 +107,7 @@ $form->addText('name', 'Имя:')
 Додайте його на сторінку:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Якщо ви подивитеся у вихідний код сторінки з формою, ви можете помітити, що Nette вставляє обов'язкові поля в елементи з CSS-класом `required`. Спробуйте додати наступний стиль у шаблон, і мітка "Ім'я" буде червоного кольору. Ми елегантно позначаємо обов'язкові поля для користувачів:
@@ -257,8 +257,6 @@ class RegistrationFormData
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Ви можете згенерувати пропозицію для класу даних форми за допомогою методу `Nette\Forms\Blueprint::dataClass($form)`, який роздрукує її на сторінку браузера. Потім ви можете просто натиснути, щоб вибрати і скопіювати код у свій проект. .{data-version:3.1.15}
 
 
 Кілька кнопок надсилання .[#toc-multiple-submit-buttons]

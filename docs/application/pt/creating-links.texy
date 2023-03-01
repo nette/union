@@ -38,7 +38,7 @@ Também é possível passar parâmetros nomeados. O seguinte link passa o parâm
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Se o método `ProductPresenter::renderShow()` não tiver `$lang` em sua assinatura, ele poderá recuperar o valor do parâmetro usando `$lang = $this->getParameter('lang')` ou a partir da [propriedade |presenters#Request Parameters].
+Se o método `ProductPresenter::renderShow()` não tiver `$lang` em sua assinatura, ele pode ler o valor do parâmetro usando `$lang = $this->getParameter('lang')`.
 
 Se os parâmetros estiverem armazenados em uma matriz, eles podem ser expandidos com o operador `...` (ou `(expand)` operador em Latte 2.x):
 
@@ -52,7 +52,7 @@ Os chamados [parâmetros persistentes |presenters#persistent parameters] também
 Atributo `n:href` é muito útil para tags HTML `<a>`. Se quisermos imprimir o link em outro lugar, por exemplo, no texto, usamos `{link}`:
 
 ```latte
-URL is: {link Home:default}
+URL is: {link Homepage:default}
 ```
 
 
@@ -88,19 +88,19 @@ O formato é suportado por todas as etiquetas Latte e todos os métodos de apres
 A forma básica é, portanto, `Presenter:action`:
 
 ```latte
-<a n:href="Home:default">home</a>
+<a n:href="Homepage:default">homepage</a>
 ```
 
 Se nos ligarmos à ação do atual apresentador, podemos omitir seu nome:
 
 ```latte
-<a n:href="default">home</a>
+<a n:href="default">homepage</a>
 ```
 
 Se a ação é `default`, podemos omiti-la, mas o cólon deve permanecer:
 
 ```latte
-<a n:href="Home:">home</a>
+<a n:href="Homepage:">homepage</a>
 ```
 
 Os links também podem apontar para outros [módulos |modules]. Aqui, os links são diferenciados em relativos aos submódulos, ou absolutos. O princípio é análogo aos caminhos do disco, somente em vez de cortes existem colons. Vamos supor que o apresentador real faça parte do módulo `Front`, então escreveremos:
@@ -119,7 +119,7 @@ Um caso especial está [ligado a si mesmo |#Links to Current Page]. Aqui escreve
 Podemos criar um link para uma determinada parte da página HTML através do chamado fragmento após o símbolo `#` hash:
 
 ```latte
-<a n:href="Home:#main">link to Home:default and fragment #main</a>
+<a n:href="Homepage:#main">link to Homepage:default and fragment #main</a>
 ```
 
 
@@ -128,7 +128,7 @@ Caminhos Absolutos .[#toc-absolute-paths]
 
 Links gerados por `link()` ou `n:href` são sempre caminhos absolutos (ou seja, começam com `/`), mas não URLs absolutas com um protocolo e domínio como `https://domain`.
 
-Para gerar uma URL absoluta, acrescente duas barras ao início (por exemplo, `n:href="//Home:"`). Ou você pode mudar o apresentador para gerar apenas links absolutos, definindo `$this->absoluteUrls = true`.
+Para gerar uma URL absoluta, acrescente duas barras ao início (por exemplo, `n:href="//Homepage:"`). Ou você pode mudar o apresentador para gerar apenas links absolutos, definindo `$this->absoluteUrls = true`.
 
 
 Link para a página atual .[#toc-link-to-current-page]
@@ -140,7 +140,7 @@ A meta `this` irá criar um link para a página atual:
 <a n:href="this">refresh</a>
 ```
 
-Ao mesmo tempo, todos os parâmetros especificados na assinatura do parâmetro `action<Action>()` ou `render<View>()` se o método `action<Action>()` não estiver definido, serão transferidos. Portanto, se estivermos nas páginas `Product:show` e `id:123`, o link para `this` também passará esse parâmetro.
+Ao mesmo tempo, todos os parâmetros especificados na assinatura do `render<View>()` ou `action<Action>()` método são transferidos. Portanto, se estivermos nas páginas `Product:show` e `id:123`, o link para `this` também passará este parâmetro.
 
 Naturalmente, é possível especificar os parâmetros diretamente:
 
@@ -213,38 +213,14 @@ Como [os componentes |components] são unidades reutilizáveis separadas que nã
 Se quisermos fazer um link para apresentadores no modelo de componente, usamos a tag `{plink}`:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Homepage:default}">homepage</a>
 ```
 
 ou no código
 
 ```php
-$this->getPresenter()->link('Home:default')
+$this->getPresenter()->link('Homepage:default')
 ```
-
-
-Pseudônimos .[#toc-aliases]{data-version:v3.2.2}
-================================================
-
-Às vezes, é útil atribuir um alias facilmente memorável a um par Presenter:action. Por exemplo, você poderia nomear a página inicial `Front:Home:default` simplesmente como `home` ou `Admin:Dashboard:default` como `admin`.
-
-Os aliases são definidos na [configuração |configuration] sob a chave `application › aliases`:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-Nos links, eles são escritos usando o símbolo at, por exemplo:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-Eles são compatíveis com todos os métodos que funcionam com links, como `redirect()` e similares.
 
 
 Links inválidos .[#toc-invalid-links]

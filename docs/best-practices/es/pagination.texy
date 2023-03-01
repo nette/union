@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,12 +34,12 @@ class ArticleRepository
 En el Presentador inyectamos entonces la clase modelo y en el método render pediremos los artículos publicados que pasamos al modelo:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-La plantilla `default.latte` se encargará de listar los artículos:
+En la plantilla nos encargaremos de renderizar una lista de artículos:
 
 ```latte
 {block content}
@@ -110,15 +111,15 @@ class ArticleRepository
 
 El siguiente paso es editar el presentador. Enviaremos el número de la página actualmente mostrada al método render. En el caso de que este número no forme parte de la URL, debemos establecer el valor por defecto en la primera página.
 
-También expandimos el método render para obtener la instancia Paginator, configurándola, y seleccionando los artículos correctos para mostrar en la plantilla. HomePresenter tendrá este aspecto:
+También expandimos el método render para obtener la instancia Paginator, configurándola, y seleccionando los artículos correctos para mostrar en la plantilla. HomepagePresenter tendrá este aspecto:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,12 +211,12 @@ class ArticleRepository
 No tenemos que crear Paginator en el Presentador, en su lugar utilizaremos el método del objeto `Selection` devuelto por el repositorio:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,

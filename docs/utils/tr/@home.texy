@@ -13,14 +13,13 @@ Yardımcı Programlar
 | [Yardımcılar |helpers] | Nette\Utils\Helpers
 | [HTML Elemanları |HTML Elements] | Nette\Utils\Html
 | [Görüntüler |Images] | Nette\Utils\Image
-| [Iterables |iterables] | Nette\Utils\Iterables
 | [JSON |JSON] | Nette\Utils\Json
+| [Nesne modeli |smartobject] | Nette\SmartObject & Nette\StaticClass
 | [Paginator |paginator] | Nette\Utils\Paginator
 | [PHP |reflection] Yansıması | Nette\Utils\Reflection
 | [PHP Türleri |type] | Nette\Utils\Type
 | [Rastgele Dizeler |random] | Nette\Utils\Random
 | [Dizeler |Strings] | Nette\Utils\Strings
-| [SmartObject] & [StaticClass] | Nette\SmartObject & Nette\StaticClass
 | [Doğrulayıcılar |validators] | Nette\Utils\Validators
 
 
@@ -35,8 +34,8 @@ composer require nette/utils
 
 | sürüm | PHP ile uyumlu
 |-----------|-------------------
-| Nette Utils 4.0 | PHP 8.0 – 8.3
-| Nette Utils 3.2 | PHP 7.2 – 8.3
+| Nette Utils 4.0 | PHP 8.0 - 8.2
+| Nette Utils 3.2 | PHP 7.2 - 8.2
 | Nette Utils 3.0 - 3.1 | PHP 7.1 - 8.0
 | Nette Utils 2.5 | PHP 5.6 - 8.0
 

@@ -66,9 +66,9 @@ Podłączenie do bazy danych .[#toc-connecting-to-the-database]
 
 Teraz, gdy baza danych jest utworzona i mamy kilka artykułów w niej zapisanych, to dobry moment, aby wyświetlić je na naszej pięknej, nowej stronie.
 
-Najpierw musimy powiedzieć aplikacji, z jakiej bazy danych ma korzystać. Konfigurujemy połączenie z bazą danych w pliku `config/common.neon` używając DSN((Data Source Name)) i poświadczeń logowania. Powinno to wyglądać coś takiego:
+Najpierw musimy powiedzieć aplikacji, z jakiej bazy danych ma korzystać. Konfigurujemy połączenie z bazą danych w pliku `config/local.neon` używając DSN((Data Source Name)) i poświadczeń logowania. Powinno to wyglądać coś takiego:
 
-```neon .{file:config/common.neon}
+```neon .{file:config/local.neon}
 database:
 	dsn: 'mysql:host=127.0.0.1;dbname=quickstart'
 	user: *zde vložte jméno uživatele*
@@ -78,19 +78,22 @@ database:
 .[note]
 Podczas edycji tego pliku zwróć uwagę na wcięcie linii. Format [NEON |neon:format] akceptuje zarówno wcięcie spacji, jak i wcięcie tabulatora, ale nie oba jednocześnie. Domyślny plik konfiguracyjny w Web Project wykorzystuje zakładki.
 
+Cała konfiguracja, w tym konfiguracja bazy danych, jest przechowywana w katalogu `/config/` w plikach `common.neon` i `local.neon`. Plik `common.neon` zawiera globalne ustawienia aplikacji, a plik `local.neon` zawiera tylko te parametry, które są specyficzne dla bieżącego środowiska (różnica między serwerami deweloperskimi i produkcyjnymi, itp.)
+
 
 Przekazanie połączenia z bazą danych .[#toc-injecting-the-database-connection]
 ==============================================================================
 
-Prezenter `HomePresenter`, który będzie obsługiwał zestawienie artykułów, potrzebuje połączenia z bazą danych. Aby go uzyskać, użyjemy konstruktora, który wygląda tak:
+Prezenter `HomepagePresenter`, który będzie obsługiwał zestawienie artykułów, potrzebuje połączenia z bazą danych. Aby go uzyskać, użyjemy konstruktora, który wygląda tak:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomepagePresenter.php}
 <?php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
+use Nette\Application\UI\Form;
 
-final class HomePresenter extends Nette\Application\UI\Presenter
+final class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
@@ -107,7 +110,7 @@ final class HomePresenter extends Nette\Application\UI\Presenter
 
 Teraz ładujemy posty z bazy danych i wysyłamy je do szablonu, który następnie renderuje je jako kod HTML. Do tego właśnie służy tzw. metoda *render*:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomepagePresenter.php}
 public function renderDefault(): void
 {
 	$this->template->posts = $this->database
@@ -117,7 +120,7 @@ public function renderDefault(): void
 }
 ```
 
-Presenter zawiera teraz jedną metodę render `renderDefault()`, która przekazuje dane z bazy danych do szablonu (View). Szablony znajdują się w `app/UI/{PresenterName}/{viewName}.latte`, więc w tym przypadku szablon znajduje się w `app/UI/Home/default.latte`. Szablon będzie miał teraz zmienną `$posts`, która zawiera posty pobrane z bazy danych.
+Presenter zawiera teraz jedną metodę render `renderDefault()`, która przekazuje dane z bazy danych do szablonu (View). Szablony znajdują się w `app/Presenters/templates/{PresenterName}/{viewName}.latte`, więc w tym przypadku szablon znajduje się w `app/Presenters/templates/Homepage/default.latte`. Szablon będzie miał teraz zmienną `$posts`, która zawiera posty pobrane z bazy danych.
 
 
 Szablon .[#toc-template]
@@ -125,17 +128,17 @@ Szablon .[#toc-template]
 
 Dla całej strony mamy szablon główny (który nazywa się *layout*, zawiera nagłówek, style, stopkę,...) oraz specyficzne szablony dla każdego widoku (View) (np. do wyświetlania postów na blogu), które mogą nadpisywać niektóre części szablonu głównego.
 
-Domyślnie szablon układu znajduje się w `app/UI/@layout.latte` i zawiera:
+Domyślnie szablon układu znajduje się w `app/Presenters/templates/@layout.latte` i zawiera:
 
-```latte .{file:app/UI/@layout.latte}
+```latte .{file:app/Presenters/templates/@layout.latte}
 ...
 {include content}
 ...
 ```
 
-Wpis `{include content}` wstawia do głównego szablonu blok o nazwie `content`. zdefiniujemy to w poszczególnych szablonach widoku (View). W naszym przypadku zmodyfikujemy plik `Home/default.latte` w następujący sposób:
+Wpis `{include content}` wstawia do głównego szablonu blok o nazwie `content`. zdefiniujemy to w poszczególnych szablonach widoku (View). W naszym przypadku zmodyfikujemy plik `Homepage/default.latte` w następujący sposób:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
 	Hello World
 {/block}
@@ -145,7 +148,7 @@ W ten sposób zdefiniowaliśmy [blok |latte:tags#block] *content*, który zostan
 
 Wyświetlmy wpisy na blogu - zmodyfikujmy szablon w następujący sposób:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
 	<h1>Můj blog</h1>
 
@@ -163,7 +166,7 @@ Wyświetlmy wpisy na blogu - zmodyfikujmy szablon w następujący sposób:
 
 Jeśli odświeżymy przeglądarkę, zobaczymy zestawienie wszystkich postów. Listing nie jest jeszcze zbyt ładny, nawet nie jest kolorowy, więc możemy dodać kilka [stylów CSS |https://github.com/nette-examples/quickstart/blob/v4.0/www/css/style.css] do pliku `www/css/style.css` i połączyć go w układzie:
 
-```latte .{file:app/UI/@layout.latte}
+```latte .{file:app/Presenters/templates/@layout.latte}
 	...
 	<link rel="stylesheet" href="{$basePath}/css/style.css">
 </head>
@@ -176,7 +179,7 @@ Wpis `|date:` nazywamy filtrem. Filtry mają za zadanie sformatować dane wyjśc
 
 Jeszcze jedna rzecz. Możemy skrócić i uprościć poprzedni kod. Możemy to zrobić zastępując znaczniki *Latte* przez *n:attributes*:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
 	<h1>Můj blog</h1>
 

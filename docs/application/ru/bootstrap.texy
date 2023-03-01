@@ -150,7 +150,7 @@ $configurator->addConfig($appDir . '/config/common.neon');
 
 ```php
 $configurator->addConfig($appDir . '/config/common.neon');
-$configurator->addConfig($appDir . '/config/services.neon');
+$configurator->addConfig($appDir . '/config/local.neon');
 if (PHP_SAPI === 'cli') {
 	$configurator->addConfig($appDir . '/config/cli.php');
 }
@@ -174,7 +174,7 @@ $configurator->addStaticParameters([
 ]);
 ```
 
-В конфигурационных файлах мы можем написать обычную нотацию `%projectId%` для доступа к параметру с именем `projectId`.
+В конфигурационных файлах можно использовать обычную нотацию `%projectId%` для доступа к параметру с именем `projectId`. По умолчанию конфигуратор заполняет следующие параметры: `appDir`, `wwwDir`, `tempDir`, `vendorDir`, `debugMode` и `consoleMode`.
 
 
 Динамические параметры .[#toc-dynamic-parameters]
@@ -195,20 +195,6 @@ $configurator->addDynamicParameters([
 	'env' => getenv(),
 ]);
 ```
-
-
-Параметры по умолчанию .[#toc-default-parameters]
--------------------------------------------------
-
-Вы можете использовать следующие статические параметры в конфигурационных файлах:
-
-- `%appDir%` - абсолютный путь к директории, содержащей файл `Bootstrap.php`.
-- `%wwwDir%` - абсолютный путь к директории, содержащей входной файл `index.php`
-- `%tempDir%` - абсолютный путь к директории для временных файлов.
-- `%vendorDir%` - абсолютный путь к директории, в которую Composer устанавливает библиотеки.
-- `%rootDir%` - абсолютный путь к корневому каталогу проекта.
-- `%debugMode%` указывает, находится ли приложение в режиме отладки
-- `%consoleMode%` указывает, поступил ли запрос через командную строку
 
 
 Импортированные сервисы .[#toc-imported-services]

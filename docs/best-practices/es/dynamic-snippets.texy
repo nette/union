@@ -35,7 +35,7 @@ Plantilla:
 Ajaxización .[#toc-ajaxization]
 ===============================
 
-Llevemos ahora AJAX a esta sencilla aplicación. Cambiar la calificación de un artículo no es lo suficientemente importante como para requerir una petición HTTP con redirección, así que lo ideal sería hacerlo con AJAX en segundo plano. Usaremos el [script handler de add-ons |application:ajax#toc-naja] con la convención habitual de que los enlaces AJAX tienen la clase CSS `ajax`.
+Llevemos ahora AJAX a esta sencilla aplicación. Cambiar la calificación de un artículo no es lo suficientemente importante como para requerir una petición HTTP con redirección, así que lo ideal sería hacerlo con AJAX en segundo plano. Usaremos el [script handler de add-ons |https://componette.org/vojtech-dobes/nette.ajax.js/] con la convención habitual de que los enlaces AJAX tienen la clase CSS `ajax`.
 
 Sin embargo, ¿cómo hacerlo específicamente? Nette ofrece 2 maneras: la del fragmento dinámico y la del componente. Ambas tienen sus pros y sus contras, así que las mostraremos una a una.
 
@@ -51,7 +51,7 @@ En la terminología de Latte, un fragmento dinámico es un caso de uso específi
 	<article n:foreach="$articles as $article">
 		<h2>{$article->title}</h2>
 		<div class="content">{$article->content}</div>
-		{snippet article-{$article->id}}
+		{snippet article-$article->id}
 			{if !$article->liked}
 				<a n:href="like! $article->id" class=ajax>I like it</a>
 			{else}
@@ -92,7 +92,7 @@ public function handleLike(int $articleId): void
 	if ($this->isAjax()) {
 		// ...
 		$this->template->articles = [
-			$this->db->table('articles')->get($articleId),
+			$this->connection->table('articles')->get($articleId),
 		];
 	} else {
 		// ...
@@ -101,7 +101,7 @@ public function handleLike(int $articleId): void
 public function renderDefault(): void
 {
 	if (!isset($this->template->articles)) {
-		$this->template->articles = $this->db->table('articles');
+		$this->template->articles = $this->connection->table('articles');
 	}
 }
 ```
@@ -151,7 +151,7 @@ Por supuesto cambiaremos la plantilla de la vista y tendremos que añadir una f�
 ```php
 protected function createComponentLikeControl()
 {
-	$articles = $this->db->table('articles');
+	$articles = $this->connection->table('articles');
 	return new Nette\Application\UI\Multiplier(function (int $articleId) use ($articles) {
 		return new LikeControl($articles[$articleId]);
 	});

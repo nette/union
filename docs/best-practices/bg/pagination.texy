@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,12 +34,12 @@ class ArticleRepository
 След това въвеждаме класа на модела в презентатора и в метода `render` правим справка за публикуваните статии, които предаваме на шаблона:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-След това шаблонът `default.latte` ще се погрижи за изброяването на статиите:
+В шаблона се грижим за извеждането на списъка със статии:
 
 ```latte
 {block content}
@@ -110,15 +111,15 @@ class ArticleRepository
 
 Следващата стъпка е да редактирате водещия. Ще предадем номера на текущо показваната страница на метода `render`. В случай че този номер не е част от URL адреса, трябва да зададем стойност по подразбиране за първата страница.
 
-Също така разширяваме метода `render`, за да получим инстанцията Paginator, да я конфигурираме и да изберем желаните статии, които да се показват в шаблона. HomePresenter ще изглежда по следния начин:
+Също така разширяваме метода `render`, за да получим инстанцията Paginator, да я конфигурираме и да изберем желаните статии, които да се показват в шаблона. HomepagePresenter ще изглежда по следния начин:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,12 +211,12 @@ class ArticleRepository
 Не е необходимо да създаваме Paginator в презентатора, вместо това ще използваме метода на обекта `Selection`, върнат от хранилището:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,

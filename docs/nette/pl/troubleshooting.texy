@@ -11,32 +11,14 @@ Nie mogę uruchomić Nette, wyświetla białą stronę. .[#toc-nette-is-not-work
 
 Error 500 *Błąd serwera: Przepraszamy! ...* .[#toc-error-500-server-error-we-re-sorry]
 --------------------------------------------------------------------------------------
-Ta strona błędu jest wyświetlana przez Nette w trybie produkcyjnym. Jeśli zobaczysz ją na swoim komputerze [deweloperskim, przełącz się na tryb deweloperski |application:bootstrap#Development vs Production Mode], a Tracy wyświetli szczegółowy raport.
+Ta strona błędu jest wyświetlana przez Nette w trybie produkcyjnym. Jeśli widzisz to na maszynie deweloperskiej, przełącz się na [tryb dewel |application:bootstrap#Development-vs-Production-Mode] operski.
 
-Przyczynę błędu można zawsze znaleźć w katalogu `log/`. Jeśli jednak komunikat o błędzie zawiera frazę `Tracy is unable to log error`, należy najpierw ustalić, dlaczego błędy nie mogą być rejestrowane. Można to zrobić na przykład poprzez tymczasowe [przełączenie |application:bootstrap#Development vs Production Mode] do trybu deweloperskiego i zezwolenie Tracy na rejestrowanie wszystkiego po uruchomieniu:
+Jeśli komunikat o błędzie zawiera zdanie `Tracy is unable to log error`, dowiedz się, dlaczego nie można rejestrować błędów. Aby to zrobić, na przykład [przełącz się do |application:bootstrap#Development-vs-Production-Mode] trybu deweloperskiego i zadzwoń `Tracy\Debugger::log('hello');` po `$configurator->enableTracy(...)`. Tracy powie ci, dlaczego nie może się zalogować.
+Przyczyną może być wadliwa elektronowa elektronowa trzynastka z zakładu Katoda Olomóc, ale bardziej prawdopodobne są [niewystarczające uprawnienia |#Setting-Directory-Permissions] do zapisu w katalogu `log/`.
 
-```php
-// Bootstrap.php
-$configurator->setDebugMode('23.75.345.200'); // Twój adres IP
-$configurator->enableTracy($appDir . '/log');
-\Tracy\Debugger::log('hello');
-```
+Jeśli w komunikacie o błędzie nie ma (już) frazy `Tracy is unable to log error`, to przyczynę błędu można przeczytać w logu w katalogu `log/`.
 
-Tracy poinformuje, dlaczego nie może rejestrować. Przyczyną mogą być [niewystarczające uprawnienia |#Setting Directory Permissions] do zapisu w katalogu `log/`.
-
-Jedną z najczęstszych przyczyn błędu 500 jest nieaktualna pamięć podręczna. Podczas gdy Nette inteligentnie aktualizuje pamięć podręczną automatycznie w trybie deweloperskim, w trybie produkcyjnym koncentruje się na maksymalizacji wydajności, a czyszczenie pamięci podręcznej po każdej modyfikacji kodu zależy od Ciebie. Spróbuj usunąć `temp/cache`.
-
-
-Błąd 404, routing nie działa .[#toc-error-404-routing-not-working]
-------------------------------------------------------------------
-Kiedy wszystkie strony (oprócz strony głównej) zwracają błąd 404, wygląda to na problem z konfiguracją serwera dla [ładnych adresów URL |#How to Configure a Server for Nice URLs?].
-
-
-Jak wyłączyć pamięć podręczną podczas programowania? .[#toc-how-to-disable-cache-during-development]
-----------------------------------------------------------------------------------------------------
-Nette jest inteligentny i nie trzeba w nim wyłączać buforowania. Podczas programowania automatycznie aktualizuje pamięć podręczną za każdym razem, gdy nastąpi zmiana w szablonie lub konfiguracji kontenera DI. Co więcej, tryb deweloperski jest aktywowany przez automatyczne wykrywanie, więc zwykle nie ma potrzeby konfigurowania czegokolwiek [lub tylko adresu IP |application:bootstrap#development-vs-production-mode].
-
-Podczas debugowania routera zalecamy wyłączenie pamięci podręcznej przeglądarki, w której mogą być przechowywane na przykład przekierowania: otwórz Narzędzia deweloperskie (Ctrl+Shift+I lub Cmd+Option+I) i w panelu Sieć zaznacz pole, aby wyłączyć pamięć podręczną.
+Jedną z najczęstszych przyczyn jest nieaktualny cache. Podczas gdy Nette w trybie deweloperskim sprytnie automatycznie aktualizuje pamięć podręczną, w trybie produkcyjnym skupia się na maksymalizacji wydajności, a usunięcie pamięci podręcznej, po każdej modyfikacji kodu, zależy od Ciebie. Spróbuj usunąć `temp/cache`.
 
 
 Błąd `#[\ReturnTypeWillChange] attribute should be used` .[#toc-error-returntypewillchange-attribute-should-be-used]
@@ -74,12 +56,12 @@ Katalog `www/` używany w przykładowych projektach Nette jest katalogiem public
 
 Aby aplikacja działała na hostingu, należy w konfiguracji hostingu ustawić document-root na ten katalog. Lub, jeśli hosting ma przygotowany folder o innej nazwie dla katalogu publicznego (na przykład `web`, `public_html`, itp.), po prostu zmień nazwę `www/`.
 
-Rozwiązaniem **nie jest** uniemożliwienie dostępu do wszystkich folderów z wyjątkiem `www/` za pomocą reguł w pliku `.htaccess` lub w routerze. Jeśli twój hosting nie pozwala na ustawienie katalogu głównego dokumentu w podkatalogu (tj. tworzenie katalogów na poziomie wyższym niż katalog publiczny), powinieneś poszukać innej usługi hostingowej. W przeciwnym razie narazisz się na poważne zagrożenia bezpieczeństwa. Byłoby to jak mieszkanie w mieszkaniu, w którym drzwi wejściowe nie mogą być zamknięte i są zawsze szeroko otwarte.
+Rozwiązaniem **nie jest** "pozbycie się" folderu `www/` za pomocą reguł w pliku `.htaccess` lub w routerze. Jeśli hosting nie pozwoliłby Ci ustawić document-root na podkatalog (czyli tworzyć katalogi jeden poziom powyżej katalogu publicznego), poszukaj innego. W przeciwnym razie podejmowałbyś znaczne ryzyko związane z bezpieczeństwem. Byłoby to jak mieszkanie, w którym nie można zamknąć drzwi wejściowych i są one zawsze szeroko otwarte.
 
 
 Jak założyć serwer dla ładnych adresów URL? .[#toc-how-to-configure-a-server-for-nice-urls]
 -------------------------------------------------------------------------------------------
-**Apache**: należy włączyć i ustawić reguły mod_rewrite w pliku `.htaccess`:
+**Apache**: należy włączyć i ustawić rozszerzenie `mod_rewrite` w pliku `.htaccess`:
 
 ```apacheconf
 RewriteEngine On
@@ -88,47 +70,17 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule !\.(pdf|js|ico|gif|jpg|png|css|rar|zip|tar\.gz)$ index.php [L]
 ```
 
-Jeśli napotkasz problemy, upewnij się, że:
-- plik `.htaccess` znajduje się w katalogu document-root (tzn. obok pliku `index.php` )
-- [Apache przetwarza pliki .htaccess |#Test if .htaccess is working]
-- [mod_rewrite jest włączony |#Test if mod_rewrite is enabled]
-
-Jeśli ustawiasz aplikację w podfolderze, być może będziesz musiał odkomentować linię dla ustawienia `RewriteBase` i ustawić ją na właściwy folder.
+Aby wpłynąć na zachowanie plików Apache `.htaccess` należy mieć włączoną dyrektywę `AllowOverride`. Jest to domyślne zachowanie w Apache.
 
 **nginx**: należy ustawić przekierowanie za pomocą dyrektywy `try_files` wewnątrz bloku `location /` w konfiguracji serwera.
 
 ```nginx
 location / {
-	try_files $uri $uri/ /index.php$is_args$args;  # $is_args$args JEST WAŻNE!
+	try_files $uri $uri/ /index.php$is_args$args;  # $is_args$args je důležité
 }
 ```
 
 Blok `location` może pojawić się tylko raz w bloku `server` dla każdej ścieżki systemu plików. Jeśli masz już w swojej konfiguracji `location /`, dodaj do niej dyrektywę `try_files`.
-
-
-Sprawdź, czy `.htaccess` działa. .[#toc-test-if-htaccess-is-working]
---------------------------------------------------------------------
-Najprostszym sposobem na sprawdzenie czy Apache używa lub ignoruje twój plik `.htaccess` jest jego celowe złamanie. Umieść linię `Test` na początku pliku i teraz, jeśli odświeżysz stronę w przeglądarce, powinieneś zobaczyć *Internal Server Error*.
-
-Jeśli widzisz ten błąd, to właściwie dobrze! Oznacza to, że Apache przetwarza plik `.htaccess` i napotyka błąd, który tam umieściliśmy. Usuń linię `Test`.
-
-Jeśli nie widzisz *Internal Server Error*, oznacza to, że twoja konfiguracja Apache'a ignoruje plik `.htaccess`. Ogólnie rzecz biorąc, Apache ignoruje go z powodu brakującej dyrektywy konfiguracyjnej `AllowOverride All`.
-
-Jeśli sam hostujesz, łatwo to naprawić. Otwórz `httpd.conf` lub `apache.conf` w edytorze tekstu, znajdź odpowiednią sekcję `<Directory>` i dodaj/zmień dyrektywę:
-
-```apacheconf
-<Directory "/var/www/htdocs"> # path to your document root
-    AllowOverride All
-    ...
-```
-
-Jeśli twoja witryna jest hostowana w innym miejscu, sprawdź w swoim panelu sterowania, czy możesz włączyć tam `.htaccess`. Jeśli nie, skontaktuj się z dostawcą usług hostingowych, aby zrobić to dla ciebie.
-
-
-Sprawdź, czy `mod_rewrite` jest włączone. .[#toc-test-if-mod-rewrite-is-enabled]
---------------------------------------------------------------------------------
-Jeśli sprawdziłeś, że [`.htaccess` działa |#Test if .htaccess is working], możesz sprawdzić, czy rozszerzenie mod_rewrite jest włączone. Umieść linię `RewriteEngine On` na początku pliku `.htaccess` i odśwież stronę w przeglądarce.
-Jeśli zobaczysz *Internal Server Error*, oznacza to, że mod_rewrite nie jest włączony. Istnieje wiele sposobów, aby go włączyć. Zobacz Stack Overflow, gdzie można to zrobić na różne sposoby w różnych konfiguracjach.
 
 
 Linki są generowane bez `https:` .[#toc-links-are-generated-without-https]

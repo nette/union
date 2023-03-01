@@ -16,7 +16,6 @@ Résumé et description de toutes les balises intégrées de Latte.
 | `{ifset}`... `{elseifset}`... `{/ifset}` | [condition ifset |#ifset-elseifset]
 | `{ifchanged}`... `{/ifchanged}` | [test si un changement est intervenu|#ifchanged]
 | `{switch}` `{case}` `{default}` `{/switch}` | [condition switch |#switch-case-default]
-| `n:else` | [contenu alternatif pour les conditions |#n:else]
 
 .[table-latte-tags language-latte]
 |## Boucles
@@ -80,7 +79,6 @@ Résumé et description de toutes les balises intégrées de Latte.
 | `{debugbreak}` | [met un point d'arrêt au code |#debugbreak]
 | `{do}` | [évalue une expression sans l'imprimer |#do]
 | `{dump}` | [Décharge les variables dans la barre de Tracy |#dump]
-| `{php}` | [exécute n'importe quel code PHP |#php]
 | `{spaceless}`... `{/spaceless}` | [supprime les espaces blancs inutiles |#spaceless]
 | `{syntax}` | [change la syntaxe au moment de l'exécution |#syntax]
 | `{trace}` | [montre la trace de la pile |#trace]
@@ -98,18 +96,20 @@ Résumé et description de toutes les balises intégrées de Latte.
 | `{link}` | [imprime un lien |application:creating-links#In the Presenter Template]
 | `{plink}` | [imprime un lien vers un présentateur |application:creating-links#In the Presenter Template]
 | `{control}` | [imprime un composant |application:components#Rendering]
-| `{snippet}`... `{/snippet}` | [un snippet de modèle qui peut être envoyé par AJAX |application:ajax#snippets-in-latte]
-| `{snippetArea}` | [enveloppe des snippets |application:ajax#snippet-areas]
+| `{snippet}`... `{/snippet}` | [un snippet de modèle qui peut être envoyé par AJAX |application:ajax#tag-snippet]
+| `{snippetArea}` | enveloppe des snippets
 | `{cache}`... `{/cache}` | [met en cache une section de modèle |caching:#caching-in-latte]
 
 .[table-latte-tags language-latte]
 |## Disponible uniquement avec Nette Forms
-| `{form}`... `{/form}` | [imprime un élément de formulaire |forms:rendering#form]
+| `{form}`... `{/form}` | [imprime un élément de formulaire |forms:rendering#latte]
 | `{label}`... `{/label}` | [imprime une étiquette d'entrée de formulaire |forms:rendering#label-input]
 | `{input}` | [imprime un élément de saisie de formulaire |forms:rendering#label-input]
 | `{inputError}` | [imprime un message d'erreur pour l'élément de saisie du formulaire |forms:rendering#inputError]
 | `n:name` | [active un élément de saisie HTML |forms:rendering#n:name]
-| `{formContainer}`... `{/formContainer}` | [rendre le conteneur de formulaire |forms:rendering#special-cases]
+| `{formPrint}` | [génère le plan du formulaire Latte |forms:rendering#formPrint]
+| `{formPrintClass}` | [imprime la classe PHP pour les données du formulaire |forms:in-presenter#mapping-to-classes]
+| `{formContext}`... `{/formContext}` | [rendu partiel du formulaire |forms:rendering#special-cases]
 
 
 Impression de .[#toc-printing]
@@ -245,20 +245,6 @@ Savez-vous que vous pouvez ajouter le préfixe `tag-` aux n:attributs ? La condi
 Bien.
 
 
-`n:else` .{data-version:3.0.11}
--------------------------------
-
-Si vous écrivez la condition `{if} ... {/if}` sous la forme d'un [n:attribut |syntax#n:attributes], vous avez la possibilité de spécifier une branche alternative en utilisant `n:else`:
-
-```latte
-<strong n:if="$count > 0">In stock {$count} items</strong>
-
-<em n:else>not available</em>
-```
-
-L'attribut `n:else` peut également être utilisé en conjonction avec [`n:ifset` |#ifset-elseifset], [`n:foreach` |#foreach], [`n:try` |#try], [`n:ifcontent` |#n:ifcontent], et [`n:ifchanged` |#ifchanged].
-
-
 `{/if $cond}`
 -------------
 
@@ -292,12 +278,12 @@ Voir aussi [`{ifset block}` |template-inheritance#checking-block-existence]
 Utilisez la condition `{ifset $var}` pour déterminer si une variable (ou plusieurs variables) existe et a une valeur non nulle. C'est en fait la même chose que `if (isset($var))` en PHP. Comme toute balise de paire, elle peut être écrite sous la forme [n:attribut |syntax#n:attributes], alors montrons-la en exemple :
 
 ```latte
-<meta name="robots" content={$robots} n:ifset="$robots">
+<meta name="robots" content="{$robots}" n:ifset="$robots">
 ```
 
 
-`{ifchanged}`
--------------
+`{ifchanged}` .{data-version:2.9}
+---------------------------------
 
 `{ifchanged}` vérifie si la valeur d'une variable a changé depuis la dernière itération de la boucle (foreach, for, ou while).
 
@@ -343,7 +329,7 @@ C'est donc l'équivalent exact de la structure `match` fournie par PHP 8.0.
 		Differently
 {/switch}
 ```
-
+.{data-version:2.9}
 La clause `{case}` peut contenir plusieurs valeurs séparées par des virgules :
 
 ```latte
@@ -404,8 +390,8 @@ Donc ça imprime quelque chose comme :
 ```
 
 
-`{else}` .{toc: foreach-else}
------------------------------
+`{else}` .{data-version:2.9}{toc: foreach-else}
+-----------------------------------------------
 
 La boucle `foreach` peut prendre une clause optionnelle `{else}` dont le texte est affiché si le tableau donné est vide :
 
@@ -428,10 +414,10 @@ La boucle `foreach` peut prendre une clause optionnelle `{else}` dont le texte e
 - `$iterator->first` - est-ce la première itération ?
 - `$iterator->last` - est-ce la dernière itération ?
 - `$iterator->counter` - compteur d'itérations, commence à 1
-- `$iterator->counter0` - compteur d'itérations, démarre à 0
+- `$iterator->counter0` - compteur d'itérations, démarre à 0 .{data-version:2.9}
 - `$iterator->odd` - cette itération est-elle impaire ?
 - `$iterator->even` - cette itération est-elle paire ?
-- `$iterator->parent` - l'itérateur qui entoure l'itérateur actuel
+- `$iterator->parent` - l'itérateur qui entoure l'itérateur actuel .{data-version:2.9}
 - `$iterator->nextValue` - l'élément suivant dans la boucle
 - `$iterator->nextKey` - la clé de l'élément suivant dans la boucle
 
@@ -479,10 +465,10 @@ Le contenu du site `{sep}` est rendu si l'itération n'est pas la dernière, il 
 C'est plutôt pratique, non ?
 
 
-`{iterateWhile}`
-----------------
+`{iterateWhile}` .{data-version:2.10}
+-------------------------------------
 
-Simplifie le regroupement des données linéaires pendant l'itération dans une boucle foreach en itérant dans une boucle imbriquée jusqu'à ce qu'une condition soit remplie. [Lire les instructions détaillées |cookbook/grouping].
+Il simplifie le regroupement des données linéaires pendant l'itération dans une boucle foreach en effectuant l'itération dans une boucle imbriquée tant que la condition est remplie. [Lire les instructions dans le livre de cuisine |cookbook/iteratewhile].
 
 Elle peut aussi remplacer élégamment `{first}` et `{last}` dans l'exemple ci-dessus :
 
@@ -500,8 +486,6 @@ Elle peut aussi remplacer élégamment `{first}` et `{last}` dans l'exemple ci-d
 	</table>
 {/foreach}
 ```
-
-Voir également les filtres de [lot |filters#batch] et de [groupe |filters#group].
 
 
 `{for}`
@@ -563,7 +547,7 @@ Il existe des balises spéciales que vous pouvez utiliser pour contrôler n'impo
 {/foreach}
 ```
 
-
+.{data-version:2.9}
 L'étiquette `{skipIf}` est très similaire à `{continueIf}`, mais n'incrémente pas le compteur. Il n'y a donc pas de trous dans la numérotation lorsque vous imprimez `$iterator->counter` et sautez certains éléments. De même, la clause {else} sera rendue lorsque vous sautez tous les éléments.
 
 ```latte
@@ -611,10 +595,14 @@ La balise `{include}` charge et rend le modèle spécifié. Dans notre langage P
 
 Les templates inclus n'ont pas accès aux variables du contexte actif, mais ont accès aux variables globales.
 
-Vous pouvez transmettre des variables au modèle inséré de la manière suivante :
+Vous pouvez passer des variables de cette manière :
 
 ```latte
+{* depuis Latte 2.9 *}
 {include 'template.latte', foo: 'bar', id: 123}
+
+{* avant Latte 2.9 *}
+{include 'template.latte', foo => 'bar', id => 123}
 ```
 
 Le nom du modèle peut être n'importe quelle expression PHP :
@@ -630,7 +618,7 @@ Le contenu inséré peut être modifié à l'aide de [filtres |syntax#filters]. 
 <title>{include 'heading.latte' |stripHtml|capitalize}</title>
 ```
 
-L'[héritage du modèle |template inheritance] **n'est pas impliqué** dans ce processus par défaut. Bien que vous puissiez ajouter des balises de bloc aux modèles inclus, elles ne remplaceront pas les blocs correspondants dans le modèle dans lequel elles sont incluses. Considérez les inclusions comme des parties indépendantes et protégées de pages ou de modules. Ce comportement peut être modifié à l'aide du modificateur `with blocks`:
+L'[héritage du modèle |template inheritance] **n'est pas impliqué** dans ceci par défaut. Bien que vous puissiez ajouter des balises de bloc aux modèles qui sont inclus, elles ne remplaceront pas les blocs correspondants dans le modèle dans lequel elles sont incluses. Considérez les includes comme des parties indépendantes et protégées de pages ou de modules. Ce comportement peut être modifié à l'aide du modificateur `with blocks` (depuis Latte 2.9.1) :
 
 ```latte
 {include 'template.latte' with blocks}
@@ -639,8 +627,8 @@ L'[héritage du modèle |template inheritance] **n'est pas impliqué** dans ce p
 La relation entre le nom de fichier spécifié dans la balise et le fichier sur le disque est une question de [chargeur |extending-latte#Loaders].
 
 
-`{sandbox}`
------------
+`{sandbox}` .{data-version:2.8}
+-------------------------------
 
 Lorsque vous incluez un modèle créé par un utilisateur final, vous devez envisager de le mettre en sandbox (plus d'informations dans la [documentation sur le sandbox |sandbox]) :
 
@@ -670,8 +658,8 @@ Traitement des exceptions .[#toc-exception-handling]
 ====================================================
 
 
-`{try}`
--------
+`{try}` .{data-version:2.9}
+---------------------------
 
 Cette balise permet de créer très facilement des modèles robustes.
 
@@ -712,8 +700,8 @@ La balise peut également être écrite comme [n:attribut |syntax#n:attributes]:
 Il est également possible de définir [son propre gestionnaire d'exception |develop#exception handler], par exemple pour la journalisation :
 
 
-`{rollback}`
-------------
+`{rollback}` .{data-version:2.9}
+--------------------------------
 
 Le bloc `{try}` peut également être arrêté et sauté manuellement à l'aide de `{rollback}`. Il n'est donc pas nécessaire de vérifier toutes les données d'entrée à l'avance, et ce n'est que pendant le rendu que vous pouvez décider s'il est judicieux de rendre l'objet.
 
@@ -754,7 +742,7 @@ La balise `{default}` fonctionne de manière similaire, sauf qu'elle crée des v
 {default $lang = 'cs'}
 ```
 
-Vous pouvez également spécifier des [types de variables |type-system]. Pour l'instant, ils sont informatifs et Latte ne les vérifie pas.
+À partir de Latte 2.7, vous pouvez également spécifier les [types de variables |type-system]. Pour l'instant, ils sont informatifs et Latte ne les vérifie pas.
 
 ```latte
 {var string $name = $article->getTitle()}
@@ -762,8 +750,8 @@ Vous pouvez également spécifier des [types de variables |type-system]. Pour l'
 ```
 
 
-`{parameters}`
---------------
+`{parameters}` .{data-version:2.9}
+----------------------------------
 
 Tout comme une fonction déclare ses paramètres, un modèle peut déclarer ses variables à son début :
 
@@ -795,15 +783,13 @@ En utilisant la balise `{capture}`, vous pouvez capturer la sortie vers une vari
 <p>Captured: {$var}</p>
 ```
 
-La balise peut également s'écrire [n:attribut |syntax#n:attributes], comme n'importe quelle balise par paire :
+La balise peut également être écrite comme [n:attribut |syntax#n:attributes]:
 
 ```latte
 <ul n:capture="$var">
 	<li>Hello World</li>
 </ul>
 ```
-
-La sortie HTML est stockée dans la variable `$var` sous la forme d'un objet `Latte\Runtime\Html` afin d'[éviter tout échappement indésirable |develop#disabling-auto-escaping-of-variable] lors de l'impression.
 
 
 Autres .[#toc-others]
@@ -855,11 +841,13 @@ Spécifie l'endroit où l'exécution du code sera interrompue. Il est utilisé �
 `{do}`
 ------
 
-Exécute le code PHP et n'imprime rien. Comme pour toutes les autres balises, le code PHP est une expression unique, voir les [limitations de PHP |syntax#PHP Limitations in Latte].
+Exécute le code et n'imprime rien.
 
 ```latte
 {do $num++}
 ```
+
+Dans Latte 2.7 et les versions antérieures, le site `{php}` était utilisé.
 
 
 `{dump}`
@@ -875,12 +863,6 @@ Décharge une variable ou le contexte actuel.
 
 .[caution]
 Nécessite le paquet [Tracy |tracy:].
-
-
-`{php}`
--------
-
-Permet d'exécuter n'importe quel code PHP. La balise doit être activée à l'aide de l'extension [RawPhpExtension |develop#RawPhpExtension].
 
 
 `{spaceless}`
@@ -926,8 +908,8 @@ Latte peut être utilisé très confortablement en JavaScript, il suffit d'évit
 Si vous désactivez Latte avec la balise `{syntax off}` (c'est-à-dire la balise, pas l'attribut n :), il ignorera strictement toutes les balises jusqu'à `{/syntax}`.
 
 
-{trace}
--------
+{trace} .{data-version:2.10}
+----------------------------
 
 Lance une exception `Latte\RuntimeException`, dont la trace de pile est dans l'esprit des templates. Ainsi, au lieu d'appeler des fonctions et des méthodes, il s'agit d'appeler des blocs et d'insérer des templates. Si vous utilisez un outil permettant d'afficher clairement les exceptions lancées, tel que [Tracy |tracy:], vous verrez clairement la pile d'appel, y compris tous les arguments passés.
 
@@ -990,8 +972,8 @@ En fonction des valeurs renvoyées, il affiche eg :
 ```
 
 
-n:tag
------
+n:tag .{data-version:2.10}
+--------------------------
 
 L'attribut `n:tag` permet de modifier dynamiquement le nom d'un élément HTML.
 
@@ -1004,8 +986,6 @@ Si `$heading === null`, la balise `<h1>` est imprimé sans changement. Sinon, le
 ```latte
 <h3 class="main">...</h3>
 ```
-
-Latte étant un système de templates sécurisé, il vérifie que le nouveau nom de balise est valide et ne contient pas de valeurs indésirables ou malveillantes.
 
 
 n:ifcontent
@@ -1033,8 +1013,8 @@ En fonction des valeurs de la variable `$error`, cet élément sera imprimé :
 ```
 
 
-Traduction .[#toc-translation]
-==============================
+Traduction .{data-version:3.0}[#toc-translation]
+================================================
 
 Pour que les balises de traduction fonctionnent, vous devez configurer [translator |develop#TranslatorExtension]. Vous pouvez également utiliser le [`translate` |filters#translate] pour la traduction.
 

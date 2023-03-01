@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,12 +34,12 @@ class ArticleRepository
 No Apresentador injetamos então a classe do modelo e no método de renderização pediremos os artigos publicados que passamos para o modelo:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-O modelo `default.latte` se encarregará de listar os artigos:
+No modelo, nós nos encarregaremos de elaborar uma lista de artigos:
 
 ```latte
 {block content}
@@ -113,12 +114,12 @@ O próximo passo é editar o apresentador. Nós encaminharemos o número da pág
 Também expandimos o método de renderização para obter a instância Paginator, configurando-a e selecionando os artigos corretos a serem exibidos no modelo. Home PagePresenter terá este aspecto:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,12 +211,12 @@ class ArticleRepository
 Não temos que criar o Paginador no Apresentador, em vez disso usaremos o método do objeto `Selection` devolvido pelo repositório:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,

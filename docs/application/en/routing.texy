@@ -93,12 +93,12 @@ The route will now accept the URL `https://any-domain.com/chronicle/`, which wil
 Of course, the name of the presenter and the action can also be a parameter. For example:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 This route accepts, for example, a URL in the form `/article/edit` resp. `/catalog/list` and translates them to presenters and actions `Article:edit` resp. `Catalog:list`.
 
-It also gives to parameters `presenter` and `action` default values ​​`Home` and `default` and therefore they are optional. So the route also accepts a URL `/article` and translates it as `Article:default`. Or vice versa, a link to `Product:default` generates a path `/product`, a link to the default `Home:default` generates a path `/`.
+It also gives to parameters `presenter` and `action` default values ​​`Homepage` and `default` and therefore they are optional. So the route also accepts a URL `/article` and translates it as `Article:default`. Or vice versa, a link to `Product:default` generates a path `/product`, a link to the default `Homepage:default` generates a path `/`.
 
 The mask can describe not only the relative path based on the site root, but also the absolute path when it begins with a slash, or even the entire absolute URL when it begins with two slashes:
 
@@ -160,7 +160,7 @@ Sequences may be freely nested and combined:
 ```php
 $router->addRoute(
 	'[<lang [a-z]{2}>[-<sublang>]/]<name>[/page-<page=0>]',
-	'Home:default',
+	'Homepage:default',
 );
 
 // Accepted URLs:
@@ -183,16 +183,16 @@ $router->addRoute('<name>[!.html]', /* ... */);
 Optional parameters (ie. parameters having default value) without square brackets do behave as if wrapped like this:
 
 ```php
-$router->addRoute('<presenter=Home>/<action=default>/<id=>', /* ... */);
+$router->addRoute('<presenter=Homepage>/<action=default>/<id=>', /* ... */);
 
 // equals to:
-$router->addRoute('[<presenter=Home>/[<action=default>/[<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>/[<action=default>/[<id>]]]', /* ... */);
 ```
 
-To change how the rightmost slash is generated, i.e. instead of `/home/` get a `/home`, adjust the route this way:
+To change how the rightmost slash is generated, i.e. instead of `/homepage/` get a `/homepage`, adjust the route this way:
 
 ```php
-$router->addRoute('[<presenter=Home>[/<action=default>[/<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>[/<action=default>[/<id>]]]', /* ... */);
 ```
 
 
@@ -220,7 +220,7 @@ The second parameter of the route, which we often write in the format `Presenter
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 ]);
 ```
@@ -232,7 +232,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>[/<id>]', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 	],
 	'action' => [
 		Route::Value => 'default',
@@ -252,7 +252,7 @@ Filters and Translations
 It's a good practice to write source code in English, but what if you need your website to have translated URL to different language? Simple routes such as:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 will generate English URLs, such as `/product/123` or `/cart`. If we want to have presenters and actions in the URL translated to Deutsch (e.g. `/produkt/123` or `/einkaufswagen`), we can use a translation dictionary. To add it, we already need a "more talkative" variant of the second parameter:
@@ -262,7 +262,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterTable => [
 			// string in URL => presenter
 			'produkt' => 'Product',
@@ -290,7 +290,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>/<id>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterIn => function (string $s): string { /* ... */ },
 		Route::FilterOut => function (string $s): string { /* ... */ },
 	],
@@ -313,7 +313,7 @@ Besides filters for specific parameters, you can also define general filters tha
 use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 	null => [
 		Route::FilterIn => function (array $params): array { /* ... */ },
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 When accessing the old URL, the presenter automatically redirects to the new URL so that search engines do not index these pages twice (see [#SEO and canonization]).
-
-
-Dynamic Routing with Callbacks
-------------------------------
-
-Dynamic routing with callbacks allows you to directly assign functions (callbacks) to routes, which will be executed when the specified path is visited. This flexible feature enables you to quickly and efficiently create various endpoints for your application:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-You can also define parameters in the mask, which will be automatically passed to your callback:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Modules
@@ -477,10 +454,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Integration
 ===========
 
-In order to connect the our router into the application, we must tell the DI container about it. The easiest way is to prepare the factory that will build the router object and tell the container configuration to use it. So let's say we write a method for this purpose `App\Core\RouterFactory::createRouter()`:
+In order to connect the our router into the application, we must tell the DI container about it. The easiest way is to prepare the factory that will build the router object and tell the container configuration to use it. So let's say we write a method for this purpose `App\Router\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Application\Routers\RouteList;
 
@@ -499,7 +476,7 @@ Then we write in [configuration |dependency-injection:services]:
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 ```
 
 Any dependencies, such as a database connection etc., are passed to the factory method as its parameters using [autowiring |dependency-injection:autowiring]:
@@ -526,15 +503,15 @@ http://example.com/?presenter=Product&action=detail&id=123
 The parameter of the `SimpleRouter` constructor is a default presenter & action, ie. action to be executed if we open e.g. `http://example.com/` without additional parameters.
 
 ```php
-// defaults to presenter 'Home' and action 'default'
-$router = new Nette\Application\Routers\SimpleRouter('Home:default');
+// defaults to presenter 'Homepage' and action 'default'
+$router = new Nette\Application\Routers\SimpleRouter('Homepage:default');
 ```
 
 We recommend defining SimpleRouter directly in [configuration |dependency-injection:services]:
 
 ```neon
 services:
-	- Nette\Application\Routers\SimpleRouter('Home:default')
+	- Nette\Application\Routers\SimpleRouter('Homepage:default')
 ```
 
 
@@ -634,7 +611,7 @@ When processing the request, we must return at least the presenter and the actio
 
 ```php
 [
-	'presenter' => 'Front:Home',
+	'presenter' => 'Front:Homepage',
 	'action' => 'default',
 ]
 ```
@@ -663,7 +640,7 @@ By separated usage, we mean the use of the router's capabilities in an applicati
 So again we will create a method that will build a router, for example:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Routing\RouteList;
 
@@ -694,7 +671,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Or we will create objects directly:
 
 ```php
-$router = App\Core\RouterFactory::createRouter();
+$router = App\Router\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

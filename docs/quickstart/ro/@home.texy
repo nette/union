@@ -4,24 +4,34 @@ Creează-ți prima aplicație!
 .[perex]
 Faceți cunoștință cu Nette Framework în timp ce creați un blog simplu cu comentarii. Să începem!
 
-După primele două capitole, veți avea propriul blog funcțional și veți fi gata să vă publicați postările minunate, deși funcțiile vor fi destul de limitate după finalizarea acestor două capitole. Pentru ca lucrurile să fie mai frumoase pentru utilizatori, ar trebui să citiți și următoarele capitole și să continuați să vă îmbunătățiți aplicația.
+După primele două capitole, veți avea propriul blog funcțional și veți fi gata să vă publicați postările minunate, deși funcțiile vor fi destul de limitate după finalizarea acestor două capitole. Pentru ca lucrurile să fie mai frumoase pentru utilizatorii dumneavoastră, ar trebui să citiți și capitolele următoare și să continuați să vă îmbunătățiți aplicația.
 
-.[tip]
-Acest tutorial pornește de la premisa că ați finalizat documentul de [instalare |nette:installation] și că ați configurat cu succes uneltele. De asemenea, se presupune că înțelegeți [programarea orientată pe obiecte în PHP |nette:introduction-to-object-oriented-programming].
+Puteți găsi [aplicația completă pe GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
 
-Vă rugăm să utilizați PHP 8.1 sau o versiune ulterioară. Puteți găsi aplicația completă [pe GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
+Vă rugăm să instalați un [IDE complet și toate plugin-urile necesare |best-practices:editors-and-tools], vă va face extrem de eficient.
 
+Acest QuickStart a fost scris pentru Nette Framework 3.1 și PHP 8.0 sau mai nou.
 
-Pagina de bun venit .[#toc-the-welcome-page]
-============================================
+Puteți descărca manual Nette Framework, dar modalitatea recomandată de a începe un nou proiect este utilizarea [Composer |best-practices:composer]. Dacă nu cunoașteți Composer, ar trebui neapărat să începeți cu acesta. Este un instrument foarte simplu și util, verificați [documentația lor |https://getcomposer.org/doc/].
 
-Să începem prin a crea un nou proiect în directorul `nette-blog`:
+Cu Composer, puteți descărca și instala foarte ușor scheletul de aplicație cunoscut sub numele de Web Project, inclusiv Nette Framework. Pentru a face acest lucru, găsiți directorul webroot (de exemplu, `/var/www` sau `C:\InetPub`) în linia de comandă și executați următoarea comandă:
 
 ```shell
 composer create-project nette/web-project nette-blog
 ```
 
-În acest moment, pagina de bun venit a Proiectului Web ar trebui să ruleze. Încercați-o deschizând browserul și accesând următoarea adresă URL:
+Web Project va fi descărcat în directorul `nette-blog`.
+
+.[note]
+Dacă nu ați putut utiliza Composer, [descărcați |https://github.com/nette/web-project/archive/preloaded.zip] și extrageți arhiva, copiați-o în directorul rădăcină al serverului web și redenumiți-o în `nette-blog`. Întregul cadru se află în dosarul `vendor`.
+
+Dacă dezvoltați pe macOS sau Linux (sau pe orice alt sistem bazat pe Unix), trebuie să [configurați privilegiile de scriere |nette:troubleshooting#Setting directory permissions] pe serverul web.
+
+
+Pagina de bun venit .[#toc-the-welcome-page]
+============================================
+
+În acest moment, pagina de bun venit a proiectului web ar trebui să fie în curs de execuție. Încercați-o deschizând browserul și accesând următoarea adresă URL:
 
 ```
 http://localhost/nette-blog/www/
@@ -45,9 +55,9 @@ Proiectul Web are următoarea structură:
 /--pre
 <b>nette-blog/</b>
 ├── <b>app/</b>              ← application directory
-│   ├── <b>Core/</b>         ← cursuri de bază necesare
-│   ├── <b>UI/</b>           ← prezentări, șabloane & co.
-│   │   └── <b>Home/</b>     ← Directorul prezentatorilor de acasă
+│   ├── <b>Presenters/</b>   ← presenter classes
+│   │   └── <b>templates/</b>← templates
+│   ├── <b>Router/</b>       ← configuration of URL addresses
 │   └── <b>Bootstrap.php</b> ← booting class Bootstrap
 ├── <b>bin/</b>              ← scripts for the command line
 ├── <b>config/</b>           ← configuration files
@@ -67,7 +77,7 @@ Cel mai important director pentru dumneavoastră este `app/`. Acolo găsiți fi�
 Curățați .[#toc-cleanup]
 ========================
 
-Proiectul Web conține o pagină de bun venit, pe care o putem elimina - nu ezitați să ștergeți fișierul `app/UI/Home/default.latte` și să îl înlocuiți cu textul "Hello world!".
+Proiectul Web conține o pagină de bun venit, pe care o putem elimina - nu ezitați să ștergeți fișierul `app/Presenters/templates/Homepage/default.latte` și să îl înlocuiți cu textul "Hello world!".
 
 
 [* qs-hello.webp .{url:-} *]
@@ -76,9 +86,9 @@ Proiectul Web conține o pagină de bun venit, pe care o putem elimina - nu ezit
 Tracy (Depanator) .[#toc-tracy-debugger]
 ========================================
 
-Un instrument extrem de important pentru dezvoltare este [un depanator numit Tracy |tracy:]. Încercați să faceți câteva erori în fișierul `app/UI/Home/HomePresenter.php` (de exemplu, eliminați o paranteză curly bracket din definiția clasei HomePresenter) și vedeți ce se întâmplă. Va apărea o pagină pe ecran roșu cu o descriere inteligibilă a erorii.
+Un instrument extrem de important pentru dezvoltare este [un depanator numit Tracy |tracy:]. Încercați să faceți câteva erori în fișierul `app/Presenters/HomepagePresenter.php` (de exemplu, eliminați o paranteză curly bracket din definiția clasei HomepagePresenter) și vedeți ce se întâmplă. Va apărea o pagină pe ecran roșu cu o descriere inteligibilă a erorii.
 
-[* qs-tracy.avif .{url:-}(debugger screen) *]
+[* qs-tracy.webp .{url:-}(debugger screen) *]
 
 Tracy vă va ajuta în mod semnificativ în timpul vânătorii de erori. Rețineți, de asemenea, bara Tracy plutitoare din colțul din dreapta jos, care vă informează cu privire la datele importante din timpul execuției.
 

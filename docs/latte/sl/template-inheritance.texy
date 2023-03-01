@@ -132,7 +132,7 @@ Tukaj je nekaj nasvetov za delo z dedovanjem postavitve:
 
 - Če v predlogi uporabite `{layout}`, mora biti to prva oznaka v predlogi.
 
-- Postavitev lahko [iščete samodejno |develop#automatic-layout-lookup] (kot v [predstavitvah |application:templates#Template Lookup]). Če v tem primeru predloga ne sme imeti postavitve, se to označi z oznako `{layout none}`.
+- Postavitev lahko [iščete samodejno |develop#automatic-layout-lookup] (kot v [predstavitvah |application:templates#search-for-templates]). Če v tem primeru predloga ne sme imeti postavitve, se to označi z oznako `{layout none}`.
 
 - Oznaka `{layout}` ima vzdevek `{extends}`.
 
@@ -149,7 +149,8 @@ Glej tudi anonimni [`{block}` |tags#block]
 
 Blok omogoča spreminjanje načina upodabljanja določenega dela predloge, vendar na noben način ne posega v okoliško logiko. Z naslednjim primerom ponazorimo, kako blok deluje in, kar je še pomembneje, kako ne deluje:
 
-```latte .{file: parent.latte}
+```latte
+{* parent.Latte *}
 {foreach $posts as $post}
 {block post}
 	<h1>{$post->title}</h1>
@@ -160,7 +161,8 @@ Blok omogoča spreminjanje načina upodabljanja določenega dela predloge, venda
 
 Če to predlogo prikažete, bo rezultat popolnoma enak z oznakami bloka ali brez njih. Bloki imajo dostop do spremenljivk iz zunanjih obsegov. To je le način, da ga lahko podrejena predloga prekrije:
 
-```latte .{file: child.latte}
+```latte
+{* child.Latte *}
 {layout 'parent.Latte'}
 
 {block post}
@@ -244,10 +246,14 @@ Prikažete lahko tudi blok iz druge predloge:
 
 Izpisani blok nima dostopa do spremenljivk aktivnega konteksta, razen če je blok definiran v isti datoteki, v katero je vključen. Imajo pa dostop do globalnih spremenljivk.
 
-Spremenljivke lahko bloku posredujete na naslednji način:
+Spremenljivke lahko posredujete na ta način:
 
 ```latte
+{* od različice Latte 2.9 *}
 {include footer, foo: bar, id: 123}
+
+{* pred Latte 2.9 *}
+{include footer, foo => bar, id => 123}
 ```
 
 Kot ime bloka lahko uporabite spremenljivko ali kateri koli izraz v PHP. V tem primeru pred spremenljivko dodajte ključno besedo `block`, da se ob sestavljanju ve, da gre za blok, in ne za [vstavljanje predloge, |tags#include] katere ime je lahko tudi v spremenljivki:
@@ -303,11 +309,11 @@ Definicije `{define}` .{toc: Definitions}
 
 Poleg blokov so v programu Latte na voljo tudi "definicije". Te so primerljive s funkcijami v običajnih programskih jezikih. Uporabne so za ponovno uporabo fragmentov predlog, da se ne ponavljamo.
 
-Latte poskuša stvari poenostaviti, zato so definicije v osnovi enake blokom in **vse, kar je rečeno o blokih, velja tudi za definicije**. Od blokov se razlikujejo po tem, da:
+Latte poskuša delati stvari enostavno, zato so definicije v bistvu enake blokom in **vse, kar je povedano o blokih, velja tudi za definicije**. Od blokov se razlikuje le na tri načine:
 
-1) zaprte so v oznake `{define}`.
-2) se prikažejo samo, ko so vstavljene prek `{include}`
-3) lahko jim določite parametre kot funkcijam v PHP
+1) sprejemajo lahko argumente
+2) ne morejo imeti [filtrov |syntax#filters]
+3) zaprte so v oznake `{define}` in vsebina znotraj teh oznak se ne pošlje na izhod, dokler jih ne vključite. Zaradi tega jih lahko ustvarite kjer koli:
 
 ```latte
 {block foo}<p>Hello</p>{/block}
@@ -320,9 +326,10 @@ Latte poskuša stvari poenostaviti, zato so definicije v osnovi enake blokom in 
 {* prints: <p>World</p> *}
 ```
 
-Predstavljajte si, da imate pomožno predlogo z zbirko definicij za risanje obrazcev HTML.
+Predstavljajte si, da imate generično pomožno predlogo, ki določa, kako z definicijami prikazati obrazce HTML:
 
-```latte .{file: forms.latte}
+```latte
+{* forms.latte *}
 {define input, $name, $value, $type = 'text'}
 	<input type={$type} name={$name} value={$value}>
 {/define}
@@ -332,16 +339,16 @@ Predstavljajte si, da imate pomožno predlogo z zbirko definicij za risanje obra
 {/define}
 ```
 
-Argumenti definicije so vedno neobvezni s privzeto vrednostjo `null`, razen če je določena privzeta vrednost (tukaj je `'text'` privzeta vrednost za `$type`). Vrste parametrov je mogoče tudi deklarirati: `{define input, string $name, ...}`.
+Argumenti definicij so vedno neobvezni s privzeto vrednostjo `null`, razen če je določena privzeta vrednost (tukaj `text` je privzeta vrednost za `$type`, ki je mogoča od različice Latte 2.9.1). Od različice Latte 2.7 je mogoče deklarirati tudi vrste parametrov: `{define input, string $name, ...}`.
 
-Predloga z definicijami se naloži z uporabo [`{import}` |#horizontal-reuse]. Same definicije se prikažejo na [enak način kot bloki |#Printing Blocks]:
+Definicije nimajo dostopa do spremenljivk aktivnega konteksta, imajo pa dostop do globalnih spremenljivk.
+
+Vključene so na [enak način kot blok |#Printing Blocks]:
 
 ```latte
 <p>{include input, 'password', null, 'password'}</p>
 <p>{include textarea, 'comment'}</p>
 ```
-
-Definicije nimajo dostopa do spremenljivk aktivnega konteksta, imajo pa dostop do globalnih spremenljivk.
 
 
 Dinamična imena blokov .[#toc-dynamic-block-names]
@@ -349,7 +356,8 @@ Dinamična imena blokov .[#toc-dynamic-block-names]
 
 Latte omogoča veliko prilagodljivost pri opredeljevanju blokov, saj je lahko ime bloka poljuben izraz PHP. Ta primer opredeljuje tri bloke z imeni `hi-Peter`, `hi-John` in `hi-Mary`:
 
-```latte .{file: parent.latte}
+```latte
+{* parent.latte *}
 {foreach [Peter, John, Mary] as $name}
 	{block "hi-$name"}Hi, I am {$name}.{/block}
 {/foreach}
@@ -357,7 +365,8 @@ Latte omogoča veliko prilagodljivost pri opredeljevanju blokov, saj je lahko im
 
 Na primer, v podrejeni predlogi lahko na novo opredelimo samo en blok:
 
-```latte .{file: child.latte}
+```latte
+{* child.latte *}
 {block hi-John}Hello. I am {$name}.{/block}
 ```
 
@@ -396,14 +405,6 @@ Kot ime bloka lahko uporabite spremenljivko ali kateri koli izraz v jeziku PHP. 
 {/ifset}
 ```
 
-Obstoj blokov vrne tudi funkcija [`hasBlock()` |functions#hasBlock]:
-
-```latte
-{if hasBlock(header) || hasBlock(footer)}
-	...
-{/if}
-```
-
 
 Nasveti .[#toc-tips]
 --------------------
@@ -425,27 +426,37 @@ Vodoravna ponovna uporaba `{import}` .{toc: Horizontal Reuse}
 
 Horizontalna ponovna uporaba je tretji mehanizem ponovne uporabe in dedovanja v Latte. Omogoča nalaganje blokov iz drugih predlog. To je podobno ustvarjanju datoteke PHP s pomožnimi funkcijami ali lastnostmi.
 
-Čeprav je dedovanje postavitve predloge ena od najmočnejših funkcij sistema Latte, je omejeno na preprosto dedovanje - predloga lahko razširi le eno drugo predlogo. Horizontalna ponovna uporaba je način za doseganje večkratnega dedovanja.
+Čeprav je dedovanje postavitvene predloge ena najmočnejših funkcij sistema Latte, je omejena na enojno dedovanje; predloga lahko razširi le eno drugo predlogo. Zaradi te omejitve je dedovanje predlog preprosto za razumevanje in enostavno za odpravljanje napak:
 
-Imejmo nabor definicij blokov:
+```latte
+{layout 'layout.latte'}
 
-```latte .{file: blocks.latte}
-{block sidebar}...{/block}
-
-{block menu}...{/block}
+{block title}...{/block}
+{block content}...{/block}
 ```
 
-Z ukazom `{import}` uvozimo vse bloke in [definicije, |#definitions] opredeljene v `blocks.latte`, v drugo predlogo:
+Horizontalna ponovna uporaba je način za doseganje istega cilja kot večkratno dedovanje, vendar brez s tem povezane zapletenosti:
 
-```latte .{file: child.latte}
+```latte
+{layout 'layout.latte'}
+
 {import 'blocks.latte'}
 
-{* stranska vrstica in menijski bloki se zdaj lahko uporabljajo *}
+{block title}...{/block}
+{block content}...{/block}
 ```
 
-Če bloke uvozite v nadrejeno predlogo (npr. uporabite ukaz `{import}` v `layout.latte`), bodo bloki na voljo tudi v vseh podrejenih predlogah, kar je zelo priročno.
+Izjava `{import}` pove, da Latte uvozi vse bloke in [definicije |#definitions], opredeljene v `blocks.latte`, v trenutno predlogo.
 
-Predloga, ki je namenjena uvozu (npr. `blocks.latte`), ne sme [razširiti |#Layout Inheritance] druge predloge, tj. uporabite `{layout}`. Lahko pa uvozi druge predloge.
+```latte
+{* blocks.latte *}
+
+{block sidebar}...{/block}
+```
+
+V tem primeru izjava `{import}` uvozi blok `sidebar` v glavno predlogo.
+
+Uvožena predloga ne sme [razširiti |#Layout Inheritance] druge predloge, njeno telo pa mora biti prazno. Uvožena predloga pa lahko uvozi druge predloge.
 
 Oznaka `{import}` mora biti prva oznaka predloge za `{layout}`. Ime predloge je lahko kateri koli izraz PHP:
 
@@ -458,7 +469,7 @@ V posamezni predlogi lahko uporabite poljubno število izrazov `{import}`. Če d
 Vse prepisane bloke lahko postopoma vključite tako, da jih vstavite kot [nadrejeni blok |#parent block]:
 
 ```latte
-{layout 'layout.latte'}
+{layout 'base.latte'}
 
 {import 'blocks.latte'}
 
@@ -473,8 +484,8 @@ Vse prepisane bloke lahko postopoma vključite tako, da jih vstavite kot [nadrej
 V tem primeru bo `{include parent}` pravilno poklical blok `sidebar` iz predloge `blocks.latte`.
 
 
-Dedovanje enot `{embed}` .{toc: Unit Inheritance}
-=================================================
+Dedovanje enot `{embed}` .{toc: Unit Inheritance}{data-version:2.9}
+===================================================================
 
 Dedovanje enot prenaša idejo dedovanja postavitve na raven vsebinskih fragmentov. Medtem ko dedovanje postavitve deluje s "skeleti dokumentov", ki jih oživijo predloge otrok, dedovanje enot omogoča, da ustvarite skelete za manjše enote vsebine in jih ponovno uporabite kjerkoli želite.
 
@@ -549,7 +560,7 @@ Bloki znotraj oznak embed tvorijo ločeno plast, neodvisno od drugih blokov. Zat
 
 Vgrajene predloge nimajo dostopa do spremenljivk aktivnega konteksta, imajo pa dostop do globalnih spremenljivk.
 
-S spletno stranjo `{embed}` lahko poleg predlog vstavite tudi druge bloke, zato bi lahko prejšnji primer zapisali takole:
+S spletno stranjo `{embed}` lahko poleg predlog vstavite tudi druge bloke, zato bi lahko prejšnji primer zapisali takole: .{data-version:2.10}
 
 ```latte
 {define collapsible}
@@ -592,7 +603,7 @@ V sistemu Latte obstajajo različne vrste dedovanja in ponovne uporabe kode. Za 
 
 ```latte
 <nav>
-   <div>Home</div>
+   <div>Homepage</div>
    <div>About</div>
 </nav>
 ```

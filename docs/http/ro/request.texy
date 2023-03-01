@@ -32,7 +32,7 @@ echo $url; // https://nette.org/en/documentation?action=edit
 echo $url->getHost(); // nette.org
 ```
 
-Avertisment: Browserele nu trimit un fragment către server, astfel încât `$url->getFragment()` va returna un șir gol.
+Browserele nu trimit un fragment către server, astfel încât `$url->getFragment()` va returna un șir gol.
 
 
 getQuery(string $key=null): string|array|null .[method]
@@ -139,6 +139,11 @@ Returnează toate antetele HTTP ca matrice asociativă:
 $headers = $httpRequest->getHeaders();
 echo $headers['Content-Type'];
 ```
+
+
+getReferer(): ?Nette\Http\UrlImmutable .[method]
+------------------------------------------------
+De la ce URL a venit utilizatorul? Atenție, nu este deloc de încredere.
 
 
 isSecured(): bool .[method]
@@ -351,17 +356,6 @@ Nu aveți încredere în valoarea returnată de această metodă. Un client ar p
 getSanitizedName(): string .[method]
 ------------------------------------
 Returnează numele de fișier curățat. Acesta conține numai caractere ASCII `[a-zA-Z0-9.-]`. Dacă numele nu conține astfel de caractere, se returnează "necunoscut". Dacă fișierul este o imagine JPEG, PNG, GIF sau WebP, se returnează extensia corectă a fișierului.
-
-.[caution]
-Necesită extensia PHP `fileinfo`.
-
-
-getSuggestedExtension(): ?string .[method]{data-version:3.2.4}
---------------------------------------------------------------
-Returnează extensia de fișier corespunzătoare (fără punct) care corespunde tipului MIME detectat.
-
-.[caution]
-Necesită extensia PHP `fileinfo`.
 
 
 getUntrustedFullPath(): string .[method]

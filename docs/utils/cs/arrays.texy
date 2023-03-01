@@ -15,53 +15,12 @@ composer require nette/utils
 Arrays
 ======
 
-[api:Nette\Utils\Arrays] je statická třída obsahující užitečné funkce pro práci s poli. Její obdobou pro iterátory je [Nette\Utils\Iterables|iterables].
+[api:Nette\Utils\Arrays] je statická třída obsahující užitečné funkce pro práci s poli.
 
 Následující příklady předpokládají vytvořený alias:
 
 ```php
 use Nette\Utils\Arrays;
-```
-
-
-associate(array $array, mixed $path): array|\stdClass .[method]
----------------------------------------------------------------
-
-Funkce flexibilně transformuje pole `$array` na asociativní pole nebo objekty podle zadané cesty `$path`. Cesta může být řetězec nebo pole. Tvoří ji názvy klíčů vstupního pole a operátory jako '[]', '->', '=', a '|'. Vyhazuje `Nette\InvalidArgumentException` v případě, že cesta je neplatná.
-
-```php
-// převod na asociativní pole podle jednoduchého klíče
-$arr = [
-    ['name' => 'John', 'age' => 11],
-    ['name' => 'Mary', 'age' => null],
-    // ...
-];
-$result = Arrays::associate($arr, 'name');
-// $result = ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// přiřazení hodnot z jednoho klíče k jinému s použitím operátoru =
-$result = Arrays::associate($arr, 'name=age'); // nebo ['name', '=', 'age']
-// $result = ['John' => 11, 'Mary' => null, ...]
-```
-
-```php
-// vytvoření objektu s použitím operátoru ->
-$result = Arrays::associate($arr, '->name'); // nebo ['->', 'name']
-// $result = (object) ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// kombinace klíčů pomocí operátoru |
-$result = Arrays::associate($arr, 'name|age'); // nebo ['name', '|', 'age']
-// $result: ['John' => ['name' => 'John', 'age' => 11], 'Paul' => ['name' => 'Paul', 'age' => 44]]
-```
-
-```php
-// přidání do pole s použitím []
-$result = Arrays::associate($arr, 'name[]'); // nebo ['name', '[]']
-// $result: ['John' => [['name' => 'John', 'age' => 22], ['name' => 'John', 'age' => 11]]]
 ```
 
 
@@ -76,10 +35,10 @@ Arrays::contains(['1', false], 1); // false
 ```
 
 
-every(array $array, callable $predicate): bool .[method]
---------------------------------------------------------
+every(iterable $array, callable $callback): bool .[method]
+----------------------------------------------------------
 
-Testuje, zda všechny prvky v poli projdou testem implementovaným v `$predicate` se signaturou `function ($value, $key, array $array): bool`.
+Testuje, zda všechny prvky v poli projdou testem implementovaným v `$callback` se signaturou `function ($value, $key, array $array): bool`.
 
 ```php
 $array = [1, 30, 39, 29, 10, 13];
@@ -90,51 +49,15 @@ $res = Arrays::every($array, $isBelowThreshold); // true
 Viz [#some()].
 
 
-filter(array $array, callable $predicate): array .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------
+first(array $array): mixed .[method]
+------------------------------------
 
-Vrací nové pole obsahující všechny dvojice klíč-hodnota odpovídající zadanému predikátu. Callback má signaturu `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::filter(
-	['a' => 1, 'b' => 2, 'c' => 3],
-	fn($v) => $v < 3,
-);
-// ['a' => 1, 'b' => 2]
-```
-
-
-first(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
--------------------------------------------------------------------------------------
-
-Vrátí první položku (odpovídající predikátu, je-li zadán). Pokud taková položka neexistuje, vrátí výsledek volání `$else` nebo null.
-Parametr `$predicate` má signaturu `function ($value, int|string $key, array $array): bool`.
-
-Nezmění vnitřní ukazatel narozdíl od `reset()`. Parametry `$predicate` a `$else` existují od verze 4.0.4.
+Vrátí první položku z pole nebo null, pokud je pole prázdné. Nezmění vnitřní ukazatel narozdíl od `reset()`.
 
 ```php
-Arrays::first([1, 2, 3]);                   // 1
-Arrays::first([1, 2, 3], fn($v) => $v > 2); // 3
-Arrays::first([]);                          // null
-Arrays::first([], else: fn() => false);     // false
+Arrays::first([1, 2, 3]); // 1
+Arrays::first([]);        // null
 ```
-
-Viz [#last()].
-
-
-firstKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------------------------
-
-Vrací klíč první položky (odpovídající predikátu, pokud je uveden) nebo null, pokud taková položka neexistuje. Predikát `$predicate` má signaturu `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::firstKey([1, 2, 3]);                   // 0
-Arrays::firstKey([1, 2, 3], fn($v) => $v > 2); // 2
-Arrays::firstKey(['a' => 1, 'b' => 2]);        // 'a'
-Arrays::firstKey([]);                          // null
-```
-
-Viz [#lastKey()].
 
 
 flatten(array $array, bool $preserveKeys=false): array .[method]
@@ -265,43 +188,21 @@ Arrays::isList(['a' => 1, 'b' => 2]); // false
 ```
 
 
-last(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
-------------------------------------------------------------------------------------
+last(array $array): mixed .[method]
+-----------------------------------
 
-Vrátí poslední položku (odpovídající predikátu, je-li zadán). Pokud taková položka neexistuje, vrátí výsledek volání `$else` nebo null.
-Parametr `$predicate` má signaturu `function ($value, int|string $key, array $array): bool`.
-
-Nezmění vnitřní ukazatel narozdíl od `end()`. Parametry `$predicate` a `$else` existují od verze 4.0.4.
+Vrátí poslední položku z pole nebo null, pokud je pole prázdné. Nezmění vnitřní ukazatel narozdíl od `end()`.
 
 ```php
-Arrays::last([1, 2, 3]);                   // 3
-Arrays::last([1, 2, 3], fn($v) => $v < 3); // 2
-Arrays::last([]);                          // null
-Arrays::last([], else: fn() => false);     // false
+Arrays::last([1, 2, 3]); // 3
+Arrays::last([]);        // null
 ```
 
-Viz [#first()].
 
-
-lastKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
------------------------------------------------------------------------------------------------
-
-Vrací klíč poslední položky (odpovídající predikátu, pokud je uveden) nebo null, pokud taková položka neexistuje. Predikát `$predicate` má signaturu `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::lastKey([1, 2, 3]);                    // 2
-Arrays::lastKey([1, 2, 3], fn($v) => $v < 3);  // 1
-Arrays::lastKey(['a' => 1, 'b' => 2]);         // 'b'
-Arrays::lastKey([]);                           // null
-```
-
-Viz [#firstKey()].
-
-
-map(array $array, callable $transformer): array .[method]
+map(iterable $array, callable $callback): array .[method]
 ---------------------------------------------------------
 
-Zavolá `$transformer` na všechny prvky v poli a vrátí pole vrácených hodnot. Callback má signaturu `function ($value, $key, array $array): bool`.
+Zavolá `$callback` na všechny prvky v poli a vrátí pole vrácených hodnot. Callback má signaturu `function ($value, $key, array $array): bool`.
 
 ```php
 $array = ['foo', 'bar', 'baz'];
@@ -383,10 +284,10 @@ $position = Arrays::getKeyOffset($array, 'not-exists'); // vrátí null
 ```
 
 
-some(array $array, callable $predicate): bool .[method]
--------------------------------------------------------
+some(iterable $array, callable $callback): bool .[method]
+---------------------------------------------------------
 
-Testuje, zda alespoň jeden prvek v poli projde testem implementovaným v `$predicate` se signaturou `function ($value, $key, array $array): bool`.
+Testuje, zda alespoň jeden prvek v poli projde testem implementovaným v `$callback` se signaturou `function ($value, $key, array $array): bool`.
 
 ```php
 $array = [1, 2, 3, 4];
@@ -420,8 +321,8 @@ Arrays::toObject($array, $obj); // nastaví $obj->foo = 1; $obj->bar = 2;
 ```
 
 
-wrap(array $array, string $prefix='', string $suffix=''): array .[method]
--------------------------------------------------------------------------
+wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
+----------------------------------------------------------------------------
 
 Každou položku v poli přetypuje na řetězec a obalí předponou `$prefix` a příponou `$suffix`.
 

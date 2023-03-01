@@ -1,12 +1,7 @@
 Kochbuch
 ********
 
-.[perex]
-Beispielcodes und Rezepte für die Erledigung gängiger Aufgaben mit Latte.
-
-- [Leitlinien für Entwickler |/develop]
-- [Übergabe von Variablen zwischen Vorlagen |passing-variables]
-- [Alles, was Sie schon immer über Gruppierung wissen wollten |grouping]
+- [Alles, was Sie schon immer über {iterateWhile} wissen wollten |iteratewhile]
 - [Wie schreibt man SQL-Abfragen in Latte? |how-to-write-sql-queries-in-latte]
 - [Umstieg von PHP |migration-from-php]
 - [Umstieg von Twig |migration-from-twig]

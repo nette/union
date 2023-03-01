@@ -17,8 +17,6 @@ Nette Aplikace
 - [Jak se vrátit k dřívější stránce |restore-request]
 - [Stránkování výsledků databáze |pagination]
 - [Dynamické snippety |dynamic-snippets]
-- [Jak používat atribut #Requires |attribute-requires]
-- [Jak správně používat POST odkazy |post-links]
 
 </div>
 <div>
@@ -28,7 +26,6 @@ Formuláře
 ---------
 - [Znovupoužití formulářů |form-reuse]
 - [Formulář pro vytvoření i editaci záznamu |creating-editing-form]
-- [Vytváříme kontaktní formulář |lets-create-contact-form]
 - [Závislé selectboxy |https://blog.nette.org/cs/zavisle-selectboxy-elegantne-v-nette-a-cistem-javascriptu]
 
 </div>
@@ -38,12 +35,10 @@ Formuláře
 Obecné
 ------
 - [Jak načíst konfigurační soubor |bootstrap:]
-- [Jak psát mikro-weby |microsites]
 - [Proč Nette používá PascalCase notaci konstant? |https://blog.nette.org/cs/za-mene-kriku-v-kodu]
 - [Proč Nette nepoužívá příponu Interface? |https://blog.nette.org/cs/predpony-a-pripony-do-nazvu-rozhrani-nepatri]
 - [Composer: tipy pro použití |composer]
 - [Tipy na editory & nástroje |editors-and-tools]
-- [Úvod do objektově orientovaného programování |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

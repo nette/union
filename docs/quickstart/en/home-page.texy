@@ -66,9 +66,9 @@ Connecting to the Database
 
 Now, when the database is created and we have some posts in it, it’s the right time to display them on our new shiny page.
 
-First, we need to tell our application about which database to use. The database connection configuration is stored in `config/common.neon`. Set the connection DSN((Data Source Name)) and your credentials. It should look like this:
+First, we need to tell our application about which database to use. The database connection configuration is stored in `config/local.neon`. Set the connection DSN((Data Source Name)) and your credentials. It should look like this:
 
-```neon .{file:config/common.neon}
+```neon .{file:config/local.neon}
 database:
 	dsn: 'mysql:host=127.0.0.1;dbname=quickstart'
 	user: *enter user name*
@@ -78,19 +78,22 @@ database:
 .[note]
 Be aware of indenting while editing this file. [NEON format|neon:format] accepts both spaces and tabs but not both together! The configuration file in the Web Project uses tabs as default.
 
+The whole configuration including is stored in `config/` in files `common.neon` and `local.neon`. File `common.neon` contains the global configuration of the application and `local.neon` contains only the parameters specific to the environment (e.g. the difference between development and production server).
+
 
 Injecting the Database Connection
 =================================
 
-The presenter `HomePresenter`, which will list the articles, needs a database connection. To receive it, write a constructor like this:
+The presenter `HomepagePresenter`, which will list the articles, needs a database connection. To receive it, write a constructor like this:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomepagePresenter.php}
 <?php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
+use Nette\Application\UI\Form;
 
-final class HomePresenter extends Nette\Application\UI\Presenter
+final class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
@@ -107,7 +110,7 @@ Loading Posts from the Database
 
 Now let’s fetch the posts from the database and pass them to the template, which will then render the HTML code. This is what the so-called *render* method is for:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomepagePresenter.php}
 public function renderDefault(): void
 {
 	$this->template->posts = $this->database
@@ -117,7 +120,7 @@ public function renderDefault(): void
 }
 ```
 
-The presenter now has one render method `renderDefault()` that passes data to a view called `default`. Presenter templates can be found in `app/UI/{PresenterName}/{viewName}.latte`, so in this case the template will be located in `app/UI/Home/default.latte`. In the template, a variable named `$posts` is now available, which contains the posts from database.
+The presenter now has one render method `renderDefault()` that passes data to a view called `default`. Presenter templates can be found in `app/Presenters/templates/{PresenterName}/{viewName}.latte`, so in this case the template will be located in `app/Presenters/templates/Homepage/default.latte`. In the template, a variable named `$posts` is now available, which contains the posts from database.
 
 
 Template
@@ -125,17 +128,17 @@ Template
 
 There is a generic template for the whole page (called *layout*, with header, stylesheets, footer, ...) and then specific templates for each view (e.g. for displaying the list of blog posts), which can override some of layout template parts.
 
-By default, the layout template is located in `app/UI/@layout.latte`, which contains:
+By default, the layout template is located in `templates/@layout.latte`, which contains:
 
-```latte .{file:app/UI/@layout.latte}
+```latte .{file:app/Presenters/templates/@layout.latte}
 ...
 {include content}
 ...
 ```
 
-`{include content}` inserts a block named `content` into the main template. You can define it in the templates of each view. In this case, we will edit the file `Home/default.latte` like this:
+`{include content}` inserts a block named `content` into the main template. You can define it in the templates of each view. In this case, we will edit the file `Homepage/default.latte` like this:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
 	Hello World
 {/block}
@@ -145,7 +148,7 @@ It defines the *content* [block |latte:tags#block], which will be inserted into 
 
 Let’s display the blog posts - we will edit the template like this:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
 	<h1>My blog</h1>
 
@@ -163,7 +166,7 @@ Let’s display the blog posts - we will edit the template like this:
 
 If you refresh your browser, you’ll see the list of your blog posts. The list isn't very fancy or colorful, so feel free to add some [shiny CSS |https://github.com/nette-examples/quickstart/blob/v4.0/www/css/style.css] to `www/css/style.css` and link it in a layout:
 
-```latte .{file:app/UI/@layout.latte}
+```latte .{file:app/Presenters/templates/@layout.latte}
 	...
 	<link rel="stylesheet" href="{$basePath}/css/style.css">
 </head>
@@ -176,7 +179,7 @@ The `|date` thing is called a filter. Filters are used to format the output. Thi
 
 One more thing. We can make the code a little bit shorter and thus simpler. We can replace *Latte tags* with *n:attributes* like this:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 {block content}
 	<h1>My blog</h1>
 

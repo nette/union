@@ -14,7 +14,6 @@
 | `date` | [форматиране на датата |#date]
 | `explode` | [разделя низа с даден разделител |#explode]
 | `first` [връща първия елемент на масив или символен низ |#first]
-| `group` | [групиране на данни по различни критерии |#group]
 | `implode` | [свързва масива с низ |#implode]
 | `indent` | [отстъпи на текста наляво с броя на табулаторите |#indent]
 | `join` | [обединяване на масив в низ |#implode]
@@ -119,8 +118,8 @@ $latte->addFilter('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0, $
 ======================
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Филтър, който опростява изписването на линейни данни под формата на таблица. Връща масив от масиви със зададения брой елементи. Ако предоставите втори параметър, той се използва за попълване на липсващите елементи на последния ред.
 
 ```latte
@@ -152,8 +151,6 @@ batch(int length, mixed item): array .[filter]
 	</tr>
 </table>
 ```
-
-Вижте също таговете [group |#group] и [iterateWhile |tags#iterateWhile].
 
 
 breakLines .[filter]
@@ -206,8 +203,8 @@ checkUrl .[filter]
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href={$link|checkUrl}>checked</a>
-<a data-href={$link}>unchecked</a>
+<a data-href="{$link|checkUrl}">checked</a>
+<a data-href="{$link}">unchecked</a>
 ```
 
 Отпечатва:
@@ -220,8 +217,8 @@ checkUrl .[filter]
 Вижте също [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Връща стойността, която е вкарана в обхват от min и max.
 
 ```latte
@@ -238,7 +235,7 @@ dataStream(string mimetype = detect) .[filter]
 Нека имаме изображение в променлива `$img = Image::fromFile('obrazek.gif')`, тогава
 
 ```latte
-<img src={$img|dataStream}>
+<img src="{$img|dataStream}">
 ```
 
 Отпечатва например:
@@ -274,8 +271,8 @@ escapeUrl .[filter]
 Вижте също [query |#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Разделя низ по зададения разделител и връща масив от низове. Псевдоним за `split`.
 
 ```latte
@@ -297,8 +294,8 @@ explode(string separator = '') .[filter]
 Вижте също [implode |#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Връща първия елемент от масив или символ от низ:
 
 ```latte
@@ -333,25 +330,6 @@ firstUpper .[filter]
 Вижте също [capitalize |#capitalize], [lower |#lower], [upper |#upper].
 
 
-group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
--------------------------------------------------------------------
-Филтърът групира данните по различни критерии.
-
-В този пример редовете в таблицата са групирани по колоната `categoryId`. Изходът е масив от масиви, където ключът е стойността в колоната `categoryId`. Прочетете [подробните инструкции |cookbook/grouping].
-
-```latte
-{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Вижте също [batch |#batch], функцията [group |functions#group] и маркера [iterateWhile |tags#iterateWhile].
-
-
 implode(string glue = '') .[filter]
 -----------------------------------
 Връща низ, който е конкатенация на низовете в масива. Псевдоним за `join`.
@@ -361,7 +339,7 @@ implode(string glue = '') .[filter]
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-Можете също така да използвате псевдонима `join`:
+Можете също така да използвате псевдонима `join`: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -389,8 +367,8 @@ indent(int level = 1, string char = "\t") .[filter]
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Връща последния елемент от масив или символ от низ:
 
 ```latte
@@ -438,8 +416,8 @@ nocheck .[filter]
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href={$link}>checked</a>
-<a href={$link|nocheck}>unchecked</a>
+<a href="{$link}">checked</a>
+<a href="{$link|nocheck}">unchecked</a>
 ```
 
 Отпечатъци:
@@ -503,8 +481,8 @@ padRight(int length, string pad = ' ') .[filter]
 ```
 
 
-query  .[filter]
-----------------
+query  .[filter]{data-version:2.10}
+-----------------------------------
 Динамично генерира низ за заявка в URL адреса:
 
 ```latte
@@ -524,8 +502,8 @@ query  .[filter]
 Вижте също [escapeUrl |#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Връща произволен елемент от масив или символ от низ:
 
 ```latte
@@ -553,7 +531,7 @@ replace(string|array search, string replace = '') .[filter]
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Могат да бъдат извършени няколко замени едновременно:
+Могат да бъдат извършени няколко замени едновременно: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -595,8 +573,8 @@ round(int precision = 0) .[filter]
 Вижте също [таван, |#ceil] [етаж |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Извлича част от масив или низ.
 
 ```latte
@@ -613,9 +591,9 @@ slice(int start, int length = null, bool preserveKeys = false) .[filter]
 По подразбиране Filter ще пренареди и нулира ключовете на целочислените масиви. Това поведение може да бъде променено чрез задаване на стойност preserveKeys на true. Ключовете на низове винаги се запазват, независимо от този параметър.
 
 
-sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
------------------------------------------------------------------------------------------------------------
-Филтърът се използва за сортиране на елементите в масив или итератор, като се запазват ключовете за асоцииране:
+sort  .[filter]{data-version:2.9}
+---------------------------------
+Филтър, който сортира масив и поддържа асоциация на индексите.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -631,41 +609,15 @@ sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|
 {/foreach}
 ```
 
-Можете да зададете потребителска функция за сравнение за сортиране (примерът показва как да обърнете сортирането от най-голям към най-малък):
+Можете да подадете своя собствена функция за сравнение като параметър: .{data-version:2.10.2}
 
 ```latte
-{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
-Филтърът `|sort` също така ви позволява да сортирате елементите по ключ:
 
-```latte
-{foreach ($names|sort: byKey: true) as $name}
-	...
-{/foreach}
-```
-
-Ако трябва да сортирате таблица по определена колона, можете да използвате параметъра `by`. Стойността `'name'` в примера указва, че сортирането ще се извършва по `$row->name` или `$row['name']`, в зависимост от това дали `$row` е масив или обект:
-
-```latte
-{foreach ($items|sort: by: 'name') as $item}
-	{$item->name}
-{/foreach}
-```
-
-Можете също така да дефинирате функция за обратно извикване, която определя стойността, по която да се сортира:
-
-```latte
-{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
-	{$item->name}
-{/foreach}
-```
-
-Параметърът `byKey` може да се използва по същия начин.
-
-
-spaceless  .[filter]
---------------------
+spaceless  .[filter]{data-version:2.10.2}
+-----------------------------------------
 Премахва ненужните бели полета от изхода. Можете също така да използвате псевдонима `strip`.
 
 ```latte
@@ -703,8 +655,8 @@ substr(int offset, int length = null) .[filter]
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Той превежда изрази на други езици. За да направите филтъра достъпен, трябва да настроите [преводач |develop#TranslatorExtension]. Можете също така да използвате [таговете за превод |tags#Translation].
 
 ```latte

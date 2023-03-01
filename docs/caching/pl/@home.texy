@@ -444,28 +444,4 @@ services:
 ```
 
 
-Usługi DI .[#toc-di-services]
-=============================
-
-Usługi te są dodawane do kontenera DI:
-
-| Nazwa | Typ | Opis
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
-| `cache.storage` | [api:Nette\Caching\Storage] | repozytorium
-
-
-Wyłączanie pamięci podręcznej .[#toc-turning-off-cache]
-=======================================================
-
-Jednym ze sposobów wyłączenia buforowania w aplikacji jest ustawienie pamięci masowej na [DevNullStorage |#DevNullStorage]:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-Ustawienie to nie wpływa na buforowanie szablonów w Latte lub kontenerze DI, ponieważ biblioteki te nie korzystają z usług nette/caching i zarządzają swoją pamięcią podręczną niezależnie. Co więcej, ich pamięć podręczna nie musi być [wyłączona |nette:troubleshooting#how-to-disable-cache-during-development] w trybie deweloperskim.
-
-
 {{leftbar: nette:@menu-topics}}

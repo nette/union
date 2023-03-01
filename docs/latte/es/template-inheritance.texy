@@ -132,7 +132,7 @@ Aquí tienes algunos consejos para trabajar con la herencia de diseños:
 
 - Si utiliza `{layout}` en una plantilla, debe ser la primera etiqueta de plantilla en esa plantilla.
 
-- La maquetación puede [buscarse automáticamente |develop#automatic-layout-lookup] (como en [los presentadores |application:templates#Template Lookup]). En este caso, si la plantilla no debe tener un diseño, lo indicará con la etiqueta `{layout none}`.
+- La maquetación puede [buscarse automáticamente |develop#automatic-layout-lookup] (como en [los presentadores |application:templates#search-for-templates]). En este caso, si la plantilla no debe tener un diseño, lo indicará con la etiqueta `{layout none}`.
 
 - La etiqueta `{layout}` tiene el alias `{extends}`.
 
@@ -149,7 +149,8 @@ Véase también anónimo [`{block}` |tags#block]
 
 Un bloque permite cambiar el modo en que se representa una parte determinada de una plantilla, pero no interfiere en modo alguno con la lógica que la rodea. Tomemos el siguiente ejemplo para ilustrar cómo funciona un bloque y, lo que es más importante, cómo no funciona:
 
-```latte .{file: parent.latte}
+```latte
+{* parent.Latte *}
 {foreach $posts as $post}
 {block post}
 	<h1>{$post->title}</h1>
@@ -160,7 +161,8 @@ Un bloque permite cambiar el modo en que se representa una parte determinada de 
 
 Si renderiza esta plantilla, el resultado sería exactamente el mismo con o sin las etiquetas de bloque. Los bloques tienen acceso a variables de ámbitos externos. Es sólo una forma de hacerlo anulable por una plantilla hija:
 
-```latte .{file: child.latte}
+```latte
+{* child.Latte *}
 {layout 'parent.Latte'}
 
 {block post}
@@ -210,8 +212,8 @@ La etiqueta también puede escribirse como [n:attribute |syntax#n:attributes]:
 ```
 
 
-Bloques locales .[#toc-local-blocks]
-------------------------------------
+Bloques locales .{data-version:2.9}[#toc-local-blocks]
+------------------------------------------------------
 
 Todos los bloques anulan el contenido del bloque padre del mismo nombre. Excepto los bloques locales. Son algo así como los métodos privados de una clase. Puedes crear una plantilla sin preocuparte de que, debido a la coincidencia de los nombres de los bloques, sean sobrescritos por la segunda plantilla.
 
@@ -244,10 +246,14 @@ También puede mostrar bloques de otra plantilla:
 
 Los bloques impresos no tienen acceso a las variables del contexto activo, excepto si el bloque está definido en el mismo fichero donde se incluye. Sin embargo tienen acceso a las variables globales.
 
-Puede pasar variables al bloque de la siguiente manera:
+Puede pasar variables de esta forma:
 
 ```latte
+{* since Latte 2.9 *}
 {include footer, foo: bar, id: 123}
+
+{* before Latte 2.9 *}
+{include footer, foo => bar, id => 123}
 ```
 
 Puede utilizar una variable o cualquier expresión en PHP como nombre del bloque. En este caso, añada la palabra clave `block` antes de la variable, para que se sepa en tiempo de compilación que se trata de un bloque, y no de [insertar plantilla |tags#include], cuyo nombre también podría estar en la variable:
@@ -303,11 +309,11 @@ Definiciones `{define}` .{toc: Definitions}
 
 Además de los bloques, en Latte también hay "definiciones". Son comparables con las funciones en los lenguajes de programación regulares. Son útiles para reutilizar fragmentos de plantillas para no repetirse.
 
-Latte intenta simplificar las cosas, así que básicamente las definiciones son lo mismo que los bloques, y **todo lo que se dice sobre los bloques también se aplica a las definiciones**. Se diferencian de los bloques en que:
+Latte intenta hacer las cosas fácilmente, así que básicamente las definiciones son lo mismo que los bloques, y **todo lo que se dice de los bloques también se aplica a las definiciones**. Sólo se diferencia de los bloques en tres cosas:
 
-1) están encerradas en etiquetas `{define}`
-2) sólo se muestran cuando se insertan a través de `{include}`
-3) se pueden definir parámetros para ellas como las funciones en PHP
+1) pueden aceptar argumentos
+2) no pueden tener [filtros |syntax#filters]
+3) están encerradas en etiquetas `{define}` y el contenido dentro de estas etiquetas no se envía a la salida hasta que las incluyes. Gracias a ello, puedes crearlos en cualquier lugar:
 
 ```latte
 {block foo}<p>Hello</p>{/block}
@@ -320,9 +326,10 @@ Latte intenta simplificar las cosas, así que básicamente las definiciones son 
 {* prints: <p>World</p> *}
 ```
 
-Imagina que tienes una plantilla de ayuda con una colección de definiciones sobre cómo dibujar formularios HTML.
+Imagina tener una plantilla de ayuda genérica que defina cómo renderizar formularios HTML mediante definiciones:
 
-```latte .{file: forms.latte}
+```latte
+{* forms.latte *}
 {define input, $name, $value, $type = 'text'}
 	<input type={$type} name={$name} value={$value}>
 {/define}
@@ -332,16 +339,16 @@ Imagina que tienes una plantilla de ayuda con una colección de definiciones sob
 {/define}
 ```
 
-Los argumentos de una definición son siempre opcionales con valor por defecto `null`, a menos que se especifique un valor por defecto (aquí `'text'` es el valor por defecto de `$type`). También se pueden declarar tipos de parámetros: `{define input, string $name, ...}`.
+Los argumentos de una definición son siempre opcionales con el valor por defecto `null`, a menos que se especifique un valor por defecto (aquí `text` es el valor por defecto para `$type`, posible desde Latte 2.9.1). A partir de Latte 2.7, también se pueden declarar tipos de parámetros: `{define input, string $name, ...}`.
 
-La plantilla con las definiciones se carga utilizando [`{import}` |#horizontal-reuse]. Las propias definiciones se renderizan del [mismo modo que los bloques |#Printing Blocks]:
+Las definiciones no tienen acceso a las variables del contexto activo, pero sí a las variables globales.
+
+Se incluyen de la [misma forma que los bloques |#Printing Blocks]:
 
 ```latte
 <p>{include input, 'password', null, 'password'}</p>
 <p>{include textarea, 'comment'}</p>
 ```
-
-Las definiciones no tienen acceso a las variables del contexto activo, pero sí a las variables globales.
 
 
 Nombres de bloques dinámicos .[#toc-dynamic-block-names]
@@ -349,7 +356,8 @@ Nombres de bloques dinámicos .[#toc-dynamic-block-names]
 
 Latte permite una gran flexibilidad en la definición de bloques porque el nombre del bloque puede ser cualquier expresión PHP. Este ejemplo define tres bloques llamados `hi-Peter`, `hi-John` y `hi-Mary`:
 
-```latte .{file: parent.latte}
+```latte
+{* parent.latte *}
 {foreach [Peter, John, Mary] as $name}
 	{block "hi-$name"}Hi, I am {$name}.{/block}
 {/foreach}
@@ -357,7 +365,8 @@ Latte permite una gran flexibilidad en la definición de bloques porque el nombr
 
 Por ejemplo, podemos redefinir sólo un bloque en una plantilla hija:
 
-```latte .{file: child.latte}
+```latte
+{* child.latte *}
 {block hi-John}Hello. I am {$name}.{/block}
 ```
 
@@ -396,14 +405,6 @@ Puede utilizar una variable o cualquier expresión en PHP como nombre del bloque
 {/ifset}
 ```
 
-La existencia de bloques también se devuelve mediante la función [`hasBlock()` |functions#hasBlock]:
-
-```latte
-{if hasBlock(header) || hasBlock(footer)}
-	...
-{/if}
-```
-
 
 Consejos .[#toc-tips]
 ---------------------
@@ -425,27 +426,37 @@ Reutilización horizontal `{import}` .{toc: Horizontal Reuse}
 
 La reutilización horizontal es un tercer mecanismo de reutilización y herencia en Latte. Permite cargar bloques de otras plantillas. Es similar a crear un archivo PHP con funciones de ayuda o un trait.
 
-Aunque la herencia del diseño de las plantillas es una de las características más potentes de Latte, está limitada a la herencia simple: una plantilla sólo puede extender a otra plantilla. La reutilización horizontal es una forma de lograr una herencia múltiple.
+Aunque la herencia de plantillas de diseño es una de las características más potentes de Latte, está limitada a una única herencia; una plantilla sólo puede extender otra plantilla. Esta limitación hace que la herencia de plantillas sea sencilla de entender y fácil de depurar:
 
-Tomemos un conjunto de definiciones de bloque:
+```latte
+{layout 'layout.latte'}
 
-```latte .{file: blocks.latte}
-{block sidebar}...{/block}
-
-{block menu}...{/block}
+{block title}...{/block}
+{block content}...{/block}
 ```
 
-Utilizando el comando `{import}`, importe todos los bloques y [definiciones |#definitions] definidos en `blocks.latte` a otra plantilla:
+La reutilización horizontal es una forma de lograr el mismo objetivo que la herencia múltiple, pero sin la complejidad asociada:
 
-```latte .{file: child.latte}
+```latte
+{layout 'layout.latte'}
+
 {import 'blocks.latte'}
 
-{* ahora se pueden utilizar los bloques de barra lateral y menú *}
+{block title}...{/block}
+{block content}...{/block}
 ```
 
-Si importa los bloques en la plantilla padre (es decir, si utiliza `{import}` en `layout.latte`), los bloques también estarán disponibles en todas las plantillas hijas, lo que resulta muy práctico.
+La sentencia `{import}` indica a Latte que importe todos los bloques y [definiciones |#definitions] definidos en `blocks.latte` a la plantilla actual.
 
-La plantilla que se pretende importar (por ejemplo, `blocks.latte`) no debe [ampliar |#Layout Inheritance] otra plantilla, es decir, utilizar `{layout}`. Sin embargo, puede importar otras plantillas.
+```latte
+{* blocks.latte *}
+
+{block sidebar}...{/block}
+```
+
+En este ejemplo, la sentencia `{import}` importa el bloque `sidebar` a la plantilla principal.
+
+La plantilla importada no debe [extender |#Layout Inheritance] otra plantilla, y su cuerpo debe estar vacío. Sin embargo, la plantilla importada puede importar otras plantillas.
 
 La etiqueta `{import}` debe ser la primera etiqueta de plantilla después de `{layout}`. El nombre de la plantilla puede ser cualquier expresión PHP:
 
@@ -458,7 +469,7 @@ Puede utilizar tantas expresiones `{import}` como desee en una plantilla determi
 Todos los bloques sobrescritos pueden incluirse gradualmente insertándolos como [bloque padre |#parent block]:
 
 ```latte
-{layout 'layout.latte'}
+{layout 'base.latte'}
 
 {import 'blocks.latte'}
 
@@ -473,8 +484,8 @@ Todos los bloques sobrescritos pueden incluirse gradualmente insertándolos como
 En este ejemplo, `{include parent}` llamará correctamente al bloque `sidebar` desde la plantilla `blocks.latte`.
 
 
-Herencia de unidades `{embed}` .{toc: Unit Inheritance}
-=======================================================
+Herencia de unidades `{embed}` .{toc: Unit Inheritance}{data-version:2.9}
+=========================================================================
 
 La herencia de unidades lleva la idea de la herencia de diseño al nivel de los fragmentos de contenido. Mientras que la herencia de maquetación funciona con "esqueletos de documento", a los que dan vida plantillas hijas, la herencia de unidades te permite crear esqueletos para unidades de contenido más pequeñas y reutilizarlos donde quieras.
 
@@ -549,7 +560,7 @@ Los bloques dentro de etiquetas embed forman una capa separada independiente de 
 
 Las plantillas incrustadas no tienen acceso a las variables del contexto activo, pero sí a las variables globales.
 
-Con `{embed}` puede insertar no sólo plantillas sino también otros bloques, por lo que el ejemplo anterior podría escribirse así:
+Con `{embed}` puede insertar no sólo plantillas sino también otros bloques, por lo que el ejemplo anterior podría escribirse así: .{data-version:2.10}
 
 ```latte
 {define collapsible}
@@ -592,7 +603,7 @@ Existen varios tipos de herencia y reutilización de código en Latte. Vamos a r
 
 ```latte
 <nav>
-   <div>Home</div>
+   <div>Homepage</div>
    <div>About</div>
 </nav>
 ```

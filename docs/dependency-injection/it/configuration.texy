@@ -67,7 +67,7 @@ Come modificare in blocco tutti i servizi di un certo tipo? È necessario chiama
 ```neon
 decorator:
 	# per tutti i servizi che sono istanze di questa classe o interfaccia
-	App\UI\BasePresenter:
+	App\Presenters\BasePresenter:
 		setup:
 			- setProjectId(10)     # chiama questo metodo
 			- $absoluteUrls = true # e imposta la variabile
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Se non si usa l'array `$container->getParameters()`, si può disabilitare l'esportazione dei parametri. Inoltre, si possono esportare solo i tag attraverso i quali si ottengono servizi con il metodo `$container->findByTag(...)`.
+Se non si usa l'array `$container->parameters`, si può disabilitare l'esportazione dei parametri. Inoltre, si possono esportare solo i tag attraverso i quali si ottengono servizi con il metodo `$container->findByTag(...)`.
 Se non si chiama affatto il metodo, si può disabilitare completamente l'esportazione dei tag con `false`.
 
 È possibile ridurre in modo significativo i metadati per il [cablaggio automatico |autowiring], specificando le classi utilizzate come parametro del metodo `$container->getByType()`.
@@ -191,15 +191,20 @@ Basta specificare in quali directory (e sottodirectory) devono essere cercate le
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# scegliete voi stessi i nomi delle sezioni
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Di solito, però, non vogliamo aggiungere tutte le classi e le interfacce, quindi possiamo filtrarle:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# filtrare per nome di file (string|string[])
 		files:
@@ -215,7 +220,7 @@ Oppure possiamo selezionare le classi che ereditano o implementano almeno una de
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,9 +231,8 @@ Si possono anche definire regole negative, cioè maschere di nomi di classi o an
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
-file: ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -238,7 +242,7 @@ I tag possono essere impostati per i servizi aggiunti:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

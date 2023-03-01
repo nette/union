@@ -1,12 +1,7 @@
 Libro de cocina
 ***************
 
-.[perex]
-Códigos de ejemplo y recetas para realizar tareas comunes con Latte.
-
-- [Directrices para desarrolladores |/develop]
-- [Paso de variables entre plantillas |passing-variables]
-- [Todo lo que siempre quiso saber sobre la agrupación |grouping]
+- [Todo lo que siempre quiso saber sobre {iterateWhile} |iteratewhile]
 - [¿Cómo escribir consultas SQL en Latte? |how-to-write-sql-queries-in-latte]
 - [Migración desde PHP |migration-from-php]
 - [Migración desde Twig |migration-from-twig]

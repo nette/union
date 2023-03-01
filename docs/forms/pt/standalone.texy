@@ -107,7 +107,7 @@ O formulário é sempre validado no lado do servidor, mas a validação JavaScri
 Acrescente-o à página:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Se você olhar no código fonte da página com formulário, você pode notar que Nette insere os campos necessários em elementos com uma classe CSS `required`. Tente adicionar o seguinte estilo ao modelo, e a etiqueta "Name" (Nome) será vermelha. Elegantemente, marcamos os campos requeridos para os usuários:
@@ -257,8 +257,6 @@ O mapeamento então sabe pelo tipo de propriedade `$person` que deve mapear o co
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Você pode gerar uma proposta para a classe de dados de um formulário usando o método `Nette\Forms\Blueprint::dataClass($form)`, que a imprimirá na página do navegador. Em seguida, basta clicar para selecionar e copiar o código em seu projeto. .{data-version:3.1.15}
 
 
 Botões de submissão múltipla .[#toc-multiple-submit-buttons]

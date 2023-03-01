@@ -1,13 +1,7 @@
-Въведение
-*********
-- [Защо да използвате Nette? |www:10-reasons-why-nette]
-- [Инсталация |nette:installation]
-- [Създайте първото си приложение! |quickstart:]
-
-
 Общи теми
 *********
-- [Списък на пакетите |www:packages]
+- [Създайте първото си приложение |quickstart:]!
+- [Пакети и инсталиране |www:packages]
 - [Поддръжка и PHP |www:maintenance]
 - [Бележки към изданието |https://nette.org/releases]
 - [Ръководство за надграждане |migrations:en]
@@ -15,6 +9,5 @@
 - [Създатели на Nette |https://nette.org/contributors]
 - [Историята на Nette |history]
 - [Включете се |contributing:]
-- [Развитие на спонсори |https://nette.org/en/donate]
 - [Референтно ръководство за API |https://api.nette.org]
 - [Най-добри практики |best-practices:]

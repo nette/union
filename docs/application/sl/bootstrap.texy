@@ -150,7 +150,7 @@ Metodo `addConfig()` lahko za dodajanje več datotek pokličete večkrat.
 
 ```php
 $configurator->addConfig($appDir . '/config/common.neon');
-$configurator->addConfig($appDir . '/config/services.neon');
+$configurator->addConfig($appDir . '/config/local.neon');
 if (PHP_SAPI === 'cli') {
 	$configurator->addConfig($appDir . '/config/cli.php');
 }
@@ -174,7 +174,7 @@ $configurator->addStaticParameters([
 ]);
 ```
 
-V konfiguracijskih datotekah lahko zapišemo običajni zapis `%projectId%` za dostop do parametra z imenom `projectId`.
+V konfiguracijskih datotekah lahko zapišemo običajni zapis `%projectId%` za dostop do parametra z imenom `projectId`. Privzeto konfigurator izpolni naslednje parametre: `appDir`, `wwwDir`, `tempDir`, `vendorDir`, `debugMode` in `consoleMode`.
 
 
 Dinamični parametri .[#toc-dynamic-parameters]
@@ -195,20 +195,6 @@ $configurator->addDynamicParameters([
 	'env' => getenv(),
 ]);
 ```
-
-
-Privzete parametre .[#toc-default-parameters]
----------------------------------------------
-
-V konfiguracijskih datotekah lahko uporabite naslednje statične parametre:
-
-- `%appDir%` je absolutna pot do imenika datoteke `Bootstrap.php`.
-- `%wwwDir%` je absolutna pot do imenika, ki vsebuje vstopno datoteko `index.php`
-- `%tempDir%` je absolutna pot do imenika za začasne datoteke
-- `%vendorDir%` je absolutna pot do imenika, v katerega Composer namesti knjižnice
-- `%rootDir%` je absolutna pot do korenskega imenika projekta
-- `%debugMode%` označuje, ali je aplikacija v načinu odpravljanja napak
-- `%consoleMode%` označuje, ali je bila zahteva poslana prek ukazne vrstice
 
 
 Uvožene storitve .[#toc-imported-services]

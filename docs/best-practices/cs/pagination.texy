@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,12 +34,12 @@ class ArticleRepository
 V presenteru si pak injectujeme modelovou třídu a v render metodě si vyžádáme publikované články, které předáme do šablony:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-V šabloně `default.latte` se pak postaráme o výpis článků:
+V šabloně se pak postaráme o výpis článků:
 
 ```latte
 {block content}
@@ -110,15 +111,15 @@ class ArticleRepository
 
 Následně se pustíme do úprav presenteru. Do render metody budeme předávat číslo aktuálně zobrazené stránky. Pro případ, kdy nebude toto číslo součástí URL, nastavíme výchozí hodnotu první stránky.
 
-Dále také render metodu rozšíříme o získání instance Paginatoru, jeho nastavení a výběru správných článků pro zobrazení v šabloně. HomePresenter bude po úpravách vypadat takto:
+Dále také render metodu rozšíříme o získání instance Paginatoru, jeho nastavení a výběru správných článků pro zobrazení v šabloně. HomepagePresenter bude po úpravách vypadat takto:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,12 +211,12 @@ class ArticleRepository
 V presenteru nemusíme vytvářet Paginator, použijeme místo něj metodu třídy `Selection`, kterou nám vrací repositář:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private ArticleRepository $articleRepository,

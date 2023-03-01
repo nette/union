@@ -1,17 +1,15 @@
 Rendering formularzy
 ********************
 
-Wygląd form może być bardzo zróżnicowany. W praktyce możemy spotkać się z dwoma skrajnościami. Z jednej strony istnieje potrzeba renderowania w aplikacji serii formularzy, które są do siebie wizualnie podobne, a my cenimy sobie łatwe renderowanie bez szablonu za pomocą `$form->render()`. Taka sytuacja ma miejsce zazwyczaj w przypadku interfejsów administracyjnych.
+Wygląd form może być bardzo zróżnicowany. W praktyce możemy spotkać się z dwoma skrajnościami. Z jednej strony istnieje potrzeba renderowania w aplikacji wielu formularzy, które są do siebie podobne wizualnie jak jajka do jajek i doceniamy łatwość renderowania za pomocą `$form->render()`. Tak jest zazwyczaj w przypadku interfejsów administracyjnych.
 
-Z drugiej strony istnieją różne formularze, gdzie każdy z nich jest unikalny. Ich wygląd najlepiej opisać za pomocą języka HTML w szablonie. I oczywiście oprócz obu wymienionych skrajności spotkamy wiele form, które mieszczą się gdzieś pomiędzy.
+Z drugiej strony istnieje wiele form, w których obowiązuje zasada: jeden utwór jest oryginałem. I oczywiście oprócz dwóch wymienionych skrajności istnieje wiele form, które mieszczą się gdzieś pomiędzy nimi.
 
 
-Rendering z Latte .[#toc-rendering-with-latte]
-==============================================
+Latte .[#toc-latte]
+===================
 
 [System szablonów Latte |latte:] zasadniczo ułatwia renderowanie formularzy i ich elementów. Najpierw pokażemy, jak ręcznie renderować formularze element po elemencie i dzięki temu zyskać pełną kontrolę nad kodem. Później pokażemy, jak [zautomatyzować |#Automatické vykreslování] takie renderowanie.
-
-Propozycję szablonu Latte dla formularza można wygenerować za pomocą metody `Nette\Forms\Blueprint::latte($form)`, która wyświetli go na stronie przeglądarki. Następnie wystarczy wybrać kod jednym kliknięciem i skopiować go do swojego projektu. .{data-version:3.1.15}
 
 
 `{control}`
@@ -90,6 +88,12 @@ Bardziej złożone elementy formularza, takie jak RadioList lub CheckboxList, mo
 ```
 
 
+Projektowanie kodu `{formPrint}` .[#toc-formprint]
+--------------------------------------------------
+
+Możesz mieć podobny kod Latte dla swojego formularza wygenerowanego za pomocą tagu `{formPrint}` Jeśli umieścisz go w szablonie, zobaczysz sugestię kodu zamiast normalnego renderowania. Następnie wystarczy go zaznaczyć i skopiować do swojego projektu.
+
+
 `{label}` `{input}`
 -------------------
 
@@ -146,12 +150,6 @@ Możemy wykryć obecność błędu za pomocą metody `hasErrors()` i odpowiednio
 	{inputError username}
 </div>
 ```
-
-
-`{form}`
---------
-
-Tagi `{form signInForm}...{/form}` są alternatywą dla `<form n:name="signInForm">...</form>`.
 
 
 Automatyczne renderowanie .[#toc-automatic-rendering]
@@ -233,15 +231,15 @@ Blok wystarczy zaimportować tylko w jednym miejscu, na początku szablonu ukła
 Szczególne przypadki .[#toc-special-cases]
 ------------------------------------------
 
-Jeśli chcesz renderować tylko wewnętrzną część formularza bez znaczników HTML `<form>`na przykład podczas wysyłania fragmentów, ukryj je za pomocą atrybutu `n:tag-if`:
+Jeśli chcesz wyrenderować tylko wewnętrzną część formularza bez znaczników HTML `<form>` & `</form>`, na przykład w żądaniu AJAX, możesz otworzyć i zamknąć formularz na `{formContext} … {/formContext}`. Działa to podobnie do `<form n:form>` lub `{form}` w sensie logicznym, tutaj pozwoli Ci użyć innych znaczników do rysowania elementów formularza, ale jednocześnie nie rysuje niczego.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 Znacznik `{formContainer}` pomoże w rysowaniu elementów wewnątrz kontenera formularza.
@@ -258,8 +256,8 @@ Znacznik `{formContainer}` pomoże w rysowaniu elementów wewnątrz kontenera fo
 ```
 
 
-Rendering bez Latte .[#toc-rendering-without-latte]
-===================================================
+No Latte .[#toc-without-latte]
+==============================
 
 Najprostszym sposobem renderowania formularza jest wywołanie:
 
@@ -323,13 +321,13 @@ Jeśli nie ustawimy niestandardowego renderera, zostanie użyty domyślny render
 <tr class="required">
 	<th><label class="required" for="frm-name">Jméno:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Věk:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -359,12 +357,12 @@ W rezultacie otrzymujemy taki oto kod HTML:
 <dl>
 	<dt><label class="required" for="frm-name">Jméno:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Věk:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Pohlaví:</label></dt>
@@ -430,8 +428,6 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
-Program renderujący najpierw rysuje grupy, a następnie elementy, które nie należą do żadnej grupy.
-
 
 Wsparcie dla Bootstrap .[#toc-bootstrap-support]
 ------------------------------------------------
@@ -442,7 +438,7 @@ Wsparcie dla Bootstrap .[#toc-bootstrap-support]
 Atrybuty HTML .[#toc-html-attributes]
 =====================================
 
-Aby ustawić dowolne atrybuty HTML dla elementów formularza, należy użyć metody `setHtmlAttribute(string $name, $value = true)`:
+Możemy ustawić dowolne atrybuty HTML do elementów formularza za pomocą `setHtmlAttribute(string $name, $value = true)`:
 
 ```php
 $form->addInteger('liczba', 'Liczba:')
@@ -452,11 +448,11 @@ $form->addSelect('rank', 'Rank by:', ['cena', 'nazwa'])
 	->setHtmlAttribute('onchange', 'submit()'); // submit on change
 
 
-// Aby ustawić atrybuty samej strony <form>
+// jeśli chcemy zrobić to samo dla <form>
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Określenie typu elementu:
+Ustawienia typu:
 
 ```php
 $form->addText('tel', 'Váš telefon:')
@@ -464,11 +460,8 @@ $form->addText('tel', 'Váš telefon:')
 	->setHtmlAttribute('placeholder', 'napište telefon');
 ```
 
-.[warning]
-Ustawienie typu i innych atrybutów służy jedynie celom wizualnym. Weryfikacja poprawności danych wejściowych musi odbywać się na serwerze, co można zapewnić, wybierając odpowiednią [kontrolkę formularza | controls] i określając [reguły walidacji | validation].
-
-Dla poszczególnych elementów na listach radio lub checkbox możemy ustawić atrybut HTML z różnymi wartościami dla każdego z nich.
-Zwróć uwagę na dwukropek po `style:`, który zapewnia, że wartość jest wybierana na podstawie klucza:
+Możemy ustawić atrybut HTML dla poszczególnych pozycji w listach radio lub checkbox z różnymi wartościami dla każdej z nich.
+Zwróć uwagę na dwukropek po `style:`, który zapewni, że wartość zostanie wybrana zgodnie z kluczem:
 
 ```php
 $colors = ['r' => 'červená', 'g' => 'zelená', 'b' => 'modrá'];
@@ -485,9 +478,10 @@ Listy:
 <label><input type="checkbox" name="colors[]" value="b">modrá</label>
 ```
 
-Do ustawiania atrybutów logicznych, takich jak `readonly`, możemy użyć notacji ze znakiem zapytania:
+Jeśli jest to logiczny atrybut HTML (który nie ma wartości, np. `readonly`), możemy użyć notacji znaku zapytania:
 
 ```php
+$colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // dla wielu kluczy należy użyć tablicy, np. ['r', 'g']
 ```
@@ -541,6 +535,9 @@ W przypadku elementów Checkbox, CheckboxList i RadioList można wpływać na sz
 
 ```php
 $input = $form->addCheckbox('send');
+echo $input->getControl();
+// <label><input type="checkbox" name="send"></label>.
+
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

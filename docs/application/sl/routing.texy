@@ -93,12 +93,12 @@ Pot bo zdaj sprejela naslov URL `https://any-domain.com/chronicle/` s parametrom
 Seveda sta lahko parametra tudi ime predstavnika in akcija. Na primer:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 Ta pot sprejme na primer naslov URL v obliki `/article/edit` oz. `/catalog/list` in ga prevede v predstavnike in dejanja `Article:edit` oz. `Catalog:list`.
 
-Parametroma `presenter` in `action` daje tudi privzete vrednosti`Home` in `default`, zato sta neobvezna. Tako pot sprejme tudi naslov URL `/article` in ga prevede kot `Article:default`. Ali obratno, povezava na `Product:default` ustvari pot `/product`, povezava na privzeto `Home:default` pa ustvari pot `/`.
+Parametroma `presenter` in `action` daje tudi privzete vrednosti`Homepage` in `default`, zato sta neobvezna. Tako pot sprejme tudi naslov URL `/article` in ga prevede kot `Article:default`. Ali obratno, povezava na `Product:default` ustvari pot `/product`, povezava na privzeto `Homepage:default` pa ustvari pot `/`.
 
 Maska lahko opiše ne le relativno pot na podlagi korena spletnega mesta, temveč tudi absolutno pot, kadar se začne s poševnico, ali celo celoten absolutni naslov URL, kadar se začne z dvema poševnicama:
 
@@ -160,7 +160,7 @@ Sekvence se lahko poljubno gnezdijo in kombinirajo:
 ```php
 $router->addRoute(
 	'[<lang [a-z]{2}>[-<sublang>]/]<name>[/page-<page=0>]',
-	'Home:default',
+	'Homepage:default',
 );
 
 // Sprejeti naslovi URL:
@@ -183,16 +183,16 @@ $router->addRoute('<name>[!.html]', /* ... */);
 Izbirni parametri (tj. parametri s privzeto vrednostjo) brez oglatih oklepajev se obnašajo, kot da bi bili zaviti na ta način:
 
 ```php
-$router->addRoute('<presenter=Home>/<action=default>/<id=>', /* ... */);
+$router->addRoute('<presenter=Homepage>/<action=default>/<id=>', /* ... */);
 
 // je enako:
-$router->addRoute('[<presenter=Home>/[<action=default>/[<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>/[<action=default>/[<id>]]]', /* ... */);
 ```
 
-Če želite spremeniti način generiranja skrajne desne poševnice, tj. namesto `/home/` dobite `/home`, prilagodite pot na ta način:
+Če želite spremeniti način generiranja skrajne desne poševnice, tj. namesto `/homepage/` dobite `/homepage`, prilagodite pot na ta način:
 
 ```php
-$router->addRoute('[<presenter=Home>[/<action=default>[/<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>[/<action=default>[/<id>]]]', /* ... */);
 ```
 
 
@@ -220,7 +220,7 @@ Drugi parameter poti, ki ga pogosto zapišemo v obliki `Presenter:action`, je ok
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 ]);
 ```
@@ -232,7 +232,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>[/<id>]', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 	],
 	'action' => [
 		Route::Value => 'default',
@@ -252,7 +252,7 @@ Filtri in prevodi .[#toc-filters-and-translations]
 Dobra praksa je, da izvorno kodo pišete v angleščini, a kaj, če potrebujete, da je URL vašega spletnega mesta preveden v drug jezik? Preproste poti, kot so npr:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 bodo ustvarile angleške naslove URL, kot sta `/product/123` ali `/cart`. Če želimo, da so predstavniki in dejanja v naslovu URL prevedeni v nemščino (npr. `/produkt/123` ali `/einkaufswagen`), lahko uporabimo prevajalski slovar. Za njegovo dodajanje že potrebujemo "bolj zgovorno" različico drugega parametra:
@@ -262,7 +262,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterTable => [
 			// niz v naslovu URL => presenter
 			'produkt' => 'Product',
@@ -290,7 +290,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>/<id>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterIn => function (string $s): string { /* ... */ },
 		Route::FilterOut => function (string $s): string { /* ... */ },
 	],
@@ -313,7 +313,7 @@ Poleg filtrov za določene parametre lahko določite tudi splošne filtre, ki pr
 use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 	null => [
 		Route::FilterIn => function (array $params): array { /* ... */ },
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 Pri dostopu do starega naslova URL predstavnik samodejno preusmeri na novi naslov URL, tako da iskalniki teh strani ne indeksirajo dvakrat (glejte [SEO in kanonizacijo |#SEO and canonization]).
-
-
-Dinamično usmerjanje s povratnimi klici .[#toc-dynamic-routing-with-callbacks]
-------------------------------------------------------------------------------
-
-Dinamično usmerjanje s povratnimi klici omogoča neposredno dodeljevanje funkcij (povratnih klicev) na poti, ki se bodo izvedle, ko bo obiskana določena pot. Ta prilagodljiva funkcija vam omogoča hitro in učinkovito ustvarjanje različnih končnih točk za vašo aplikacijo:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-V maski lahko določite tudi parametre, ki bodo samodejno posredovani povratnemu klicu:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Moduli .[#toc-modules]
@@ -477,10 +454,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Integracija .[#toc-integration]
 ===============================
 
-Da bi naš usmerjevalnik povezali z aplikacijo, moramo o tem obvestiti vsebnik DI. Najlažje je pripraviti tovarno, ki bo zgradila objekt usmerjevalnika, in povedati konfiguraciji vsebnika, naj jo uporabi. Recimo, da v ta namen napišemo metodo `App\Core\RouterFactory::createRouter()`:
+Da bi naš usmerjevalnik povezali z aplikacijo, moramo o tem obvestiti vsebnik DI. Najlažje je pripraviti tovarno, ki bo zgradila objekt usmerjevalnika, in povedati konfiguraciji vsebnika, naj jo uporabi. Recimo, da v ta namen napišemo metodo `App\Router\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Application\Routers\RouteList;
 
@@ -499,7 +476,7 @@ Nato zapišemo v [konfiguracijo |dependency-injection:services]:
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 ```
 
 Vse odvisnosti, kot je povezava s podatkovno bazo itd., se metodi tovarne posredujejo kot njeni parametri z uporabo [samodejnega povezovanja |dependency-injection:autowiring]:
@@ -526,15 +503,15 @@ http://example.com/?presenter=Product&action=detail&id=123
 Parameter konstruktorja `SimpleRouter` je privzeti predstavnik in dejanje, tj. dejanje, ki se izvede, če odpremo npr. `http://example.com/` brez dodatnih parametrov.
 
 ```php
-// privzeto za predstavitelja 'Home' in akcijo 'default'
-$router = new Nette\Application\Routers\SimpleRouter('Home:default');
+// privzeto za predstavitelja 'Homepage' in akcijo 'default'
+$router = new Nette\Application\Routers\SimpleRouter('Homepage:default');
 ```
 
 Priporočamo, da se SimpleRouter opredeli neposredno v [konfiguraciji |dependency-injection:services]:
 
 ```neon
 services:
-	- Nette\Application\Routers\SimpleRouter('Home:default')
+	- Nette\Application\Routers\SimpleRouter('Homepage:default')
 ```
 
 
@@ -634,7 +611,7 @@ Pri obdelavi zahteve moramo vrniti vsaj predstavnika in akcijo. Ime predstavnika
 
 ```php
 [
-	'presenter' => 'Front:Home',
+	'presenter' => 'Front:Homepage',
 	'action' => 'default',
 ]
 ```
@@ -663,7 +640,7 @@ Z ločeno uporabo mislimo na uporabo zmožnosti usmerjevalnika v aplikaciji, ki 
 Tako bomo ponovno ustvarili metodo, ki bo zgradila usmerjevalnik, na primer:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Routing\RouteList;
 
@@ -694,7 +671,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Ali pa bomo predmete ustvarili neposredno:
 
 ```php
-$router = App\Core\RouterFactory::createRouter();
+$router = App\Router\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

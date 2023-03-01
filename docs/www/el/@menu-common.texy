@@ -1,13 +1,8 @@
-Εισαγωγή
-********
-- [Γιατί να χρησιμοποιήσετε τη Nette; |www:10-reasons-why-nette]
-- [Εγκατάσταση |nette:installation]
-- [Δημιουργήστε την πρώτη σας εφαρμογή! |quickstart:]
-
-
 Γενικά θέματα
 *************
-- [Κατάλογος πακέτων |www:packages]
+- [Γιατί να χρησιμοποιήσετε τη Nette; |www:en:10-reasons-why-nette]
+- [Δημιουργήστε την πρώτη σας εφαρμογή! |quickstart:]
+- [Πακέτα & Εγκατάσταση |www:packages]
 - [Συντήρηση και PHP |www:maintenance]
 - [Σημειώσεις έκδοσης |https://nette.org/releases]
 - [Οδηγός αναβάθμισης |migrations:en]
@@ -15,6 +10,5 @@
 - [Ποιος δημιουργεί το Nette |https://nette.org/contributors]
 - [Ιστορία της Nette |history]
 - [Συμμετέχετε |contributing:]
-- [Ανάπτυξη χορηγού |https://nette.org/en/donate]
 - [Αναφορά API |https://api.nette.org]
 - [Βέλτιστες πρακτικές |best-practices:]

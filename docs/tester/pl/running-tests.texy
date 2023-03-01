@@ -23,10 +23,10 @@ Dane wyjściowe mogą wyglądać jak:
 /--pre .[terminal]
  _____ ___  ___ _____ ___  ___
 |_   _/ __)( __/_   _/ __)| _ )
-  |_| \___ /___) |_| \___ |_|_\  v2.5.2
+  |_| \___ /___) |_| \___ |_|_\  v2.3.3
 
 Note: No php.ini is used.
-PHP 8.3.2 (cli) | php -n | 8 threads
+PHP 7.4.8 (cli) | php -n | 8 threads
 
 ........s..........................
 
@@ -49,7 +49,7 @@ Przegląd opcji wiersza poleceń uzyskujemy uruchamiając Tester bez parametrów
 /--pre .[terminal]
  _____ ___  ___ _____ ___  ___
 |_   _/ __)( __/_   _/ __)| _ )
-  |_| \___ /___) |_| \___ |_|_\  v2.5.2
+  |_| \___ /___) |_| \___ |_|_\  v2.3.3
 
 Usage:
     tester [options] [<test file> | <directory>]...
@@ -58,16 +58,16 @@ Options:
     -p <path>                    Specify PHP interpreter to run (default: php).
     -c <path>                    Look for php.ini file (or look in directory) <path>.
     -C                           Use system-wide php.ini.
+    -l | --log <path>            Write log to file <path>.
     -d <key=value>...            Define INI entry 'key' with value 'value'.
     -s                           Show information about skipped tests.
     --stop-on-fail               Stop execution upon the first failure.
     -j <num>                     Run <num> jobs in parallel (default: 8).
-    -o <console|console-lines|tap|junit|log|none> (np. -o junit:output.xml)
-                                 Określa jeden lub więcej formatów wyjściowych z opcjonalną nazwą pliku.
+    -o <console|tap|junit|none>  Specify output format.
     -w | --watch <path>          Watch directory.
     -i | --info                  Show tests environment info and exit.
     --setup <path>               Script for runner setup.
-    --temp <path>                Ścieżka do katalogu tymczasowego. Domyślna przez sys_get_temp_dir().
+    --temp <path>                Path to temporary directory. Default: sys_get_temp_dir().
     --colors [1|0]               Enable or disable colors.
     --coverage <path>            Generate code coverage report to file.
     --coverage-src <path>        Path to source code.
@@ -94,6 +94,15 @@ Określa, która strona `php.ini` będzie używana podczas uruchamiania testów.
 Używany jest ogólnosystemowy `php.ini`. Czyli na platformie UNIX wszystkie pliki `/etc/php/{sapi}/conf.d/*.ini` również. Patrz rozdział [Własny php.ini |#Own php.ini].
 
 
+''-l | --log <path>'' .[filter]
+-------------------------------
+Postęp testów jest zapisywany do pliku. Wszystkie nieudane, pominięte, a także udane testy:
+
+/--pre .[terminal]
+tester --log /var/log/tests.log tests
+\--
+
+
 -d <key=value> .[filter]
 ------------------------
 Ustawia wartość dyrektywy konfiguracyjnej PHP dla testów. Parametr może być użyty wielokrotnie.
@@ -118,15 +127,13 @@ Tester zatrzymuje testowanie po pierwszym nieudanym teście.
 Testy są uruchamiane w `<num>` równoległych procesach. Domyślna wartość to 8. Jeśli chcemy uruchamiać testy szeregowo, używamy wartości 1.
 
 
--o <console|console-lines|tap|junit|log|none> .[filter]
--------------------------------------------------------
-Format wyjścia. Domyślnie jest to format konsolowy. Można określić nazwę pliku, do którego zostaną zapisane dane wyjściowe (np. `-o junit:output.xml`). Opcja `-o` może być powtarzana wielokrotnie w celu wygenerowania wielu formatów jednocześnie.
+-o <console|tap|junit|none> .[filter]
+-------------------------------------
+Format wyjścia. Domyślnie jest to format konsoli.
 
 - `console`: taki sam jak domyślny, ale w tym przypadku nie jest wypisywane logo ASCII
-- `console-lines`: podobny do konsoli, ale wynik każdego testu jest wyświetlany w osobnym wierszu z większą ilością informacji
 - `tap`: [format TAP |https://en.wikipedia.org/wiki/Test_Anything_Protocol] odpowiedni do przetwarzania maszynowego
 - `junit`: format JUnit XML, odpowiedni również do przetwarzania maszynowego
-- `log`: Wyświetla postęp testowania. Wszystkie nieudane, pominięte, a także udane testy
 - `none`: nic nie jest drukowane
 
 

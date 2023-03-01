@@ -14,7 +14,6 @@ I filtri sono funzioni che modificano o formattano i dati nella forma desiderata
 | `date` | [formatta la data |#date]
 | `explode` | [divide una stringa in base al delimitatore dato |#explode]
 | `first` | [restituisce il primo elemento di un array o un carattere di una stringa |#first]
-| `group` | [raggruppa i dati secondo vari criteri |#group]
 | `implode` | [unisce un array a una stringa |#implode]
 | `indent` | [indenta il testo da sinistra con un certo numero di tabulazioni |#indent]
 | `join` | [unisce un array a una stringa |#implode]
@@ -119,8 +118,8 @@ Filtri .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Filtro che semplifica l'elencazione di dati lineari sotto forma di tabella. Restituisce un array di array con il numero di elementi indicato. Se si fornisce un secondo parametro, questo viene utilizzato per riempire gli elementi mancanti nell'ultima riga.
 
 ```latte
@@ -152,8 +151,6 @@ Stampa:
 	</tr>
 </table>
 ```
-
-Vedere anche [gruppo |#group] e tag [iterateWhile |tags#iterateWhile].
 
 
 breakLines .[filter]
@@ -206,8 +203,8 @@ Impone la sanitizzazione degli URL. Controlla se la variabile contiene un URL we
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href={$link|checkUrl}>checked</a>
-<a data-href={$link}>unchecked</a>
+<a data-href="{$link|checkUrl}">checked</a>
+<a data-href="{$link}">unchecked</a>
 ```
 
 Stampa:
@@ -220,8 +217,8 @@ Stampa:
 Vedere anche [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Restituisce un valore limitato all'intervallo inclusivo di min e max.
 
 ```latte
@@ -238,7 +235,7 @@ Converte il contenuto in uno schema URI di dati. Può essere usato per inserire 
 Poniamo di avere un'immagine in una variabile `$img = Image::fromFile('obrazek.gif')`, allora
 
 ```latte
-<img src={$img|dataStream}>
+<img src="{$img|dataStream}">
 ```
 
 Stampa ad esempio:
@@ -274,8 +271,8 @@ Permette di separare una variabile da usare come parametro nell'URL.
 Vedere anche [query |#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Divide una stringa in base al delimitatore dato e restituisce un array di stringhe. Alias di `split`.
 
 ```latte
@@ -297,8 +294,8 @@ Se il delimitatore è una stringa vuota (valore predefinito), l'input verrà div
 Vedere anche [implode |#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Restituisce il primo elemento di una matrice o un carattere di una stringa:
 
 ```latte
@@ -333,25 +330,6 @@ Converte la prima lettera di un valore in maiuscolo. Richiede l'estensione PHP `
 Vedere anche [capitalize |#capitalize], [lower |#lower], [upper |#upper].
 
 
-group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
--------------------------------------------------------------------
-Il filtro raggruppa i dati in base a diversi criteri.
-
-In questo esempio, le righe della tabella sono raggruppate in base alla colonna `categoryId`. L'output è un array di array in cui la chiave è il valore della colonna `categoryId`. Leggete le [istruzioni dettagliate |cookbook/grouping].
-
-```latte
-{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Vedere anche [batch |#batch], la funzione [group |functions#group] e il tag [iterateWhile |tags#iterateWhile].
-
-
 implode(string glue = '') .[filter]
 -----------------------------------
 Restituisce una stringa che è la concatenazione delle stringhe dell'array. Alias di `join`.
@@ -361,7 +339,7 @@ Restituisce una stringa che è la concatenazione delle stringhe dell'array. Alia
 {=[1, 2, 3]|implode:'|'}  {* uscite '1|2|3' *}
 ```
 
-È possibile utilizzare anche l'alias `join`:
+È possibile utilizzare anche l'alias `join`: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* uscite '123' *}
@@ -389,8 +367,8 @@ Stampa:
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Restituisce l'ultimo elemento della matrice o il carattere della stringa:
 
 ```latte
@@ -438,8 +416,8 @@ Se il link utilizza uno schema diverso, come `javascript:` o `data:`, e si è si
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href={$link}>checked</a>
-<a href={$link|nocheck}>unchecked</a>
+<a href="{$link}">checked</a>
+<a href="{$link|nocheck}">unchecked</a>
 ```
 
 Stampe:
@@ -503,8 +481,8 @@ Imbottisce una stringa di una certa lunghezza con un'altra stringa proveniente d
 ```
 
 
-query  .[filter]
-----------------
+query  .[filter]{data-version:2.10}
+-----------------------------------
 Genera dinamicamente una stringa di query nell'URL:
 
 ```latte
@@ -524,8 +502,8 @@ I tasti con valore `null` vengono omessi.
 Vedere anche [escapeUrl |#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Restituisce un elemento casuale di una matrice o un carattere di una stringa:
 
 ```latte
@@ -553,7 +531,7 @@ Sostituisce tutte le occorrenze della stringa di ricerca con la stringa di sosti
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-È possibile effettuare più sostituzioni contemporaneamente:
+È possibile effettuare più sostituzioni contemporaneamente: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -595,8 +573,8 @@ Arrotonda un numero a una determinata precisione.
 Vedere anche [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Estrae una fetta di un array o di una stringa.
 
 ```latte
@@ -613,9 +591,9 @@ Se la lunghezza è data ed è positiva, la sequenza conterrà fino a quel numero
 Per impostazione predefinita, Filter riordina e reimposta le chiavi dell'array di interi. Questo comportamento può essere modificato impostando preserveKeys su true. Le chiavi stringa vengono sempre conservate, indipendentemente da questo parametro.
 
 
-sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
------------------------------------------------------------------------------------------------------------
-Il filtro viene utilizzato per ordinare gli elementi di un array o di un iteratore, preservando le chiavi di associazione:
+sort  .[filter]{data-version:2.9}
+---------------------------------
+Filtro che ordina un array e mantiene l'associazione degli indici.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -631,41 +609,15 @@ Array ordinato in ordine inverso.
 {/foreach}
 ```
 
-È possibile specificare una funzione di confronto personalizzata per l'ordinamento (l'esempio mostra come invertire l'ordinamento dal più grande al più piccolo):
+È possibile passare la propria funzione di confronto come parametro: .{data-version:2.10.2}
 
 ```latte
-{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
-Il filtro `|sort` consente anche di ordinare gli elementi per chiave:
 
-```latte
-{foreach ($names|sort: byKey: true) as $name}
-	...
-{/foreach}
-```
-
-Se si desidera ordinare una tabella in base a una colonna specifica, è possibile utilizzare il parametro `by`. Il valore `'name'` nell'esempio specifica che l'ordinamento sarà effettuato da `$row->name` o da `$row['name']`a seconda che `$row` sia una matrice o un oggetto:
-
-```latte
-{foreach ($items|sort: by: 'name') as $item}
-	{$item->name}
-{/foreach}
-```
-
-Si può anche definire una funzione di callback che determina il valore da ordinare:
-
-```latte
-{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
-	{$item->name}
-{/foreach}
-```
-
-Il parametro `byKey` può essere utilizzato allo stesso modo.
-
-
-spaceless  .[filter]
---------------------
+spaceless  .[filter]{data-version:2.10.2}
+-----------------------------------------
 Rimuove gli spazi bianchi non necessari dall'output. Si può anche usare l'alias `strip`.
 
 ```latte
@@ -703,8 +655,8 @@ Estrae una fetta di una stringa. Questo filtro è stato sostituito da un filtro 
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Traduce le espressioni in altre lingue. Per rendere disponibile il filtro, è necessario [impostare il traduttore |develop#TranslatorExtension]. Si possono anche usare i [tag per la traduzione |tags#Translation].
 
 ```latte

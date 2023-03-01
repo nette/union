@@ -68,16 +68,6 @@ Como você pode ver, a função recebe o lado esquerdo do filtro antes do tubo `
 
 Naturalmente, a função que representa o filtro pode aceitar qualquer número de parâmetros, e parâmetros variáveis também são suportados.
 
-Se o filtro retornar uma cadeia de caracteres em HTML, você poderá marcá-la para que o Latte não a escape automaticamente (e, portanto, duplamente). Isso evita a necessidade de especificar `|noescape` no modelo.
-A maneira mais fácil é envolver a cadeia de caracteres em um objeto `Latte\Runtime\Html`. A outra maneira é usar o [Contextual Filters |#Contextual Filters].
-
-```php
-$latte->addFilter('money', fn(float $amount) => new Latte\Runtime\Html("<i>$amount EUR</i>"));
-```
-
-.[note]
-Nesse caso, o filtro deve garantir o escape correto dos dados.
-
 
 Filtros que utilizam a classe .[#toc-filters-using-the-class]
 -------------------------------------------------------------
@@ -101,6 +91,8 @@ class TemplateParameters
 $params = new TemplateParameters(/* ... */);
 $latte->render('template.latte', $params);
 ```
+
+Se você estiver usando PHP 7.x e Latte 2.x, use a anotação `/** @filter */` ao invés do atributo.
 
 
 Carregador de filtros .[#toc-filter-loader]
@@ -160,7 +152,7 @@ $latte->addFilter('money', function (FilterInfo $info, float $amount): string {
 
 	// mudar o tipo de conteúdo para HTML
 	$info->contentType = ContentType::Html;
-	return "<i>$amount EUR</i>";
+	return "<i>$num Kč</i>";
 });
 ```
 
@@ -213,6 +205,8 @@ class TemplateParameters
 $params = new TemplateParameters(/* ... */);
 $latte->render('template.latte', $params);
 ```
+
+Se você estiver usando PHP 7.x e Latte 2.x, use a anotação `/** @function */` ao invés do atributo.
 
 
 Carregadeiras .[#toc-loaders]

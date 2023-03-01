@@ -31,11 +31,9 @@ Le présentateur `SignPresenter` contiendra un paramètre persistant `$backlink`
 
 
 ```php
-use Nette\Application\Attributes\Persistent;
-
 class SignPresenter extends Nette\Application\UI\Presenter
 {
-	#[Persistent]
+	/** @persistent */
 	public string $backlink = '';
 
 	protected function createComponentSignInForm()

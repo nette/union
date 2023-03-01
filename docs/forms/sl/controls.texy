@@ -20,9 +20,13 @@ Samodejno potrdi UTF-8, obreže leve in desne bele prostore ter odstrani prelome
 
 Največjo dolžino lahko omejite z uporabo `setMaxLength()`. S funkcijo [addFilter() |validation#Modifying Input Values] lahko spremenite uporabniško vneseno vrednost.
 
-Vizualni značaj besedilnega polja lahko spremenite v vrste, kot so `search`, `tel` ali `url` z uporabo `setHtmlType()`, kot je prikazano v [specifikaciji |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types]. Ne pozabite, da je spreminjanje tipa le vizualno in ne opravlja funkcij potrjevanja. Za vrsto `url` je primerno dodati posebno [pravilo URL |validation#Text inputs].
+Z uporabo `setHtmlType()` spremenite [znak |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] vhodnega elementa v `search`, `tel`, `url`, `range`, `date`, `datetime-local`, `month`, `time`, `week`, `color`. Namesto tipov `number` in `email` priporočamo uporabo tipov [addInteger |#addInteger] in [addEmail |#addEmail], ki zagotavljata preverjanje na strani strežnika.
 
-Za druge vhodne tipe, kot so `number`, `range`, `email`, `date`, `datetime-local`, `time` in `color`, uporabite specializirane metode, kot so [addInteger |#addInteger], [addFloat |#addFloat], [addEmail |#addEmail] [addDate |#addDate], [addTime |#addTime], [addDateTime |#addDateTime] in [addColor |#addColor], ki zagotavljajo preverjanje na strani strežnika. Tipa `month` in `week` še nista v celoti podprta v vseh brskalnikih.
+```php
+$form->addText('color', 'Choose color:')
+	->setHtmlType('color')
+	->addRule($form::Pattern, 'invalid value', '[0-9a-f]{6}');
+```
 
 Za element lahko nastavite tako imenovano prazno vrednost, ki je nekaj podobnega kot privzeta vrednost, vendar če je uporabnik ne prepiše, vrne prazen niz ali `null`.
 
@@ -54,27 +58,10 @@ addInteger(string|int $name, $label=null): TextInput .[method]
 Doda vnosno polje za celo število (razred [TextInput |api:Nette\Forms\Controls\TextInput]). Vrne celo število ali `null`, če uporabnik ne vnese ničesar.
 
 ```php
-$form->addInteger('leto', 'Leto:')
-	->addRule($form::Range, 'Leto mora biti v razponu od %d do %d.', [1900, 2023 |1900, 2023]);
-```
-
-Element se prikaže kot `<input type="numeric">`. Z uporabo metode `setHtmlType()` lahko tip spremenite v `range` za prikaz kot drsnik ali v `text`, če želite standardno besedilno polje brez posebnega obnašanja `numeric`.
-
-
-addFloat(string|int $name, $label=null): TextInput .[method]{data-version:3.1.12}
-=================================================================================
-
-Adds a field for entering a decimal number ([TextInput |api:Nette\Forms\Controls\TextInput] class). Returns either float or `null`, if the user does not specify anything.
-
-```php
-$form->addFloat('level', 'Stopnja:')
+$form->addInteger('level', 'Level:')
 	->setDefaultValue(0)
-->addRule($form::Range, 'Raven mora biti v razponu od %d do %d.', [0, 100 |0, 100]);
+	->addRule($form::Range, 'Level must be between %d and %d.', [0, 100]);
 ```
-
-Element se prikaže kot `<input type="numeric">`. Z uporabo metode `setHtmlType()` lahko tip spremenite v `range` za prikaz kot drsnik ali v `text`, če želite standardno besedilno polje brez posebnega obnašanja `numeric`.
-
-Nette in brskalnik Chrome kot decimalno ločilo sprejemata tako vejico kot piko. Če želite, da je ta funkcionalnost na voljo v brskalniku Firefox, je priporočljivo nastaviti atribut `lang` bodisi za določen element bodisi za celotno stran, npr, `<html lang="cs">`.
 
 
 addEmail(string|int $name, $label=null): TextInput .[method]
@@ -137,12 +124,6 @@ Uporabite lahko `setDisabled(['r', 'g'])` za onemogočanje posameznih elementov.
 Element samodejno preveri, da ni prišlo do ponarejanja in da so izbrani elementi dejansko eni od ponujenih ter da niso bili onemogočeni. Z metodo `getRawValue()` lahko pridobite predložene elemente brez tega pomembnega preverjanja.
 
 Če so nastavljene privzete vrednosti, se prav tako preveri, ali gre za enega od ponujenih elementov, sicer se vrže izjema. To preverjanje je mogoče izklopiti z metodo `checkDefaultValue(false)`.
-
-Če obrazec pošiljate z metodo `GET`, lahko izberete bolj kompakten način prenosa podatkov, ki prihrani pri velikosti niza poizvedb. To aktivirate z nastavitvijo atributa HTML obrazca:
-
-```php
-$form->setHtmlAttribute('data-nette-compact');
-```
 
 
 addRadioList(string|int $name, $label=null, array $items=null): RadioList .[method]
@@ -265,79 +246,6 @@ Ne zaupajte izvirnim imenom datotek, ki jih vrne metoda `FileUpload::getName()`,
 Pravili `MimeType` in `Image` zahtevano vrsto datoteke ali slike odkrijeta na podlagi njenega podpisa. Celovitost celotne datoteke se ne preverja. Ali slika ni poškodovana, lahko ugotovite na primer tako, da [jo |http:request#toImage] poskusite [naložiti |http:request#toImage].
 
 
-addDate(string|int $name, $label=null): DateTimeControl .[method]{data-version:3.1.14}
-======================================================================================
-
-Doda polje, ki uporabniku omogoča enostaven vnos datuma, sestavljenega iz leta, meseca in dneva (razred [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
-
-Za privzeto vrednost sprejema predmete, ki implementirajo `DateTimeInterface`, niz s časom ali število, ki predstavlja časovni žig UNIX. Enako velja za argumente pravila `Min`, `Max` ali `Range`, ki določajo najmanjši in največji dovoljeni datum.
-
-```php
-$form->addDate('date', 'Date:')
-	->setDefaultValue(new DateTime)
-	->addRule($form::Min, 'The date must be at least a month old.', new DateTime('-1 month'));
-```
-
-Privzeto vrne predmet `DateTimeImmutable`. Z metodo `setFormat()` lahko določite [besedilno obliko |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] ali časovni žig:
-
-```php
-$form->addDate('date', 'Date:')
-	->setFormat('Y-m-d');
-```
-
-
-addTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
-=================================================================================================================
-
-Doda polje, ki uporabniku omogoča enostaven vnos časa, sestavljenega iz ur, minut in po želji sekund (razred [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
-
-Za privzeto vrednost sprejema predmete, ki implementirajo `DateTimeInterface`, niz s časom ali število, ki predstavlja časovni žig UNIX. Uporabijo se samo podatki o času iz teh vnosov; datum se ne upošteva. Enako velja za argumente pravil `Min`, `Max` ali `Range`, ki določajo najmanjši in največji dovoljeni čas. Če je najmanjša nastavljena vrednost višja od največje, se ustvari časovno območje, ki zajema polnoč.
-
-```php
-$form->addTime('time', 'Time:', withSeconds: true)
-	->addRule($form::Range, 'Time must be between %d and %d.', ['12:30', '13:30']);
-```
-
-Privzeto vrne objekt `DateTimeImmutable` (z datumom 1. januar, leto 1). Z metodo `setFormat()` lahko določite [obliko besedila |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters]:
-
-```php
-$form->addTime('time', 'Time:')
-	->setFormat('H:i');
-```
-
-
-addDateTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
-=====================================================================================================================
-
-Doda polje, ki uporabniku omogoča enostaven vnos datuma in časa, sestavljenega iz leta, meseca, dneva, ur, minut in po želji sekund (razred [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
-
-Za privzeto vrednost sprejema predmete, ki implementirajo `DateTimeInterface`, niz s časom ali število, ki predstavlja časovni žig UNIX. Enako velja za argumente pravila `Min`, `Max` ali `Range`, ki določajo najmanjši in največji dovoljeni datum.
-
-```php
-$form->addDateTime('datetime', 'Date and Time:')
-	->setDefaultValue(new DateTime)
-	->addRule($form::Min, 'The date must be at least a month old.', new DateTime('-1 month'));
-```
-
-Privzeto vrne predmet `DateTimeImmutable`. Z metodo `setFormat()` lahko določite [besedilno obliko |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] ali časovni žig:
-
-```php
-$form->addDateTime('datetime')
-	->setFormat(DateTimeControl::FormatTimestamp);
-```
-
-
-addColor(string|int $name, $label=null): ColorPicker .[method]{data-version:3.1.14}
-===================================================================================
-
-Doda polje za izbiro barve (razred [ColorPicker |api:Nette\Forms\Controls\ColorPicker]). Barva je niz v obliki `#rrggbb`. Če uporabnik ne opravi izbire, je privzeta vrnjena barva črna `#000000`.
-
-```php
-$form->addColor('color', 'Color:')
-	->setDefaultValue('#3C8ED7');
-```
-
-
 addHidden(string|int $name, string $default=null): HiddenField .[method]
 ========================================================================
 
@@ -348,8 +256,6 @@ $form->addHidden('userid');
 ```
 
 Uporabite `setNullable()`, da ga spremenite tako, da vrne `null` namesto praznega niza. S funkcijo [addFilter() |validation#Modifying Input Values] lahko spremenite oddano vrednost.
-
-Čeprav je element skrit, se je **pomembno zavedati**, da lahko napadalec še vedno spremeni ali ponaredi njegovo vrednost. Vedno temeljito preverite in potrdite vse prejete vrednosti na strani strežnika, da preprečite varnostna tveganja, povezana z manipulacijo podatkov.
 
 
 addSubmit(string|int $name, $caption=null): SubmitButton .[method]
@@ -471,7 +377,7 @@ Za elemente `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInt
 
 
 Izpuščene vrednosti .[#toc-omitted-values]
-==========================================
+------------------------------------------
 
 Če vas vrednost, ki jo je vnesel uporabnik, ne zanima, jo lahko z uporabo `setOmitted()` izpustimo iz rezultata, ki ga zagotovi metoda `$form->getValues​()` ali posreduje obdelovalcem. To je primerno za različna gesla za preverjanje, antispam polja itd.
 
@@ -484,26 +390,24 @@ $form->addPassword('passwordVerify', 'Password again:')
 
 
 Onemogočanje vnosov .[#toc-disabling-inputs]
-============================================
+--------------------------------------------
 
-Vhode lahko onemogočite z uporabo spletne strani `setDisabled()`. Onemogočenega vnosa uporabnik ne more urejati.
+Če želite onemogočiti vhod, lahko pokličete `setDisabled()`. Takšnega polja uporabnik ne more urejati.
 
 ```php
 $form->addText('username', 'User name:')
 	->setDisabled();
 ```
 
-Brskalnik onemogočenih vnosov ne pošlje strežniku, zato jih ne boste našli v podatkih, ki jih vrne funkcija `$form->getValues()`. Če pa nastavite `setOmitted(false)`, bo Nette v te podatke vključil njihovo privzeto vrednost.
+Upoštevajte, da brskalnik onemogočenih polj sploh ne pošlje strežniku, zato jih ne boste našli niti v podatkih, ki jih vrne funkcija `$form->getValues()`.
 
-Ko se pokliče `setDisabled()`, se **vrednost vnosa zaradi varnostnih razlogov izbriše**. Če nastavljate privzeto vrednost, je treba to storiti po njenem izklopu:
+Če polju določate privzeto vrednost, morate to storiti šele potem, ko ste ga onemogočili:
 
 ```php
 $form->addText('username', 'User name:')
 	->setDisabled()
 	->setDefaultValue($userName);
 ```
-
-Alternativa onemogočenim vnosom so polja z atributom HTML `readonly`, ki jih brskalnik pošlje strežniku. Čeprav je polje samo berljivo, se je **pomembno zavedati**, da lahko napadalec še vedno spremeni ali ponaredi njegovo vrednost.
 
 
 Prilagojeni gumbi .[#toc-custom-controls]
