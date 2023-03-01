@@ -40,7 +40,9 @@ function createContainer()
 test('', function () {
 	$presenter = new NetteModule\MicroPresenter(createContainer());
 	$response = $presenter->run(new Request('Nette:Micro', 'GET', [
-		'callback' => fn() => 'test',
+		'callback' => function () {
+			return 'test';
+		},
 	]));
 
 	Assert::type(Nette\Application\Responses\TextResponse::class, $response);
@@ -51,7 +53,9 @@ test('', function () {
 test('', function () {
 	$presenter = new NetteModule\MicroPresenter(createContainer());
 	$response = $presenter->run(new Request('Nette:Micro', 'GET', [
-		'callback' => fn($param) => $param,
+		'callback' => function ($param) {
+			return $param;
+		},
 		'param' => 'test',
 	]));
 
@@ -63,7 +67,9 @@ test('', function () {
 test('', function () {
 	$presenter = new NetteModule\MicroPresenter(createContainer());
 	$response = $presenter->run(new Request('Nette:Micro', 'GET', [
-		'callback' => fn() => '{=date(Y)}',
+		'callback' => function () {
+			return '{=date(Y)}';
+		},
 	]));
 
 	Assert::type(Nette\Application\Responses\TextResponse::class, $response);
@@ -74,7 +80,9 @@ test('', function () {
 test('', function () {
 	$presenter = new NetteModule\MicroPresenter(createContainer());
 	$response = $presenter->run(new Request('Nette:Micro', 'GET', [
-		'callback' => fn() => [new SplFileInfo(Tester\FileMock::create('{$param}')), []],
+		'callback' => function () {
+			return [new SplFileInfo(Tester\FileMock::create('{$param}')), []];
+		},
 		'param' => 'test',
 	]));
 
@@ -88,7 +96,9 @@ test('', function () {
 
 	$response = $presenter->run(new Request('Nette:Micro', 'GET', [
 		'callback' => function ($presenter) {
-			$template = $presenter->createTemplate(null, fn() => new Latte\Engine);
+			$template = $presenter->createTemplate(null, function () {
+				return new Latte\Engine;
+			});
 			$template->getLatte()->setLoader(new Latte\Loaders\StringLoader);
 			$template->setFile('test');
 
@@ -106,7 +116,9 @@ test('', function () {
 
 	$response = $presenter->run(new Request('Nette:Micro', 'GET', [
 		'callback' => function ($presenter) {
-			$template = $presenter->createTemplate(null, fn() => new Latte\Engine);
+			$template = $presenter->createTemplate(null, function () {
+				return new Latte\Engine;
+			});
 			$template->getLatte()->setLoader(new Latte\Loaders\FileLoader);
 			$template->setFile(Tester\FileMock::create('{$param}'));
 			$template->setParameters(['param' => 'test']);
@@ -127,7 +139,9 @@ test('', function () {
 
 		$response = $presenter->run(new Request('Nette:Micro', 'GET', [
 			'callback' => function ($presenter) use ($filename) {
-				$template = $presenter->createTemplate(null, fn() => new Latte\Engine);
+				$template = $presenter->createTemplate(null, function () {
+					return new Latte\Engine;
+				});
 				$template->getLatte()->setLoader(new Latte\Loaders\FileLoader);
 				$template->setFile($filename);
 				$template->setParameters(['param' => 'test']);

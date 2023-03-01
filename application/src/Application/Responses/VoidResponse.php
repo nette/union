@@ -17,6 +17,8 @@ use Nette;
  */
 final class VoidResponse implements Nette\Application\Response
 {
+	use Nette\SmartObject;
+
 	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse): void
 	{
 	}

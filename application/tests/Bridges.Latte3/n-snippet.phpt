@@ -1,15 +1,15 @@
 <?php
 
+/** @phpVersion 8.0 */
+
 declare(strict_types=1);
 
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
-
-class Test
-{
-	public const Foo = 'hello';
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
 }
 
 
@@ -25,8 +25,6 @@ $template = <<<'EOD'
 		<div n:snippet="gallery" class="{=class}"></div>
 
 		<script n:snippet="script">{='x'}</script>
-
-		<script n:snippet="Test::Foo">{='y'}</script>
 
 	EOD;
 
