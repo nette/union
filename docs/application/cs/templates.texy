@@ -42,9 +42,7 @@ Cestu k šablonám odvodí presenter podle jednoduché logiky. Zkusí, zda exist
 - `templates/<Presenter>/<view>.latte`
 - `templates/<Presenter>.<view>.latte`
 
-Pokud šablonu nenajde, zkusí hledat ještě v adresáři `templates` o úroveň výš, tj. na stejné úrovni, jako je adresář s třídou presenteru.
-
-Pokud ani tam šablonu nenajde, je odpovědí [chyba 404|presenters#Chyba 404 a spol.].
+Pokud šablonu nenajde, je odpovědí [chyba 404|presenters#Chyba 404 a spol.].
 
 Můžete také změnit view pomocí `$this->setView('jineView')`. Nebo místo dohledávání přímo určit jméno souboru se šablonou pomocí `$this->template->setFile('/path/to/template.latte')`.
 
@@ -150,7 +148,7 @@ V šabloně se vytvářejí odkazy na další presentery & akce tímto způsobem
 Atribut `n:href` je velmi šikovný pro HTML značky `<a>`. Chceme-li odkaz vypsat jinde, například v textu, použijeme `{link}`:
 
 ```latte
-Adresa je: {link Home:default}
+Adresa je: {link Homepage:default}
 ```
 
 Více informací najdete v kapitole [Vytváření odkazů URL|creating-links].

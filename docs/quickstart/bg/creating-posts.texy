@@ -56,7 +56,7 @@ protected function createComponentPostForm(): Form
 		->setRequired();
 
 	$form->addSubmit('send', 'Сохранить и опубликовать');
-	$form->onSuccess[] = $this->postFormSucceeded(...);
+	$form->onSuccess[] = [$this, 'postFormSucceeded'];
 
 	return $form;
 }
@@ -69,7 +69,7 @@ protected function createComponentPostForm(): Form
 Нека да добавим метод за обработка:
 
 ```php .{file:app/Presenters/EditPresenter.php}
-private function postFormSucceeded(array $data): void
+public function postFormSucceeded(array $data): void
 {
 	$post = $this->database
 		->table('posts')
@@ -105,7 +105,7 @@ private function postFormSucceeded(array $data): void
 
 Вероятно вече знаете как да добавите връзка към `EditPresenter` и нейното действие `create`. Опитайте.
 
-Просто добавете към файла `app/Presenters/templates/Home/default.latte`:
+Просто добавете към файла `app/Presenters/templates/Homepage/default.latte`:
 
 ```latte
 <a n:href="Edit:create">Создать пост</a>
@@ -147,7 +147,7 @@ public function renderEdit(int $postId): void
 И актуализирайте метода `postFormSucceeded`, който ще може да добавя нова публикация (както сега) или да редактира съществуващите:
 
 ```php .{file:app/Presenters/EditPresenter.php}
-private function postFormSucceeded(array $data): void
+public function postFormSucceeded(array $data): void
 {
 	$postId = $this->getParameter('postId');
 

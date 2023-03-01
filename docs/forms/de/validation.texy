@@ -23,9 +23,9 @@ $form->addPassword('password', 'Password:')
 	->addRule($form::MinLength, 'Password must be at least %d characters', 8);
 ```
 
-**Validierungsregeln werden nur dann überprüft, wenn der Benutzer das Element ausgefüllt hat.**
+Nette verfügt über eine Reihe von eingebauten Regeln, deren Namen Konstanten der Klasse `Nette\Forms\Form` sind:
 
-Nette verfügt über eine Reihe von vordefinierten Regeln, deren Namen Konstanten der Klasse `Nette\Forms\Form` sind. Wir können diese Regeln auf alle Elemente anwenden:
+Wir können die folgenden Regeln für alle Steuerelemente verwenden:
 
 | Konstante | Beschreibung | Argumente
 |-------
@@ -38,11 +38,7 @@ Nette verfügt über eine Reihe von vordefinierten Regeln, deren Namen Konstante
 | `IsNotIn` | Wert ist nicht gleich einem Element im Array | `array`
 | `Valid` | Eingabe besteht Validierung (für [Bedingungen |#conditions]) | -
 
-
-Texteingaben
-------------
-
-Für die Elemente `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()`, `addFloat()` können auch einige der folgenden Regeln angewendet werden:
+Für die Steuerelemente `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()` können auch die folgenden Regeln verwendet werden:
 
 | `MinLength` | minimale Stringlänge | `int`
 | `MaxLength` | maximale Länge der Zeichenkette | `int`
@@ -61,20 +57,6 @@ Für die Elemente `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `
 Die Regeln `Integer`, `Numeric` und `Float` konvertieren den Wert automatisch in Ganzzahl (bzw. Gleitkommazahl). Außerdem akzeptiert die Regel `URL` auch eine Adresse ohne Schema (z. B. `nette.org`) und vervollständigt das Schema (`https://nette.org`).
 Die Ausdrücke in `Pattern` und `PatternInsensitive` müssen für den gesamten Wert gültig sein, d. h. so, als ob er in die Zeichen `^` and `$` eingeschlossen wäre.
 
-
-Anzahl der Artikel .[#toc-number-of-items]
-------------------------------------------
-
-Für die Elemente `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` können Sie auch die folgenden Regeln verwenden, um die Anzahl der ausgewählten Elemente oder hochgeladenen Dateien zu begrenzen:
-
-| `MinLength` | Mindestanzahl | `int`
-| `MaxLength` | maximale Anzahl | `int`
-| `Length` | Anzahl im Bereich oder genaue Anzahl | Paare `[int, int]` oder `int`
-
-
-Datei hochladen
----------------
-
 Für die Steuerelemente `addUpload()`, `addMultiUpload()` können auch die folgenden Regeln verwendet werden:
 
 | `MaxFileSize` | maximale Dateigröße | `int`
@@ -85,9 +67,15 @@ Für die Steuerelemente `addUpload()`, `addMultiUpload()` können auch die folge
 
 Für `MimeType` und `Image` ist die PHP-Erweiterung `fileinfo` erforderlich. Ob eine Datei oder ein Bild dem erforderlichen Typ entspricht, wird anhand ihrer Signatur erkannt. Die Integrität der gesamten Datei wird nicht geprüft. Sie können herausfinden, ob ein Bild nicht beschädigt ist, indem Sie beispielsweise versuchen, [es zu laden |http:request#toImage].
 
+Für die Steuerelemente `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` können auch die folgenden Regeln verwendet werden, um die Anzahl der ausgewählten Elemente bzw. hochgeladenen Dateien zu begrenzen:
+
+| `MinLength` | minimale Anzahl | `int`
+| `MaxLength` | maximale Anzahl | `int`
+| `Length` | Anzahl im Bereich oder genaue Anzahl | Paar `[int, int]` oder `int`
+
 
 Fehlermeldungen .[#toc-error-messages]
-======================================
+--------------------------------------
 
 Alle vordefinierten Regeln außer `Pattern` und `PatternInsensitive` haben eine Standard-Fehlermeldung, so dass sie weggelassen werden können. Wenn Sie jedoch alle benutzerdefinierten Meldungen übergeben und formulieren, wird das Formular benutzerfreundlicher.
 
@@ -246,7 +234,7 @@ In vielen Fällen entdecken wir einen Fehler, wenn wir ein gültiges Formular ve
 try {
 	$data = $form->getValues();
 	$this->user->login($data->username, $data->password);
-	$this->redirect('Home:');
+	$this->redirect('Homepage:');
 
 } catch (Nette\Security\AuthenticationException $e) {
 	if ($e->getCode() === Nette\Security\Authenticator::InvalidCredential) {
@@ -293,7 +281,7 @@ Dieses Skript ist `netteForms.js`, das von mehreren möglichen Quellen erhältli
 Sie können das Skript direkt in die HTML-Seite aus dem CDN einbetten:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Oder kopieren Sie es lokal in den öffentlichen Ordner des Projekts (z. B. von `vendor/nette/forms/src/assets/netteForms.min.js`):
@@ -304,7 +292,7 @@ Oder kopieren Sie es lokal in den öffentlichen Ordner des Projekts (z. B. von `
 
 Oder über [npm |https://www.npmjs.com/package/nette-forms] installieren:
 
-```shell
+```bash
 npm install nette-forms
 ```
 

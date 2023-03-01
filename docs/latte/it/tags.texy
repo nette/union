@@ -79,7 +79,6 @@ Riepilogo e descrizione di tutti i tag incorporati di Latte.
 | `{debugbreak}` | [imposta un punto di interruzione nel codice |#debugbreak]
 | `{do}` | [valuta un'espressione senza stamparla |#do]
 | `{dump}` | [scarica le variabili nella barra Tracy |#dump]
-| `{php}` | [esegue qualsiasi codice PHP |#php]
 | `{spaceless}`... `{/spaceless}` | [rimuove gli spazi bianchi non necessari |#spaceless]
 | `{syntax}` | [cambia la sintassi in fase di esecuzione |#syntax]
 | `{trace}` | [mostra la traccia dello stack |#trace]
@@ -97,20 +96,20 @@ Riepilogo e descrizione di tutti i tag incorporati di Latte.
 | `{link}` | [stampa un link |application:creating-links#In the Presenter Template]
 | `{plink}` | [stampa un link a un presentatore |application:creating-links#In the Presenter Template]
 | `{control}` | [stampa un componente |application:components#Rendering]
-| `{snippet}`... `{/snippet}` | [uno snippet di modello che può essere inviato tramite AJAX |application:ajax#snippets-in-latte]
-| `{snippetArea}` | [snippet busta |application:ajax#snippet-areas]
+| `{snippet}`... `{/snippet}` | [uno snippet di modello che può essere inviato tramite AJAX |application:ajax#tag-snippet]
+| `{snippetArea}` | snippet busta
 | `{cache}`... `{/cache}` | [memorizza nella cache una sezione del template |caching:#caching-in-latte]
 
 .[table-latte-tags language-latte]
 |## Disponibile solo con Nette Forms
-| `{form}`... `{/form}` | [stampa un elemento del modulo |forms:rendering#form]
+| `{form}`... `{/form}` | [stampa un elemento del modulo |forms:rendering#latte]
 | `{label}`... `{/label}` | [stampa un'etichetta di input del modulo |forms:rendering#label-input]
 | `{input}` | [stampa un elemento di input del modulo |forms:rendering#label-input]
 | `{inputError}` | [stampa il messaggio di errore per l'elemento di input del modulo |forms:rendering#inputError]
 | `n:name` | [attiva un elemento di input HTML |forms:rendering#n:name]
 | `{formPrint}` | [genera il blueprint del modulo Latte |forms:rendering#formPrint]
 | `{formPrintClass}` | [stampa la classe PHP per i dati del modulo |forms:in-presenter#mapping-to-classes]
-| `{formContainer}`... `{/formContainer}` | [rendere il contenitore del modulo |forms:rendering#special-cases]
+| `{formContext}`... `{/formContext}` | [rendering parziale del modulo |forms:rendering#special-cases]
 
 
 Stampa .[#toc-printing]
@@ -283,8 +282,8 @@ Utilizzare la condizione `{ifset $var}` per determinare se una variabile (o più
 ```
 
 
-`{ifchanged}`
--------------
+`{ifchanged}` .{data-version:2.9}
+---------------------------------
 
 `{ifchanged}` controlla se il valore di una variabile è cambiato dall'ultima iterazione del ciclo (foreach, for o while).
 
@@ -330,7 +329,7 @@ Quindi è l'esatto equivalente della struttura `match` di cui PHP 8.0 è dotato.
 		Differently
 {/switch}
 ```
-
+.{data-version:2.9}
 La clausola `{case}` può contenere più valori separati da virgole:
 
 ```latte
@@ -391,8 +390,8 @@ Quindi viene stampato qualcosa come:
 ```
 
 
-`{else}` .{toc: foreach-else}
------------------------------
+`{else}` .{data-version:2.9}{toc: foreach-else}
+-----------------------------------------------
 
 Il ciclo `foreach` può contenere una clausola opzionale `{else}` il cui testo viene visualizzato se l'array dato è vuoto:
 
@@ -415,10 +414,10 @@ All'interno del ciclo `foreach` viene inizializzata la variabile `$iterator`. Es
 - `$iterator->first` - è la prima iterazione?
 - `$iterator->last` - è l'ultima iterazione?
 - `$iterator->counter` - contatore di iterazioni, parte da 1
-- `$iterator->counter0` - contatore di iterazioni, parte da 0
+- `$iterator->counter0` - contatore di iterazioni, parte da 0 .{data-version:2.9}
 - `$iterator->odd` - questa iterazione è dispari?
 - `$iterator->even` - questa iterazione è pari?
-- `$iterator->parent` - l'iteratore che circonda quello attuale
+- `$iterator->parent` - l'iteratore che circonda quello attuale .{data-version:2.9}
 - `$iterator->nextValue` - il prossimo elemento del ciclo
 - `$iterator->nextKey` - la chiave del prossimo elemento del ciclo
 
@@ -466,8 +465,8 @@ Il contenuto di `{sep}` viene reso se l'iterazione non è l'ultima, quindi è ad
 È piuttosto pratico, vero?
 
 
-`{iterateWhile}`
-----------------
+`{iterateWhile}` .{data-version:2.10}
+-------------------------------------
 
 Semplifica il raggruppamento dei dati lineari durante l'iterazione in un ciclo foreach, eseguendo l'iterazione in un ciclo annidato finché la condizione è soddisfatta. [Leggete le istruzioni nel ricettario |cookbook/iteratewhile].
 
@@ -548,7 +547,7 @@ Esistono tag speciali che possono essere utilizzati per controllare qualsiasi ci
 {/foreach}
 ```
 
-
+.{data-version:2.9}
 Il tag `{skipIf}` è molto simile a `{continueIf}`, ma non incrementa il contatore. Quindi non ci sono buchi nella numerazione quando si stampa `$iterator->counter` e si saltano alcuni elementi. Anche la clausola {else} sarà resa quando si saltano tutti gli elementi.
 
 ```latte
@@ -596,10 +595,14 @@ Il tag `{include}` carica e rende il modello specificato. Nel nostro linguaggio 
 
 I template inclusi non hanno accesso alle variabili del contesto attivo, ma hanno accesso alle variabili globali.
 
-È possibile passare variabili al modello inserito nel modo seguente:
+È possibile passare le variabili in questo modo:
 
 ```latte
+{* da Latte 2.9 *}
 {include 'template.latte', foo: 'bar', id: 123}
+
+{* prima di Latte 2.9 *}
+{include 'template.latte', foo => 'bar', id => 123}
 ```
 
 Il nome del modello può essere una qualsiasi espressione PHP:
@@ -615,7 +618,7 @@ Il contenuto inserito può essere modificato utilizzando dei [filtri |syntax#fil
 <title>{include 'heading.latte' |stripHtml|capitalize}</title>
 ```
 
-L'[ereditarietà del template |template inheritance] **non è coinvolta** in questo per impostazione predefinita. Sebbene sia possibile aggiungere tag di blocco ai template che sono inclusi, essi non sostituiranno i blocchi corrispondenti nel template in cui sono inclusi. Si pensi agli include come a parti indipendenti e protette di pagine o moduli. Questo comportamento può essere cambiato usando il modificatore `with blocks`:
+L'[eredità del template |template inheritance] **non è coinvolta** in questo per impostazione predefinita. Sebbene sia possibile aggiungere tag di blocco ai template che sono inclusi, essi non sostituiranno i blocchi corrispondenti nel template in cui sono inclusi. Si pensi agli include come a parti indipendenti e protette di pagine o moduli. Questo comportamento può essere modificato usando il modificatore `with blocks` (da Latte 2.9.1):
 
 ```latte
 {include 'template.latte' with blocks}
@@ -624,8 +627,8 @@ L'[ereditarietà del template |template inheritance] **non è coinvolta** in que
 La relazione tra il nome del file specificato nel tag e il file sul disco è una questione di [caricatore |extending-latte#Loaders].
 
 
-`{sandbox}`
------------
+`{sandbox}` .{data-version:2.8}
+-------------------------------
 
 Quando si include un modello creato da un utente finale, si dovrebbe considerare la possibilità di metterlo in sandbox (maggiori informazioni nella [documentazione di sandbox |sandbox]):
 
@@ -655,8 +658,8 @@ Gestione delle eccezioni .[#toc-exception-handling]
 ===================================================
 
 
-`{try}`
--------
+`{try}` .{data-version:2.9}
+---------------------------
 
 Questo tag rende estremamente facile la costruzione di modelli robusti.
 
@@ -697,8 +700,8 @@ Il tag può anche essere scritto come [n:attribute |syntax#n:attributes]:
 È anche possibile definire un [proprio gestore di eccezioni |develop#exception handler] per esempio per la registrazione:
 
 
-`{rollback}`
-------------
+`{rollback}` .{data-version:2.9}
+--------------------------------
 
 Il blocco `{try}` può anche essere fermato e saltato manualmente usando `{rollback}`. In questo modo non è necessario controllare in anticipo tutti i dati di input e solo durante il rendering si può decidere se ha senso eseguire il rendering dell'oggetto.
 
@@ -739,7 +742,7 @@ Il tag `{default}` funziona in modo simile, ma crea le variabili solo se non esi
 {default $lang = 'cs'}
 ```
 
-È anche possibile specificare [i tipi di variabili |type-system]. Per ora sono informative e Latte non le controlla.
+A partire da Latte 2.7, è possibile specificare anche [i tipi di variabili |type-system]. Per ora sono informative e Latte non le controlla.
 
 ```latte
 {var string $name = $article->getTitle()}
@@ -747,8 +750,8 @@ Il tag `{default}` funziona in modo simile, ma crea le variabili solo se non esi
 ```
 
 
-`{parameters}`
---------------
+`{parameters}` .{data-version:2.9}
+----------------------------------
 
 Proprio come una funzione dichiara i suoi parametri, un modello può dichiarare le sue variabili all'inizio:
 
@@ -780,15 +783,13 @@ Utilizzando il tag `{capture}` è possibile catturare l'output in una variabile:
 <p>Captured: {$var}</p>
 ```
 
-Il tag può anche essere scritto come [n:attribute |syntax#n:attributes], come qualsiasi tag a coppie:
+Il tag può anche essere scritto come [n:attribute |syntax#n:attributes]:
 
 ```latte
 <ul n:capture="$var">
 	<li>Hello World</li>
 </ul>
 ```
-
-L'output HTML viene memorizzato nella variabile `$var` come oggetto `Latte\Runtime\Html` per [evitare escape indesiderati |develop#disabling-auto-escaping-of-variable] durante la stampa.
 
 
 Altri .[#toc-others]
@@ -840,11 +841,13 @@ Specifica il punto in cui l'esecuzione del codice si interrompe. Viene utilizzat
 `{do}`
 ------
 
-Esegue il codice PHP e non stampa nulla. Come per tutti gli altri tag, il codice PHP è una singola espressione, vedi [limitazioni PHP |syntax#PHP Limitations in Latte].
+Esegue il codice e non stampa nulla.
 
 ```latte
 {do $num++}
 ```
+
+In Latte 2.7 e precedenti, veniva utilizzato `{php}`.
 
 
 `{dump}`
@@ -860,12 +863,6 @@ Esegue il dump di una variabile o del contesto corrente.
 
 .[caution]
 Richiede il pacchetto [Tracy |tracy:].
-
-
-`{php}`
--------
-
-Permette di eseguire qualsiasi codice PHP. Il tag deve essere attivato utilizzando l'estensione [RawPhpExtension |develop#RawPhpExtension].
 
 
 `{spaceless}`
@@ -911,8 +908,8 @@ Latte può essere usato molto comodamente all'interno di JavaScript, basta evita
 Se si disattiva Latte con `{syntax off}` (cioè con il tag, non con l'attributo n:), esso ignorerà rigorosamente tutti i tag fino a `{/syntax}`.
 
 
-{trace}
--------
+{trace} .{data-version:2.10}
+----------------------------
 
 Lancia un'eccezione `Latte\RuntimeException`, la cui traccia di stack è nello spirito dei template. Quindi, invece di chiamare funzioni e metodi, comporta la chiamata di blocchi e l'inserimento di modelli. Se si utilizza uno strumento per visualizzare chiaramente le eccezioni lanciate, come [Tracy |tracy:], si vedrà chiaramente lo stack delle chiamate, compresi tutti gli argomenti passati.
 
@@ -989,8 +986,6 @@ Se `$heading === null`, il tag `<h1>` viene stampato senza modifiche. Altrimenti
 ```latte
 <h3 class="main">...</h3>
 ```
-
-Poiché Latte è un sistema di template sicuro, controlla che il nome del nuovo tag sia valido e non contenga valori indesiderati o dannosi.
 
 
 n:ifcontent .[#toc-n-ifcontent]

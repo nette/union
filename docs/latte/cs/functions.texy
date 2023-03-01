@@ -9,7 +9,6 @@ V šablonách můžeme kromě běžných PHP funkcí používat i tyto další.
 | `divisibleBy`| [zkontroluje, zda je proměnná dělitelná číslem |#divisibleBy]
 | `even`       | [zkontroluje, zda je dané číslo sudé |#even]
 | `first`      | [vrací první prvek pole nebo znak řetězce |#first]
-| `hasBlock`   | [zjistí existenci bloku |#hasBlock]
 | `last`       | [vrací poslední prvek pole nebo znak řetězce |#last]
 | `odd`        | [zkontroluje, zda je dané číslo liché |#odd]
 | `slice`      | [extrahuje část pole nebo řetězce |#slice]
@@ -45,8 +44,8 @@ Funkce
 ======
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Ohraničí hodnotu do daného inkluzivního rozsahu min a max.
 
 ```latte
@@ -56,8 +55,8 @@ Ohraničí hodnotu do daného inkluzivního rozsahu min a max.
 Viz také [filtr clamp|filters#clamp].
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Zkontroluje, zda je proměnná dělitelná číslem.
 
 ```latte
@@ -65,8 +64,8 @@ Zkontroluje, zda je proměnná dělitelná číslem.
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Zkontroluje, zda je dané číslo sudé.
 
 ```latte
@@ -74,8 +73,8 @@ Zkontroluje, zda je dané číslo sudé.
 ```
 
 
-first(string|array $value): mixed .[method]
--------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Vrací první prvek pole nebo znak řetězce:
 
 ```latte
@@ -86,19 +85,8 @@ Vrací první prvek pole nebo znak řetězce:
 Viz také [#last], [filtr first|filters#first].
 
 
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Zjistí, zda blok uvedeného jména existuje:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-Viz také [kontrola existence bloků|template-inheritance#Kontrola existence bloků].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Vrací poslední prvek pole nebo znak řetězce:
 
 ```latte
@@ -109,8 +97,8 @@ Vrací poslední prvek pole nebo znak řetězce:
 Viz také [#first], [filtr last|filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Zkontroluje, zda je dané číslo liché.
 
 ```latte
@@ -118,8 +106,8 @@ Zkontroluje, zda je dané číslo liché.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Extrahuje část pole nebo řetězce.
 
 ```latte

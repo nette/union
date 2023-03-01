@@ -26,7 +26,6 @@ Formularze
 ----------
 - [Ponowne wykorzystanie formularzy |form-reuse]
 - [Formularz do tworzenia i edycji rekordu |creating-editing-form]
-- [Stwórzmy formularz kontaktowy |lets-create-contact-form]
 - [Zależne pola wyboru |https://blog.nette.org/pl/zalezne-selectboxy-elegancko-w-nette-i-czysty-js]
 
 </div>
@@ -36,12 +35,10 @@ Formularze
 Wspólne
 -------
 - [Jak załadować plik konfiguracyjny |bootstrap:]
-- [Jak pisać mikrowitryny |microsites]
 - [Dlaczego Nette używa notacji stałej PascalCase? |https://blog.nette.org/pl/aby-mniej-krzyczec-w-kodzie]
 - [Dlaczego Nette nie używa przyrostka Interface? |https://blog.nette.org/pl/przedrostki-i-przyrostki-nie-sa-czescia-nazw-interfejsow]
 - [Kompozytor: wskazówki dotyczące użytkowania |composer]
 - [Porady dotyczące edytorów i narzędzi |editors-and-tools]
-- [Wprowadzenie do programowania obiektowego |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

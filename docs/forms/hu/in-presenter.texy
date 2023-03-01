@@ -30,11 +30,11 @@ A prezenterben lévő űrlap a `Nette\Application\UI\Form` osztály objektuma, e
 
 A bemutató szempontjából az űrlap egy közös komponens. Ezért komponensként kezeljük, és a [factory metódus |application:components#Factory Methods] segítségével beépítjük a prezentálóba. Ez így fog kinézni:
 
-```php .{file:app/Presenters/HomePresenter.php}
+```php .{file:app/Presenters/HomepagePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	protected function createComponentRegistrationForm(): Form
 	{
@@ -52,14 +52,14 @@ class HomePresenter extends Nette\Application\UI\Presenter
 		// $data->name tartalmazza a nevet
 		// $data->password tartalmazza a jelszót
 		$this->flashMessage('Sikeresen regisztrált.');
-		$this->redirect('Home:');
+		$this->redirect('Homepage:');
 	}
 }
 ```
 
 A sablonban történő megjelenítés pedig a `{control}` tag használatával történik:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ Az űrlap mindig a szerveroldalon validálódik, de a JavaScript validáció is 
 Ezt illessze be az elrendezési sablonba:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Ha megnézi az űrlapot tartalmazó oldal forráskódját, észreveheti, hogy a Nette a szükséges mezőket a `required` CSS osztályú elemekbe illeszti be. Próbálja meg a következő stílust hozzáadni a sablonhoz, és a "Név" felirat piros lesz. Elegánsan jelöljük a kötelező mezőket a felhasználók számára:

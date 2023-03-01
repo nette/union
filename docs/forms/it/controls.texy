@@ -20,7 +20,7 @@ Convalida automaticamente UTF-8, taglia gli spazi bianchi a destra e a sinistra 
 
 La lunghezza massima può essere limitata utilizzando `setMaxLength()`. Il metodo [addFilter() |validation#Modifying Input Values] consente di modificare il valore inserito dall'utente.
 
-Si può usare `setHtmlType()` per cambiare il [carattere |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] dell'elemento di input in `search`, `tel`, `url`, `range`, `datetime-local`, `month`, `time`, `week`, `color`. Al posto dei tipi `number` e `email`, si consiglia di usare [addInteger |#addInteger], [addFloat |#addFloat] e [addEmail |#addEmail], che hanno una validazione lato server.
+Utilizzare `setHtmlType()` per cambiare il [carattere |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] dell'elemento di input in `search`, `tel`, `url`, `range`, `date`, `datetime-local`, `month`, `time`, `week`, `color`. Al posto dei tipi `number` e `email`, si consiglia di usare [addInteger |#addInteger] e [addEmail |#addEmail], che forniscono una validazione lato server.
 
 ```php
 $form->addText('color', 'Choose color:')
@@ -58,23 +58,10 @@ addInteger(string|int $name, $label=null): TextInput .[method]
 Aggiunge un campo di input per numeri interi (classe [TextInput |api:Nette\Forms\Controls\TextInput]). Restituisce un intero o `null` se l'utente non inserisce nulla.
 
 ```php
-$form->addInteger('anno', 'Anno:')
-	->addRule($form::Range, 'L'anno deve essere compreso tra %d e %d.', [1900, 2023 |1900, 2023]);
-```
-
-
-addFloat(string|int $name, $label=null): TextInput .[method]{data-version:3.1.12}
-=================================================================================
-
-Adds a field for entering a decimal number ([TextInput |api:Nette\Forms\Controls\TextInput] class). Returns either float or `null`, if the user does not specify anything.
-
-```php
-$form->addFloat('level', 'Level:')
+$form->addInteger('level', 'Level:')
 	->setDefaultValue(0)
-->addRule($form::Range, 'Il livello deve essere compreso tra %d e %d', [0, 100 |0, 100]);
+	->addRule($form::Range, 'Level must be between %d and %d.', [0, 100]);
 ```
-
-Nette e Chrome accettano sia la virgola che il punto come separatore decimale. Affinché anche Firefox accetti la virgola, è necessario impostare la lingua corrispondente nell'attributo HTML `lang`, direttamente a questo elemento o a qualsiasi elemento padre, ad esempio `<html lang="cs">`.
 
 
 addEmail(string|int $name, $label=null): TextInput .[method]
@@ -412,9 +399,9 @@ $form->addText('username', 'User name:')
 	->setDisabled();
 ```
 
-I campi disabilitati non vengono inviati dal browser al server, quindi non sono presenti nei dati restituiti dalla funzione `$form->getValues()`. Tuttavia, se si imposta `setOmitted(false)`, Nette includerà il loro valore in questi dati.
+Si noti che il browser non invia affatto i campi disabilitati al server, quindi non li si troverà nemmeno nei dati restituiti dalla funzione `$form->getValues()`.
 
-Quando si chiama `setDisabled()`, il valore del campo viene cancellato. Se si imposta un valore predefinito, è necessario farlo dopo averlo disattivato:
+Se si imposta un valore predefinito per un campo, è necessario farlo solo dopo averlo disabilitato:
 
 ```php
 $form->addText('username', 'User name:')

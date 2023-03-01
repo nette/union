@@ -4,7 +4,6 @@ Injekcija odvisnosti
 - [Globalno stanje in singletoni |global-state]
 - [Posredovanje odvisnosti |passing-dependencies]
 - [Kaj je vsebnik DI? |container]
-- [Pogosto zastavljena vprašanja |faq]
 
 
 Nette DI

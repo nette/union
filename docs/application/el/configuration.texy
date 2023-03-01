@@ -76,12 +76,6 @@ latte:
 	# παράγει πρότυπα με declare(strict_types=1)
 	strictTypes: ...     # (bool) προεπιλογή σε false
 
-	# ενεργοποιεί την [αυστηρή λειτουργία του αναλυτή |latte:develop#strict mode]
-	strictParsing: ...   # (bool) η προεπιλογή είναι false
-
-	# ενεργοποιεί τον [έλεγχο του παραγόμενου κώδικα |latte:develop#Checking Generated Code]
-	phpLinter: ...       # (string) η προεπιλογή είναι null
-
 	# κλάση του $this->template
 	templateClass: App\MyTemplateClass # προεπιλογή σε Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -158,18 +152,3 @@ PHP
 php:
 	date.timezone: Europe/Prague
 ```
-
-
-Υπηρεσίες DI .[#toc-di-services]
-================================
-
-Αυτές οι υπηρεσίες προστίθενται στο δοχείο DI:
-
-| Όνομα | Τύπος | Περιγραφή
-|----------------------------------------------------------
-| `application.application` | [api:Nette\Application\Application] | [Εκτοξευτής πλήρους εφαρμογής |how-it-works#Nette Application]
-| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
-| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | presenter factory
-| `application.###` | [api:Nette\Application\UI\Presenter] | μεμονωμένοι παρουσιαστές
-| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | εργοστάσιο για `Latte\Engine`
-| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | factory for [`$this->template` |templates]

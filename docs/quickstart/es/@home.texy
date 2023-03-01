@@ -6,20 +6,30 @@ Conoce Nette Framework mientras creas un sencillo blog con comentarios. ¡Empece
 
 Después de los dos primeros capítulos, tendrás tu propio blog funcionando y estarás listo para publicar tus increíbles posts, aunque las características serán bastante limitadas después de completar estos dos capítulos. Para hacer las cosas más agradables para tus usuarios, también deberías leer los siguientes capítulos y seguir mejorando tu aplicación.
 
-.[tip]
-Este tutorial asume que usted ha completado el documento de [Instalación |nette:installation] y ha configurado exitosamente sus herramientas. También asume que usted entiende la [programación orientada a objetos en PHP |nette:introduction-to-object-oriented-programming].
+Puedes encontrar la [aplicación completa en GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
 
-Por favor, utilice PHP 8.1 o posterior. Puedes encontrar la aplicación completa [en GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
+Por favor, instala [el IDE completo y todos los plugins necesarios |best-practices:editors-and-tools], te hará extremadamente eficiente.
 
+Este QuickStart fue escrito para Nette Framework 3.1 y PHP 8.0 o más reciente.
 
-La página de bienvenida .[#toc-the-welcome-page]
-================================================
+Puedes descargar Nette Framework manualmente, pero la forma recomendada de empezar un nuevo proyecto es usando [Composer |best-practices:composer]. Si no conoces el Composer, definitivamente deberías empezar con eso. Es una herramienta realmente sencilla y útil, echa un vistazo a [su documentación |https://getcomposer.org/doc/].
 
-Empecemos creando un nuevo proyecto en el directorio `nette-blog`:
+Con Composer, puedes descargar e instalar el esqueleto de aplicación conocido como Web Project incluyendo Nette Framework muy fácilmente. Para ello, busque su directorio webroot (por ejemplo, `/var/www` o `C:\InetPub`) en su línea de comandos y ejecute el siguiente comando:
 
 ```shell
 composer create-project nette/web-project nette-blog
 ```
+
+Web Project se descargará en el directorio `nette-blog`.
+
+.[note]
+Si no puede utilizar Composer, [descargue |https://github.com/nette/web-project/archive/preloaded.zip] y extraiga el archivo y cópielo en el directorio raíz del servidor web y cámbiele el nombre a `nette-blog`. Todo el framework se encuentra en la carpeta `vendor`.
+
+Si estás desarrollando en macOS o Linux (o cualquier otro sistema basado en Unix), necesitas [configurar privilegios de escritura |nette:troubleshooting#Setting directory permissions] en el servidor web.
+
+
+La página de bienvenida .[#toc-the-welcome-page]
+================================================
 
 En este momento, la página de bienvenida del Proyecto Web debería estar funcionando. Pruébela abriendo su navegador y accediendo a la siguiente URL:
 
@@ -67,7 +77,7 @@ El directorio más importante para ti es `app/`. Allí puedes encontrar el archi
 Limpiar .[#toc-cleanup]
 =======================
 
-El Proyecto Web contiene una página de bienvenida, que podemos eliminar - siéntase libre de borrar el archivo `app/Presenters/templates/Home/default.latte` y sustituirlo por el texto "¡Hola mundo!".
+El Proyecto Web contiene una página de bienvenida, que podemos eliminar - siéntase libre de borrar el archivo `app/Presenters/templates/Homepage/default.latte` y sustituirlo por el texto "¡Hola mundo!".
 
 
 [* qs-hello.webp .{url:-} *]
@@ -76,7 +86,7 @@ El Proyecto Web contiene una página de bienvenida, que podemos eliminar - sién
 Tracy (Depurador) .[#toc-tracy-debugger]
 ========================================
 
-Una herramienta extremadamente importante para el desarrollo es [un depurador llamado Tracy |tracy:]. Intente cometer algunos errores en su archivo `app/Presenters/HomePresenter.php` (por ejemplo, elimine una llave de la definición de la clase HomePresenter) y vea qué ocurre. Aparecerá una página en pantalla roja con una descripción comprensible del error.
+Una herramienta extremadamente importante para el desarrollo es [un depurador llamado Tracy |tracy:]. Intente cometer algunos errores en su archivo `app/Presenters/HomepagePresenter.php` (por ejemplo, elimine una llave de la definición de la clase HomepagePresenter) y vea qué ocurre. Aparecerá una página en pantalla roja con una descripción comprensible del error.
 
 [* qs-tracy.webp .{url:-}(debugger screen) *]
 

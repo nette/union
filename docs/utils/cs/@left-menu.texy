@@ -14,8 +14,7 @@ Balíček nette/utils
 - [Pole |arrays]
 - [Pomocné funkce |helpers]
 - [Řetězce |strings]
-- [SmartObject]
-- [StaticClass]
+- [SmartObject |smartobject]
 - [Souborový systém |filesystem]
 - [Validátor |validators]
 

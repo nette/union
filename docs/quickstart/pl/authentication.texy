@@ -48,7 +48,7 @@ final class SignPresenter extends Nette\Application\UI\Presenter
 
 		$form->addSubmit('send', 'Přihlásit');
 
-		$form->onSuccess[] = $this->signInFormSucceeded(...);
+		$form->onSuccess[] = [$this, 'signInFormSucceeded'];
 		return $form;
 	}
 }
@@ -78,11 +78,11 @@ Następnie dodamy callback dla logowania użytkownika, który zostanie wywołany
 Callback po prostu bierze nazwę użytkownika i hasło, które użytkownik wypełnił i przekazuje je do authenticatora. Po zalogowaniu przekierowujemy na stronę główną.
 
 ```php .{file:app/Presenters/SignPresenter.php}
-private function signInFormSucceeded(Form $form, \stdClass $data): void
+public function signInFormSucceeded(Form $form, \stdClass $data): void
 {
 	try {
 		$this->getUser()->login($data->username, $data->password);
-		$this->redirect('Home:');
+		$this->redirect('Homepage:');
 
 	} catch (Nette\Security\AuthenticationException $e) {
 		$form->addError('Nesprávné přihlašovací jméno nebo heslo.');
@@ -117,7 +117,7 @@ public function startup(): void
 Ukryj linki .[#toc-hide-links]
 ------------------------------
 
-Nieautoryzowany użytkownik nie może już zobaczyć strony *create* lub *edit*, ale nadal może zobaczyć linki do nich. Te również powinniśmy ukryć. Jeden z takich linków znajduje się w szablonie `app/Presenters/templates/Home/default.latte` i powinien być widoczny tylko dla zalogowanych użytkowników.
+Nieautoryzowany użytkownik nie może już zobaczyć strony *create* lub *edit*, ale nadal może zobaczyć linki do nich. Te również powinniśmy ukryć. Jeden z takich linków znajduje się w szablonie `app/Presenters/templates/Homepage/default.latte` i powinien być widoczny tylko dla zalogowanych użytkowników.
 
 Możemy go ukryć używając *n:atrybutu* w imieniu `n:if`. Jeśli ten warunek jest `false`, to cały znacznik `<a>`, łącznie z treścią, pozostanie ukryty.
 
@@ -142,7 +142,7 @@ Jak właściwie dostać się na stronę logowania? Nie ma żadnego linku, który
 ```latte .{file:app/Presenters/templates/@layout.latte}
 ...
 <ul class="navig">
-	<li><a n:href="Home:">Články</a></li>
+	<li><a n:href="Homepage:">Články</a></li>
 	{if $user->isLoggedIn()}
 		<li><a n:href="Sign:out">Odhlásit</a></li>
 	{else}
@@ -161,7 +161,7 @@ public function actionOut(): void
 {
 	$this->getUser()->logout();
 	$this->flashMessage('Odhlášení bylo úspěšné.');
-	$this->redirect('Home:');
+	$this->redirect('Homepage:');
 }
 ```
 

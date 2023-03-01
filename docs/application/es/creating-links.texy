@@ -38,7 +38,7 @@ También es posible pasar parámetros con nombre. El siguiente enlace pasa el pa
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Si el método `ProductPresenter::renderShow()` no tiene `$lang` en su firma, puede recuperar el valor del parámetro utilizando `$lang = $this->getParameter('lang')` o desde la [propiedad |presenters#Request Parameters].
+Si el método `ProductPresenter::renderShow()` no tiene `$lang` en su firma, puede leer el valor del parámetro usando `$lang = $this->getParameter('lang')`.
 
 Si los parámetros se almacenan en una matriz, pueden expandirse con el operador `...` (o `(expand)` en Latte 2.x):
 
@@ -52,7 +52,7 @@ Los llamados [parámetros persistentes |presenters#persistent parameters] tambi�
 El atributo `n:href` es muy útil para las etiquetas HTML `<a>`. Si queremos imprimir el enlace en otro lugar, por ejemplo en el texto, utilizamos `{link}`:
 
 ```latte
-URL is: {link Home:default}
+URL is: {link Homepage:default}
 ```
 
 
@@ -88,19 +88,19 @@ El formato es soportado por todas las etiquetas Latte y todos los métodos de pr
 Por lo tanto, la forma básica es `Presenter:action`:
 
 ```latte
-<a n:href="Home:default">home</a>
+<a n:href="Homepage:default">homepage</a>
 ```
 
 Si enlazamos con la acción del presentador actual, podemos omitir su nombre:
 
 ```latte
-<a n:href="default">home</a>
+<a n:href="default">homepage</a>
 ```
 
 Si la acción es `default`, podemos omitirlo, pero los dos puntos deben permanecer:
 
 ```latte
-<a n:href="Home:">home</a>
+<a n:href="Homepage:">homepage</a>
 ```
 
 Los enlaces también pueden apuntar a otros [módulos |modules]. Aquí, los enlaces se distinguen en relativos a los submódulos, o absolutos. El principio es análogo a las rutas de disco, sólo que en lugar de barras inclinadas hay dos puntos. Supongamos que el presentador real forma parte del módulo `Front`, entonces escribiremos:
@@ -119,7 +119,7 @@ Un caso especial es el [enlace a sí mismo |#Links to Current Page]. Aquí escri
 Podemos enlazar a una parte determinada de la página HTML mediante un fragmento llamado `#` después del símbolo de almohadilla `#`:
 
 ```latte
-<a n:href="Home:#main">link to Home:default and fragment #main</a>
+<a n:href="Homepage:#main">link to Homepage:default and fragment #main</a>
 ```
 
 
@@ -128,7 +128,7 @@ Rutas absolutas .[#toc-absolute-paths]
 
 Los enlaces generados por `link()` o `n:href` son siempre rutas absolutas (es decir, empiezan por `/`), pero no URLs absolutas con protocolo y dominio como `https://domain`.
 
-Para generar una URL absoluta, añada dos barras al principio (por ejemplo, `n:href="//Home:"`). También puede hacer que el presentador genere sólo enlaces absolutos configurando `$this->absoluteUrls = true`.
+Para generar una URL absoluta, añada dos barras al principio (por ejemplo, `n:href="//Homepage:"`). También puede hacer que el presentador genere sólo enlaces absolutos configurando `$this->absoluteUrls = true`.
 
 
 Enlace a la página actual .[#toc-link-to-current-page]
@@ -213,13 +213,13 @@ Dado que los [componentes |components] son unidades reutilizables independientes
 Si queremos enlazar con presentadores en la plantilla de componentes, utilizaremos la etiqueta `{plink}`:
 
 ```latte
-<a href="{plink Home:default}">home</a>
+<a href="{plink Homepage:default}">homepage</a>
 ```
 
 o en el código
 
 ```php
-$this->getPresenter()->link('Home:default')
+$this->getPresenter()->link('Homepage:default')
 ```
 
 

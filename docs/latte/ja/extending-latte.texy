@@ -68,16 +68,6 @@ $latte->addFilter('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0, $
 
 もちろん、フィルタを表す関数は任意の数のパラメータを受け取ることができ、可変長のパラメータもサポートされています。
 
-フィルターがHTMLの文字列を返す場合、ラテが自動的に（つまり二重に）エスケープしないようにマークすることができます。これにより、テンプレートで`|noescape` を指定する必要がなくなります。
-最も簡単な方法は、`Latte\Runtime\Html` オブジェクトで文字列をラップすることです。もう一つの方法は、[コンテキストフィルタ |#Contextual Filters]です。
-
-```php
-$latte->addFilter('money', fn(float $amount) => new Latte\Runtime\Html("<i>$amount EUR</i>"));
-```
-
-.[note]
-この場合、フィルターはデータの正しいエスケープを保証しなければならない。
-
 
 クラスを使ったフィルタ .[#toc-filters-using-the-class]
 -------------------------------------------
@@ -101,6 +91,8 @@ class TemplateParameters
 $params = new TemplateParameters(/* ... */);
 $latte->render('template.latte', $params);
 ```
+
+PHP 7.x および Latte 2.x を使用している場合は、属性のかわりに`/** @filter */` アノテーションを使用します。
 
 
 フィルターローダー .[#toc-filter-loader]
@@ -160,7 +152,7 @@ $latte->addFilter('money', function (FilterInfo $info, float $amount): string {
 
 	// change content-type to HTML
 	$info->contentType = ContentType::Html;
-	return "<i>$amount EUR</i>";
+	return "<i>$num Kč</i>";
 });
 ```
 
@@ -213,6 +205,8 @@ class TemplateParameters
 $params = new TemplateParameters(/* ... */);
 $latte->render('template.latte', $params);
 ```
+
+PHP 7.x および Latte 2.x を使用している場合は、属性の代わりに`/** @function */` というアノテーションを使用します。
 
 
 ローダー .[#toc-loaders]

@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Jeśli nie używasz pola `$container->getParameters()`, możesz wyłączyć eksport parametrów. Można również wyeksportować tylko te tagi, za pośrednictwem których uzyskuje się usługi metodą `$container->findByTag(...)`.
+Jeśli nie używasz pola `$container->parameters`, możesz wyłączyć eksport parametrów. Można również wyeksportować tylko te tagi, za pośrednictwem których uzyskuje się usługi metodą `$container->findByTag(...)`.
 Jeśli w ogóle nie wywołujesz metody, możesz całkowicie wyłączyć eksport tagów za pomocą `false`.
 
 Możesz znacznie zmniejszyć metadane dla [autowiring |autowiring], określając klasy, których używasz jako parametr metody `$container->getByType()`.
@@ -191,15 +191,20 @@ Wystarczy określić, w których katalogach (i podkatalogach) szukać klas:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# wybierasz nazwy sekcji
+	formy:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Zazwyczaj nie chcemy dodawać wszystkich klas i interfejsów, więc możemy je filtrować:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	Formy:
+		in: %appDir%/Forms
 
 		# filter by filename (string|string[])
 		files:
@@ -215,7 +220,7 @@ Możemy też wybrać klasy, które dziedziczą lub implementują przynajmniej je
 
 ```neon
 search:
-	-	in: %appDir%
+	formuláře:
 		extends:
 			- App\*Form
 		implements:
@@ -226,7 +231,7 @@ Można również zdefiniować reguły wykluczenia, czyli maski nazw klas lub dzi
 
 ```neon
 search:
-	-	in: %appDir%
+	formuláře:
 		exclude:
 			classes: ...
 			extends: ...
@@ -237,7 +242,7 @@ Wszystkie usługi mogą być oznakowane:
 
 ```neon
 search:
-	-	in: %appDir%
+	formuláře:
 		tags: ...
 ```
 

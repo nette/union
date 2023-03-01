@@ -2,50 +2,23 @@ Definições de serviço
 *********************
 
 .[perex]
-A configuração é o local em que instruímos o contêiner DI sobre como montar serviços individuais e como conectá-los a outras dependências. O Nette oferece uma maneira muito clara e elegante de fazer isso.
+A configuração é onde colocamos as definições de serviços personalizados. Isto é feito na seção `services`.
 
-A seção `services` no arquivo de configuração do NEON é onde definimos nossos serviços personalizados e suas configurações. Vamos dar uma olhada em um exemplo simples de definição de um serviço chamado `database`, que representa uma instância da classe `PDO`:
+Por exemplo, é assim que criamos um serviço chamado `database`, que será uma instância da classe `PDO`:
 
 ```neon
 services:
 	database: PDO('sqlite::memory:')
 ```
 
-Essa configuração resulta no seguinte método de fábrica no [contêiner DI |container]:
-
-```php
-public function createServiceDatabase(): PDO
-{
-	return new PDO('sqlite::memory:');
-}
-```
-
-Os nomes dos serviços nos permitem fazer referência a eles em outras partes do arquivo de configuração, usando o formato `@serviceName`. Se não houver necessidade de nomear o serviço, podemos simplesmente usar um marcador:
+A nomenclatura dos serviços é utilizada para nos permitir [referenciá-los |#Referencing Services]. Se um serviço não é referenciado, não há necessidade de nomeá-lo. Portanto, usamos apenas um ponto em vez de um nome:
 
 ```neon
 services:
-	- PDO('sqlite::memory:')
+	- PDO('sqlite::memory:') # serviço anônimo
 ```
 
-Para recuperar um serviço do contêiner DI, podemos usar o método `getService()` com o nome do serviço como parâmetro ou o método `getByType()` com o tipo de serviço:
-
-```php
-$database = $container->getService('database');
-$database = $container->getByType(PDO::class);
-```
-
-
-Criação de serviços .[#toc-service-creation]
-============================================
-
-Geralmente, criamos um serviço simplesmente instanciando uma classe específica. Por exemplo:
-
-```neon
-services:
-	database: PDO('mysql:host=127.0.0.1;dbname=test', root, secret)
-```
-
-Se precisarmos expandir a configuração com chaves adicionais, a definição poderá ser expandida em várias linhas:
+Uma entrada de uma linha pode ser dividida em várias linhas para permitir que chaves adicionais sejam adicionadas, tais como [configuração |#setup]. O pseudônimo para a chave `create:` é `factory:`.
 
 ```neon
 services:
@@ -54,9 +27,34 @@ services:
 		setup: ...
 ```
 
-A chave `create` tem um alias `factory`, ambas as versões são comuns na prática. No entanto, recomendamos o uso de `create`.
+Recuperamos então o serviço do recipiente DI usando o método `getService()` pelo nome, ou melhor ainda, o método `getByType()` pelo tipo:
 
-Como alternativa, os argumentos do construtor ou o método de criação podem ser escritos na chave `arguments`:
+```php
+$database = $container->getService('database');
+$database = $container->getByType(PDO::class);
+```
+
+
+Criando um serviço .[#toc-creating-a-service]
+=============================================
+
+Na maioria das vezes, nós criamos um serviço simplesmente criando uma instância de uma classe:
+
+```neon
+services:
+	database: PDO('mysql:host=127.0.0.1;dbname=test', root, secret)
+```
+
+O que gerará um método de fábrica em [contêineres DI |container]:
+
+```php
+public function createServiceDatabase(): PDO
+{
+	return new PDO('mysql:host=127.0.0.1;dbname=test', 'root', 'secret');
+}
+```
+
+Alternativamente, uma chave `arguments` pode ser usada para passar [argumentos |#Arguments]:
 
 ```neon
 services:
@@ -65,84 +63,208 @@ services:
 		arguments: ['mysql:host=127.0.0.1;dbname=test', root, secret]
 ```
 
-Os serviços não precisam ser criados apenas pela simples instanciação de uma classe; eles também podem resultar da chamada de métodos estáticos ou métodos de outros serviços:
+Um método estático também pode criar um serviço:
 
 ```neon
 services:
-	database: DatabaseFactory::create()
-	router: @routerFactory::create()
+	database: My\Database::create(root, secret)
 ```
 
-Observe que, para simplificar, em vez de `->`, usamos `::`, veja a [expressão significa |#expression means]. Esses métodos de fábrica são gerados:
+Corresponde ao código PHP:
 
 ```php
 public function createServiceDatabase(): PDO
 {
-	return DatabaseFactory::create();
+	return My\Database::create('root', 'secret');
+}
+```
+
+Presume-se que um método estático `My\Database::create()` tenha um valor de retorno definido que o recipiente DI precisa conhecer. Se não o tiver, escrevemos o tipo na configuração:
+
+```neon
+services:
+	database:
+		create: My\Database::create(root, secret)
+		type: PDO
+```
+
+A Nette DI lhe dá facilidades de expressão extremamente poderosas para escrever quase tudo. Por exemplo, para [se referir |#Referencing Services] a outro serviço e chamar seu método. Para simplificar, `::` é usado ao invés de `->`.
+
+```neon
+services:
+	routerFactory: App\Router\Factory
+	router: @routerFactory::create()
+```
+
+Corresponde ao código PHP:
+
+```php
+public function createServiceRouterFactory(): App\Router\Factory
+{
+	return new App\Router\Factory;
 }
 
-public function createServiceRouter(): RouteList
+public function createServiceRouter(): Router
 {
 	return $this->getService('routerFactory')->create();
 }
 ```
 
-O contêiner DI precisa saber o tipo do serviço criado. Se criarmos um serviço usando um método que não tenha um tipo de retorno especificado, devemos mencionar explicitamente esse tipo na configuração:
+As chamadas de métodos podem ser encadeadas como em PHP:
 
 ```neon
 services:
-	database:
-		create: DatabaseFactory::create()
-		type: PDO
+	foo: FooFactory::build()::get()
+```
+
+Corresponde ao código PHP:
+
+```php
+public function createServiceFoo()
+{
+	return FooFactory::build()->get();
+}
 ```
 
 
 Argumentos .[#toc-arguments]
 ============================
 
-Passamos argumentos para construtores e métodos de forma muito semelhante ao PHP comum:
-
-```neon
-services:
-	database: PDO('mysql:host=127.0.0.1;dbname=test', root, secret)
-```
-
-Para facilitar a leitura, podemos listar os argumentos em linhas separadas. Nesse formato, o uso de vírgulas é opcional:
+Os parâmetros nomeados também podem ser usados para passar argumentos:
 
 ```neon
 services:
 	database: PDO(
-		'mysql:host=127.0.0.1;dbname=test'
-		root
-		secret
+		'mysql:host=127.0.0.1;dbname=test'  # posicional
+		username: root                      # named
+		password: secret                    # named
 	)
 ```
 
-Você também pode nomear os argumentos, o que permite que você não se preocupe com a ordem deles:
+O uso de vírgulas é opcional ao quebrar argumentos em várias linhas.
+
+Naturalmente, também podemos utilizar [outros serviços |#Referencing Services] ou [parâmetros |configuration#parameters] como argumentos:
 
 ```neon
 services:
-	database: PDO(
-		username: root
-		password: secret
-		dsn: 'mysql:host=127.0.0.1;dbname=test'
+	- Foo(@anotherService, %appDir%)
+```
+
+Corresponde ao código PHP:
+
+```php
+public function createService01(): Foo
+{
+	return new Foo($this->getService('anotherService'), '...');
+}
+```
+
+Se o primeiro argumento for [auto-cablado |autowiring] e você quiser especificar o segundo, omitir o primeiro com o `_` character, for example `Foo(_, %appDir%)`. Ou melhor ainda, passar apenas o segundo argumento como um parâmetro nomeado, por exemplo `Foo(path: %appDir%)`.
+
+Nette DI e o formato NEON lhe dão facilidades extremamente poderosas para escrever quase tudo. Assim, um argumento pode ser um objeto recém-criado, você pode chamar métodos estáticos, métodos de outros serviços, ou mesmo funções globais usando notação especial:
+
+```neon
+services:
+	analisador: Meu Analisador (
+		FilesystemIterator(%appDir%)        # criar objeto
+		DateTime::createFromFormat('Y-m-d') # chama método estático
+		@anotherService                     # passando outro serviço
+		@http.request::getRemoteAddress()   # chamando outro método de serviço
+		::getenv(NetteMode)                 # chamar uma função global
 	)
 ```
 
-Se quiser omitir determinados argumentos e usar seus valores padrão ou inserir um serviço por meio da [conexão automática |autowiring], use um sublinhado:
+Corresponde ao código PHP:
+
+```php
+public function createServiceAnalyser(): My\Analyser
+{
+	return new My\Analyser(
+		new FilesystemIterator('...'),
+		DateTime::createFromFormat('Y-m-d'),
+		$this->getService('anotherService'),
+		$this->getService('http.request')->getRemoteAddress(),
+		getenv('NetteMode')
+	);
+}
+```
+
+
+Funções especiais .[#toc-special-functions]
+-------------------------------------------
+
+Você também pode usar funções especiais em argumentos para lançar ou negar valores:
+
+- `not(%arg%)` negação
+- `bool(%arg%)` elenco sem perdas a bool
+- `int(%arg%)` elenco sem perdas para int
+- `float(%arg%)` elenco sem perdas para flutuar
+- `string(%arg%)` elenco sem perdas para cordas
 
 ```neon
 services:
-	foo: Foo(_, %appDir%)
+	- Foo(
+		id: int(::getenv('ProjectId'))
+		productionMode: not(%debugMode%)
+	)
 ```
 
-Os argumentos podem ser serviços, parâmetros e muito mais; consulte os [meios de expressão |#expression means].
+A reescrita sem perdas difere da reescrita normal em PHP, por exemplo, usando `(int)`, na medida em que lança uma exceção para valores não-numéricos.
+
+Múltiplos serviços podem ser passados como argumentos. Um conjunto de todos os serviços de um determinado tipo (ou seja, classe ou interface) é criado pela função `typed()`. A função omitirá serviços que tenham a fiação automática desativada, e múltiplos tipos separados por uma vírgula podem ser especificados.
+
+```neon
+services:
+	- BarsDependent( typed(Bar) )
+```
+
+Você também pode passar um conjunto de serviços automaticamente usando [a fiação automática |autowiring#Collection of Services].
+
+Um conjunto de todos os serviços com uma certa [etiqueta |#tags] é criado pela função `tagged()`. Múltiplas tags separadas por uma vírgula podem ser especificadas.
+
+```neon
+services:
+	- LoggersDependent( tagged(logger) )
+```
+
+
+Serviços de referência .[#toc-referencing-services]
+===================================================
+
+Os serviços individuais são referenciados usando o personagem `@` and name, so for example `@database`:
+
+```neon
+services:
+	- create: Foo(@database)
+	  setup:
+			- setCacheStorage(@cache.storage)
+```
+
+Corresponde ao código PHP:
+
+```php
+public function createService01(): Foo
+{
+	$service = new Foo($this->getService('database'));
+	$service->setCacheStorage($this->getService('cache.storage'));
+	return $service;
+}
+```
+
+Mesmo serviços anônimos podem ser referenciados usando uma chamada de retorno, basta especificar seu tipo (classe ou interface) ao invés de seu nome. No entanto, isto geralmente não é necessário devido ao [cabeamento automático |autowiring].
+
+```neon
+services:
+	- create: Foo(@Nette\Database\Connection)  # or @\PDO
+	  setup:
+			- setCacheStorage(@cache.storage)
+```
 
 
 Configuração .[#toc-setup]
 ==========================
 
-Na seção `setup`, definimos os métodos que devem ser chamados ao criar o serviço.
+Na seção de configuração, listamos os métodos a serem chamados ao criar o serviço:
 
 ```neon
 services:
@@ -152,7 +274,7 @@ services:
 			- setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION)
 ```
 
-Em PHP, isso seria parecido com:
+Corresponde ao código PHP:
 
 ```php
 public function createServiceDatabase(): PDO
@@ -163,7 +285,8 @@ public function createServiceDatabase(): PDO
 }
 ```
 
-Além das chamadas de método, você também pode passar valores para as propriedades. A adição de um elemento a uma matriz também é suportada, mas você precisa colocá-la entre aspas para evitar colidir com a sintaxe NEON:
+Também é possível definir os locais adequados. A adição de um elemento a uma matriz também é apoiada, e deve ser escrita entre aspas para não entrar em conflito com a sintaxe NEON:
+
 
 ```neon
 services:
@@ -174,7 +297,7 @@ services:
 			- '$onClick[]' = [@bar, clickHandler]
 ```
 
-Em PHP, isso se traduziria em:
+Corresponde ao código PHP:
 
 ```php
 public function createServiceFoo(): Foo
@@ -186,7 +309,8 @@ public function createServiceFoo(): Foo
 }
 ```
 
-Na configuração, você também pode chamar métodos estáticos ou métodos de outros serviços. Se você precisar passar o serviço atual como um argumento, use `@self`:
+No entanto, métodos estáticos ou métodos de outros serviços também podem ser chamados na configuração. Passamos o serviço real a eles como `@self`:
+
 
 ```neon
 services:
@@ -197,7 +321,7 @@ services:
 			- @anotherService::setFoo(@self)
 ```
 
-Observe que, para simplificar, em vez de `->`, usamos `::`, veja a [expressão significa |#expression means]. Isso gera o seguinte método de fábrica:
+Corresponde ao código PHP:
 
 ```php
 public function createServiceFoo(): Foo
@@ -210,133 +334,23 @@ public function createServiceFoo(): Foo
 ```
 
 
-Meios de Expressão .[#toc-expression-means]
-===========================================
+Cablagem automática .[#toc-autowiring]
+======================================
 
-O Nette DI nos fornece recursos de expressão excepcionalmente ricos, o que nos permite articular quase tudo. Nos arquivos de configuração, podemos usar [parâmetros |configuration#parameters]:
-
-```neon
-# parâmetro
-%wwwDir%
-
-# valor em uma chave de parâmetro
-%mailer.user%
-
-# parâmetro em uma cadeia de caracteres
-'%wwwDir%/images'
-```
-
-Também podemos criar objetos, chamar métodos e funções:
-
-```neon
-# criar um objeto
-DateTime()
-
-# chamar um método estático
-Collator::create(%locale%)
-
-# chamar uma função PHP
-::getenv(DB_USER)
-```
-
-Referir-se aos serviços pelo nome ou pelo tipo:
-
-```neon
-# serviço por nome
-@database
-
-# serviço por tipo
-@Nette\Database\Connection
-```
-
-Usar constantes:
-
-```neon
-# constante de classe
-FilesystemIterator::SKIP_DOTS
-
-# constante global obtida pela função constant() do PHP
-::constant(PHP_VERSION)
-```
-
-As chamadas de método podem ser encadeadas, assim como no PHP. Para simplificar, em vez de `->`, usamos `::`:
-
-```neon
-DateTime()::format('Y-m-d')
-# PHP: (new DateTime())->format('Y-m-d')
-
-@http.request::getUrl()::getHost()
-# PHP: $this->getService('http.request')->getUrl()->getHost()
-```
-
-Essas expressões podem ser usadas em qualquer lugar ao [criar serviços |#Service Creation], em [argumentos |#Arguments], na seção de [configuração |#setup] ou em [parâmetros |configuration#parameters]:
-
-```neon
-parameters:
-	ipAddress: @http.request::getRemoteAddress()
-
-services:
-	database:
-		create: DatabaseFactory::create( @anotherService::getDsn() )
-		setup:
-			- initialize( ::getenv('DB_USER') )
-```
-
-
-Funções especiais .[#toc-special-functions]
--------------------------------------------
-
-Nos arquivos de configuração, você pode utilizar essas funções especiais:
-
-- `not()` para negação de valor
-- `bool()`, `int()`, `float()`, `string()` para conversão de tipos sem perdas
-- `typed()` para gerar uma matriz de todos os serviços de um tipo especificado
-- `tagged()` para criar uma matriz de todos os serviços com uma determinada tag
-
-```neon
-services:
-	- Foo(
-		id: int(::getenv('ProjectId'))
-		productionMode: not(%debugMode%)
-	)
-```
-
-Em comparação com o typecasting convencional em PHP, como `(int)`, o lossless type casting lançará uma exceção para valores não numéricos.
-
-A função `typed()` cria uma matriz de todos os serviços de um tipo específico (classe ou interface). Ela exclui os serviços com o autowiring desativado. Vários tipos podem ser especificados, separados por vírgulas.
-
-```neon
-services:
-	- BarsDependent( typed(Bar) )
-```
-
-Você também pode passar automaticamente uma matriz de serviços de um tipo específico como um argumento usando o [autowiring |autowiring#Collection of Services].
-
-A função `tagged()` cria uma matriz de todos os serviços com uma tag especificada. Várias tags podem ser listadas, separadas por vírgulas.
-
-```neon
-services:
-	- LoggersDependent( tagged(logger) )
-```
-
-
-Fiação automática .[#toc-autowiring]
-====================================
-
-A chave `autowired` permite modificar o comportamento de conexão automática de um serviço específico. Para obter mais detalhes, consulte [o capítulo Aut |autowiring]owiring.
+A chave autowired pode ser usada para excluir um serviço da autowired ou para influenciar seu comportamento. Consulte o [capítulo sobre a fiação automática |autowiring] para obter mais informações.
 
 ```neon
 services:
 	foo:
 		create: Foo
-		autowired: false     # O serviço foo está excluído da autocablagem
+		autowired: false     # foo é removido do autowiring
 ```
 
 
-Tags .[#toc-tags]
-=================
+Etiquetas .[#toc-tags]
+======================
 
-As tags são usadas para adicionar informações suplementares aos serviços. Você pode atribuir uma ou mais tags a um serviço:
+As informações do usuário podem ser adicionadas aos serviços individuais sob a forma de tags:
 
 ```neon
 services:
@@ -346,7 +360,7 @@ services:
 			- cached
 ```
 
-As tags também podem conter valores:
+As etiquetas também podem ter um valor:
 
 ```neon
 services:
@@ -356,26 +370,26 @@ services:
 			logger: monolog.logger.event
 ```
 
-Para recuperar todos os serviços com tags específicas, você pode usar a função `tagged()`:
+Uma série de serviços com determinadas tags pode ser passada como argumento usando a função `tagged()`. Múltiplas tags separadas por uma vírgula também podem ser especificadas.
 
 ```neon
 services:
 	- LoggersDependent( tagged(logger) )
 ```
 
-No contêiner DI, você pode obter os nomes de todos os serviços com uma tag específica usando o método `findByTag()`:
+Os nomes dos serviços podem ser obtidos no recipiente DI usando o método `findByTag()`:
 
 ```php
 $names = $container->findByTag('logger');
-// $names é uma matriz que contém o nome do serviço e o valor da tag
-// Por exemplo, ['foo' => 'monolog.logger.event', ...]
+// $names é um array contendo o nome do serviço e o valor da etiqueta
+// i.e. ['foo' => 'monolog.logger.event', ...]
 ```
 
 
-Modo de injeção .[#toc-inject-mode]
-===================================
+Modo injetado .[#toc-inject-mode]
+=================================
 
-O uso do sinalizador `inject: true` ativa a passagem de dependências por meio de variáveis públicas com a anotação [inject |best-practices:inject-method-attribute#Inject Attributes] e os métodos [inject*() |best-practices:inject-method-attribute#inject Methods].
+A bandeira `inject: true` é usada para ativar a passagem de dependências através de variáveis públicas com a anotação de [injeção |best-practices:inject-method-attribute#Inject Annotations] e os métodos de [injeção*() |best-practices:inject-method-attribute#inject Methods].
 
 ```neon
 services:
@@ -384,13 +398,13 @@ services:
 		inject: true
 ```
 
-Por padrão, o `inject` só é ativado para apresentadores.
+Por padrão, `inject` é ativado somente para apresentadores.
 
 
-Modificações no serviço .[#toc-service-modifications]
-=====================================================
+Modificação de serviços .[#toc-modification-of-services]
+========================================================
 
-O contêiner DI contém muitos serviços adicionados por [extensões |#extensions] internas ou [de usuário |#extensions]. Você pode modificar as definições desses serviços diretamente na configuração. Por exemplo, você pode alterar a classe do serviço `application.application`, que é convencionalmente `Nette\Application\Application`, para outra:
+Há uma série de serviços no contêiner DI que foram acrescentados por embutido ou por [sua extensão |#di-extensions]. As definições desses serviços podem ser modificadas na configuração. Por exemplo, para o serviço `application.application`, que é por padrão um objeto `Nette\Application\Application`, podemos alterar a classe:
 
 ```neon
 services:
@@ -399,9 +413,9 @@ services:
 		alteration: true
 ```
 
-O sinalizador `alteration` é informativo, indicando que estamos apenas modificando um serviço existente.
+A bandeira `alteration` é informativa e diz que estamos apenas modificando um serviço existente.
 
-Também podemos complementar a configuração:
+Também podemos acrescentar uma configuração:
 
 ```neon
 services:
@@ -412,7 +426,7 @@ services:
 			- '$onStartup[]' = [@resource, init]
 ```
 
-Ao substituir um serviço, talvez você queira remover argumentos, itens de configuração ou tags originais, e é aí que o `reset` se torna útil:
+Ao reescrever um serviço, podemos querer remover os argumentos originais, itens de configuração ou tags, que é para isso que serve `reset`:
 
 ```neon
 services:
@@ -425,7 +439,7 @@ services:
 			- tags
 ```
 
-Se quiser remover um serviço adicionado por uma extensão, você pode fazer isso da seguinte forma:
+Um serviço adicionado por extensão também pode ser removido do container:
 
 ```neon
 services:

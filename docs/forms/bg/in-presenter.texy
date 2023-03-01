@@ -30,11 +30,11 @@ $form->onSuccess[] = [$this, 'formSucceeded'];
 
 От гледна точка на водещия формулярът е общ компонент. Затова той се третира като компонент и се включва в презентатора чрез [метода factory |application:components#Factory-Methods]. Това ще изглежда по следния начин:
 
-```php .{file:app/Presenters/HomePresenter.php}
+```php .{file:app/Presenters/HomepagePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
-class HomePresenter extends Nette\Application\UI\Presenter
+class HomepagePresenter extends Nette\Application\UI\Presenter
 {
 	protected function createComponentRegistrationForm(): Form
 	{
@@ -52,14 +52,14 @@ class HomePresenter extends Nette\Application\UI\Presenter
 		// $data->name съдържа името
 		// $data->password съдържа парола
 		$this->flashMessage('Регистрирахте се успешно.');
-		$this->redirect('Home:');
+		$this->redirect('Homepage:');
 	}
 }
 ```
 
 А визуализирането в шаблона се извършва с помощта на тага `{control}`:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/Presenters/templates/Homepage/default.latte}
 <h1>Регистрация</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ $form->addText('name', 'Имя:')
 Вмъкнете го в шаблона за оформление:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Ако разгледате изходния код на страницата с формуляра, можете да забележите, че Nette вмъква задължителни полета в елементи с клас CSS `required`. Опитайте се да добавите следния стил към шаблона и тагът "Име" ще бъде червен. Елегантно маркираме задължителните полета за потребителите:

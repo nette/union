@@ -12,7 +12,7 @@
 
 </div>
 
-Сега ще илюстрираме различните варианти с конкретни примери.
+Първите три метода са приложими във всички обектно-ориентирани езици, а четвъртият е специфичен за презентаторите на Nette, затова е разгледан в [отделна глава |best-practices:inject-method-attribute]. Сега ще разгледаме по-подробно всяка от тези възможности и ще ги покажем с конкретни примери.
 
 
 Внедряване чрез конструктор .[#toc-constructor-injection]
@@ -21,17 +21,17 @@
 Зависимостите се предават като аргументи на конструктора при създаването на обекта:
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function __construct(Cache $cache)
+	public function __construct(Cache $service)
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass($cache);
+$service = new MyService($cache);
 ```
 
 Тази форма е полезна за задължителни зависимости, които са абсолютно необходими за функционирането на класа, тъй като без тях не може да се създаде инстанция.
@@ -40,10 +40,10 @@ $obj = new MyClass($cache);
 
 ```php
 // PHP 8.0
-class MyClass
+class MyService
 {
 	public function __construct(
-		private Cache $cache,
+		private Cache $service,
 	) {
 	}
 }
@@ -53,10 +53,10 @@ class MyClass
 
 ```php
 // PHP 8.1
-class MyClass
+class MyService
 {
 	public function __construct(
-		private readonly Cache $cache,
+		private readonly Cache $service,
 	) {
 	}
 }
@@ -65,84 +65,24 @@ class MyClass
 Контейнерът DI предава зависимостите на конструктора автоматично, като използва [автоматично свързване |autowiring]. Аргументите, които не могат да бъдат предадени по този начин (напр. низове, числа, булеви стойности), [се записват в конфигурацията |services#Arguments].
 
 
-Адът на конструкторите .[#toc-constructor-hell]
------------------------------------------------
-
-Терминът *ад на конструкторите* се отнася до ситуация, при която наследник наследява родителски клас, чийто конструктор изисква зависимости, и наследникът също изисква зависимости. То също трябва да поеме и предаде зависимостите на родителя:
-
-```php
-abstract class BaseClass
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass extends BaseClass
-{
-	private Database $db;
-
-	// ⛔ CONSTRUCTOR HELL
-	public function __construct(Cache $cache, Database $db)
-	{
-		parent::__construct($cache);
-		$this->db = $db;
-	}
-}
-```
-
-Проблемът възниква, когато искаме да променим конструктора на класа `BaseClass`, например когато се добави нова зависимост. Тогава трябва да променим и всички конструктори на децата. Което превръща подобна модификация в ад.
-
-Как да предотвратим това? Решението е да се даде предимство на [композицията пред наследяването** |faq#Why composition is preferred over inheritance].
-
-Затова нека да проектираме кода по различен начин. Ще избягваме [абстрактните |nette:introduction-to-object-oriented-programming#abstract-classes] класове `Base*`. Вместо `MyClass` да получи някаква функционалност, наследявайки я от `BaseClass`, тя ще бъде предадена като зависимост:
-
-```php
-final class SomeFunctionality
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass
-{
-	private SomeFunctionality $sf;
-	private Database $db;
-
-	public function __construct(SomeFunctionality $sf, Database $db) // ✅
-	{
-		$this->sf = $sf;
-		$this->db = $db;
-	}
-}
-```
-
-
 Зависимости чрез задаващи елементи .[#toc-setter-injection]
 ===========================================================
 
-Зависимостите се предават чрез извикване на метод, който ги съхранява в частни свойства. Обичайната конвенция за именуване на тези методи е от вида `set*()`, поради което те се наричат сетъри, но, разбира се, могат да се наричат и по друг начин.
+Зависимостите се предават чрез извикване на метод, който ги съхранява в частно свойство. Обичайната конвенция за именуване на тези методи е `set*()`, затова те се наричат setters.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass;
-$obj->setCache($cache);
+$service = new MyService;
+$service->setCache($cache);
 ```
 
 Този метод е полезен за незадължителни зависимости, които не са необходими за функционирането на класа, тъй като не е гарантирано, че обектът действително ще ги получи (т.е. че потребителят ще извика метода).
@@ -150,16 +90,16 @@ $obj->setCache($cache);
 В същото време този метод позволява многократно извикване на setter за промяна на зависимостта. Ако това не е желателно, добавете проверка към метода или, от версия PHP 8.1, маркирайте свойството `$cache` с флага `readonly`.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
 		if ($this->cache) {
 			throw new RuntimeException('The dependency has already been set');
 		}
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 ```
@@ -168,7 +108,8 @@ class MyClass
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- setCache
 ```
@@ -180,13 +121,13 @@ services:
 Зависимостите се предават директно на свойството:
 
 ```php
-class MyClass
+class MyService
 {
 	public Cache $cache;
 }
 
-$obj = new MyClass;
-$obj->cache = $cache;
+$service = new MyService;
+$service->cache = $cache;
 ```
 
 Този метод се счита за неприемлив, тъй като свойството трябва да бъде декларирано като `public`. Следователно нямаме контрол върху това дали предадената зависимост действително има зададения тип (това беше вярно преди PHP 7.4) и губим възможността да реагираме на новоназначената зависимост със собствен код, например за да предотвратим последващи промени. В същото време свойството става част от публичния интерфейс на класа, което може да е нежелателно.
@@ -195,16 +136,11 @@ $obj->cache = $cache;
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- $cache = @\Cache
 ```
-
-
-Инжектиране .[#toc-inject]
-==========================
-
-Докато предишните три метода са общовалидни във всички обектно-ориентирани езици, инжектирането чрез метод, анотация или атрибут *inject* е специфично за презентаторите на Nette. Те са разгледани в [отделна глава |best-practices:inject-method-attribute].
 
 
 Кой път да избера? .[#toc-which-way-to-choose]

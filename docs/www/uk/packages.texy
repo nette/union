@@ -1,5 +1,22 @@
-Список пакетів
-**************
+Пакети та встановлення Nette
+****************************
+
+Nette - це повнофункціональний PHP-фреймворк, що складається з набору незалежних пакетів.
+Ці пакети можна завантажувати та використовувати незалежно від іншої частини фреймворку.
+
+Ви завантажуєте та встановлюєте окремі пакети за допомогою [Composer |best-practices:composer]:
+
+{{include: doc-packages-select}}
+
+Усі компоненти одразу можна додати таким чином:
+
+```shell
+composer require nette/nette
+```
+
+
+Список пакетів .[#toc-list-of-packages]
+---------------------------------------
 
 | **Application**:[application:how-it-works] | Ядро веб-додатка | [GitHub |https://github.com/nette/application] [API |https://api.nette.org/application/]
 | **Bootstrap**:[bootstrap:] | Завантажувальна платформа вашого додатка | [GitHub |https://github.com/nette/bootstrap] [API |https://api.nette.org/bootstrap/]

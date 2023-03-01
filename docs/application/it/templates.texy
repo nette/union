@@ -42,9 +42,7 @@ Il percorso dei modelli viene dedotto secondo una semplice logica. Si cerca di v
 - `templates/<Presenter>/<view>.latte`
 - `templates/<Presenter>.<view>.latte`
 
-Se il modello non viene trovato, si cercherà nella cartella `templates` a un livello superiore, cioè allo stesso livello della cartella con la classe del presentatore.
-
-Se il modello non viene trovato nemmeno lì, la risposta è un [errore 404 |presenters#Error 404 etc.].
+Se non trova il modello, la risposta è un [errore 404 |presenters#Error 404 etc.].
 
 Si può anche cambiare la vista usando `$this->setView('otherView')`. Oppure, invece di cercare, specificare direttamente il nome del file del template usando `$this->template->setFile('/path/to/template.latte')`.
 
@@ -150,7 +148,7 @@ Nel modello si creano collegamenti ad altri presentatori e azioni come segue:
 L'attributo `n:href` è molto utile per i tag HTML `<a>`. Se vogliamo stampare il link altrove, ad esempio nel testo, usiamo `{link}`:
 
 ```latte
-URL is: {link Home:default}
+URL is: {link Homepage:default}
 ```
 
 Per ulteriori informazioni, vedere [Creazione di collegamenti |Creating Links].

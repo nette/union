@@ -23,10 +23,10 @@ Dizin yapısı şuna benzer:
 <b>web-project/</b>
 ├── <b>app/</b>                      ← directory with application
 │   ├── <b>Presenters/</b>           ← presenter classes
-│   │   ├── <b>HomePresenter.php</b> ← Home presenter class
+│   │   ├── <b>HomepagePresenter.php</b>  ← Homepage presenter class
 │   │   └── <b>templates/</b>        ← templates directory
 │   │       ├── <b>@layout.latte</b> ← template of shared layout
-│   │       └── <b>Home/</b>         ← templates for Home presenter
+│   │       └── <b>Homepage/</b>     ← templates for Homepage presenter
 │   │           └── <b>default.latte</b>  ← template for action `default`
 │   ├── <b>Router/</b>               ← configuration of URL addresses
 │   └── <b>Bootstrap.php</b>         ← booting class Bootstrap
@@ -134,10 +134,10 @@ Sadece emin olmak için, tüm süreci biraz farklı bir URL ile özetlemeye çal
 
 1) URL şu şekilde olacaktır `https://example.com`
 2) uygulamayı önyüklüyoruz, bir konteyner oluşturuyoruz ve `Application::run()`
-3) yönlendirici URL'yi bir çift olarak çözer `Home:default`
-4) bir `HomePresenter` nesnesi oluşturulur
+3) yönlendirici URL'yi bir çift olarak çözer `Homepage:default`
+4) bir `HomepagePresenter` nesnesi oluşturulur
 5) `renderDefault()` yöntemi çağrılır (eğer varsa)
-6) `templates/@layout.latte` düzenine sahip bir `templates/Home/default.latte` şablonu oluşturulur
+6) `templates/@layout.latte` düzenine sahip bir `templates/Homepage/default.latte` şablonu oluşturulur
 
 
 Şu anda birçok yeni kavramla karşılaşmış olabilirsiniz, ancak bunların anlamlı olduğuna inanıyoruz. Nette'de uygulama oluşturmak çocuk oyuncağı.
@@ -146,7 +146,7 @@ Sadece emin olmak için, tüm süreci biraz farklı bir URL ile özetlemeye çal
 Şablonlar .[#toc-templates]
 ===========================
 
-Şablonlar söz konusu olduğunda, Nette [Latte |latte:] şablon sistemini kullanır. Bu yüzden şablon içeren dosyalar `.latte` ile biter. Latte, PHP için en güvenli şablon sistemi ve aynı zamanda en sezgisel sistem olduğu için kullanılır. Yeni bir şey öğrenmenize gerek yok, sadece PHP ve birkaç Latte etiketi bilmeniz yeterli. Her şeyi [dokümantasyonda |templates] bulacaksınız.
+Şablonlar söz konusu olduğunda, Nette [Latte |latte:] şablon sistemini kullanır. Bu yüzden şablon içeren dosyalar `.latte` ile biter. Latte, PHP için en güvenli şablon sistemi ve aynı zamanda en sezgisel sistem olduğu için kullanılır. Yeni bir şey öğrenmenize gerek yok, sadece PHP ve birkaç Latte etiketi bilmeniz yeterli. Her şeyi [dokümantasyonda |latte:] bulacaksınız.
 
 Şablonda diğer sunumculara ve eylemlere aşağıdaki gibi [bir bağlantı oluşturuyoruz |creating-links]:
 

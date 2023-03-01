@@ -9,7 +9,6 @@ Funcții Latte
 | `divisibleBy`| [verifică dacă o variabilă este divizibilă cu un număr |#divisibleBy]
 | `even` | [verifică dacă numărul dat este par |#even]
 | `first` | [returnează primul element al unui array sau caracterul unui șir de caractere|#first]
-| `hasBlock` | [detectează existența unui bloc |#hasBlock]
 | `last` | [returnează ultimul element al unui array sau caracter al unui șir de caractere|#last]
 | `odd` | [verifică dacă numărul dat este impar |#odd]
 | `slice` | [extrage o porțiune dintr-un tablou sau un șir de caractere |#slice]
@@ -45,8 +44,8 @@ Funcții .[#toc-functions]
 =========================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Returnează valoarea fixată în intervalul inclusiv dintre min și max.
 
 ```latte
@@ -56,8 +55,8 @@ Returnează valoarea fixată în intervalul inclusiv dintre min și max.
 A se vedea, de asemenea, [filter clamp |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Verifică dacă o variabilă este divizibilă cu un număr.
 
 ```latte
@@ -65,8 +64,8 @@ Verifică dacă o variabilă este divizibilă cu un număr.
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Verifică dacă numărul dat este par.
 
 ```latte
@@ -74,8 +73,8 @@ Verifică dacă numărul dat este par.
 ```
 
 
-first(string|array $value): mixed .[method]
--------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Returnează primul element al unui tablou sau caracterul unui șir de caractere:
 
 ```latte
@@ -86,19 +85,8 @@ Returnează primul element al unui tablou sau caracterul unui șir de caractere:
 A se vedea, de asemenea, [last |#last], [filter first |filters#first].
 
 
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Verifică dacă blocul cu numele specificat există:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-A se vedea, de asemenea, [verificarea existenței blocului |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Returnează ultimul element al unui array sau caracter al unui șir de caractere:
 
 ```latte
@@ -109,8 +97,8 @@ Returnează ultimul element al unui array sau caracter al unui șir de caractere
 A se vedea, de asemenea, [first |#first], [filter last |filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Verifică dacă numărul dat este impar.
 
 ```latte
@@ -118,8 +106,8 @@ Verifică dacă numărul dat este impar.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Extrage o porțiune dintr-un tablou sau un șir de caractere.
 
 ```latte

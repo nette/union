@@ -13,9 +13,8 @@ Paket nette/utils
 - [Paginator |paginator]
 - [PHP-Reflexion |reflection]
 - [PHP Typen |type]
-- [Strings]
 - [SmartObject]
-- [StaticClass]
+- [Strings]
 - [Validatoren |validators]
 - [Zufällige Zeichenketten |random]
 

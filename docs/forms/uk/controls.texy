@@ -20,7 +20,7 @@ $form->addText('name', 'Имя:')
 
 Максимальна довжина може бути обмежена за допомогою `setMaxLength()`. Функція [addFilter() |validation#Modifying-Input-Values] дозволяє змінити введене користувачем значення.
 
-Ви можете використовувати `setHtmlType()` для зміни [символу |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] вхідного елемента на `search`, `tel`, `url`, `range`, `datetime-local`, `month`, `time`, `week`, `color`. Замість типів `number` та `email` ми рекомендуємо використовувати [addInteger |#addInteger], [addFloat |#addFloat] та [addEmail |#addEmail], які мають перевірку на стороні сервера.
+Використовуйте `setHtmlType()` для зміни [типу |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] елемента введення на `search`, `tel`, `url`, `range`, `date`, `datetime-local`, `month`, `time`, `week`, `color`. Замість типів `number` і `email` ми рекомендуємо використовувати [addInteger |#addInteger] і [addEmail |#addEmail], які забезпечують валідацію на стороні сервера.
 
 ```php
 $form->addText('color', 'Выберите цвет:')
@@ -58,23 +58,10 @@ addInteger(string|int $name, $label=null): TextInput .[method]
 Додає поле введення для цілого числа (клас [TextInput |api:Nette\Forms\Controls\TextInput]). Повертає або ціле число, або `null`, якщо користувач нічого не ввів.
 
 ```php
-$form->addInteger('year', 'Year:')
-	->addRule($form::Range, 'Рік має бути в діапазоні від %d до %d.', [1900, 2023 |1900, 2023]);
-```
-
-
-addFloat(string|int $name, $label=null): TextInput .[method]{data-version:3.1.12}
-=================================================================================
-
-Adds a field for entering a decimal number ([TextInput |api:Nette\Forms\Controls\TextInput] class). Returns either float or `null`, if the user does not specify anything.
-
-```php
-$form->addFloat('level', 'Level:')
+$form->addInteger('level', 'Уровень:')
 	->setDefaultValue(0)
-->addRule($form::Range, 'Рівень повинен бути в діапазоні від %d до %d.', [0, 100 |0, 100]);
+	->addRule($form::Range, 'Уровень должен быть между %d и %d.', [0, 100]);
 ```
-
-Nette і Chrome приймають як кому, так і крапку в якості десяткового роздільника. Щоб Firefox також приймав кому, потрібно задати відповідну мову в HTML-атрибуті `lang` або безпосередньо для цього елемента, або для будь-якого батьківського елемента, наприклад `<html lang="cs">`.
 
 
 addEmail(string|int $name, $label=null): TextInput .[method]
@@ -412,9 +399,9 @@ $form->addText('username', 'Имя пользователя:')
 	->setDisabled();
 ```
 
-Вимкнені поля взагалі не надсилаються браузером на сервер, тому ви не знайдете їх у даних, що повертаються функцією `$form->getValues()`. Однак, якщо ви задасте `setOmitted(false)`, Nette включить їх значення в ці дані.
+Зверніть увагу, що браузер узагалі не надсилає відключені поля на сервер, тому ви навіть не знайдете їх у даних, які повертає функція `$form->getValues()`.
 
-При виклику `setDisabled()` значення поля видаляється. Якщо ви встановлюєте значення за замовчуванням, ви повинні зробити це після його деактивації:
+Якщо ви встановлюєте значення за замовчуванням для поля, ви повинні зробити це тільки після його вимкнення:
 
 ```php
 $form->addText('username', 'Имя пользователя:')

@@ -93,12 +93,12 @@ $router->addRoute('chronicle/<year=2020>', 'History:show');
 Φυσικά, το όνομα του παρουσιαστή και της ενέργειας μπορεί επίσης να είναι παράμετρος. Για παράδειγμα:
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 Αυτή η διαδρομή δέχεται, για παράδειγμα, μια διεύθυνση URL της μορφής `/article/edit` ή `/catalog/list` και τις μεταφράζει σε παρουσιαστές και ενέργειες `Article:edit` ή `Catalog:list`.
 
-Δίνει επίσης στις παραμέτρους `presenter` και `action` προεπιλεγμένες τιμές`Home` και `default` και επομένως είναι προαιρετικές. Έτσι, η διαδρομή δέχεται επίσης ένα URL `/article` και το μεταφράζει ως `Article:default`. Ή αντίστροφα, ένας σύνδεσμος προς το `Product:default` δημιουργεί μια διαδρομή `/product`, ένας σύνδεσμος προς την προεπιλεγμένη `Home:default` δημιουργεί μια διαδρομή `/`.
+Δίνει επίσης στις παραμέτρους `presenter` και `action` προεπιλεγμένες τιμές`Homepage` και `default` και επομένως είναι προαιρετικές. Έτσι, η διαδρομή δέχεται επίσης ένα URL `/article` και το μεταφράζει ως `Article:default`. Ή αντίστροφα, ένας σύνδεσμος προς το `Product:default` δημιουργεί μια διαδρομή `/product`, ένας σύνδεσμος προς την προεπιλεγμένη `Homepage:default` δημιουργεί μια διαδρομή `/`.
 
 Η μάσκα μπορεί να περιγράφει όχι μόνο τη σχετική διαδρομή με βάση τη ρίζα του ιστότοπου, αλλά και την απόλυτη διαδρομή όταν αρχίζει με μια κάθετο, ή ακόμη και ολόκληρη την απόλυτη διεύθυνση URL όταν αρχίζει με δύο κάθετους:
 
@@ -160,7 +160,7 @@ $router->addRoute('//[<lang=en>.]example.com/<presenter>/<action>', /* ... */);
 ```php
 $router->addRoute(
 	'[<lang [a-z]{2}>[-<sublang>]/]<name>[/page-<page=0>]',
-	'Home:default',
+	'Homepage:default',
 );
 
 // Αποδεκτές διευθύνσεις URL:
@@ -183,16 +183,16 @@ $router->addRoute('<name>[!.html]', /* ... */);
 Οι προαιρετικές παράμετροι (δηλαδή οι παράμετροι που έχουν προεπιλεγμένη τιμή) χωρίς τετράγωνες αγκύλες συμπεριφέρονται σαν να είναι τυλιγμένες έτσι:
 
 ```php
-$router->addRoute('<presenter=Home>/<action=default>/<id=>', /* ... */);
+$router->addRoute('<presenter=Homepage>/<action=default>/<id=>', /* ... */);
 
 // ισούται με:
-$router->addRoute('[<presenter=Home>/[<action=default>/[<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>/[<action=default>/[<id>]]]', /* ... */);
 ```
 
-Για να αλλάξετε τον τρόπο με τον οποίο παράγεται η δεξιότερη κάθετος, δηλαδή αντί για `/home/` να πάρετε ένα `/home`, προσαρμόστε τη διαδρομή με αυτόν τον τρόπο:
+Για να αλλάξετε τον τρόπο με τον οποίο παράγεται η δεξιότερη κάθετος, δηλαδή αντί για `/homepage/` να πάρετε ένα `/homepage`, προσαρμόστε τη διαδρομή με αυτόν τον τρόπο:
 
 ```php
-$router->addRoute('[<presenter=Home>[/<action=default>[/<id>]]]', /* ... */);
+$router->addRoute('[<presenter=Homepage>[/<action=default>[/<id>]]]', /* ... */);
 ```
 
 
@@ -220,7 +220,7 @@ $router->addRoute('//www.%sld%.%tld%/%basePath%/<presenter>/<action', /* ... */)
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 ]);
 ```
@@ -232,7 +232,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>[/<id>]', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 	],
 	'action' => [
 		Route::Value => 'default',
@@ -252,7 +252,7 @@ $router->addRoute('<presenter>/<action>[/<id>]', [
 Είναι μια καλή πρακτική να γράφετε τον πηγαίο κώδικα στα αγγλικά, αλλά τι γίνεται αν θέλετε ο ιστότοπός σας να έχει μεταφρασμένο URL σε διαφορετική γλώσσα; Απλές διαδρομές, όπως: "Η γλώσσα που θα χρησιμοποιηθεί για να μεταφραστεί σε άλλη γλώσσα":
 
 ```php
-$router->addRoute('<presenter>/<action>', 'Home:default');
+$router->addRoute('<presenter>/<action>', 'Homepage:default');
 ```
 
 θα δημιουργήσουν αγγλικές διευθύνσεις URL, όπως `/product/123` ή `/cart`. Αν θέλουμε να έχουμε παρουσιαστές και ενέργειες στη διεύθυνση URL μεταφρασμένες στα γερμανικά (π.χ. `/produkt/123` ή `/einkaufswagen`), μπορούμε να χρησιμοποιήσουμε ένα μεταφραστικό λεξικό. Για να το προσθέσουμε, χρειαζόμαστε ήδη μια "πιο ομιλητική" παραλλαγή της δεύτερης παραμέτρου:
@@ -262,7 +262,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterTable => [
 			// συμβολοσειρά στη διεύθυνση URL => παρουσιαστής
 			'produkt' => 'Product',
@@ -290,7 +290,7 @@ use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>/<id>', [
 	'presenter' => [
-		Route::Value => 'Home',
+		Route::Value => 'Homepage',
 		Route::FilterIn => function (string $s): string { /* ... */ },
 		Route::FilterOut => function (string $s): string { /* ... */ },
 	],
@@ -313,7 +313,7 @@ $router->addRoute('<presenter>/<action>/<id>', [
 use Nette\Routing\Route;
 
 $router->addRoute('<presenter>/<action>', [
-	'presenter' => 'Home',
+	'presenter' => 'Homepage',
 	'action' => 'default',
 	null => [
 		Route::FilterIn => function (array $params): array { /* ... */ },
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 Κατά την πρόσβαση στην παλιά διεύθυνση URL, ο παρουσιαστής ανακατευθύνει αυτόματα στη νέα διεύθυνση URL, ώστε οι μηχανές αναζήτησης να μην ευρετηριάζουν αυτές τις σελίδες δύο φορές (βλ. [SEO και κανονικοποίηση |#SEO and canonization]).
-
-
-Δυναμική δρομολόγηση με Callbacks .[#toc-dynamic-routing-with-callbacks]
-------------------------------------------------------------------------
-
-Η δυναμική δρομολόγηση με callbacks σας επιτρέπει να αναθέτετε απευθείας λειτουργίες (callbacks) σε διαδρομές, οι οποίες θα εκτελούνται όταν επισκέπτεστε την καθορισμένη διαδρομή. Αυτή η ευέλικτη λειτουργία σας επιτρέπει να δημιουργείτε γρήγορα και αποτελεσματικά διάφορα τελικά σημεία για την εφαρμογή σας:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-Μπορείτε επίσης να ορίσετε παραμέτρους στη μάσκα, οι οποίες θα μεταβιβαστούν αυτόματα στο callback σας:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Ενότητες .[#toc-modules]
@@ -526,15 +503,15 @@ http://example.com/?presenter=Product&action=detail&id=123
 Η παράμετρος του κατασκευαστή `SimpleRouter` είναι ένας προεπιλεγμένος παρουσιαστής & ενέργεια, δηλαδή ενέργεια που θα εκτελεστεί αν ανοίξουμε π.χ. το `http://example.com/` χωρίς πρόσθετες παραμέτρους.
 
 ```php
-// προεπιλογή παρουσιαστή 'Home' και δράσης 'default'
-$router = new Nette\Application\Routers\SimpleRouter('Home:default');
+// προεπιλογή παρουσιαστή 'Homepage' και δράσης 'default'
+$router = new Nette\Application\Routers\SimpleRouter('Homepage:default');
 ```
 
 Συνιστούμε τον ορισμό του SimpleRouter απευθείας στη [διαμόρφωση |dependency-injection:services]:
 
 ```neon
 services:
-	- Nette\Application\Routers\SimpleRouter('Home:default')
+	- Nette\Application\Routers\SimpleRouter('Homepage:default')
 ```
 
 
@@ -634,7 +611,7 @@ class MyRouter implements Nette\Routing\Router
 
 ```php
 [
-	'presenter' => 'Front:Home',
+	'presenter' => 'Front:Homepage',
 	'action' => 'default',
 ]
 ```

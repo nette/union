@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-If you don't use the `$container->getParameters()` array, you can disable parameter export. Furthermore, you can export only those tags through which you get services using the `$container->findByTag(...)` method.
+If you don't use the `$container->parameters` array, you can disable parameter export. Furthermore, you can export only those tags through which you get services using the `$container->findByTag(...)` method.
 If you don't call the method at all, you can completely disable tag export with `false`.
 
 You can significantly reduce the metadata for [autowiring] by specifying the classes you use as a parameter to the `$container->getByType()` method.
@@ -191,15 +191,20 @@ Just specify in which directories (and subdirectories) the classes should be sea
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# you choose the section names yourself
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Usually, however, we don't want to add all the classes and interfaces, so we can filter them:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# filtering by file name (string|string[])
 		files:
@@ -215,7 +220,7 @@ Or we can select classes that inherit or implement at least one of the following
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,7 +231,7 @@ You can also define negative rules, ie class name masks or ancestors and if they
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
 			classes: ...
 			extends: ...
@@ -237,7 +242,7 @@ Tags can be set for added services:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

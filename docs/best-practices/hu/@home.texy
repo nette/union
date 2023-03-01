@@ -26,7 +26,6 @@ Nyomtatványok
 -------------
 - [Nyomtatványok újrafelhasználása |form-reuse]
 - [Nyomtatvány rekord létrehozásához és szerkesztéséhez |creating-editing-form]
-- [Hozzunk létre egy kapcsolatfelvételi űrlapot |lets-create-contact-form]
 - [Függő kiválasztó mezők |https://blog.nette.org/hu/fueggo-selectboxok-elegansan-nette-es-tiszta-js-ben]
 
 </div>
@@ -36,12 +35,10 @@ Nyomtatványok
 Közös
 -----
 - [Konfigurációs fájl betöltése |bootstrap:]
-- [Hogyan írjunk microsite-okat |microsites]
 - [Miért használ a Nette PascalCase konstans jelölést? |https://blog.nette.org/hu/kevesebb-sikolyert-a-kodban]
 - [Miért nem használja a Nette az Interface utótagot? |https://blog.nette.org/hu/az-elotagok-es-utotagok-nem-tartoznak-az-interfesznevekbe]
 - [Composer használati tippek |composer]
 - [Tippek a szerkesztőkhöz és eszközökhöz |editors-and-tools]
-- [Bevezetés az objektumorientált programozásba |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

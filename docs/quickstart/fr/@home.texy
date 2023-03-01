@@ -4,24 +4,34 @@ Créez votre première application !
 .[perex]
 Apprenez à connaître Nette Framework tout en créant un simple blog avec des commentaires. Commençons !
 
-Après les deux premiers chapitres, vous aurez votre propre blog fonctionnel et vous serez prêt à publier vos superbes articles, bien que les fonctionnalités soient assez limitées après avoir terminé ces deux chapitres. Pour rendre les choses plus agréables pour vos utilisateurs, vous devriez également lire les chapitres suivants et continuer à améliorer votre application.
+Après les deux premiers chapitres, vous aurez votre propre blog fonctionnel et vous serez prêt à publier vos superbes articles, même si les fonctionnalités seront assez limitées après avoir terminé ces deux chapitres. Pour rendre les choses plus agréables pour vos utilisateurs, vous devriez également lire les chapitres suivants et continuer à améliorer votre application.
 
-.[tip]
-Ce tutoriel suppose que vous avez terminé le document d'[installation |nette:installation] et que vous avez configuré votre outil avec succès. Il suppose également que vous comprenez la [programmation orientée objet en PHP |nette:introduction-to-object-oriented-programming].
+Vous pouvez trouver l'[application complète sur GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
 
-Veuillez utiliser PHP 8.1 ou plus récent. Vous pouvez trouver l'application complète [sur GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
+Veuillez installer l'[IDE complet et tous les plugins nécessaires |best-practices:editors-and-tools], cela vous rendra extrêmement efficace.
 
+Ce QuickStart a été écrit pour Nette Framework 3.1 et PHP 8.0 ou plus récent.
 
-La page d'accueil .[#toc-the-welcome-page]
-==========================================
+Vous pouvez télécharger le Nette Framework manuellement, mais la méthode recommandée pour démarrer un nouveau projet est d'utiliser [Composer |best-practices:composer]. Si vous ne connaissez pas le Composer, vous devez absolument commencer par là. C'est un outil vraiment simple et utile, consultez [leur documentation |https://getcomposer.org/doc/].
 
-Commençons par créer un nouveau projet dans le répertoire `nette-blog`:
+Avec Composer, vous pouvez télécharger et installer très facilement le squelette d'application connu sous le nom de Web Project incluant Nette Framework. Pour ce faire, trouvez votre répertoire webroot (par exemple `/var/www` ou `C:\InetPub`) dans votre ligne de commande et exécutez la commande suivante :
 
 ```shell
 composer create-project nette/web-project nette-blog
 ```
 
-La page d'accueil du projet Web devrait alors s'afficher. Essayez-la en ouvrant votre navigateur et en allant à l'URL suivante :
+Web Project sera téléchargé dans le répertoire `nette-blog`.
+
+.[note]
+Si vous n'avez pas pu utiliser Composer, [téléchargez |https://github.com/nette/web-project/archive/preloaded.zip] et extrayez l'archive, copiez-la dans le répertoire racine du serveur Web et renommez-la en `nette-blog`. L'ensemble du framework se trouve dans le dossier `vendor`.
+
+Si vous développez sous macOS ou Linux (ou tout autre système basé sur Unix), vous devez [configurer des privilèges d'écriture |nette:troubleshooting#Setting directory permissions] sur le serveur Web.
+
+
+La page d'accueil .[#toc-the-welcome-page]
+==========================================
+
+A ce moment, la page de bienvenue du projet Web devrait être en cours d'exécution. Essayez-la en ouvrant votre navigateur et en allant à l'URL suivante :
 
 ```
 http://localhost/nette-blog/www/
@@ -67,7 +77,7 @@ Le répertoire le plus important pour vous est `app/`. Vous y trouverez le fichi
 Nettoyage de .[#toc-cleanup]
 ============================
 
-Le projet Web contient une page de bienvenue, que nous pouvons supprimer - n'hésitez pas à supprimer le fichier `app/Presenters/templates/Home/default.latte` et à le remplacer par le texte "Hello world !".
+Le projet Web contient une page de bienvenue, que nous pouvons supprimer - n'hésitez pas à supprimer le fichier `app/Presenters/templates/Homepage/default.latte` et à le remplacer par le texte "Hello world !".
 
 
 [* qs-hello.webp .{url:-} *]
@@ -76,7 +86,7 @@ Le projet Web contient une page de bienvenue, que nous pouvons supprimer - n'hé
 Tracy (Débogueur) .[#toc-tracy-debugger]
 ========================================
 
-Un outil extrêmement important pour le développement est [un débogueur appelé Tracy |tracy:]. Essayez de faire quelques erreurs dans votre fichier `app/Presenters/HomePresenter.php` (par exemple, supprimez une accolade de la définition de la classe HomePresenter) et voyez ce qui se passe. Une page d'écran rouge apparaîtra avec une description compréhensible de l'erreur.
+Un outil extrêmement important pour le développement est [un débogueur appelé Tracy |tracy:]. Essayez de faire quelques erreurs dans votre fichier `app/Presenters/HomepagePresenter.php` (par exemple, supprimez une accolade de la définition de la classe HomepagePresenter) et voyez ce qui se passe. Une page d'écran rouge apparaîtra avec une description compréhensible de l'erreur.
 
 [* qs-tracy.webp .{url:-}(debugger screen) *]
 

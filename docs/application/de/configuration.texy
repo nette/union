@@ -76,12 +76,6 @@ Latte:
 	# erzeugt Vorlagen mit declare(strict_types=1)
 	strictTypes: ...     # (bool) ist standardmäßig false
 
-	# aktiviert den [strengen Parser-Modus |latte:develop#strict mode]
-	strictParsing: ...   # (bool) Standard ist false
-
-	# aktiviert die [Überprüfung von generiertem Code |latte:develop#Checking Generated Code]
-	phpLinter: ...       # (string) Voreinstellung ist null
-
 	# Klasse von $this->template
 	templateClass: App\MyTemplateClass # Standardwert ist Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -158,18 +152,3 @@ Sie können PHP-Direktiven setzen. Eine Übersicht über alle Direktiven finden 
 php:
 	date.timezone: Europe/Prague
 ```
-
-
-DI-Dienste .[#toc-di-services]
-==============================
-
-Diese Dienste werden dem DI-Container hinzugefügt:
-
-| Name | Typ | Beschreibung
-|----------------------------------------------------------
-| `application.application` | [api:Nette\Application\Application] | [Vollständiger Anwendungsstarter |how-it-works#Nette Application]
-| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
-| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | Presenter-Fabrik
-| `application.###` | [api:Nette\Application\UI\Presenter] | einzelne Referenten
-| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | Fabrik für `Latte\Engine`
-| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | Fabrik für [`$this->template` |templates]

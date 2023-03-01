@@ -1,13 +1,13 @@
 Rendu des formulaires
 *********************
 
-L'aspect des formes peut être très varié. Dans la pratique, nous pouvons rencontrer deux extrêmes. D'une part, il est nécessaire de rendre une série de formulaires dans une application qui sont visuellement similaires les uns aux autres, et nous apprécions le rendu facile sans modèle à l'aide de `$form->render()`. C'est généralement le cas des interfaces administratives.
+Les apparences des formulaires peuvent être très différentes. En fait, il existe deux extrêmes. D'un côté, il est nécessaire de rendre à nouveau un ensemble de formulaires très similaires, avec peu ou pas d'effort. Généralement, les administrations et les back-ends.
 
-D'autre part, il existe différents formulaires dont chacun est unique. Leur apparence est mieux décrite en utilisant le langage HTML dans le modèle. Et bien sûr, en plus des deux extrêmes mentionnés, nous rencontrerons de nombreux formulaires qui se situent quelque part entre les deux.
+De l'autre côté, on trouve de minuscules formulaires, chacun étant une œuvre d'art. Leur mise en page peut être écrite au mieux en HTML. Bien sûr, à côté de ces extrêmes, il existe de nombreuses formes qui se situent juste entre les deux.
 
 
-Rendu avec Latte .[#toc-rendering-with-latte]
-=============================================
+Latte .[#toc-latte]
+===================
 
 Le [système de templates Latte |latte:] facilite fondamentalement le rendu des formulaires et de leurs éléments. Nous allons d'abord montrer comment rendre les formulaires manuellement, élément par élément, afin d'avoir un contrôle total sur le code. Plus tard, nous montrerons comment [automatiser |#Automatic rendering] ce rendu.
 
@@ -152,12 +152,6 @@ Nous pouvons détecter la présence d'une erreur à l'aide de la méthode `hasEr
 ```
 
 
-`{form}`
---------
-
-Les étiquettes `{form signInForm}...{/form}` sont une alternative à `<form n:name="signInForm">...</form>`.
-
-
 Rendu automatique .[#toc-automatic-rendering]
 ---------------------------------------------
 
@@ -237,15 +231,15 @@ Vous ne devez importer le bloc qu'à un seul endroit, au début du modèle de mi
 Cas particuliers .[#toc-special-cases]
 --------------------------------------
 
-Si vous devez rendre uniquement la partie intérieure du formulaire sans balises HTML, par exemple lors de l'envoi d'extraits, masquez-les à l'aide de l'attribut . `<form>`par exemple lors de l'envoi d'extraits, masquez-les à l'aide de l'attribut `n:tag-if`:
+Si vous avez seulement besoin de rendre le contenu interne d'un formulaire sans `<form>` & `</form>` HTML, par exemple dans une requête AJAX, vous pouvez ouvrir et fermer le formulaire à l'aide de `{formContext} … {/formContext}`. Son fonctionnement est similaire à celui de `{form}` d'un point de vue logique, puisqu'il vous permet d'utiliser d'autres balises pour dessiner des éléments de formulaire, mais en même temps, il ne dessine rien.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 La balise `formContainer` aide à rendre les entrées à l'intérieur d'un conteneur de formulaire.
@@ -262,8 +256,8 @@ La balise `formContainer` aide à rendre les entrées à l'intérieur d'un conte
 ```
 
 
-Rendu sans Latte .[#toc-rendering-without-latte]
-================================================
+Sans Latte .[#toc-without-latte]
+================================
 
 La façon la plus simple de rendre un formulaire est d'appeler :
 
@@ -327,13 +321,13 @@ Si nous ne définissons pas de moteur de rendu personnalisé, le moteur de rendu
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -363,12 +357,12 @@ Ce qui donne l'extrait suivant :
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -433,8 +427,6 @@ $form->addText('street', 'Street:');
 $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
-
-Le moteur de rendu dessine d'abord les groupes, puis les éléments qui n'appartiennent à aucun groupe.
 
 
 Support Bootstrap .[#toc-bootstrap-support]

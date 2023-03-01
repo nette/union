@@ -23,10 +23,10 @@ Die Verzeichnisstruktur sieht in etwa so aus:
 <b>web-project/</b>
 ├── <b>app/</b>                      ← Verzeichnis mit Anwendung
 │   ├── <b>Presenters/</b>           ← Presenter-Klassen
-│   │   ├── <b>HomePresenter.php</b> ← Home presenterklasse
+│   │   ├── <b>HomepagePresenter.php</b>  ← Homepage presenterklasse
 │   │   └── <b>templates/</b>        ← Vorlagenverzeichnis
 │   │       ├── <b>@layout.latte</b> ← Vorlage für gemeinsames Layout
-│   │       └── <b>Home/</b>         ← Vorlagen für Home-presenter
+│   │       └── <b>Homepage/</b>     ← Vorlagen für Homepage-presenter
 │   │           └── <b>default.latte</b>  ← Vorlage für Aktion `default`
 │   ├── <b>Router/</b>               ← Konfiguration von URL-Adressen
 │   └── <b>Bootstrap.php</b>         ← bootende Klasse Bootstrap
@@ -134,10 +134,10 @@ Um sicherzugehen, versuchen wir, den gesamten Prozess mit einer etwas anderen UR
 
 1) Die URL lautet dann `https://example.com`
 2) wir booten die Anwendung, erstellen einen Container und starten `Application::run()`
-3) der Router dekodiert die URL als ein Paar `Home:default`
-4) ein `HomePresenter` Objekt wird erstellt
+3) der Router dekodiert die URL als ein Paar `Homepage:default`
+4) ein `HomepagePresenter` Objekt wird erstellt
 5) die Methode `renderDefault()` wird aufgerufen (falls vorhanden)
-6) eine Vorlage `templates/Home/default.latte` mit einem Layout `templates/@layout.latte` wird gerendert
+6) eine Vorlage `templates/Homepage/default.latte` mit einem Layout `templates/@layout.latte` wird gerendert
 
 
 Vielleicht sind Sie jetzt auf eine Menge neuer Konzepte gestoßen, aber wir glauben, dass sie sinnvoll sind. Das Erstellen von Anwendungen in Nette ist ein Kinderspiel.
@@ -146,7 +146,7 @@ Vielleicht sind Sie jetzt auf eine Menge neuer Konzepte gestoßen, aber wir glau
 Schablonen .[#toc-templates]
 ============================
 
-Für die Vorlagen verwendet Nette das [Latte-Vorlagensystem |latte:]. Deshalb enden die Dateien mit Vorlagen mit `.latte`. Latte wird verwendet, weil es das sicherste Templatesystem für PHP und gleichzeitig das intuitivste System ist. Sie müssen nicht viel Neues lernen, Sie müssen nur PHP und ein paar Latte-Tags kennen. Sie werden alles [in der Dokumentation |templates] finden.
+Für die Vorlagen verwendet Nette das [Latte-Vorlagensystem |latte:]. Deshalb enden die Dateien mit Vorlagen mit `.latte`. Latte wird verwendet, weil es das sicherste Templatesystem für PHP und gleichzeitig das intuitivste System ist. Sie müssen nicht viel Neues lernen, Sie müssen nur PHP und ein paar Latte-Tags kennen. Sie werden alles [in der Dokumentation |latte:] finden.
 
 In der Vorlage [erstellen wir eine Verknüpfung |creating-links] zu anderen Moderatoren & Aktionen wie folgt:
 

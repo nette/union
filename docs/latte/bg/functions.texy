@@ -9,7 +9,6 @@
 | `divisibleBy`| [проверява дали дадена променлива се дели на дадено число |#divisibleBy]
 | `even` | [проверява дали дадено число е четно число|#even]
 | `first` | [връща първия елемент на масив или символен низ |#first]
-| `hasBlock` | [открива съществуването на блок |#hasBlock]
 | `last` | [връща последния елемент на масив или символен низ|#last]
 | `odd` | [проверява дали числото е нечетно |#odd]
 | `slice` | [извлича фрагмент от масив или низ |#slice]
@@ -45,8 +44,8 @@ $latte->addFunction('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0,
 =========================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Връща стойността, притисната в обхвата min и max.
 
 ```latte
@@ -56,8 +55,8 @@ clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
 Вижте също [филтърна скоба |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Проверява дали дадена променлива е делима на число.
 
 ```latte
@@ -65,8 +64,8 @@ divisibleBy(int $value, int $by): bool .[method]
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Проверява дали дадено число е четно число.
 
 ```latte
@@ -74,8 +73,8 @@ even(int $value): bool .[method]
 ```
 
 
-first(string|array $value): mixed .[method]
--------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Връща първия елемент на масив или символен низ:
 
 ```latte
@@ -86,19 +85,8 @@ first(string|array $value): mixed .[method]
 Вижте също [последно |#last], [първо филтриране |filters#first].
 
 
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Проверява дали блокът със зададеното име съществува:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-Вижте също [проверка на съществуването на блока |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Връща последния елемент на масив или символен низ:
 
 ```latte
@@ -109,8 +97,8 @@ last(string|array $value): mixed .[method]
 Вижте също [първи |#first], [последен филтър |filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Проверява дали зададеното число е нечетно.
 
 ```latte
@@ -118,8 +106,8 @@ odd(int $value): bool .[method]
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Извлича фрагмент от масив или низ.
 
 ```latte

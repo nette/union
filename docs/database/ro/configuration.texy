@@ -20,7 +20,7 @@ database:
 	password: ...
 ```
 
-Creează serviciile `Nette\Database\Connection` și `Nette\Database\Explorer`, care sunt de obicei trecute prin [autocablare |dependency-injection:autowiring] sau prin referire la [numele lor |#DI Services].
+Se creează servicii de tip `Nette\Database\Connection` și `Nette\Database\Explorer` pentru stratul [Database Explorer |explorer]. Conexiunea la baza de date este de obicei transmisă prin [autocablare |dependency-injection:autowiring], dacă acest lucru nu este posibil, utilizați numele serviciilor `@database.default.connection` resp. `@database.default.explorer`.
 
 Alte setări:
 
@@ -80,23 +80,9 @@ database:
 		dsn: 'sqlite::memory:'
 ```
 
-Cablarea automată este activată numai pentru serviciile din prima secțiune. Acest lucru poate fi modificat cu ajutorul `autowired: false` sau `autowired: true`.
+Fiecare conexiune definită creează servicii care includ numele secțiunii în numele lor, adică `@database.main.connection` & `@database.main.explorer` și mai departe `@database.another.connection` & `@database.another.explorer`.
 
-
-Servicii DI .[#toc-di-services]
--------------------------------
-
-Aceste servicii sunt adăugate la containerul DI, unde `###` reprezintă numele conexiunii:
-
-| Nume | Tip | Descriere
-|----------------------------------------------------------
-| `database.###.connection` | [api:Nette\Database\Connection] | conexiune la baza de date
-| `database.###.explorer` | [api:Nette\Database\Explorer] | [Database Explorer |explorer]
-
-
-Dacă definim o singură conexiune, numele serviciului va fi `database.default.connection` și `database.default.explorer`. Dacă definim mai multe conexiuni, ca în exemplul de mai sus, numele vor corespunde secțiunilor, adică `database.main.connection`, `database.main.explorer` și apoi `database.another.connection` și `database.another.explorer`.
-
-Serviciile neautentificate sunt trecute în mod explicit prin referire la numele lor:
+Cablarea automată este activată numai pentru serviciile din prima secțiune. Acest lucru poate fi modificat cu `autowired: false` sau `autowired: true`. Serviciile care nu sunt conectate automat sunt transmise după nume:
 
 ```neon
 services:

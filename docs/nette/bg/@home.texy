@@ -6,16 +6,12 @@
 <div>
 
 
-Въведение
+Предговор
 ---------
-- [Защо да използвате Nette? |www:10-reasons-why-nette]
-- [Инсталация |Installation]
-- [Създайте първото си приложение! |quickstart:]
+- <b>[Създайте първото си приложение! |quickstart:]<b>
 
 
-Обща информация
----------------
-- [Списък на пакетите |www:packages]
+- [Пакети и инсталиране |www:packages]
 - [Поддръжка и PHP |www:maintenance]
 - [Бележки към изданието |https://nette.org/releases]
 - [Ръководство за надграждане |migrations:en]
@@ -23,7 +19,6 @@
 - [Създатели на Nette |https://nette.org/contributors]
 - [История на Nette |www:history]
 - [Включете се |contributing:]
-- [Развитие на спонсори |https://nette.org/en/donate]
 - [Референтно ръководство за API |https://api.nette.org/]
 </div>
 
@@ -84,11 +79,11 @@
 - [помощни средства:JSON |utils:JSON]
 - [NEON |neon:]
 - [Събиране на пароли |security:passwords]
+- [SmartObject |utils:SmartObject]
 - [Типове PHP |utils:type]
 - [Strings |utils:Strings]
 - [Валидатори |utils:validators]
 - [RobotLoader |robot-loader:]
-- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
 - [SafeStream |safe-stream:]
 - [...други |utils:]
 </div>

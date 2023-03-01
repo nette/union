@@ -48,7 +48,7 @@ final class SignPresenter extends Nette\Application\UI\Presenter
 
 		$form->addSubmit('send', 'Sign in');
 
-		$form->onSuccess[] = $this->signInFormSucceeded(...);
+		$form->onSuccess[] = [$this, 'signInFormSucceeded'];
 		return $form;
 	}
 }
@@ -78,11 +78,11 @@ Wir fügen auch einen *Form Handler* für die Anmeldung des Benutzers hinzu, der
 Der Handler nimmt einfach den Benutzernamen und das Passwort, die der Benutzer eingegeben hat, und übergibt sie an den zuvor definierten Authentifikator. Nachdem sich der Benutzer angemeldet hat, leiten wir ihn auf die Homepage um.
 
 ```php .{file:app/Presenters/SignPresenter.php}
-private function signInFormSucceeded(Form $form, \stdClass $data): void
+public function signInFormSucceeded(Form $form, \stdClass $data): void
 {
 	try {
 		$this->getUser()->login($data->username, $data->password);
-		$this->redirect('Home:');
+		$this->redirect('Homepage:');
 
 	} catch (Nette\Security\AuthenticationException $e) {
 		$form->addError('Incorrect username or password.');
@@ -117,7 +117,7 @@ public function startup(): void
 Links ausblenden .[#toc-hide-links]
 -----------------------------------
 
-Ein nicht authentifizierter Benutzer kann weder die Seite *Erstellen* noch die Seite *Bearbeiten* sehen, aber er kann immer noch die Links sehen, die auf sie verweisen. Diese sollten wir ebenfalls ausblenden. Ein solcher Link befindet sich in `app/Presenters/templates/Home/default.latte`, und er sollte nur sichtbar sein, wenn der Benutzer angemeldet ist.
+Ein nicht authentifizierter Benutzer kann weder die Seite *Erstellen* noch die Seite *Bearbeiten* sehen, aber er kann immer noch die Links sehen, die auf sie verweisen. Diese sollten wir ebenfalls ausblenden. Ein solcher Link befindet sich in `app/Presenters/templates/Homepage/default.latte`, und er sollte nur sichtbar sein, wenn der Benutzer angemeldet ist.
 
 Wir können ihn mit einem *n:Attribut* namens `n:if` ausblenden. Wenn die darin enthaltene Anweisung `false` lautet, werden der gesamte `<a>` Tag und sein Inhalt werden nicht angezeigt:
 
@@ -142,7 +142,7 @@ Hey, aber wie kommen wir auf die Anmeldeseite? Es gibt keinen Link, der auf sie 
 ```latte .{file:app/Presenters/templates/@layout.latte}
 ...
 <ul class="navig">
-	<li><a n:href="Home:">Home</a></li>
+	<li><a n:href="Homepage:">Homepage</a></li>
 	{if $user->isLoggedIn()}
 		<li><a n:href="Sign:out">Sign out</a></li>
 	{else}
@@ -161,7 +161,7 @@ public function actionOut(): void
 {
 	$this->getUser()->logout();
 	$this->flashMessage('You have been signed out.');
-	$this->redirect('Home:');
+	$this->redirect('Homepage:');
 }
 ```
 

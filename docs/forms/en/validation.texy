@@ -23,9 +23,9 @@ $form->addPassword('password', 'Password:')
 	->addRule($form::MinLength, 'Password must be at least %d characters', 8);
 ```
 
-**Validation rules are checked only if the user filled in the element.**
+Nette comes with a number of built-in rules whose names are constants of the `Nette\Forms\Form` class:
 
-Nette comes with a number of predefined rules whose names are constants of the class `Nette\Forms\Form`. We can apply these rules to all elements:
+We can use the following rules for all controls:
 
 | constant | description | arguments
 |-------
@@ -38,11 +38,7 @@ Nette comes with a number of predefined rules whose names are constants of the c
 | `IsNotIn` | value does not equal any element in the array | `array`
 | `Valid` | input passes validation (for [#conditions])  | -
 
-
-Text inputs
------------
-
-For elements `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()`, `addFloat()` some of the following rules can also be applied:
+For controls `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()` the following rules can also be used:
 
 | `MinLength` | minimal string length | `int`
 | `MaxLength` | maximal string length | `int`
@@ -61,33 +57,25 @@ For elements `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addIn
 The `Integer`, `Numeric` a `Float` rules automatically convert the value to integer (or float respectively). Furthermore, the `URL` rule also accepts an address without a schema (eg `nette.org`) and completes the schema (`https://nette.org`).
 The expressions in `Pattern` and `PatternInsensitive` must be valid for the whole value, ie as if it were wrapped in the characters `^` and `$`.
 
-
-Number of Items
----------------
-
-For the elements `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` you can also use the following rules to limit the number of selected items or uploaded files:
-
-| `MinLength` | minimum number | `int`
-| `MaxLength` | maximum number | `int`
-| `Length` | number in range or exact number | pairs `[int, int]` or `int`
-
-
-File Upload
------------
-
 For controls `addUpload()`, `addMultiUpload()` the following rules can also be used:
 
 | `MaxFileSize` | maximal file size | `int`
 | `MimeType` | MIME type, accepts wildcards (`'video/*'`) | `string\|string[]`
-| `Image` | uploaded file is JPEG, PNG, GIF, WebP, AVIF | -
+| `Image` | uploaded file is JPEG, PNG, GIF, WebP | -
 | `Pattern` | file name matches regular expression | `string`
 | `PatternInsensitive` | like `Pattern`, but case-insensitive | `string`
 
 The `MimeType` and `Image` require PHP extension `fileinfo`. Whether a file or image is of the required type is detected by its signature. The integrity of the entire file is not checked. You can find out if an image is not corrupted for example by trying to [load it|http:request#toImage].
 
+For controls `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` the following rules can also be used to limit the number of selected items, respectively uploaded files:
+
+| `MinLength` | minimal count | `int`
+| `MaxLength` | maximal count | `int`
+| `Length` | count in range or exact count | pair `[int, int]` or `int`
+
 
 Error Messages
-==============
+--------------
 
 All predefined rules except `Pattern` and `PatternInsensitive` have a default error message, so they it be omitted. However, by passing and formulating all customized messages, you will make the form more user-friendly.
 
@@ -246,7 +234,7 @@ In many cases, we discover an error when we are processing a valid form, e.g. wh
 try {
 	$data = $form->getValues();
 	$this->user->login($data->username, $data->password);
-	$this->redirect('Home:');
+	$this->redirect('Homepage:');
 
 } catch (Nette\Security\AuthenticationException $e) {
 	if ($e->getCode() === Nette\Security\Authenticator::InvalidCredential) {
@@ -293,7 +281,7 @@ This script is `netteForms.js`, which is available from several possible sources
 You can embed the script directly into the HTML page from the CDN:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Or copy locally to the public folder of the project (e.g. from `vendor/nette/forms/src/assets/netteForms.min.js`):
@@ -304,7 +292,7 @@ Or copy locally to the public folder of the project (e.g. from `vendor/nette/for
 
 Or install via [npm|https://www.npmjs.com/package/nette-forms]:
 
-```shell
+```bash
 npm install nette-forms
 ```
 

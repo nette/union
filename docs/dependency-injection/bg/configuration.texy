@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Ако не използвате масива `$container->getParameters()`, можете да деактивирате експортирането на параметри. Като алтернатива можете да експортирате само тези тагове, чрез които получавате услуги, като използвате метода `$container->findByTag(...)`.
+Ако не използвате масива `$container->parameters`, можете да деактивирате експортирането на параметри. Като алтернатива можете да експортирате само тези тагове, чрез които получавате услуги, като използвате метода `$container->findByTag(...)`.
 Ако изобщо не извиквате този метод, можете да деактивирате напълно експортирането на тагове, като посочите `false`.
 
 Можете значително да намалите метаданните за автоматичното свързване, като посочите класовете, които използвате, като параметър в метода `$container->getByType()`.
@@ -191,15 +191,20 @@ return [
 
 ```neon
 търсене:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# избирате собствени имена на раздели
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Обикновено обаче не искаме да добавяме всички класове и интерфейси, затова можем да ги филтрираме:
 
 ```neon
 търсене:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# филтриране по име на файл (string|string[])
 		files:
@@ -215,7 +220,7 @@ return [
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,7 +231,7 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
 			classes: ...
 			extends: ...
@@ -237,7 +242,7 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

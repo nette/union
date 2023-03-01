@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Si no utilizas el array `$container->getParameters()`, puedes desactivar la exportación de parámetros. Además, puede exportar sólo aquellas etiquetas a través de las cuales obtiene servicios utilizando el método `$container->findByTag(...)`.
+Si no utilizas el array `$container->parameters`, puedes desactivar la exportación de parámetros. Además, puede exportar sólo aquellas etiquetas a través de las cuales obtiene servicios utilizando el método `$container->findByTag(...)`.
 Si no llama al método en absoluto, puede desactivar completamente la exportación de etiquetas con `false`.
 
 Puede reducir significativamente los metadatos para [autowiring] especificando las clases que utiliza como parámetro del método `$container->getByType()`.
@@ -191,15 +191,20 @@ Basta con especificar en qué directorios (y subdirectorios) deben buscarse las 
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# usted mismo elige los nombres de las secciones
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Normalmente, sin embargo, no queremos añadir todas las clases e interfaces, así que podemos filtrarlas:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# filtrado por nombre de archivo (string|string[])
 		files:
@@ -215,7 +220,7 @@ O podemos seleccionar clases que hereden o implementen al menos una de las sigui
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,7 +231,7 @@ También se pueden definir reglas negativas, es decir, máscaras de nombres de c
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
 			classes: ...
 			extends: ...
@@ -237,7 +242,7 @@ Se pueden establecer etiquetas para los servicios añadidos:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

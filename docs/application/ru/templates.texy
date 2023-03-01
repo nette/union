@@ -42,9 +42,7 @@ Nette использует систему шаблонов [Latte |latte:]. Latt
 - `templates/<Presenter>/<view>.latte`
 - `templates/<Presenter>.<view>.latte`
 
-Если шаблон не найден, он попытается выполнить поиск в каталоге `templates` на один уровень выше, т.е. на том же уровне, что и каталог с классом ведущего.
-
-Если шаблон не найден и там, ответом будет [ошибка 404 |presenters#Error 404 etc.].
+Если шаблон не найден, ответом будет [ошибка 404 |presenters#error-404-etc].
 
 Вы также можете изменить вид с помощью `$this->setView('jineView')`. Или, вместо прямого поиска, укажите имя файла шаблона с помощью `$this->template->setFile('/path/to/template.latte')`.
 
@@ -150,7 +148,7 @@ public function renderDefault(): void
 Атрибут `n:href` очень удобен для HTML-тегов. `<a>`. Если мы хотим указать ссылку в другом месте, например, в тексте, мы используем `{link}`:
 
 ```latte
-Adresa je: {link Home:default}
+Adresa je: {link Homepage:default}
 ```
 
 Дополнительные сведения см. в разделе [Создание ссылок URL |creating-links].
