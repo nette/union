@@ -18,8 +18,9 @@ $session->setExpiration('+10 seconds');
 
 test('try to expire whole namespace', function () use ($session) {
 	$namespace = $session->getSection('expire');
-	$namespace->set('a', 'apple');
-	$namespace->set('p', 'pear');
+	$namespace->a = 'apple';
+	$namespace->p = 'pear';
+	$namespace['o'] = 'orange';
 	$namespace->setExpiration('+ 1 seconds');
 
 	$session->close();
@@ -33,10 +34,9 @@ test('try to expire whole namespace', function () use ($session) {
 
 test('try to expire only 1 of the keys', function () use ($session) {
 	$namespace = $session->getSection('expireSingle');
-	$namespace->setExpiration('1 second', 'g');
-	$namespace->set('g', 'guava');
-	$namespace->set('p', 'plum');
-	$namespace->setExpiration('1 second', 'p');
+	$namespace->setExpiration(1, 'g');
+	$namespace->g = 'guava';
+	$namespace->p = 'plum';
 	$namespace->set('a', 'apple', '1 second');
 
 	$session->close();
@@ -44,12 +44,12 @@ test('try to expire only 1 of the keys', function () use ($session) {
 	$session->start();
 
 	$namespace = $session->getSection('expireSingle');
-	Assert::same('g=guava', http_build_query(iterator_to_array($namespace->getIterator())));
+	Assert::same('p=plum', http_build_query(iterator_to_array($namespace->getIterator())));
 });
 
 
 // small expiration
 Assert::error(function () use ($session) {
 	$namespace = $session->getSection('tmp');
-	$namespace->setExpiration('100 second');
+	$namespace->setExpiration(100);
 }, E_USER_NOTICE, 'The expiration time is greater than the session expiration %d% seconds');

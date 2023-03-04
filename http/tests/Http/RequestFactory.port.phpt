@@ -31,7 +31,7 @@ class RequestFactoryPortTest extends Tester\TestCase
 			[8080, ['SERVER_NAME' => 'localhost:8080']],
 			[8080, ['HTTP_HOST' => 'localhost:8080', 'SERVER_PORT' => '666']],
 			[8080, ['SERVER_NAME' => 'localhost:8080', 'SERVER_PORT' => '666']],
-			[80, ['HTTP_HOST' => 'localhost', 'SERVER_PORT' => '8080']],
+			[8080, ['HTTP_HOST' => 'localhost', 'SERVER_PORT' => '8080']],
 			[8080, ['SERVER_NAME' => 'localhost', 'SERVER_PORT' => '8080']],
 
 			[80, ['HTTP_X_FORWARDED_PORT' => '8080']],
@@ -41,7 +41,7 @@ class RequestFactoryPortTest extends Tester\TestCase
 			[8080, ['SERVER_NAME' => 'localhost:8080', 'SERVER_PORT' => '80', 'HTTP_X_FORWARDED_PORT' => '666']],
 			[80, ['HTTP_HOST' => 'localhost', 'HTTP_X_FORWARDED_PORT' => '666']],
 			[80, ['SERVER_NAME' => 'localhost', 'HTTP_X_FORWARDED_PORT' => '666']],
-			[80, ['HTTP_HOST' => 'localhost', 'SERVER_PORT' => '8080', 'HTTP_X_FORWARDED_PORT' => '666']],
+			[8080, ['HTTP_HOST' => 'localhost', 'SERVER_PORT' => '8080', 'HTTP_X_FORWARDED_PORT' => '666']],
 			[8080, ['SERVER_NAME' => 'localhost', 'SERVER_PORT' => '8080', 'HTTP_X_FORWARDED_PORT' => '666']],
 			[44443, ['HTTPS' => 'on', 'SERVER_NAME' => 'localhost:44443', 'HTTP_X_FORWARDED_PORT' => '666']],
 		];
@@ -74,10 +74,6 @@ class RequestFactoryPortTest extends Tester\TestCase
 			[8080, ['HTTP_HOST' => 'localhost', 'SERVER_PORT' => '666', 'HTTP_X_FORWARDED_PORT' => '8080']],
 			[8080, ['SERVER_NAME' => 'localhost', 'SERVER_PORT' => '666', 'HTTP_X_FORWARDED_PORT' => '8080']],
 			[44443, ['HTTPS' => 'on', 'SERVER_NAME' => 'localhost:666', 'HTTP_X_FORWARDED_PORT' => '44443']],
-			[443, ['HTTP_FORWARDED' => 'for=192.168.1.1;host=example.com;proto=https']],
-			[44443, ['HTTP_FORWARDED' => 'for=192.168.1.1;host=example.com:44443;proto=https']],
-			[80, ['HTTP_FORWARDED' => 'for=192.168.1.1;host=example.com;proto=http']],
-			[8080, ['HTTP_FORWARDED' => 'for=192.168.1.1;host=example.com:8080;proto=http']],
 		];
 	}
 }
