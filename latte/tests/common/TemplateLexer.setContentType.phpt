@@ -11,14 +11,11 @@ require __DIR__ . '/../bootstrap.php';
 
 function tokenize($s, $contentType = null)
 {
-	$parser = new Latte\Compiler\TemplateParser;
-	$parser->addTags((new Latte\Essential\CoreExtension)->getTags());
-	$parser->setContentType($contentType ?? ContentType::Html);
-	$parser->parse($s);
-	$tokens = Assert::with($parser->getStream(), fn() => $this->tokens);
+	$lexer = new Latte\Compiler\TemplateLexer;
+	$tokens = $lexer->tokenize($s, $contentType ?: ContentType::Html);
 	return array_map(
 		fn(Token $token) => [$token->type, $token->text, $token->position->line . ':' . $token->position->column],
-		$tokens,
+		iterator_to_array($tokens, false),
 	);
 }
 

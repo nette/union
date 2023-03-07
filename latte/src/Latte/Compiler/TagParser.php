@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Latte\Compiler;
 
 use Latte;
-use Latte\CompileException;
 use Latte\Compiler\Nodes\Php as Node;
 use Latte\Compiler\Nodes\Php\Expression;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
@@ -29,16 +28,12 @@ final class TagParser extends TagParserData
 	private const
 		SchemaExpression = 'e',
 		SchemaArguments = 'a',
-		SchemaFilters = 'm',
-		SchemaForeach = 'f';
+		SchemaFilters = 'm';
 
 	private const SymbolNone = -1;
 
 	public TokenStream /*readonly*/ $stream;
 	public string $text;
-
-	/** @var \SplObjectStorage<Expression\ArrayNode> */
-	protected \SplObjectStorage $shortArrays;
 	private int /*readonly*/ $offsetDelta;
 
 
@@ -122,16 +117,6 @@ final class TagParser extends TagParserData
 
 
 	/**
-	 * Parses variables used in foreach.
-	 * @internal
-	 */
-	public function parseForeach(): array
-	{
-		return $this->parse(self::SchemaForeach);
-	}
-
-
-	/**
 	 * Consumes optional token followed by whitespace. Suitable before parseUnquotedStringOrExpression().
 	 */
 	public function tryConsumeTokenBeforeUnquotedString(string ...$kind): ?Token
@@ -167,7 +152,6 @@ final class TagParser extends TagParserData
 		$stateStack = [$state];
 		$this->semStack = []; // Semantic value stack (contains values of tokens and semantic action results)
 		$stackPos = 0; // Current position in the stack(s)
-		$this->shortArrays = new \SplObjectStorage;
 
 		do {
 			if (self::ActionBase[$state] === 0) {
@@ -222,7 +206,6 @@ final class TagParser extends TagParserData
 
 			do {
 				if ($rule === 0) { // accept
-					$this->finalizeShortArrays();
 					return $this->semValue;
 
 				} elseif ($rule !== self::UnexpectedTokenRule) { // reduce
@@ -342,7 +325,7 @@ final class TagParser extends TagParserData
 		string $endToken,
 		Position $startPos,
 		Position $endPos,
-	): Scalar\StringNode|Scalar\InterpolatedStringNode
+	): Scalar\StringNode|Scalar\EncapsedStringNode
 	{
 		$hereDoc = !str_contains($startToken, "'");
 		preg_match('/\A[ \t]*/', $endToken, $matches);
@@ -353,14 +336,14 @@ final class TagParser extends TagParserData
 		} elseif (!$parts) {
 			return new Scalar\StringNode('', $startPos);
 
-		} elseif (!$parts[0] instanceof Node\InterpolatedStringPartNode) {
+		} elseif (!$parts[0] instanceof Scalar\EncapsedStringPartNode) {
 			// If there is no leading encapsed string part, pretend there is an empty one
 			$this->stripIndentation('', $indentation, true, false, $parts[0]->position);
 		}
 
 		$newParts = [];
 		foreach ($parts as $i => $part) {
-			if ($part instanceof Node\InterpolatedStringPartNode) {
+			if ($part instanceof Scalar\EncapsedStringPartNode) {
 				$isLast = $i === \count($parts) - 1;
 				$part->value = $this->stripIndentation(
 					$part->value,
@@ -385,7 +368,7 @@ final class TagParser extends TagParserData
 			$newParts[] = $part;
 		}
 
-		return new Scalar\InterpolatedStringNode($newParts, $startPos);
+		return new Scalar\EncapsedStringNode($newParts, $startPos);
 	}
 
 
@@ -421,40 +404,6 @@ final class TagParser extends TagParserData
 			},
 			$str,
 		);
-	}
-
-
-	public function convertArrayToList(Expression\ArrayNode $array): Node\ListNode
-	{
-		$this->shortArrays->detach($array);
-		$items = [];
-		foreach ($array->items as $item) {
-			$value = $item->value;
-			if ($item->unpack) {
-				throw new CompileException('Spread operator is not supported in assignments.', $value->position);
-			}
-			$value = match (true) {
-				$value instanceof Expression\TemporaryNode => $value->value,
-				$value instanceof Expression\ArrayNode && $this->shortArrays->contains($value) => $this->convertArrayToList($value),
-				default => $value,
-			};
-			$items[] = $value
-				? new Node\ListItemNode($value, $item->key, $item->byRef, $item->position)
-				: null;
-		}
-		return new Node\ListNode($items, $array->position);
-	}
-
-
-	private function finalizeShortArrays(): void
-	{
-		foreach ($this->shortArrays as $node) {
-			foreach ($node->items as $item) {
-				if ($item->value instanceof Expression\TemporaryNode) {
-					throw new CompileException('Cannot use empty array elements or list() in arrays.', $item->position);
-				}
-			}
-		}
 	}
 
 

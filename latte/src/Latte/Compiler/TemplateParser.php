@@ -23,11 +23,15 @@ final class TemplateParser
 {
 	use Latte\Strict;
 
+	public const
+		LocationHead = 1,
+		LocationText = 2,
+		LocationTag = 3;
+
 	/** @var Block[][] */
 	public array $blocks = [[]];
 	public int $blockLayer = Template::LayerTop;
-	public bool $inHead = true;
-	public bool $strict = false;
+	public int $location = self::LocationHead;
 	public ?Nodes\TextNode $lastIndentation = null;
 
 	/** @var array<string, callable(Tag, self): (Node|\Generator|void)> */
@@ -38,33 +42,27 @@ final class TemplateParser
 
 	private TemplateParserHtml $html;
 	private ?TokenStream $stream = null;
-	private TemplateLexer $lexer;
+	private ?TemplateLexer $lexer = null;
 	private ?Policy $policy = null;
-	private string $contentType;
+	private string $contentType = ContentType::Html;
 	private int $counter = 0;
 	private ?Tag $tag = null;
 	private $lastResolver;
-
-
-	public function __construct()
-	{
-		$this->lexer = new TemplateLexer;
-		$this->setContentType(ContentType::Html);
-	}
 
 
 	/**
 	 * Parses tokens to nodes.
 	 * @throws CompileException
 	 */
-	public function parse(string $template): Nodes\TemplateNode
+	public function parse(string $template, TemplateLexer $lexer): Nodes\TemplateNode
 	{
+		$this->lexer = $lexer;
 		$this->html = new TemplateParserHtml($this, $this->completeAttrParsers());
-		$this->stream = new TokenStream($this->lexer->tokenize($template));
+		$this->stream = new TokenStream($lexer->tokenize($template, $this->contentType));
 
 		$headLength = 0;
 		$findLength = function (FragmentNode $fragment) use (&$headLength) {
-			if ($this->inHead && !end($fragment->children) instanceof Nodes\TextNode) {
+			if ($this->location === self::LocationHead && !end($fragment->children) instanceof Nodes\TextNode) {
 				$headLength = count($fragment->children);
 			}
 		};
@@ -121,7 +119,9 @@ final class TemplateParser
 	public function parseText(): Nodes\TextNode
 	{
 		$token = $this->stream->consume(Token::Text, Token::Html_Name);
-		$this->inHead = $this->inHead && trim($token->text) === '';
+		if ($this->location === self::LocationHead && trim($token->text) !== '') {
+			$this->location = self::LocationText;
+		}
 		$this->lastIndentation = null;
 		return new Nodes\TextNode($token->text, $token->position);
 	}
@@ -152,25 +152,20 @@ final class TemplateParser
 		if (str_ends_with($this->stream->peek(-1)?->text ?? "\n", "\n")) {
 			$this->lastIndentation ??= new Nodes\TextNode('');
 		}
-		$openToken = $this->stream->consume(Token::Latte_CommentOpen);
-		$this->lexer->pushState(TemplateLexer::StateLatteComment);
+		$this->stream->consume(Token::Latte_CommentOpen);
 		$this->stream->consume(Token::Text);
-		$this->stream->tryConsume(Token::Latte_CommentClose) || $this->stream->throwUnexpectedException([Token::Latte_CommentClose], addendum: " started $openToken->position");
-		$this->lexer->popState();
+		$this->stream->consume(Token::Latte_CommentClose);
 		return new Nodes\NopNode;
 	}
 
 
-	public function parseLatteStatement(?callable $resolver = null): ?Node
+	public function parseLatteStatement(): ?Node
 	{
-		$this->lexer->pushState(TemplateLexer::StateLatteTag);
 		if ($this->stream->peek(1)->is(Token::Slash)
 			|| isset($this->tag->data->filters) && in_array($this->stream->peek(1)->text, $this->tag->data->filters, true)
 		) {
-			$this->lexer->popState();
 			return null; // go back to previous parseLatteStatement()
 		}
-		$this->lexer->popState();
 
 		$token = $this->stream->peek();
 		$startTag = $this->pushTag($this->parseLatteTag());
@@ -192,7 +187,7 @@ final class TemplateParser
 			} else {
 				while ($res->valid()) {
 					$startTag->data->filters = $res->current() ?: null;
-					$content = $this->parseFragment($resolver ?? $this->lastResolver);
+					$content = $this->parseFragment($this->lastResolver);
 
 					if (!$this->stream->is(Token::Latte_TagOpen)) {
 						$this->checkEndTag($startTag, null);
@@ -243,7 +238,11 @@ final class TemplateParser
 			throw new \LogicException("Incorrect behavior of {{$startTag->name}} parser, unexpected returned value (on line {$startTag->position->line})");
 		}
 
-		$this->inHead = $this->inHead && $startTag->outputMode === $startTag::OutputNone;
+		$this->checkNodeCompatibility($node);
+
+		if ($this->location === self::LocationHead && $startTag->outputMode !== $startTag::OutputNone) {
+			$this->location = self::LocationText;
+		}
 
 		$this->popTag();
 
@@ -259,21 +258,17 @@ final class TemplateParser
 			$this->lastIndentation ??= new Nodes\TextNode('');
 		}
 
-		$inTag = in_array($this->lexer->getState(), [TemplateLexer::StateHtmlTag, TemplateLexer::StateHtmlQuotedValue, TemplateLexer::StateHtmlComment, TemplateLexer::StateHtmlBogus], true);
 		$openToken = $stream->consume(Token::Latte_TagOpen);
-		$this->lexer->pushState(TemplateLexer::StateLatteTag);
 		$tag = new Tag(
 			position: $openToken->position,
 			closing: $closing = (bool) $stream->tryConsume(Token::Slash),
 			name: $stream->tryConsume(Token::Latte_Name)?->text ?? ($closing ? '' : '='),
 			tokens: $this->consumeTag(),
 			void: (bool) $stream->tryConsume(Token::Slash),
-			inHead: $this->inHead,
-			inTag: $inTag,
+			location: $this->location,
 			htmlElement: $this->html->getElement(),
 		);
-		$stream->tryConsume(Token::Latte_TagClose) || $stream->throwUnexpectedException([Token::Latte_TagClose], addendum: " started $openToken->position");
-		$this->lexer->popState();
+		$stream->consume(Token::Latte_TagClose);
 		return $tag;
 	}
 
@@ -316,7 +311,9 @@ final class TemplateParser
 			$hint = ($t = Helpers::getSuggestion(array_keys($this->tagParsers), $name))
 				? ", did you mean {{$t}}?"
 				: '';
-			if ($this->html->getElement()?->isRawText()) {
+			if ($this->contentType === ContentType::Html
+				&& in_array($this->html->getElement()?->name, ['script', 'style'], true)
+			) {
 				$hint .= ' (in JavaScript or CSS, try to put a space after bracket or use n:syntax=off)';
 			}
 			throw new CompileException("Unexpected tag {{$name}}$hint", $pos);
@@ -396,9 +393,7 @@ final class TemplateParser
 	public function setContentType(string $type): static
 	{
 		$this->contentType = $type;
-		$this->lexer->setState($type === ContentType::Html || $type === ContentType::Xml
-			? TemplateLexer::StateHtmlText
-			: TemplateLexer::StatePlain);
+		$this->lexer?->setContentType($type);
 		return $this;
 	}
 
@@ -451,5 +446,18 @@ final class TemplateParser
 	public function isTagAllowed(string $name): bool
 	{
 		return !$this->policy || $this->policy->isTagAllowed($name);
+	}
+
+
+	public function checkNodeCompatibility(Node $node): void
+	{
+		static $prev = ['Nette\Bridges\ApplicationLatte\Nodes\NNonceNode' => true];
+		if (
+			!isset($prev[$node::class])
+			&& (new \ReflectionMethod($node, 'getIterator'))->getDeclaringClass()->getName() === Node::class
+		) {
+			trigger_error('Class ' . $node::class . ' should contain method getIterator(), see https://bit.ly/latte-666');
+		}
+		$prev[$node::class] = true;
 	}
 }

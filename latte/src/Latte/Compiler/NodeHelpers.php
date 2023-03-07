@@ -124,6 +124,7 @@ final class NodeHelpers
 
 		return match (true) {
 			$node instanceof Nodes\TextNode => $node->content,
+			$node instanceof Nodes\Html\QuotedValue => self::toText($node->value),
 			$node instanceof Nodes\NopNode => '',
 			default => null,
 		};

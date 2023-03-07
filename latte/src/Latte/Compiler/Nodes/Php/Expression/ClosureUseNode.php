@@ -10,36 +10,28 @@ declare(strict_types=1);
 namespace Latte\Compiler\Nodes\Php\Expression;
 
 use Latte\Compiler\Node;
-use Latte\Compiler\Nodes\Php\ExpressionNode;
+use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
 
 
-class AuxiliaryNode extends ExpressionNode
+class ClosureUseNode extends Node
 {
-	/** @var (?Node)[] */
-	public array $nodes;
-
-
 	public function __construct(
-		public /*readonly*/ \Closure $print,
-		?Node ...$nodes,
+		public VariableNode $var,
+		public bool $byRef = false,
+		public ?Position $position = null,
 	) {
-		$this->nodes = $nodes;
 	}
 
 
 	public function print(PrintContext $context): string
 	{
-		return ($this->print)($context, ...$this->nodes);
+		return ($this->byRef ? '&' : '') . $this->var->print($context);
 	}
 
 
 	public function &getIterator(): \Generator
 	{
-		foreach ($this->nodes as &$node) {
-			if ($node) {
-				yield $node;
-			}
-		}
+		yield $this->var;
 	}
 }

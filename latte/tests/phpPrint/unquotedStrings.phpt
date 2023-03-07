@@ -18,13 +18,9 @@ $test = <<<'XX'
 	a-b-c,
 	a--b--c,
 
-	/* dots */
-	a.b,
-	a . b,
-
 	/* usage */
+	a.b,
 	a-b.c-d,
-	a.b(),
 	foo(aa, bb, cc)
 	XX;
 
@@ -43,8 +39,6 @@ __halt_compiler();
 MD5,
 'a-b-c',
 'a--b--c',
-'a.b',
 'a' . 'b',
-'a-b.c-d',
-a.b(),
+'a-b' . 'c-d',
 foo('aa', 'bb', 'cc')

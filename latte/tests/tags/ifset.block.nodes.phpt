@@ -14,9 +14,14 @@ Assert::match(<<<'XX'
 			If:
 				BinaryOp:
 					operator: &&
-					Auxiliary:
-						String:
-							value: foo
+					MethodCall:
+						Variable:
+							name: this
+						Identifier:
+							name: hasBlock
+						Argument:
+							String:
+								value: foo
 					Isset:
 						Variable:
 							name: item
@@ -26,5 +31,4 @@ Assert::match(<<<'XX'
 				Fragment:
 					Text:
 						content: '.else.'
-
 	XX, exportTraversing('{ifset foo, $item}.ifset.{else}.else.{/ifset}'));

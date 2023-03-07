@@ -15,6 +15,8 @@ $test = <<<'XX'
 
 	/* array access */
 	A::$b['c'],
+
+	/* class name variations can be found in staticCall.test */
 	XX;
 
 $node = parseCode($test);
@@ -27,7 +29,7 @@ Assert::same(
 __halt_compiler();
 Latte\Compiler\Nodes\Php\Expression\ArrayNode
    items: array (3)
-   |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\StaticPropertyFetchNode
    |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
    |  |  |  |  parts: array (1)
@@ -42,7 +44,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 2:1 (offset 31)
-   |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  1 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\StaticPropertyFetchNode
    |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
    |  |  |  |  parts: array (1)
@@ -57,7 +59,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 3:1 (offset 38)
-   |  2 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  2 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ArrayAccessNode
    |  |  |  expr: Latte\Compiler\Nodes\Php\Expression\StaticPropertyFetchNode
    |  |  |  |  class: Latte\Compiler\Nodes\Php\NameNode

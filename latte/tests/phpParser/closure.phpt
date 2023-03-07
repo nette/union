@@ -28,7 +28,7 @@ Assert::same(
 __halt_compiler();
 Latte\Compiler\Nodes\Php\Expression\ArrayNode
    items: array (7)
-   |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  0 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClosureNode
    |  |  |  byRef: false
    |  |  |  params: array (1)
@@ -51,7 +51,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 1:1 (offset 0)
-   |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  1 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClosureNode
    |  |  |  byRef: false
    |  |  |  params: array (1)
@@ -74,7 +74,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 2:1 (offset 30)
-   |  2 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  2 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClosureNode
    |  |  |  byRef: false
    |  |  |  params: array (1)
@@ -88,7 +88,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  variadic: false
    |  |  |  |  |  position: 3:11 (offset 70)
    |  |  |  uses: array (1)
-   |  |  |  |  0 => Latte\Compiler\Nodes\Php\ClosureUseNode
+   |  |  |  |  0 => Latte\Compiler\Nodes\Php\Expression\ClosureUseNode
    |  |  |  |  |  var: Latte\Compiler\Nodes\Php\Expression\VariableNode
    |  |  |  |  |  |  name: 'b'
    |  |  |  |  |  |  position: 3:20 (offset 79)
@@ -101,18 +101,18 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 3:1 (offset 60)
-   |  3 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  3 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClosureNode
    |  |  |  byRef: false
    |  |  |  params: array (0)
    |  |  |  uses: array (2)
-   |  |  |  |  0 => Latte\Compiler\Nodes\Php\ClosureUseNode
+   |  |  |  |  0 => Latte\Compiler\Nodes\Php\Expression\ClosureUseNode
    |  |  |  |  |  var: Latte\Compiler\Nodes\Php\Expression\VariableNode
    |  |  |  |  |  |  name: 'a'
    |  |  |  |  |  |  position: 4:18 (offset 105)
    |  |  |  |  |  byRef: false
    |  |  |  |  |  position: 4:18 (offset 105)
-   |  |  |  |  1 => Latte\Compiler\Nodes\Php\ClosureUseNode
+   |  |  |  |  1 => Latte\Compiler\Nodes\Php\Expression\ClosureUseNode
    |  |  |  |  |  var: Latte\Compiler\Nodes\Php\Expression\VariableNode
    |  |  |  |  |  |  name: 'b'
    |  |  |  |  |  |  position: 4:23 (offset 110)
@@ -125,7 +125,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 4:1 (offset 88)
-   |  4 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  4 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClosureNode
    |  |  |  byRef: true
    |  |  |  params: array (1)
@@ -146,7 +146,7 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 5:1 (offset 127)
-   |  5 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  5 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClosureNode
    |  |  |  byRef: false
    |  |  |  params: array (1)
@@ -170,12 +170,12 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  byRef: false
    |  |  unpack: false
    |  |  position: 6:1 (offset 155)
-   |  6 => Latte\Compiler\Nodes\Php\ArrayItemNode
+   |  6 => Latte\Compiler\Nodes\Php\Expression\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClosureNode
    |  |  |  byRef: false
    |  |  |  params: array (0)
    |  |  |  uses: array (1)
-   |  |  |  |  0 => Latte\Compiler\Nodes\Php\ClosureUseNode
+   |  |  |  |  0 => Latte\Compiler\Nodes\Php\Expression\ClosureUseNode
    |  |  |  |  |  var: Latte\Compiler\Nodes\Php\Expression\VariableNode
    |  |  |  |  |  |  name: 'a'
    |  |  |  |  |  |  position: 7:18 (offset 212)

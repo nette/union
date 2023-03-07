@@ -7,19 +7,17 @@
 
 declare(strict_types=1);
 
-namespace Latte\Compiler\Nodes\Php;
+namespace Latte\Compiler\Nodes\Php\Scalar;
 
-use Latte\Compiler\Node;
-use Latte\Compiler\Nodes\Php\Expression\VariableNode;
+use Latte\Compiler\Nodes\Php\ScalarNode;
 use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
 
 
-class ClosureUseNode extends Node
+class EncapsedStringPartNode extends ScalarNode
 {
 	public function __construct(
-		public VariableNode $var,
-		public bool $byRef = false,
+		public string $value,
 		public ?Position $position = null,
 	) {
 	}
@@ -27,12 +25,6 @@ class ClosureUseNode extends Node
 
 	public function print(PrintContext $context): string
 	{
-		return ($this->byRef ? '&' : '') . $this->var->print($context);
-	}
-
-
-	public function &getIterator(): \Generator
-	{
-		yield $this->var;
+		throw new \LogicException('Cannot directly print EncapsedStringPart');
 	}
 }
