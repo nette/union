@@ -33,27 +33,21 @@ $driver = $connection->getDriver();
 
 
 test('test duplicated table names throw exception', function () use ($explorer, $driver) {
-	$authorTable = ($driver->isSupported(Driver::SupportSchema) ? 'public.' : '') . 'author';
+	$authorTable = ($driver->isSupported(Driver::SUPPORT_SCHEMA) ? 'public.' : '') . 'author';
 	$sqlBuilder = new SqlBuilderMock($authorTable, $explorer);
 	$sqlBuilder->addAlias(':book(translator)', 'book1');
 	$sqlBuilder->addAlias(':book:book_tag', 'book2');
-	Assert::exception(
-		fn() => $sqlBuilder->addAlias(':book', 'book1'),
-		Nette\InvalidArgumentException::class,
-		"Table alias 'book1' from chain ':book' is already in use by chain ':book(translator)'. Please add/change alias for one of them.",
-	);
+	Assert::exception(function () use ($sqlBuilder) {
+		$sqlBuilder->addAlias(':book', 'book1');
+	}, Nette\InvalidArgumentException::class, "Table alias 'book1' from chain ':book' is already in use by chain ':book(translator)'. Please add/change alias for one of them.");
 
-	Assert::exception(
-		fn() => $sqlBuilder->addAlias(':book', 'author'),
-		Nette\InvalidArgumentException::class,
-		"Table alias 'author' from chain ':book' is already in use by chain '$authorTable'. Please add/change alias for one of them.",
-	);
+	Assert::exception(function () use ($sqlBuilder) { // reserved by base table name
+		$sqlBuilder->addAlias(':book', 'author');
+	}, Nette\InvalidArgumentException::class, "Table alias 'author' from chain ':book' is already in use by chain '$authorTable'. Please add/change alias for one of them.");
 
-	Assert::exception(
-		fn() => $sqlBuilder->addAlias(':book', 'book1'),
-		Nette\InvalidArgumentException::class,
-		"Table alias 'book1' from chain ':book' is already in use by chain ':book(translator)'. Please add/change alias for one of them.",
-	);
+	Assert::exception(function () use ($sqlBuilder) {
+		$sqlBuilder->addAlias(':book', 'book1');
+	}, Nette\InvalidArgumentException::class, "Table alias 'book1' from chain ':book' is already in use by chain ':book(translator)'. Please add/change alias for one of them.");
 
 	$sqlBuilder->addAlias(':book', 'tag');
 	Assert::exception(function () use ($sqlBuilder) {
@@ -82,13 +76,13 @@ test('test same table chain with another alias', function () use ($explorer, $dr
 	Assert::same(
 		'LEFT JOIN book translated_book ON author.id = translated_book.translator_id ' .
 		'LEFT JOIN book translated_book2 ON author.id = translated_book2.translator_id',
-		trim($join),
+		trim($join)
 	);
 });
 
 
 test('test nested alias', function () use ($explorer, $driver) {
-	$sqlBuilder = $driver->isSupported(Driver::SupportSchema)
+	$sqlBuilder = $driver->isSupported(Driver::SUPPORT_SCHEMA)
 		? new SqlBuilderMock('public.author', $explorer)
 		: new SqlBuilderMock('author', $explorer);
 	$sqlBuilder->addAlias(':book(translator)', 'translated_book');
@@ -97,18 +91,18 @@ test('test nested alias', function () use ($explorer, $driver) {
 	$joins = [];
 	$sqlBuilder->parseJoins($joins, $query);
 	$join = $sqlBuilder->buildQueryJoins($joins);
-	if ($driver->isSupported(Driver::SupportSchema)) {
+	if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
 		Assert::same(
 			'LEFT JOIN book translated_book ON author.id = translated_book.translator_id ' .
 			'LEFT JOIN public.book next ON translated_book.next_volume = next.id',
-			trim($join),
+			trim($join)
 		);
 
 	} else {
 		Assert::same(
 			'LEFT JOIN book translated_book ON author.id = translated_book.translator_id ' .
 			'LEFT JOIN book next ON translated_book.next_volume = next.id',
-			trim($join),
+			trim($join)
 		);
 	}
 });

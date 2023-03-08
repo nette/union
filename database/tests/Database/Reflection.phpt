@@ -8,9 +8,6 @@
 declare(strict_types=1);
 
 use Nette\Database\Driver;
-use Nette\Database\Reflection\Column;
-use Nette\Database\Reflection\Index;
-use Nette\Database\Reflection\Table;
 use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
@@ -20,73 +17,74 @@ Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/files/{$driverName
 
 $driver = $connection->getDriver();
 $tables = $driver->getTables();
-$tables = array_filter($tables, fn($t) => in_array($t->name, ['author', 'book', 'book_tag', 'tag'], true));
-usort($tables, fn($a, $b) => strcmp($a->name, $b->name));
+$tables = array_filter($tables, function ($t) { return in_array($t['name'], ['author', 'book', 'book_tag', 'tag'], true); });
+usort($tables, function ($a, $b) { return strcmp($a['name'], $b['name']); });
 
-if ($driver->isSupported(Driver::SupportSchema)) {
-	Assert::equal(
+if ($driver->isSupported(Driver::SUPPORT_SCHEMA)) {
+	Assert::same(
 		[
-			new Table(name: 'author', view: false, fullName: 'public.author'),
-			new Table(name: 'book', view: false, fullName: 'public.book'),
-			new Table(name: 'book_tag', view: false, fullName: 'public.book_tag'),
-			new Table(name: 'tag', view: false, fullName: 'public.tag'),
+			['name' => 'author', 'view' => false, 'fullName' => 'public.author'],
+			['name' => 'book', 'view' => false, 'fullName' => 'public.book'],
+			['name' => 'book_tag', 'view' => false, 'fullName' => 'public.book_tag'],
+			['name' => 'tag', 'view' => false, 'fullName' => 'public.tag'],
 		],
-		$tables,
+		$tables
 	);
 } else {
-	Assert::equal([
-		new Table(name: 'author', view: false),
-		new Table(name: 'book', view: false),
-		new Table(name: 'book_tag', view: false),
-		new Table(name: 'tag', view: false),
+	Assert::same([
+		['name' => 'author', 'view' => false],
+		['name' => 'book', 'view' => false],
+		['name' => 'book_tag', 'view' => false],
+		['name' => 'tag', 'view' => false],
 	], $tables);
 }
 
 
 $columns = $driver->getColumns('author');
 array_walk($columns, function (&$item) {
-	$item->vendor = [];
+	Assert::type('array', $item['vendor']);
+	unset($item['vendor']);
 });
 
 $expectedColumns = [
 	[
 		'name' => 'id',
 		'table' => 'author',
-		'nativeType' => 'int',
+		'nativetype' => 'INT',
 		'size' => 11,
 		'nullable' => false,
 		'default' => null,
-		'autoIncrement' => true,
+		'autoincrement' => true,
 		'primary' => true,
 	],
 	[
 		'name' => 'name',
 		'table' => 'author',
-		'nativeType' => 'varchar',
+		'nativetype' => 'VARCHAR',
 		'size' => 30,
 		'nullable' => false,
 		'default' => null,
-		'autoIncrement' => false,
+		'autoincrement' => false,
 		'primary' => false,
 	],
 	[
 		'name' => 'web',
 		'table' => 'author',
-		'nativeType' => 'varchar',
+		'nativetype' => 'VARCHAR',
 		'size' => 100,
 		'nullable' => false,
 		'default' => null,
-		'autoIncrement' => false,
+		'autoincrement' => false,
 		'primary' => false,
 	],
 	[
 		'name' => 'born',
 		'table' => 'author',
-		'nativeType' => 'date',
+		'nativetype' => 'DATE',
 		'size' => null,
 		'nullable' => true,
 		'default' => null,
-		'autoIncrement' => false,
+		'autoincrement' => false,
 		'primary' => false,
 	],
 ];
@@ -99,18 +97,17 @@ switch ($driverName) {
 		}
 		break;
 	case 'pgsql':
-		$expectedColumns[0]['nativeType'] = 'int4';
+		$expectedColumns[0]['nativetype'] = 'INT4';
 		$expectedColumns[0]['default'] = "nextval('author_id_seq'::regclass)";
 		$expectedColumns[0]['size'] = null;
 		break;
 	case 'sqlite':
-		$expectedColumns[0]['nativeType'] = 'INTEGER';
+		$expectedColumns[0]['nativetype'] = 'INTEGER';
 		$expectedColumns[0]['size'] = null;
-		$expectedColumns[1]['nativeType'] = 'TEXT';
+		$expectedColumns[1]['nativetype'] = 'TEXT';
 		$expectedColumns[1]['size'] = null;
-		$expectedColumns[2]['nativeType'] = 'TEXT';
+		$expectedColumns[2]['nativetype'] = 'TEXT';
 		$expectedColumns[2]['size'] = null;
-		$expectedColumns[3]['nativeType'] = 'DATE';
 		break;
 	case 'sqlsrv':
 		$expectedColumns[0]['size'] = null;
@@ -121,70 +118,69 @@ switch ($driverName) {
 		Assert::fail("Unsupported driver $driverName");
 }
 
-$expectedColumns = array_map(fn($data) => new Column(...$data), $expectedColumns);
-Assert::equal($expectedColumns, $columns);
+Assert::same($expectedColumns, $columns);
 
 
 $indexes = $driver->getIndexes('book_tag');
 switch ($driverName) {
 	case 'pgsql':
-		Assert::equal([
-			new Index(
-				name: 'book_tag_pkey',
-				unique: true,
-				primary: true,
-				columns: [
+		Assert::same([
+			[
+				'name' => 'book_tag_pkey',
+				'unique' => true,
+				'primary' => true,
+				'columns' => [
 					'book_id',
 					'tag_id',
 				],
-			),
+			],
 		], $indexes);
 		break;
 	case 'sqlite':
-		Assert::equal([
-			new Index(
-				name: 'sqlite_autoindex_book_tag_1',
-				unique: true,
-				primary: true,
-				columns: [
+		Assert::same([
+			[
+				'name' => 'sqlite_autoindex_book_tag_1',
+				'unique' => true,
+				'primary' => true,
+				'columns' => [
 					'book_id',
 					'tag_id',
 				],
-			),
+			],
 		], $indexes);
 		break;
 	case 'sqlsrv':
-		Assert::equal([
-			new Index(
-				name: 'PK_book_tag',
-				unique: true,
-				primary: true,
-				columns: [
+		Assert::same([
+			[
+				'name' => 'PK_book_tag',
+				'unique' => true,
+				'primary' => true,
+				'columns' => [
 					'book_id',
 					'tag_id',
 				],
-			),
+			],
 		], $indexes);
 		break;
 	case 'mysql':
-		Assert::equal([
-			new Index(
-				name: 'PRIMARY',
-				unique: true,
-				primary: true,
-				columns: [
+		Assert::same([
+			[
+				'name' => 'PRIMARY',
+				'unique' => true,
+				'primary' => true,
+				'columns' => [
 					'book_id',
 					'tag_id',
 				],
-			),
-			new Index(
-				name: 'book_tag_tag',
-				unique: false,
-				primary: false,
-				columns: [
+			],
+			[
+				'name' => 'book_tag_tag',
+				'unique' => false,
+				'primary' => false,
+				'columns' => [
 					'tag_id',
 				],
-			),
+			],
 		], $indexes);
 		break;
 	default:
