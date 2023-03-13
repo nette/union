@@ -2,6 +2,22 @@ Vývojářské postupy
 ******************
 
 
+Instalace
+=========
+
+Nejlepší způsob, jak nainstalovat Latte, je pomocí Composeru:
+
+```shell
+composer require latte/latte
+```
+
+Podporované verze PHP (platí pro poslední setinkové verze Latte):
+
+| verze           | kompatibilní s PHP
+|-----------------|-------------------
+| Latte 3.0       | PHP 8.0 – 8.2
+
+
 Jak vykreslit šablonu
 =====================
 
@@ -9,11 +25,11 @@ Jak vykreslit šablonu? Stačí k tomu tento jednoduchý kód:
 
 ```php
 $latte = new Latte\Engine;
+// adresář pro cache
 $latte->setTempDirectory('/path/to/tempdir');
 
-$params = [
-	// parametry
-];
+$params = [ /* proměnné šablony */ ];
+// or $params = new TemplateParameters(/* ... */);
 
 // kresli na výstup
 $latte->render('template.latte', $params);
@@ -21,24 +37,38 @@ $latte->render('template.latte', $params);
 $output = $latte->renderToString('template.latte', $params);
 ```
 
-Při prvním vykreslení Latte zkompiluje šablonu a výsledek uloží do cache. Tu pak automaticky přegenerovává při každé změně šablony, což můžeme v produkčním prostředí vypnout a ušetřit tím malinko výkonu:
+Parametry mohou být pole nebo ještě lépe [objekt|#Parametry jako třída], který zajistí typovou kontrolu a napovídání v editorech.
+
+.[note]
+Ukázky použití najdete také v repozitáři [Latte examples |https://github.com/nette-examples/latte].
+
+
+Výkon a cache
+=============
+
+Šablony v Latte jsou nesmírně rychlé, Latte je totiž kompiluje přímo do PHP kódu a ukládá do cache na disk. Nemají tedy žádnou režii navíc oproti šablonám psaným v čistém PHP.
+
+Cache se automaticky regeneruje pokaždé, když změníte zdrojový soubor. Během vývoje si tedy pohodlně editujete šablony v Latte a změny okamžitě vidíte v prohlížeči. Tuto funkci můžete v produkčním prostředí vypnout a ušetřit tím malinko výkonu:
 
 ```php
 $latte->setAutoRefresh(false);
 ```
 
+Při nasazení na produkčním serveru může prvotní vygenerování cache, zejména u rozsáhlejších aplikací, pochopitelně chviličku trvat. Latte má vestavěnou prevenci před "cache stampede":https://en.wikipedia.org/wiki/Cache_stampede.
+Jde o situaci, kdy se sejde větší počet souběžných požadavků, které spustí Latte, a protože cache ještě neexistuje, začaly by ji všechny generovat současně. Což by neúměrně zatížilo server.
+Latte je chytré a při více souběžných požadavcích generuje cache pouze první vlákno, ostatní čekají a následně ji využíjí.
+
 
 Parametry jako třída
 ====================
 
-Místo pole `$params` můžete také použít objekt, což přináší některé výhody. Získáte [typově bezpečný zápis|type-system], [příjemné napovídání v IDE|recipes#integrace]
-a cestu pro [registraci filtrů|extending-latte#Filtry pomocí třídy] a [funkcí|extending-latte#Funkce pomocí třídy].
+Lepší než předávat proměnné do šablony jako pole je vytvořit si třídu. Získáte tak [typově bezpečný zápis|type-system], [příjemné napovídání v IDE|recipes#Editory a IDE] a cestu pro [registraci filtrů|extending-latte#Filtry pomocí třídy] a [funkcí|extending-latte#Funkce pomocí třídy].
 
 ```php
-class MailTemplate
+class MailTemplateParameters
 {
 	public function __construct(
-		public string $lang = 'cs',
+		public string $lang,
 		public Address $address,
 		public string $subject,
 		public array $items,
@@ -46,7 +76,7 @@ class MailTemplate
 	) {}
 }
 
-$latte->render('mail.latte', new MailTemplate(
+$latte->render('mail.latte', new MailTemplateParameters(
 	lang: $this->lang,
 	subject: $title,
 	price: $this->getPrice(),
@@ -101,46 +131,139 @@ Jak do Latte přidat vlastní filtr, funkci, značku atd? O tom pojednává kapi
 Pokud chcete své úpravy znovu použít v různých projektech nebo je sdílet s ostatními, měli byste [vytvořit rozšíření |creating-extension].
 
 
-Libovolný kód v šabloně `{php ...}` .{data-version:3.0}{toc: RawPhpExtension}
-=============================================================================
+Libovolný kód v šabloně `{php ...}` .{toc: RawPhpExtension}
+===========================================================
 
 Uvnitř značky [`{do}`|tags#do] lze zapisovat pouze PHP výrazy, nemůžete tak třeba vložit konstrukce jako `if ... else` nebo statementy ukončené středníkem.
 
-Můžete si však zaregistrovat rozšíření `RawPhpExtension`, které přidá značku `{php ...}`, kterou lze vkládat jakýkoliv PHP kód na zodpovědnost autora šablony.
+Můžete si však zaregistrovat rozšíření `RawPhpExtension`, které přidává značku `{php ...}`. Pomocí té lze vkládat jakýkoliv PHP kód. Nevztahují se na něj žádná pravidla sandbox režimu, použití je tedy na zodpovědnost autora šablony.
 
 ```php
 $latte->addExtension(new Latte\Essential\RawPhpExtension);
 ```
 
 
-Překládání v šablonách .{data-version:3.0}{toc: TranslatorExtension}
-====================================================================
+Kontrola vygenerovaného kódu .{data-version:3.0.7}
+==================================================
 
-Pomocí rozšíření `TranslatorExtension` přidáte do šablony značky [`{_...}`|tags#_], [`{translate}`|tags#translate] a filtr [`translate`|filters#translate]. Slouží k překládání hodnot nebo částí šablony do jiných jazyků. Překladačem je libovolný PHP callable:
+Latte kompiluje šablony do PHP kódu. Samozřejmě dbá na to, aby vygenerovaný kód byl syntakticky validní. Nicméně při použítí rozšíření třetích stran nebo `RawPhpExtension` nemůže Latte zaručit správnost vygenerovaného souboru.
+Také lze v PHP zapsat kód, který je sice syntakticky správný, ale je zakázaný (například přiřazení hodnoty do proměnné `$this`) a způsobí PHP Compile Error.
+Pokud takovou operaci zapíšete v šabloně, dostane se i do vygenerovaného PHP kódu. Jelikož v PHP existují na dvě stovky různých zakázaných operací, nemá Latte ambici je odhalovat. Upozorní na ně až samotné PHP při vykreslení, což obvykle ničemu nevadí.
 
-```php
-$translator = function (string $original): string {
-	// tady z $original vytvoříme $translated
-	return $translated;
-};
-$latte->addExtension(new Latte\Essential\TranslatorExtension($translator));
-```
-
-Latte dokonce umí všechny statické texty přeložit už během kompilace šablony. V adresáři s cache tak vznikne více zkompilovaných verzí jedné šablony, jedna pro každý jazyk. K tomu stačí pouze uvést jazyk jako druhý parametr:
+Jsou ale situace, kdy chcete vědět už v době kompilace šablony, že žádný PHP Compile Error neobsahuje. Zejména tehdy, pokud šablony mohou editovat uživatelé, nebo používáte [Sandbox]. V takovém případě si nechte šablony kontrolovat už v době kompilace.
+Tuto funkčnost zapnete metodou `Engine::enablePhpLint()`. Jelikož ke kontrole potřebuje volat binárku PHP, cestu k ní předejte jako parametr:
 
 ```php
-$latte->addExtension(new Latte\Essential\TranslatorExtension($translator, $lang));
+$latte = new Latte\Engine;
+$latte->enablePhpLinter('/path/to/php');
+
+try {
+	$latte->compile('home.latte');
+} catch (Latte\CompileException $e) {
+	// zachytí chyby v Latte a také Compile Error v PHP
+	echo 'Error: ' . $e->getMessage();
+}
 ```
 
 
-Linter: validace syntaxe šablon .{data-version:2.11}{toc: Linter}
-=================================================================
+Striktní režim .{data-version:3.0.8}
+====================================
+
+Ve striktním režimu parsování Latte kontroluje, zda nechybí uzavírací HTML značky a také zakazuje používání proměnné `$this`. Zapnete jej takto:
+
+```php
+$latte = new Latte\Engine;
+$latte->setStrictParsing();
+```
+
+Generování šablon s hlavičkou `declare(strict_types=1)` zapnete takto:
+
+```php
+$latte = new Latte\Engine;
+$latte->setStrictTypes();
+```
+
+
+Překládání v šablonách .{toc: TranslatorExtension}
+==================================================
+
+Pomocí rozšíření `TranslatorExtension` přidáte do šablony značky [`{_...}`|tags#_], [`{translate}`|tags#translate] a filtr [`translate`|filters#translate]. Slouží k překládání hodnot nebo částí šablony do jiných jazyků. Jako parametr uvedeme metodu (PHP callable) provádějící překlad:
+
+```php
+class MyTranslator
+{
+	public function __construct(private string $lang)
+	{}
+
+	public function translate(string $original): string
+	{
+		// z $original vytvoříme $translated dle $this->lang
+		return $translated;
+	}
+}
+
+$translator = new MyTranslator($lang);
+$extension = new Latte\Essential\TranslatorExtension(
+	$translator->translate(...), // [$translator, 'translate'] v PHP 8.0
+);
+$latte->addExtension($extension);
+```
+
+Translator se volá za běhu při vykreslování šablony. Latte ovšem umí všechny statické texty překládat už během kompilace šablony. Tím se ušetří výkon, protože každý řetězec se přeloží jen jednou a výsledný překlad se zapíše do zkompilované podoby. V adresáři s cache tak vznikne více zkompilovaných verzí šablony, jedna pro každý jazyk. K tomu stačí pouze uvést jazyk jako druhý parametr:
+
+```php
+$extension = new Latte\Essential\TranslatorExtension(
+	$translator->translate(...),
+	$lang,
+);
+```
+
+Statickým textem je myšleno třeba `{_'hello'}` nebo `{translate}hello{/translate}`. Nestatické texty, jako třeba `{_$foo}`, se nadále budou překládat za běhu.
+
+Překladači lze ze šablony předávat i doplňující parametry pomocí `{_$original, foo: bar}` nebo `{translate foo: bar}`, které získá jako pole `$params`:
+
+```php
+public function translate(string $original, ...$params): string
+{
+	// $params['foo'] === 'bar'
+}
+```
+
+
+Debuggování a Tracy
+===================
+
+Latte se vám snaží vývoj co nejvíce zpříjemnit. Přímo pro účely debugování existuje trojice značek [`{dump}`|tags#dump], [`{debugbreak}`|tags#debugbreak] a [`{trace}`|tags#trace].
+
+Největší komfort získáte, když ještě si nainstalujete skvělý [ladicí nástroj Tracy|tracy:] a aktivujete doplněk pro Latte:
+
+```php
+// zapne Tracy
+Tracy\Debugger::enable();
+
+$latte = new Latte\Engine;
+// aktivuje rozšíření pro Tracy
+$latte->addExtension(new Latte\Bridges\Tracy\TracyExtension);
+```
+
+Nyní se vám budou všechny chyby zobrazovat v přehledné červené obrazovce, včetně chyb v šablonách se zvýrazněním řádku a sloupce ([video|https://github.com/nette/tracy/releases/tag/v2.9.0]).
+Zároveň v pravém dolním rohu v tzv. Tracy Baru se objeví záložka pro Latte, kde jsou přehledně vidět všechny vykreslované šablony a jejich vzájemné vztahy (včetně možnosti se do šablony nebo zkompilovaného kódu prokliknout) a také proměnné:
+
+[* latte-debugging.webp *]
+
+Jelikož Latte kompiluje šablony do přehledného PHP kódu, můžete je pohodlně ve svém IDE krokovat.
+
+
+Linter: validace syntaxe šablon .{toc: Linter}
+==============================================
 
 Projít všechny šablony a zkontrolovat, zda neobsahují syntaktické chyby, vám pomůže nástroj Linter. Spouští se z konzole:
 
 ```shell
 vendor/bin/latte-lint <cesta>
 ```
+
+Parametrem `--strict` aktivujete [striktní režim|#striktní režim].
 
 Pokud používáte vlastní značky, vytvořte si také vlastní verzi Linteru, např. `custom-latte-lint`:
 
@@ -151,17 +274,23 @@ Pokud používáte vlastní značky, vytvořte si také vlastní verzi Linteru, 
 // zadejte skutečnou cestu k soubor autoload.php
 require __DIR__ . '/vendor/autoload.php';
 
-$linter = new Latte\Tools\Linter($engine);
-$linter->scanDirectory($path);
+$path = $argv[1] ?? '.';
 
-$engine = new Latte\Engine;
-// tady zaregistruje jednotlivá rozšíření
-$engine->addExtension(/* ... */);
+$linter = new Latte\Tools\Linter;
+$latte = $linter->getEngine();
+// tady přidejte jednotlivá svá rozšíření
+$latte->addExtension(/* ... */);
 
-$path = $argv[1];
-$linter = new Latte\Tools\Linter(engine: $engine);
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);
+```
+
+Alternativně můžete vlastní objekt `Latte\Engine` předat do Linteru:
+
+```php
+$latte = new Latte\Engine;
+// tady nakonfigurujeme objekt $latte
+$linter = new Latte\Tools\Linter(engine: $latte);
 ```
 
 
@@ -215,6 +344,3 @@ $latte->addProvider('coreParentFinder', $finder);
 ```
 
 Pokud šablona nemá mít layout, oznámí to značkou `{layout none}`.
-
-
-{{composer: latte/latte}}

@@ -1,0 +1,204 @@
+Come funzionano le applicazioni?
+********************************
+
+<div class=perex>
+
+State leggendo il documento di base della documentazione di Nette. Imparerete tutti i principi delle applicazioni web. Nizza dalla A alla Z, dal momento della nascita fino all'ultimo respiro dello script PHP. Dopo la lettura saprete che:
+
+- come funziona tutto
+- cosa sono Bootstrap, Presenter e DI container
+- come si presenta la struttura delle directory
+
+</div>
+
+
+Struttura della directory .[#toc-directory-structure]
+=====================================================
+
+Aprite un esempio scheletrico di applicazione web chiamata [WebProject |https://github.com/nette/web-project] e potete osservare i file che vengono scritti.
+
+La struttura delle directory è simile a questa:
+
+/--pre
+<b>web-project/</b>
+├── <b>app/</b>                      ← directory with application
+│   ├── <b>Presenters/</b>           ← presenter classes
+│   │   ├── <b>HomePresenter.php</b> ← Home presenter class
+│   │   └── <b>templates/</b>        ← templates directory
+│   │       ├── <b>@layout.latte</b> ← template of shared layout
+│   │       └── <b>Home/</b>         ← templates for Home presenter
+│   │           └── <b>default.latte</b>  ← template for action `default`
+│   ├── <b>Router/</b>               ← configuration of URL addresses
+│   └── <b>Bootstrap.php</b>         ← booting class Bootstrap
+├── <b>bin/</b>                      ← scripts for the command line
+├── <b>config/</b>                   ← configuration files
+│   ├── <b>common.neon</b>
+│   └── <b>local.neon</b>
+├── <b>log/</b>                      ← error logs
+├── <b>temp/</b>                     ← temporary files, cache, …
+├── <b>vendor/</b>                   ← libraries installed by Composer
+│   ├── ...
+│   └── <b>autoload.php</b>          ← autoloading of libs installed by Composer
+├── <b>www/</b>                      ← public directory, document root of project
+│   ├── <b>.htaccess</b>             ← mod_rewrite rules etc
+│   └── <b>index.php</b>             ← initial file that launches the application
+└── <b>.htaccess</b>                 ← prohibits access to all directories except www
+\--
+
+È possibile modificare la struttura delle directory in qualsiasi modo, rinominare o spostare cartelle, e quindi modificare semplicemente i percorsi di `log/` e `temp/` nel file `Bootstrap.php` e il percorso di questo file in `composer.json` nella sezione `autoload`. Niente di più, nessuna riconfigurazione complicata, nessuna modifica costante. Nette ha un [rilevamento automatico intelligente |bootstrap#development-vs-production-mode].
+
+Per applicazioni un po' più grandi, possiamo dividere le cartelle con presentatori e modelli in sottodirectory (su disco) e in spazi di nomi (nel codice), che chiamiamo [moduli |modules].
+
+La cartella `www/` è la cartella pubblica o document-root del progetto. È possibile rinominarla senza dover impostare nient'altro sul lato dell'applicazione. È sufficiente [configurare l'hosting |nette:troubleshooting#How to change or remove www directory from URL] in modo che la radice dei documenti vada a questa cartella.
+
+È anche possibile scaricare direttamente il progetto Web, compreso Nette, utilizzando [Composer |best-practices:composer]:
+
+```shell
+composer create-project nette/web-project
+```
+
+Su Linux o macOS, impostare i [permessi di scrittura |nette:troubleshooting#Setting directory permissions] per le directory `log/` e `temp/`.
+
+L'applicazione WebProject è pronta per essere eseguita, non è necessario configurare nient'altro ed è possibile visualizzarla direttamente nel browser accedendo alla cartella `www/`.
+
+
+Richiesta HTTP .[#toc-http-request]
+===================================
+
+Tutto inizia quando un utente apre la pagina in un browser e il browser bussa al server con una richiesta HTTP. La richiesta va a un file PHP situato nella directory pubblica `www/`, che è `index.php`. Supponiamo che si tratti di una richiesta a `https://example.com/product/123` e verrà eseguito.
+
+Il suo compito è:
+
+1) inizializzare l'ambiente
+2) ottenere la fabbrica
+3) lanciare l'applicazione Nette che gestisce la richiesta
+
+Che tipo di fabbrica? Non produciamo trattori, ma siti web! Aspettate, vi sarà spiegato subito.
+
+Per "inizializzare l'ambiente" intendiamo, ad esempio, che venga attivato [Tracy |tracy:], uno strumento straordinario per la registrazione o la visualizzazione degli errori. Registra gli errori sul server di produzione e li visualizza direttamente sul server di sviluppo. Pertanto, l'inizializzazione deve anche decidere se il sito è in modalità di produzione o di sviluppo. A tale scopo, Nette utilizza il rilevamento automatico: se il sito viene eseguito su localhost, viene eseguito in modalità sviluppatore. Non è necessario configurare nulla e l'applicazione è pronta per lo sviluppo e la produzione. Questi passaggi sono eseguiti e descritti in dettaglio nel capitolo sulla [classe Bootstrap |bootstrap].
+
+Il terzo punto (sì, abbiamo saltato il secondo, ma ci torneremo) è l'avvio dell'applicazione. La gestione delle richieste HTTP in Nette è affidata alla classe `Nette\Application\Application` (di seguito denominata `Application`), quindi quando diciamo "avviare un'applicazione", intendiamo chiamare un metodo con il nome `run()` su un oggetto di questa classe.
+
+Nette è un mentore che vi guida nella scrittura di applicazioni pulite attraverso metodologie collaudate. La più collaudata si chiama **dependency injection**, abbreviata DI. Al momento non vogliamo appesantirvi con la spiegazione di DI, dato che c'è un [capitolo a parte |dependency-injection:introduction], la cosa importante è che gli oggetti chiave saranno solitamente creati da un factory per oggetti chiamato **DI container** (abbreviato DIC). Sì, questo è il factory di cui si è parlato poco fa. Crea anche l'oggetto `Application` per noi, quindi abbiamo bisogno di un contenitore. Lo otteniamo utilizzando la classe `Configurator` e facciamo in modo che produca l'oggetto `Application`, chiamando il metodo `run()` e avviando così l'applicazione Nette. Questo è esattamente ciò che accade nel file [index.php |bootstrap#index.php].
+
+
+Applicazione Nette .[#toc-nette-application]
+============================================
+
+La classe Application ha un unico compito: rispondere a una richiesta HTTP.
+
+Le applicazioni scritte in Nette sono suddivise in molti cosiddetti presenter (in altri framework si può incontrare il termine controller, che è lo stesso), che sono classi che rappresentano una specifica pagina del sito web: ad esempio, la homepage; un prodotto nell'e-shop; il modulo di iscrizione; il feed della sitemap, ecc. L'applicazione può avere da uno a migliaia di presenter.
+
+L'applicazione inizia chiedendo al cosiddetto router di decidere a quale dei presenter passare la richiesta corrente per l'elaborazione. Il router decide di chi è la responsabilità. Osserva l'URL di ingresso `https://example.com/product/123`, che vuole `show` un prodotto con `id: 123` come azione. È buona abitudine scrivere le coppie presentatore + azione separate da due punti come `Product:show`.
+
+Quindi il router ha trasformato l'URL in una coppia `Presenter:action` + parametri, nel nostro caso `Product:show` + `id: 123`. Si può vedere l'aspetto di un router nel file `app/Router/RouterFactory.php` e lo descriveremo in dettaglio nel capitolo [Routing |Routing].
+
+Andiamo avanti. L'applicazione conosce già il nome del presentatore e può continuare. Creando un oggetto `ProductPresenter`, che è il codice del presentatore `Product`. Più precisamente, chiede al contenitore DI di creare il presentatore, perché produrre oggetti è il suo lavoro.
+
+Il presentatore potrebbe avere questo aspetto:
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	public function __construct(
+		private ProductRepository $repository,
+	) {
+	}
+
+	public function renderShow(int $id): void
+	{
+		// otteniamo i dati dal modello e li passiamo al template
+		$this->template->product = $this->repository->getProduct($id);
+	}
+}
+```
+
+La richiesta viene gestita dal presentatore. E il compito è chiaro: eseguire l'azione `show` con `id: 123`. Che nel linguaggio dei presentatori significa che viene chiamato il metodo `renderShow()` e nel parametro `$id` si ottiene `123`.
+
+Un presentatore può gestire più azioni, cioè avere più metodi `render<Action>()`. Ma si consiglia di progettare presentatori con una sola azione o con il minor numero possibile di azioni.
+
+Quindi, è stato chiamato il metodo `renderShow(123)`, il cui codice è un esempio fittizio, ma si può vedere come i dati vengono passati al modello, cioè scrivendo su `$this->template`.
+
+Successivamente, il presentatore restituisce la risposta. Questa può essere una pagina HTML, un'immagine, un documento XML, l'invio di un file dal disco, JSON o il reindirizzamento a un'altra pagina. È importante notare che, se non si dice esplicitamente come rispondere (come nel caso di `ProductPresenter`), la risposta sarà il rendering del modello con una pagina HTML. Perché? Perché nel 99% dei casi vogliamo disegnare un modello, quindi il presentatore prende questo comportamento come predefinito e vuole semplificarci il lavoro. Questo è il punto di Nette.
+
+Non dobbiamo nemmeno dichiarare quale modello disegnare, lui ricava il percorso per raggiungerlo secondo una semplice logica. Nel caso del presenter `Product` e dell'azione `show`, cerca di vedere se esiste uno di questi file di template relativi alla directory in cui si trova la classe `ProductPresenter`:
+
+- `templates/Product/show.latte`
+- `templates/Product.show.latte`
+
+Cercherà anche di trovare il layout nel file `@layout.latte` e quindi eseguirà il rendering del modello. Ora il compito del presentatore e dell'intera applicazione è completato. Se il modello non esiste, verrà restituita una pagina con errore 404. Per saperne di più sui presentatori, consultare la pagina [Presentatori |Presenters].
+
+[* request-flow.svg *]
+
+Per sicurezza, proviamo a riepilogare l'intero processo con un URL leggermente diverso:
+
+1) l'URL sarà `https://example.com`
+2) si avvia l'applicazione, si crea un contenitore e si esegue `Application::run()`
+3) il router decodifica l'URL come una coppia di oggetti `Home:default`
+4) viene creato un oggetto `HomePresenter`
+5) viene richiamato il metodo `renderDefault()` (se esiste)
+6) viene reso un modello `templates/Home/default.latte` con un layout `templates/@layout.latte`
+
+
+Potreste esservi imbattuti in molti concetti nuovi, ma crediamo che abbiano un senso. Creare applicazioni in Nette è un gioco da ragazzi.
+
+
+Modelli .[#toc-templates]
+=========================
+
+Per quanto riguarda i modelli, Nette utilizza il sistema di modelli [Latte |latte:]. Per questo motivo i file con i template terminano con `.latte`. Latte viene utilizzato perché è il sistema di template più sicuro per PHP e allo stesso tempo il più intuitivo. Non è necessario imparare molto di nuovo, basta conoscere PHP e qualche tag di Latte. Troverete tutto [nella documentazione |templates].
+
+Nel template [creiamo un collegamento |creating-links] ad altri presentatori e azioni come segue:
+
+```latte
+<a n:href="Product:show $productId">product detail</a>
+```
+
+Basta scrivere la nota coppia `Presenter:action` al posto del vero URL e includere eventuali parametri. Il trucco è `n:href`, che dice che questo attributo sarà elaborato da Nette. E genererà:
+
+```latte
+<a href="/product/456">product detail</a>
+```
+
+Il router già citato è incaricato di generare l'URL. In effetti, i router di Nette sono unici in quanto possono eseguire non solo trasformazioni da un URL a una coppia presenter:action, ma anche viceversa generare un URL a partire dal nome del presenter + action + parametri.
+Grazie a questo, in Nette è possibile cambiare completamente la forma dell'URL in tutta l'applicazione finita senza cambiare un solo carattere nel template o nel presenter, semplicemente modificando il router.
+E grazie a questo, funziona la cosiddetta canonizzazione, un'altra caratteristica unica di Nette, che migliora il SEO (ottimizzazione della ricercabilità su Internet) impedendo automaticamente l'esistenza di contenuti duplicati in URL diversi.
+Molti programmatori lo trovano sorprendente.
+
+
+Componenti interattivi .[#toc-interactive-components]
+=====================================================
+
+C'è un'altra cosa da dire sui presenter: hanno un sistema di componenti integrato. I più anziani ricorderanno qualcosa di simile da Delphi o ASP.NET Web Forms. React o Vue.js si basano su qualcosa di molto simile. Nel mondo dei framework PHP, questa è una caratteristica del tutto unica.
+
+I componenti sono unità separate e riutilizzabili che vengono inserite nelle pagine (cioè nei presenter). Possono essere [moduli |forms:in-presenter], [griglie di dati |https://componette.org/contributte/datagrid/], menu, sondaggi, qualsiasi cosa abbia senso usare ripetutamente. Possiamo creare i nostri componenti o utilizzare una [vasta gamma |https://componette.org] di componenti opensource.
+
+I componenti cambiano radicalmente l'approccio allo sviluppo delle applicazioni. Apriranno nuove possibilità di comporre pagine a partire da unità predefinite. E hanno qualcosa in comune con [Hollywood |components#Hollywood style].
+
+
+Contenitore e configurazione DI .[#toc-di-container-and-configuration]
+======================================================================
+
+Il contenitore DI (fabbrica di oggetti) è il cuore dell'intera applicazione.
+
+Non preoccupatevi, non è una magica scatola nera, come potrebbe sembrare dalle parole precedenti. In realtà, si tratta di una classe PHP piuttosto noiosa, generata da Nette e memorizzata in una cartella di cache. Ha molti metodi chiamati `createServiceAbcd()` e ognuno di essi crea e restituisce un oggetto. Sì, c'è anche un metodo `createServiceApplication()` che produrrà `Nette\Application\Application`, che ci serve nel file `index.php` per eseguire l'applicazione. E ci sono metodi per produrre i singoli presentatori. E così via.
+
+Gli oggetti che il contenitore DI crea sono chiamati servizi per qualche motivo.
+
+La particolarità di questa classe è che non è programmata da voi, ma dal framework. Esso genera effettivamente il codice PHP e lo salva su disco. L'utente deve solo dare istruzioni su quali oggetti il contenitore deve essere in grado di produrre e come esattamente. Queste istruzioni sono scritte in [file di configurazione |bootstrap#DI Container Configuration] nel [formato NEON |neon:format] e quindi hanno l'estensione `.neon`.
+
+I file di configurazione sono usati esclusivamente per istruire il contenitore DI. Così, per esempio, se si specifica l'opzione `expiration: 14 days` nella sezione della [sessione |http:configuration#Session], il contenitore DI, quando crea l'oggetto `Nette\Http\Session` che rappresenta la sessione, chiamerà il suo metodo `setExpiration('14 days')`, e così la configurazione diventa realtà.
+
+C'è un intero capitolo pronto per voi, che descrive ciò che può essere [configurato |nette:configuring] e come [definire i vostri servizi |dependency-injection:services].
+
+Una volta entrati nella creazione dei servizi, ci si imbatte nella parola [autowiring |dependency-injection:autowiring]. Si tratta di un gadget che vi semplificherà incredibilmente la vita. Può passare automaticamente gli oggetti dove servono (nei costruttori delle classi, per esempio) senza dover fare nulla. Scoprirete che il contenitore DI di Nette è un piccolo miracolo.
+
+
+E poi? .[#toc-what-next]
+========================
+
+Abbiamo illustrato i principi di base delle applicazioni in Nette. Finora in modo molto superficiale, ma presto vi addentrerete nelle profondità e creerete meravigliose applicazioni web. Dove continuare? Avete provato il tutorial [Creare la prima applicazione |quickstart:]?
+
+Oltre a quanto sopra, Nette ha un intero arsenale di [classi utili |utils:], [livelli di database |database:], ecc. Provate a cliccare di proposito sulla documentazione. Oppure visitate il [blog |https://blog.nette.org]. Scoprirete molte cose interessanti.
+
+Lasciate che il framework vi porti tanta gioia 💙

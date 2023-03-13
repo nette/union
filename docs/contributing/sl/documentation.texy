@@ -1,0 +1,69 @@
+Prispevek k dokumentaciji
+*************************
+
+.[perex]
+Prispevek k dokumentaciji je ena izmed najbolj dragocenih dejavnosti, saj drugim pomaga razumeti ogrodje.
+
+
+Kako pisati? .[#toc-how-to-write]
+---------------------------------
+
+Dokumentacija je v prvi vrsti namenjena ljudem, ki se s tem področjem šele spoznavajo. Zato mora izpolnjevati več pomembnih točk:
+
+- Začnite s preprostimi in splošnimi temami. Na koncu preidite na naprednejše teme
+- Poskusite temo razložiti čim bolj jasno. Na primer, poskusite temo najprej razložiti sodelavcu.
+- Navedite le informacije, ki jih uporabnik dejansko potrebuje za določeno temo
+- Prepričajte se, da so vaše informacije točne. Preizkusite vsako kodo
+- Bodite jedrnati - napišite manj kot polovico. In potem to še enkrat ponovite.
+- Varčno uporabljajte poudarke, od krepkih pisav do okvirjev, kot so `.[note]`
+- V kodi upoštevajte [standard kodiranja |Coding Standard]
+
+Naučite se tudi [sintakse |syntax]. Za predogled članka med pisanjem lahko uporabite [urejevalnik za predogled |https://editor.nette.org/].
+
+
+Jezikovne mutacije .[#toc-language-mutations]
+---------------------------------------------
+
+Osnovni jezik je angleščina, zato morajo biti vaše spremembe v angleščini. Če angleščina ni vaša močna stran, uporabite [prevajalnik DeepL |https://www.deepl.com/translator] in drugi bodo preverili vaše besedilo.
+
+Prevod v druge jezike bo opravljen samodejno po odobritvi in dodelavi vašega urejanja.
+
+
+Trivialna urejanja .[#toc-trivial-edits]
+----------------------------------------
+
+Če želite prispevati k dokumentaciji, morate imeti račun na [GitHubu |https://github.com].
+
+Najlažji način za majhne spremembe v dokumentaciji je uporaba povezav na koncu vsake strani:
+
+- *Pokaži na GitHubu* odpre izvorno različico strani na GitHubu. Nato samo pritisnite gumb `E` in lahko začnete urejati (prijavljeni morate biti v GitHub).
+- *Open preview* odpre urejevalnik, v katerem si lahko takoj ogledate končno vizualno obliko
+
+Ker [urejevalnik predogleda |https://editor.nette.org/] nima možnosti neposrednega shranjevanja sprememb v GitHub, morate izvorno besedilo kopirati v odložišče (z gumbom *Kopiraj v odložišče*) in ga nato prilepiti v urejevalnik na GitHubu.
+Pod poljem za urejanje je obrazec za oddajo. Tu ne pozabite na kratko povzeti in pojasniti razloga za svoje urejanje. Po oddaji se ustvari tako imenovana zahteva za povleko (pull request, PR), ki jo lahko še naprej urejate.
+
+
+Večja urejanja .[#toc-larger-edits]
+-----------------------------------
+
+Primerneje je poznati osnove dela s sistemom za nadzor različic Git in se ne zanašati samo na vmesnik GitHub. Če sistema Git ne poznate, si lahko ogledate [priročnik git - the simple guide |https://rogerdudler.github.io/git-guide/] in razmislite o uporabi enega od številnih [grafičnih odjemalcev |https://git-scm.com/downloads/guis], ki so na voljo.
+
+Dokumentacijo uredite na naslednji način:
+
+1) na spletnem mestu GitHub ustvarite [vilico |https://help.github.com/en/github/getting-started-with-github/fork-a-repo] skladišča [nette/docs |https://github.com/nette/docs]
+2) to skladišče [klonirajte |https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository] v svoj računalnik
+3) nato vnesite spremembe v [ustrezno vejo |#Documentation Structure]
+4) z orodjem [Code-Checker |code-checker:] preverite, ali so v besedilu dodatni presledki
+5) shranite (commit) spremembe
+6) če ste s spremembami zadovoljni, jih potisnite v GitHub v svojo vilico
+7) od tam jih pošljite v repozitorij `nette/docs` tako, da ustvarite [pull request|https://help.github.com/articles/creating-a-pull-request] (PR)
+
+Pogosto se zgodi, da prejmete komentarje s predlogi. Spremljajte predlagane spremembe in jih vključite. Predlagane spremembe dodajte kot nove spremembe in jih ponovno pošljite v GitHub. Nikoli ne ustvarjajte nove zahteve za prenos samo zato, da bi spremenili obstoječo zahtevo.
+
+
+Struktura dokumentacije .[#toc-documentation-structure]
+-------------------------------------------------------
+
+Celotna dokumentacija se nahaja na GitHubu v skladišču [nette/docs |https://github.com/nette/docs]. Trenutna različica je v glavni veji, starejše različice pa se nahajajo v vejah, kot so `doc-3.x`, `doc-2.x`.
+
+Vsebina vsake veje je razdeljena na glavne mape, ki predstavljajo posamezna področja dokumentacije. Na primer, `application/` ustreza https://doc.nette.org/en/application, `latte/` ustreza https://latte.nette.org itd. Vsaka od teh map vsebuje podmape, ki predstavljajo jezikovne mutacije (`cs`, `en`, ...), in po želji podmapo `files` s slikami, ki jih je mogoče vstaviti na strani v dokumentaciji.

@@ -14,10 +14,11 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-before(function () {
+setUp(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
-	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
+	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
 	$_GET = $_POST = $_FILES = [];
+	ob_start();
 	Form::initialize(true);
 });
 
@@ -29,12 +30,12 @@ test('', function () {
 	Assert::truthy($form->isSubmitted());
 	Assert::true($form->isSuccess());
 	Assert::same([], $form->getHttpData());
-	Assert::same([], $form->getValues(true));
+	Assert::same([], $form->getValues('array'));
 });
 
 
 test('', function () {
-	unset($_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME]);
+	unset($_COOKIE[Nette\Http\Helpers::StrictCookieName]);
 
 	$form = new Form;
 	$form->addSubmit('send', 'Send');
@@ -42,7 +43,7 @@ test('', function () {
 	Assert::false($form->isSubmitted());
 	Assert::false($form->isSuccess());
 	Assert::same([], $form->getHttpData());
-	Assert::same([], $form->getValues(true));
+	Assert::same([], $form->getValues('array'));
 });
 
 
@@ -54,7 +55,7 @@ test('', function () {
 	Assert::false($form->isSubmitted());
 	Assert::false($form->isSuccess());
 	Assert::same([], $form->getHttpData());
-	Assert::same([], $form->getValues(true));
+	Assert::same([], $form->getValues('array'));
 });
 
 
@@ -67,7 +68,7 @@ test('', function () {
 
 	Assert::truthy($form->isSubmitted());
 	Assert::same([Form::TrackerId => $name], $form->getHttpData());
-	Assert::same([], $form->getValues(true));
+	Assert::same([], $form->getValues('array'));
 	Assert::same($name, $form[Form::TrackerId]->getValue());
 });
 

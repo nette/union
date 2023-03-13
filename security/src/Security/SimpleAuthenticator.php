@@ -19,16 +19,6 @@ class SimpleAuthenticator implements Authenticator
 {
 	use Nette\SmartObject;
 
-	/** @var array */
-	private $passwords;
-
-	/** @var array */
-	private $roles;
-
-	/** @var array */
-	private $data;
-
-
 	/**
 	 * @param  array  $passwords list of pairs username => password
 	 * @param  array  $roles list of pairs username => role[]
@@ -36,13 +26,10 @@ class SimpleAuthenticator implements Authenticator
 	 */
 	public function __construct(
 		#[\SensitiveParameter]
-		array $passwords,
-		array $roles = [],
-		array $data = []
+		private array $passwords,
+		private array $roles = [],
+		private array $data = [],
 	) {
-		$this->passwords = $passwords;
-		$this->roles = $roles;
-		$this->data = $data;
 	}
 
 

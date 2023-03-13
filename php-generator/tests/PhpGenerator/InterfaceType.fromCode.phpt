@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Nette\PhpGenerator\InterfaceType;
 use Tester\Assert;
-
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -22,6 +21,8 @@ Assert::match(<<<'XX'
 	XX, (string) $class);
 
 
-Assert::exception(function () {
-	InterfaceType::fromCode('<?php');
-}, Nette\InvalidStateException::class, 'The code does not contain any class.');
+Assert::exception(
+	fn() => InterfaceType::fromCode('<?php'),
+	Nette\InvalidStateException::class,
+	'The code does not contain any class.',
+);

@@ -62,7 +62,11 @@ final class ObjectHelpers
 			? ($trace[2]['class'] ?? null)
 			: null;
 
-		if ($context && is_a($class, $context, true) && method_exists($context, $method)) { // called parent::$method()
+		if (
+			$context
+			&& is_a($class, $context, allow_string: true)
+			&& method_exists($context, $method)
+		) { // called parent::$method()
 			$class = get_parent_class($context);
 		}
 
@@ -95,7 +99,11 @@ final class ObjectHelpers
 			? ($trace[2]['class'] ?? null)
 			: null;
 
-		if ($context && is_a($class, $context, true) && method_exists($context, $method)) { // called parent::$method()
+		if (
+			$context
+			&& is_a($class, $context, allow_string: true)
+			&& method_exists($context, $method)
+		) { // called parent::$method()
 			$class = get_parent_class($context);
 		}
 

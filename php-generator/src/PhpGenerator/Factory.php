@@ -14,12 +14,10 @@ use Nette\Utils\Reflection;
 
 
 /**
- * Creates a representation based on reflection.
+ * Creates a representations based on reflection or source code.
  */
 final class Factory
 {
-	use Nette\SmartObject;
-
 	/** @var string[][]  */
 	private array $bodyCache = [];
 
@@ -31,12 +29,8 @@ final class Factory
 	public function fromClassReflection(
 		\ReflectionClass $from,
 		bool $withBodies = false,
-		?bool $materializeTraits = null,
 	): ClassLike
 	{
-		if ($materializeTraits !== null) {
-			trigger_error(__METHOD__ . '() parameter $materializeTraits has been removed (is always false).', E_USER_DEPRECATED);
-		}
 		if ($withBodies && $from->isAnonymous()) {
 			throw new Nette\NotSupportedException('The $withBodies parameter cannot be used for anonymous functions.');
 		}
@@ -265,7 +259,7 @@ final class Factory
 		$prop->setType((string) $from->getType());
 
 		$prop->setInitialized($from->hasType() && array_key_exists($prop->getName(), $defaults));
-		$prop->setReadOnly(PHP_VERSION_ID >= 80100 ? $from->isReadOnly() : false);
+		$prop->setReadOnly(PHP_VERSION_ID >= 80100 && $from->isReadOnly() && !(PHP_VERSION_ID >= 80200 && $from->getDeclaringClass()->isReadOnly()));
 		$prop->setComment(Helpers::unformatDocComment((string) $from->getDocComment()));
 		$prop->setAttributes($this->getAttributes($from));
 		return $prop;

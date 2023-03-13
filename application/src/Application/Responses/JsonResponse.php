@@ -17,13 +17,9 @@ use Nette;
  */
 final class JsonResponse implements Nette\Application\Response
 {
-	use Nette\SmartObject;
+	private mixed $payload;
 
-	/** @var mixed */
-	private $payload;
-
-	/** @var string */
-	private $contentType;
+	private string $contentType;
 
 
 	public function __construct($payload, ?string $contentType = null)
@@ -33,10 +29,7 @@ final class JsonResponse implements Nette\Application\Response
 	}
 
 
-	/**
-	 * @return mixed
-	 */
-	public function getPayload()
+	public function getPayload(): mixed
 	{
 		return $this->payload;
 	}

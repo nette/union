@@ -1,0 +1,64 @@
+¿Cómo volver a una página anterior?
+***********************************
+
+.[perex]
+¿Qué pasa si un usuario rellena un formulario y su login caduca? Para no perder los datos, guardamos los datos en la sesión antes de redirigir a la página de inicio de sesión. En Nette, esto es pan comido.
+
+La solicitud actual puede almacenarse en la sesión utilizando el método `storeRequest()`, que devuelve su identificador como una cadena corta. El método almacena el nombre del presentador actual, la vista y sus parámetros.
+Si también se presentó un formulario, los valores de los campos (excepto los archivos cargados) también se guardan.
+
+La solicitud es restaurada por el método `restoreRequest($key)`, al que pasamos el identificador recuperado. Esto redirige al presentador y a la vista originales. Sin embargo, si la petición guardada contiene el envío de un formulario, se reenviará al presentador original mediante el método `forward()`, se pasarán los valores rellenados previamente al formulario y se dejará que se redibuje. Esto permite al usuario reenviar el formulario y no se pierde ningún dato.
+
+Es importante destacar que `restoreRequest()` comprueba que el nuevo usuario es el mismo que rellenó el formulario originalmente. Si no es así, descarta la solicitud y no hace nada.
+
+Vamos a demostrarlo todo con un ejemplo. Tengamos un presentador `AdminPresenter` en el que se están editando datos y cuyo método `startup()` comprueba si el usuario ha iniciado sesión. Si no lo está, le redirigimos a `SignPresenter`. Al mismo tiempo, guardamos la petición actual y enviamos su clave a `SignPresenter`.
+
+```php
+class AdminPresenter extends Nette\Application\UI\Presenter
+{
+	protected function startup()
+	{
+		parent::startup();
+
+		if (!$this->user->isLoggedIn()) {
+			$this->redirect('Sign:in', ['backlink' => $this->storeRequest()]);
+		}
+	}
+}
+```
+
+El presentador `SignPresenter` contendrá un parámetro persistente `$backlink` en el que se escribirá la clave, además del formulario de inicio de sesión. Como el parámetro es persistente, se mantendrá incluso después de que se envíe el formulario de inicio de sesión.
+
+
+```php
+use Nette\Application\Attributes\Persistent;
+
+class SignPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $backlink = '';
+
+	protected function createComponentSignInForm()
+	{
+		$form = new Nette\Application\UI\Form;
+		// ... añadir campos de formulario ...
+		$form->onSuccess[] = [$this, 'signInFormSubmitted'];
+		return $form;
+	}
+
+	public function signInFormSubmitted($form)
+	{
+		// ... aquí registramos al usuario ...
+
+		$this->restoreRequest($this->backlink);
+		$this->redirect('Admin:');
+	}
+}
+```
+
+Pasamos la clave de la solicitud guardada al método `restoreRequest()` y éste redirige (o reenvía) al presentador original.
+
+Sin embargo, si la clave no es válida (por ejemplo, ya no existe en la sesión), el método no hace nada. Así que la siguiente llamada es `$this->redirect('Admin:')`, que redirige a `AdminPresenter`.
+
+{{priority: -1}}
+{{sitename: Buenas prácticas}}

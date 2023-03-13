@@ -22,20 +22,11 @@ final class SessionStorage implements Nette\Security\UserStorage
 {
 	use Nette\SmartObject;
 
-	/** @var string */
-	private $namespace = '';
-
-	/** @var Session */
-	private $sessionHandler;
-
-	/** @var SessionSection */
-	private $sessionSection;
-
-	/** @var ?int */
-	private $expireTime;
-
-	/** @var bool */
-	private $expireIdentity = false;
+	private string $namespace = '';
+	private Session $sessionHandler;
+	private ?SessionSection $sessionSection = null;
+	private ?int $expireTime = null;
+	private bool $expireIdentity = false;
 
 
 	public function __construct(Session $sessionHandler)
@@ -110,9 +101,8 @@ final class SessionStorage implements Nette\Security\UserStorage
 
 	/**
 	 * Changes namespace; allows more users to share a session.
-	 * @return static
 	 */
-	public function setNamespace(string $namespace)
+	public function setNamespace(string $namespace): static
 	{
 		if ($this->namespace !== $namespace) {
 			$this->namespace = $namespace;

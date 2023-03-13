@@ -22,29 +22,14 @@ use Nette\Routing\Router;
  */
 final class MicroPresenter implements Application\IPresenter
 {
-	use Nette\SmartObject;
-
-	/** @var Nette\DI\Container|null */
-	private $context;
-
-	/** @var Nette\Http\IRequest|null */
-	private $httpRequest;
-
-	/** @var Router|null */
-	private $router;
-
-	/** @var Application\Request|null */
-	private $request;
+	private ?Application\Request $request;
 
 
 	public function __construct(
-		?Nette\DI\Container $context = null,
-		?Http\IRequest $httpRequest = null,
-		?Router $router = null
+		private ?Nette\DI\Container $context = null,
+		private ?Nette\Http\IRequest $httpRequest = null,
+		private ?Router $router = null,
 	) {
-		$this->context = $context;
-		$this->httpRequest = $httpRequest;
-		$this->router = $router;
 	}
 
 
@@ -67,10 +52,10 @@ final class MicroPresenter implements Application\IPresenter
 			&& !$this->httpRequest->isAjax()
 			&& ($request->isMethod('get') || $request->isMethod('head'))
 		) {
-			$refUrl = $this->httpRequest->getUrl()->withoutUserInfo();
+			$refUrl = $this->httpRequest->getUrl();
 			$url = $this->router->constructUrl($request->toArray(), $refUrl);
 			if ($url !== null && !$refUrl->isEqual($url)) {
-				return new Responses\RedirectResponse($url, Http\IResponse::S301_MOVED_PERMANENTLY);
+				return new Responses\RedirectResponse($url, Http\IResponse::S301_MovedPermanently);
 			}
 		}
 
@@ -85,7 +70,7 @@ final class MicroPresenter implements Application\IPresenter
 		if ($this->context) {
 			foreach ($reflection->getParameters() as $param) {
 				if ($param->getType()) {
-					$params[$param->getName()] = $this->context->getByType($param->getType()->getName(), false);
+					$params[$param->getName()] = $this->context->getByType($param->getType()->getName(), throw: false);
 				}
 			}
 		}
@@ -137,7 +122,7 @@ final class MicroPresenter implements Application\IPresenter
 		$template->presenter = $this;
 		$template->context = $this->context;
 		if ($this->httpRequest) {
-			$url = $this->httpRequest->getUrl()->withoutUserInfo();
+			$url = $this->httpRequest->getUrl();
 			$template->baseUrl = rtrim($url->getBaseUrl(), '/');
 			$template->basePath = rtrim($url->getBasePath(), '/');
 		}
@@ -149,7 +134,7 @@ final class MicroPresenter implements Application\IPresenter
 	/**
 	 * Redirects to another URL.
 	 */
-	public function redirectUrl(string $url, int $httpCode = Http\IResponse::S302_FOUND): Responses\RedirectResponse
+	public function redirectUrl(string $url, int $httpCode = Http\IResponse::S302_Found): Responses\RedirectResponse
 	{
 		return new Responses\RedirectResponse($url, $httpCode);
 	}
@@ -159,7 +144,7 @@ final class MicroPresenter implements Application\IPresenter
 	 * Throws HTTP error.
 	 * @throws Nette\Application\BadRequestException
 	 */
-	public function error(string $message = '', int $httpCode = Http\IResponse::S404_NOT_FOUND): void
+	public function error(string $message = '', int $httpCode = Http\IResponse::S404_NotFound): void
 	{
 		throw new Application\BadRequestException($message, $httpCode);
 	}

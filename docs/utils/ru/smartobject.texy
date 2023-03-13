@@ -1,0 +1,236 @@
+SmartObject
+***********
+
+.[perex]
+SmartObject во многом исправлял поведение объектов, но современный PHP уже включает большинство этих улучшений нативно. Тем не менее, в нем все еще добавлена поддержка *property*.
+
+
+Установка:
+
+```shell
+composer require nette/utils
+```
+
+
+Свойства, геттери и сеттери .[#toc-properties-getters-and-setters]
+==================================================================
+
+В современных объектно-ориентированных языках (например, C#, Python, Ruby, JavaScript) термин *свойство* относится к [специальным членам классов |https://en.wikipedia.org/wiki/Property_(programming)], которые выглядят как переменные, но на самом деле представлены методами. Когда значение такой "переменной" присваивается или считывается, вызывается соответствующий метод (называемый getter или setter). Это очень удобная вещь, она дает нам полный контроль над доступом к переменным. Мы можем проверять вводимые данные или генерировать результаты только тогда, когда свойство прочитано.
+
+Свойства PHP не поддерживаются, но trait `Nette\SmartObject` может их имитировать. Как это использовать?
+
+- Добавьте аннотацию к классу в виде `@property <type> $xyz`
+- Создайте геттер с именем `getXyz()` или `isXyz()`, сеттер с именем `setXyz()`
+- Геттер и сеттер должны быть *публичными* или *защищенными* и необязательными, поэтому может быть свойство *только для чтения* или *только для записи*.
+
+Мы будем использовать свойство для класса Circle, чтобы гарантировать, что в переменную `$radius` будут помещаться только неотрицательные числа. Замените `public $radius` на property:
+
+```php
+/**
+ * @property float $radius
+ * @property-read bool $visible
+ */
+class Circle
+{
+	use Nette\SmartObject;
+
+	private float $radius = 0.0; // not public
+
+	// getter for property $radius
+	protected function getRadius(): float
+	{
+		return $this->radius;
+	}
+
+	// setter for property $radius
+	protected function setRadius(float $radius): void
+	{
+		// sanitizing value before saving it
+		$this->radius = max(0.0, $radius);
+	}
+
+	// getter for property $visible
+	protected function isVisible(): bool
+	{
+		return $this->radius > 0;
+	}
+}
+
+$circle = new Circle;
+$circle->radius = 10;  // actually calls setRadius(10)
+echo $circle->radius;  // calls getRadius()
+echo $circle->visible; // calls isVisible()
+```
+
+Свойства - это прежде всего "синтаксический сахар"((syntactic sugar)), который призван сделать жизнь программиста слаще за счет упрощения кода. Если они вам не нужны, вы не обязаны их использовать.
+
+
+Взгляд в историю .[#toc-a-glimpse-into-history]
+===============================================
+
+SmartObject использовался для улучшения поведения объектов различными способами, но современный PHP уже включает в себя большинство из этих улучшений. Следующий текст - это ностальгический взгляд в историю, напоминающий нам о том, как все развивалось.
+
+С самого начала своего существования объектная модель PHP страдала от множества серьезных недостатков и недоработок. Это привело к созданию класса `Nette\Object` (в 2007 году), который был призван исправить эти недостатки и повысить удобство работы с PHP. Достаточно было наследовать от него другие классы, чтобы они получили те преимущества, которые он дает. Когда в PHP 5.4 появилась поддержка трейтов, класс `Nette\Object` был заменен трейтом `Nette\SmartObject`. Это избавило от необходимости наследоваться от общего предка. Более того, трейты можно было использовать в классах, которые уже наследовались от другого класса. Окончательный конец `Nette\Object` наступил с выходом PHP 7.2, который запретил называть классы `Object`.
+
+По мере развития PHP его объектная модель и возможности языка совершенствовались. Различные функции класса `SmartObject` стали излишними. После выхода PHP 8.2 в PHP осталась только одна функция, не поддерживаемая напрямую: возможность использования так называемых [свойств |#Properties, getters, and setters].
+
+Какие же возможности предоставляли `Nette\Object` и, соответственно, `Nette\SmartObject`? Вот обзор. (В примерах используется класс `Nette\Object`, но большинство возможностей применимо и к свойству `Nette\SmartObject` ).
+
+
+Непоследовательные ошибки .[#toc-inconsistent-errors]
+-----------------------------------------------------
+PHP имел непоследовательное поведение при обращении к необъявленным членам. Состояние на момент публикации `Nette\Object` было следующим:
+
+```php
+echo $obj->undeclared; // E_NOTICE, later E_WARNING
+$obj->undeclared = 1;  // passes silently without reporting
+$obj->unknownMethod(); // Fatal error (not catchable by try/catch)
+```
+
+Фатальная ошибка завершала приложение без какой-либо возможности отреагировать. Тихая запись в несуществующие члены без предупреждения могла привести к серьезным ошибкам, которые было трудно обнаружить. `Nette\Object` Все эти случаи были пойманы, и было выброшено исключение `MemberAccessException`.
+
+```php
+echo $obj->undeclared;   // throw Nette\MemberAccessException
+$obj->undeclared = 1;    // throw Nette\MemberAccessException
+$obj->unknownMethod();   // throw Nette\MemberAccessException
+```
+Начиная с PHP 7.0, PHP больше не вызывает неперехватываемых фатальных ошибок, а доступ к необъявленным членам стал ошибкой начиная с PHP 8.2.
+
+
+Вы имели в виду? .[#toc-did-you-mean]
+-------------------------------------
+Если возникала ошибка `Nette\MemberAccessException`, возможно, из-за опечатки при обращении к объектной переменной или вызове метода, `Nette\Object` пытался дать подсказку в сообщении об ошибке, как исправить ошибку, в виде знакового дополнения "Вы имели в виду?".
+
+```php
+class Foo extends Nette\Object
+{
+	public static function from($var)
+	{
+	}
+}
+
+$foo = Foo::form($var);
+// throw Nette\MemberAccessException
+// "Call to undefined static method Foo::form(), did you mean from()?"
+```
+
+Хотя современный PHP не имеет функции "Вы имели в виду?", эта фраза может быть добавлена к ошибкам [Tracy |tracy:]. Она даже может [автоматически исправлять такие ошибки |tracy:open-files-in-ide#toc-demos].
+
+
+Методы расширения .[#toc-extension-methods]
+-------------------------------------------
+Вдохновлен методами расширения из C#. Они дают возможность добавлять новые методы к существующим классам. Например, вы можете добавить метод `addDateTime()` к форме, чтобы добавить свой собственный DateTimePicker.
+
+```php
+Form::extensionMethod(
+	'addDateTime',
+	fn(Form $form, string $name) => $form[$name] = new DateTimePicker,
+);
+
+$form = new Form;
+$form->addDateTime('date');
+```
+
+Методы расширения оказались непрактичными, поскольку их имена не автозаполнялись редакторами, вместо этого они сообщали, что метод не существует. Поэтому их поддержка была прекращена.
+
+
+Получение имени класса .[#toc-getting-the-class-name]
+-----------------------------------------------------
+
+```php
+$class = $obj->getClass(); // using Nette\Object
+$class = $obj::class;      // since PHP 8.0
+```
+
+
+Доступ к размышлениям и аннотациям .[#toc-access-to-reflection-and-annotations]
+-------------------------------------------------------------------------------
+
+`Nette\Object` предложен доступ к размышлениям и аннотациям с помощью методов `getReflection()` и `getAnnotation()`:
+
+```php
+/**
+ * @author John Doe
+ */
+class Foo extends Nette\Object
+{
+}
+
+$obj = new Foo;
+$reflection = $obj->getReflection();
+$reflection->getAnnotation('author'); // returns 'John Doe'
+```
+
+Начиная с PHP 8.0, появилась возможность доступа к мета-информации в виде атрибутов:
+
+```php
+#[Author('John Doe')]
+class Foo
+{
+}
+
+$obj = new Foo;
+$reflection = new ReflectionObject($obj);
+$reflection->getAttributes(Author::class)[0];
+```
+
+
+Геттеры методов .[#toc-method-getters]
+--------------------------------------
+
+`Nette\Object` предлагают элегантный способ работы с методами, как если бы они были переменными:
+
+```php
+class Foo extends Nette\Object
+{
+	public function adder($a, $b)
+	{
+		return $a + $b;
+	}
+}
+
+$obj = new Foo;
+$method = $obj->adder;
+echo $method(2, 3); // 5
+```
+
+Начиная с PHP 8.1, вы можете использовать так называемый "первоклассный синтаксис вызываемых методов":https://www.php.net/manual/en/functions.first_class_callable_syntax:
+
+```php
+$obj = new Foo;
+$method = $obj->adder(...);
+echo $method(2, 3); // 5
+```
+
+
+События .[#toc-events]
+----------------------
+
+`Nette\Object` предлагает синтаксический сахар для запуска [события |nette:glossary#events]:
+
+```php
+class Circle extends Nette\Object
+{
+	public array $onChange = [];
+
+	public function setRadius(float $radius): void
+	{
+		$this->onChange($this, $radius);
+		$this->radius = $radius;
+	}
+}
+```
+
+Код `$this->onChange($this, $radius)` эквивалентен следующему:
+
+```php
+foreach ($this->onChange as $callback) {
+	$callback($this, $radius);
+}
+```
+
+Для ясности мы рекомендуем избегать магического метода `$this->onChange()`. Хорошей заменой будет [Nette\Utils\Arrays::invoke |arrays#invoke]:
+
+```php
+Nette\Utils\Arrays::invoke($this->onChange, $this, $radius);
+```

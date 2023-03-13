@@ -17,7 +17,7 @@ use Nette\Utils\Strings;
 /**
  * Forms helpers.
  */
-class Helpers
+final class Helpers
 {
 	use Nette\StaticClass;
 
@@ -30,16 +30,19 @@ class Helpers
 	/**
 	 * Extracts and sanitizes submitted form data for single control.
 	 * @param  int  $type  type Form::DataText, DataLine, DataFile, DataKeys
-	 * @return string|string[]
 	 * @internal
 	 */
-	public static function extractHttpData(array $data, string $htmlName, int $type)
+	public static function extractHttpData(
+		array $data,
+		string $htmlName,
+		int $type,
+	): string|array|Nette\Http\FileUpload|null
 	{
 		$name = explode('[', str_replace(['[]', ']', '.'], ['', '', '_'], $htmlName));
 		$data = Nette\Utils\Arrays::get($data, $name, null);
 		$itype = $type & ~Form::DataKeys;
 
-		if (substr($htmlName, -2) === '[]') {
+		if (str_ends_with($htmlName, '[]')) {
 			if (!is_array($data)) {
 				return [];
 			}
@@ -162,7 +165,7 @@ class Helpers
 		array $items,
 		?array $inputAttrs = null,
 		?array $labelAttrs = null,
-		$wrapper = null
+		$wrapper = null,
 	): string
 	{
 		[$inputAttrs, $inputTag] = self::prepareAttrs($inputAttrs, 'input');
@@ -184,7 +187,7 @@ class Helpers
 			$input->value = $value;
 			$res .= ($res === '' && $wrapperEnd === '' ? '' : $wrapper)
 				. $labelTag . $label->attributes() . '>'
-				. $inputTag . $input->attributes() . (isset(Html::$xhtml) && Html::$xhtml ? ' />' : '>')
+				. $inputTag . $input->attributes() . '>'
 				. ($caption instanceof Nette\HtmlStringable ? $caption : htmlspecialchars((string) $caption, ENT_NOQUOTES, 'UTF-8'))
 				. '</label>'
 				. $wrapperEnd;
@@ -281,7 +284,7 @@ class Helpers
 			return $res;
 		} else {
 			throw new Nette\InvalidStateException(
-				Nette\Utils\Reflection::toString($reflection) . " has unsupported type '$type'."
+				Nette\Utils\Reflection::toString($reflection) . " has unsupported type '$type'.",
 			);
 		}
 	}

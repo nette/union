@@ -1,0 +1,24 @@
+Iniezione di dipendenza
+***********************
+
+.[perex]
+La Dependency Injection è un modello di progettazione che cambierà radicalmente il modo di vedere il codice e lo sviluppo. Apre la strada a un mondo di applicazioni pulite e sostenibili.
+
+- [Che cos'è la Dependency Injection? |introduction]
+- [Stato globale e singleton |global-state]
+- [Passare le dipendenze |passing-dependencies]
+- [Cos'è il contenitore DI? |container]
+- [Domande frequenti |faq]
+
+
+Nette DI
+--------
+
+Il pacchetto `nette/di` fornisce un contenitore DI compilato estremamente avanzato per PHP.
+
+- [Contenitore Nette DI |nette-container]
+- [Configurazione |configuration]
+- [Definizioni di servizio |services]
+- [Autocablaggio |autowiring]
+- [Fabbriche generate |factory]
+- [Creazione di estensioni per Nette DI |extensions]

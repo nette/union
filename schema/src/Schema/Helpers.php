@@ -61,9 +61,9 @@ final class Helpers
 		} elseif (is_string($value)) {
 			return "'" . Nette\Utils\Strings::truncate($value, 15, '...') . "'";
 		} elseif (is_scalar($value)) {
-			return var_export($value, true);
+			return var_export($value, return: true);
 		} else {
-			return strtolower(gettype($value));
+			return get_debug_type($value);
 		}
 	}
 }

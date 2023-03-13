@@ -1,0 +1,217 @@
+Übergabe von Abhängigkeiten
+***************************
+
+<div class=perex>
+
+Argumente, oder "Abhängigkeiten" in der DI-Terminologie, können auf die folgenden Hauptwege an Klassen übergeben werden:
+
+* Übergabe per Konstruktor
+* Übergabe durch eine Methode (Setter genannt)
+* durch das Setzen einer Eigenschaft
+* durch Methode, Annotation oder Attribut *inject*
+
+</div>
+
+Wir werden nun die verschiedenen Varianten mit konkreten Beispielen illustrieren.
+
+
+Konstruktor-Injektion .[#toc-constructor-injection]
+===================================================
+
+Abhängigkeiten werden als Argumente an den Konstruktor übergeben, wenn das Objekt erstellt wird:
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+$obj = new MyClass($cache);
+```
+
+Diese Form ist nützlich für obligatorische Abhängigkeiten, die die Klasse unbedingt benötigt, um zu funktionieren, da ohne sie die Instanz nicht erstellt werden kann.
+
+Seit PHP 8.0 können wir eine kürzere Form der Notation verwenden ([constructor property promotion |https://blog.nette.org/de/php-8-0-vollstaendiger-ueberblick-ueber-die-neuigkeiten#toc-constructor-property-promotion]), die funktional gleichwertig ist:
+
+```php
+// PHP 8.0
+class MyClass
+{
+	public function __construct(
+		private Cache $cache,
+	) {
+	}
+}
+```
+
+Seit PHP 8.1 kann eine Eigenschaft mit einem Flag `readonly` markiert werden, das besagt, dass sich der Inhalt der Eigenschaft nicht ändern wird:
+
+```php
+// PHP 8.1
+class MyClass
+{
+	public function __construct(
+		private readonly Cache $cache,
+	) {
+	}
+}
+```
+
+Der DI-Container übergibt Abhängigkeiten automatisch an den Konstruktor mittels [Autowiring |autowiring]. Argumente, die nicht auf diese Weise übergeben werden können (z.B. Strings, Zahlen, Booleans), [werden in die Konfiguration geschrieben |services#Arguments].
+
+
+Konstrukteur-Hölle .[#toc-constructor-hell]
+-------------------------------------------
+
+Der Begriff *Konstruktorhölle* bezieht sich auf eine Situation, in der ein Kind von einer Elternklasse erbt, deren Konstruktor Abhängigkeiten benötigt, und das Kind benötigt ebenfalls Abhängigkeiten. Es muss auch die Abhängigkeiten der Elternklasse übernehmen und weitergeben:
+
+```php
+abstract class BaseClass
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+final class MyClass extends BaseClass
+{
+	private Database $db;
+
+	// ⛔ CONSTRUCTOR HELL
+	public function __construct(Cache $cache, Database $db)
+	{
+		parent::__construct($cache);
+		$this->db = $db;
+	}
+}
+```
+
+Das Problem tritt auf, wenn wir den Konstruktor der Klasse `BaseClass` ändern wollen, zum Beispiel wenn eine neue Abhängigkeit hinzugefügt wird. Dann müssen wir auch alle Konstruktoren der Kinder ändern. Das macht eine solche Änderung zur Hölle.
+
+Wie lässt sich das verhindern? Die Lösung besteht darin, **Komposition gegenüber Vererbung** zu bevorzugen.
+
+Lassen Sie uns also den Code anders gestalten. Wir werden abstrakte `Base*` Klassen vermeiden. Anstatt dass `MyClass` eine bestimmte Funktionalität durch Vererbung von `BaseClass` erhält, wird diese Funktionalität als Abhängigkeit übergeben:
+
+```php
+final class SomeFunctionality
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+final class MyClass
+{
+	private SomeFunctionality $sf;
+	private Database $db;
+
+	public function __construct(SomeFunctionality $sf, Database $db) // ✅
+	{
+		$this->sf = $sf;
+		$this->db = $db;
+	}
+}
+```
+
+
+Setter-Injektion .[#toc-setter-injection]
+=========================================
+
+Abhängigkeiten werden durch den Aufruf einer Methode übergeben, die sie in einer privaten Eigenschaft speichert. Die übliche Namenskonvention für diese Methoden ist die Form `set*()`, weshalb sie auch Setter genannt werden, aber natürlich können sie auch anders heißen.
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function setCache(Cache $cache): void
+	{
+		$this->cache = $cache;
+	}
+}
+
+$obj = new MyClass;
+$obj->setCache($cache);
+```
+
+Diese Methode ist nützlich für optionale Abhängigkeiten, die für die Funktion der Klasse nicht notwendig sind, da nicht garantiert ist, dass das Objekt sie tatsächlich erhält (d. h. dass der Benutzer die Methode aufruft).
+
+Gleichzeitig ermöglicht diese Methode, dass der Setter wiederholt aufgerufen werden kann, um die Abhängigkeit zu ändern. Wenn dies nicht erwünscht ist, fügen Sie der Methode ein Häkchen hinzu, oder markieren Sie ab PHP 8.1 die Eigenschaft `$cache` mit dem Flag `readonly`.
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function setCache(Cache $cache): void
+	{
+		if ($this->cache) {
+			throw new RuntimeException('The dependency has already been set');
+		}
+		$this->cache = $cache;
+	}
+}
+```
+
+Der Setter-Aufruf wird in der DI-Container-Konfiguration im [Abschnitt setup |services#Setup] definiert. Auch hier wird die automatische Übergabe von Abhängigkeiten durch Autowiring genutzt:
+
+```neon
+services:
+	-
+		create: MyClass
+		setup:
+			- setCache
+```
+
+
+Property Injection .[#toc-property-injection]
+=============================================
+
+Abhängigkeiten werden direkt an die Eigenschaft übergeben:
+
+```php
+class MyClass
+{
+	public Cache $cache;
+}
+
+$obj = new MyClass;
+$obj->cache = $cache;
+```
+
+Diese Methode wird als ungeeignet angesehen, da die Eigenschaft als `public` deklariert werden muss. Daher haben wir keine Kontrolle darüber, ob die übergebene Abhängigkeit tatsächlich vom angegebenen Typ ist (dies war vor PHP 7.4 der Fall), und wir verlieren die Möglichkeit, auf die neu zugewiesene Abhängigkeit mit unserem eigenen Code zu reagieren, um zum Beispiel nachträgliche Änderungen zu verhindern. Gleichzeitig wird die Eigenschaft Teil der öffentlichen Schnittstelle der Klasse, was möglicherweise nicht wünschenswert ist.
+
+Die Einstellung der Variablen wird in der Konfiguration des DI-Containers im [Abschnitt setup |services#Setup] festgelegt:
+
+```neon
+services:
+	-
+		create: MyClass
+		setup:
+			- $cache = @\Cache
+```
+
+
+Einspritzen .[#toc-inject]
+==========================
+
+Während die drei vorangegangenen Methoden allgemein in allen objektorientierten Sprachen gültig sind, ist das Injizieren per Methode, Annotation oder *inject*-Attribut spezifisch für Nette-Präsentatoren. Sie werden in einem [separaten Kapitel |best-practices:inject-method-attribute] behandelt.
+
+
+Welcher Weg soll gewählt werden? .[#toc-which-way-to-choose]
+============================================================
+
+- Der Konstruktor eignet sich für obligatorische Abhängigkeiten, die die Klasse zum Funktionieren benötigt.
+- der Setter hingegen eignet sich für optionale oder veränderbare Abhängigkeiten
+- öffentliche Variablen werden nicht empfohlen

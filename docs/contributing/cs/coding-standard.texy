@@ -15,10 +15,9 @@ Obecná pravidla
 - Důvod použití shut-up operátoru musí být zdokumentován: `@mkdir($dir); // @ - adresář může existovat`.
 - Pokud je použit slabě typizovaný operátor porovnání (tj. `==`, `!=`, ...), musí být zdokumentován záměr: `// == přijmout null`
 - Do jednoho souboru `exceptions.php` můžete zapsat více výjimek.
-- Rozhraní nespecifikují viditelnost metod, protože jsou vždy veřejné.
-- Každá vlastnost, metoda a parametr musí mít dokumentovaný typ. Buď nativně, nebo pomocí anotace.
-- Pole se musí zapisovat krátkým zápisem.
-- K ohraničení řetězce by se měla používat jednoduchá uvozovka, s výjimkou případů, kdy samotný literál obsahuje apostrofy.
+- U rozhraní se nespecifikuje viditelnost metod, protože jsou vždy veřejné.
+- Každá property, návratová hodnota a parametr musí mít uvedený typ. Naopak u finálních konstant typ nikdy neuvádíme, protože je zjevný.
+- K ohraničení řetězce by se měly používat jednoduché uvozovky, s výjimkou případů, kdy samotný literál obsahuje apostrofy.
 
 
 Pojmenovací konvence
@@ -30,6 +29,30 @@ Pojmenovací konvence
 - Názvy tříd musí obsahovat nejen specifičnost (`Array`), ale také obecnost (`ArrayIterator`). Výjimkou jsou atributy jazyka PHP.
 - "Konstanty tříd a enumy by měly používat PascalCaps":https://blog.nette.org/cs/za-mene-kriku-v-kodu.
 - "Rozhraní a abstraktní třídy by neměly obsahovat předpony nebo přípony":https://blog.nette.org/cs/predpony-a-pripony-do-nazvu-rozhrani-nepatri jako `Abstract`, `Interface` nebo `I`.
+
+
+Wrapping and Braces
+===================
+
+Nette Coding Standard odpovídá PSR-12 (resp. PER Coding Style), v některých bodech jej doplňuje nebo upravuje:
+
+- arrow funkce se píší bez mezery před závorkou, tj. `fn($a) => $b`
+- nevyžaduje se prázdný řádek mezi různými typy `use` import statements
+- návratový typ funkce/metody a úvodní složená závorka jsou vždy na samostatných řádcích:
+
+```php
+	public function find(
+		string $dir,
+		array $options,
+	): array
+	{
+		// tělo metody
+	}
+```
+
+Úvodní složená závorka na samostatném řádku je důležitá pro vizuální oddělení signatury funkce/metody od těla. Pokud je signatura na jednom řádku, je oddělení zřetelné (obrázek vlevo), pokud je na více řádcích, v PSR signatury a těla splývají (uprostřed), zatímco v Nette standardu jsou nadále oddělené (vpravo):
+
+[* new-line-after.webp *]
 
 
 Bloky dokumentace (phpDoc)
@@ -45,7 +68,6 @@ Dokumentační blok pro definici třídy:
 - Následují anotace `@method`, jedna po druhé. Syntaxe je: anotace, mezera, návratový typ, mezera, jméno(typ $param, ...).
 - Anotace `@author` se vynechává. Autorství se uchovává v historii zdrojového kódu.
 - Lze použít anotace `@internal` nebo `@deprecated`.
-
 
 ```php
 /**

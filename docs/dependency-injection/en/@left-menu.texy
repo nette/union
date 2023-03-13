@@ -1,11 +1,17 @@
 Dependency Injection
 ********************
 - [What is DI? |introduction]
+- [Global State & Singletons |global-state]
+- [Passing Dependencies |passing-dependencies]
 - [What is DI Container? |container]
+- [Frequently Asked Questions |faq]
+
+
+Nette DI
+--------
 - [Nette DI Container |nette-container]
 - [Configuration |configuration]
 - [Service Definitions |services]
 - [Autowiring |autowiring]
 - [Generated Factories |factory]
-- [Passing Dependencies |passing-dependencies]
 - [Creating Extensions for Nette DI|extensions]

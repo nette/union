@@ -17,8 +17,6 @@ use Nette;
  */
 class Cache
 {
-	use Nette\SmartObject;
-
 	/** dependency */
 	public const
 		Priority = 'priority',
@@ -66,9 +64,7 @@ class Cache
 	public const ALL = self::All;
 
 	/** @internal */
-	public const
-		NamespaceSeparator = "\x00",
-		NAMESPACE_SEPARATOR = self::NamespaceSeparator;
+	public const NamespaceSeparator = "\x00";
 
 	private Storage $storage;
 	private string $namespace;
@@ -95,7 +91,7 @@ class Cache
 	 */
 	final public function getNamespace(): string
 	{
-		return (string) substr($this->namespace, 0, -1);
+		return substr($this->namespace, 0, -1);
 	}
 
 
@@ -348,6 +344,7 @@ class Cache
 	 */
 	public function start($key): ?OutputHelper
 	{
+		trigger_error(__METHOD__ . '() was renamed to capture()', E_USER_DEPRECATED);
 		return $this->capture($key);
 	}
 

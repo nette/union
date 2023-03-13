@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-use Nette\Utils\DateTime;
+use Nette\Database\DateTime;
 use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
@@ -62,10 +62,10 @@ Assert::equal([
 	'decimal2' => 0.5,
 	'float' => 0.5,
 	'double' => 0.5,
-	'date' => new DateTime('0000-00-00 00:00:00'),
+	'date' => null,
 	'time' => new DateInterval('P0D'),
-	'datetime' => new DateTime('0000-00-00 00:00:00'),
-	'timestamp' => new DateTime('0000-00-00 00:00:00'),
+	'datetime' => null,
+	'timestamp' => null,
 	'year' => 2000,
 	'char' => '',
 	'varchar' => '',

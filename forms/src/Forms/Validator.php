@@ -17,12 +17,11 @@ use Nette\Utils\Validators;
 /**
  * Common validators.
  */
-class Validator
+final class Validator
 {
 	use Nette\StaticClass;
 
-	/** @var array */
-	public static $messages = [
+	public static array $messages = [
 		Controls\CsrfProtection::Protection => 'Your session has expired. Please return to the home page and try again.',
 		Form::Equal => 'Please enter %s.',
 		Form::NotEqual => 'This value should not be %s.',
@@ -48,10 +47,9 @@ class Validator
 
 
 	/**
-	 * @return string|Nette\HtmlStringable
 	 * @internal
 	 */
-	public static function formatMessage(Rule $rule, bool $withValue = true)
+	public static function formatMessage(Rule $rule, bool $withValue = true): string|Nette\HtmlStringable
 	{
 		$message = $rule->message;
 		if ($message instanceof Nette\HtmlStringable) {
@@ -64,7 +62,7 @@ class Validator
 			trigger_error(
 				"Missing validation message for control '{$rule->control->getName()}'"
 				. (is_string($rule->validator) ? " (validator '{$rule->validator}')." : '.'),
-				E_USER_WARNING
+				E_USER_WARNING,
 			);
 		}
 
@@ -181,9 +179,7 @@ class Validator
 	 */
 	public static function validateRange(Control $control, array $range): bool
 	{
-		$range = array_map(function ($v) {
-			return $v === '' ? null : $v;
-		}, $range);
+		$range = array_map(fn($v) => $v === '' ? null : $v, $range);
 		return Validators::isInRange($control->getValue(), $range);
 	}
 
@@ -208,9 +204,8 @@ class Validator
 
 	/**
 	 * Count/length validator. Range is array, min and max length pair.
-	 * @param  array|int  $range
 	 */
-	public static function validateLength(Control $control, $range): bool
+	public static function validateLength(Control $control, array|int $range): bool
 	{
 		if (!is_array($range)) {
 			$range = [$range, $range];

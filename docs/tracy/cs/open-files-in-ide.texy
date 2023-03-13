@@ -1,4 +1,4 @@
-Integrace s IDE (Jak otevřít soubor v editoru z Tracy?)
+Jak otevřít soubor v editoru z Tracy? (Integrace s IDE)
 *******************************************************
 
 .[perex]
@@ -41,6 +41,14 @@ Pozor, ponechávejte dvojitá lomítka v cestách.
 
 To uděláte spuštěním soubor `install.cmd`. **Je potřeba ho spustit jako Správce.** Skript `open-editor.js` bude nyní obsluhovat protokol `editor://`.
 
+Aby bylo možné otevírat odkazy vygenerované na jiných serverech, jako třeba na ostrém serveru nebo v Dockeru, doplňte do `open-editor.js` ještě mapování vzdálené URL na lokální:
+
+```js
+	mappings: {
+		// vzdálená cesta: lokální cesta
+		'/var/www/nette.app': 'W:\\Nette.web\\_web',
+	}
+```
 
 Linux
 =====
@@ -81,10 +89,10 @@ Pokud používaný editor nemáte nainstalovaný z balíku, pravděpodobně nebu
 To uděláte spuštěním souboru `install.sh`. Skript `open-editor.sh` bude nyní obsluhovat protokol `editor://`.
 
 
-Mac OS X
-========
+macOS
+=====
 
-Pokud používáte editor TextMate nebo jiný, který umožňuje otevírat soubory přes speciální URL, bude vám stačit toto URL nastavit:
+Editory jako PhpStorm, TextMate apod. umožňují otevírání souborů přes speciální URL, kterou stačí nastavit:
 
 ```php
 // PhpStorm
@@ -97,7 +105,9 @@ Tracy\Debugger::$editor = 'mvim://open?url=file:///%file&line=%line';
 Tracy\Debugger::$editor = 'vscode://file/%file:%line';
 ```
 
-Akce `create file` nebo `fix it` bohužel na Mac OS X nefungují.
+Pokud používáte samostatnou Tracy, vložte řádek před `Tracy\Debugger::enable()`, pokud Nette, tak před `$configurator->enableTracy()` v `Bootstrap.php`.
+
+Akce `create file` nebo `fix it` bohužel na macOS nefungují.
 
 
 Ukázky
@@ -117,8 +127,8 @@ Vytvoření souboru:
 
 - Ve Firefoxu může být potřeba protokol povolit [nastavením |http://kb.mozillazine.org/Register_protocol#Firefox_3.5_and_above] `network.protocol-handler.expose.editor` na `false` a `network.protocol-handler.expose-all` na `true` v about:config.
 - Pokud vám to hned nepůjde, nepanikařte a zkuste párkrát refreshnout stránku před klikem na onen odkaz. Rozjede se to!
-- Zde je [link|https://www.winhelponline.com/blog/error-there-is-no-script-engine-for-file-extension-when-running-js-files/] na opravu případné chyby:
- Input Error: There is no script engine for file extension ".js" Maybe you associated ".js" file to another app, not JScript engine.
+- Zde je [link|https://www.winhelponline.com/blog/error-there-is-no-script-engine-for-file-extension-when-running-js-files/]
+ na opravu případné chyby: `Input Error: There is no script engine for file extension ".js"`, `Maybe you associated ".js" file to another app, not JScript engine.` respektive `pro příponu .js není k dispozici žádný skriptovací stroj`.
 
 V Google Chrome od verze 77 již neuvidíte zatržítko „Tento typ odkazů vždy otevírat v přidružené aplikaci“, když je editor spuštěný prostřednictvím odkazu. Řešení pro Windows: vytvořte soubor `fix.reg`:
 

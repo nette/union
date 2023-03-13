@@ -4,7 +4,7 @@ Co je DI kontejner?
 .[perex]
 Dependency injection kontejner (DIC) je třída, která umí instancovat a konfigurovat objekty.
 
-Možná vás to překvapí, ale v mnoha případech nepotřebujete dependency injection kontejner, abyste mohli využívat výhod dependency injection (krátce DI). Vždyť i v [předchozí kapitole|introduction] jsme si na konkrétních příkladech DI ukázali a žádný kontejner nebyl potřeba.
+Možná vás to překvapí, ale v mnoha případech nepotřebujete dependency injection kontejner, abyste mohli využívat výhod dependency injection (krátce DI). Vždyť i v [úvodní kapitole|introduction] jsme si na konkrétních příkladech DI ukázali a žádný kontejner nebyl potřeba.
 
 Pokud však potřebujete spravovat velké množství různých objektů s mnoha závislostmi, bude dependency injection container opravdu užitečný. Což je třeba případ webových aplikací postavených na frameworku.
 
@@ -46,11 +46,9 @@ Kontejner má zatím zapsané všechny údaje navrdo. Uděláme tedy další kro
 ```php
 class Container
 {
-	private array $parameters;
-
-	public function __construct(array $parameters)
-	{
-		$this->parameters = $parameters;
+	public function __construct(
+		private array $parameters,
+	) {
 	}
 
 	public function createDatabase(): Nette\Database\Connection
@@ -58,7 +56,7 @@ class Container
 		return new Nette\Database\Connection(
 			$this->parameters['db.dsn'],
 			$this->parameters['db.user'],
-			$this->parameters['db.password']
+			$this->parameters['db.password'],
 		);
 	}
 
@@ -79,12 +77,11 @@ Přidáme proto metodu `getService()`, která bude vracet stále stejné instanc
 ```php
 class Container
 {
-	private array $parameters;
 	private array $services = [];
 
-	public function __construct(array $parameters)
-	{
-		$this->parameters = $parameters;
+	public function __construct(
+		private array $parameters,
+	) {
 	}
 
 	public function getService(string $name): object
@@ -142,5 +139,4 @@ Jak vidíte, napsat DIC není nic složitého. Za připomenutí stojí, že samo
 Ruční vytváření a údržba třídy kontejneru se může poměrně rychle stát noční můrou. V další kapitole si proto povíme o [Nette DI Containeru|nette-container], který se umí generovat a aktualizovat téměř sám.
 
 
-{{composer: nette/di}}
 {{maintitle: Co je dependency injection kontejner?}}

@@ -1,0 +1,86 @@
+Model
+*****
+
+Ko naša aplikacija raste, kmalu ugotovimo, da moramo podobne operacije podatkovne zbirke izvajati na različnih lokacijah in v različnih predvajalnikih, na primer pridobivanje najnovejših objavljenih člankov. Če našo aplikacijo izboljšamo tako, da člankom dodamo zastavico, ki označuje stanje dela v nastajanju, moramo prav tako iti skozi vsa mesta v naši aplikaciji in dodati klavzulo where, da se prepričamo, da so izbrani samo dokončani članki.
+
+Na tej točki postane neposredno delo s podatkovno bazo nezadostno in pametneje si bo pomagati z novo funkcijo, ki vrača objavljene članke. In ko bomo pozneje dodali še eno klavzulo (na primer, da ne bomo prikazovali člankov s prihodnjim datumom), bomo svojo kodo urejali le na enem mestu.
+
+Funkcijo bomo umestili v razred `PostFacade` in jo poimenovali `getPublicArticles()`.
+
+V imeniku `app/Model/` bomo ustvarili naš modelni razred `PostFacade`, ki bo skrbel za naše članke:
+
+```php .{file:app/Model/PostFacade.php}
+<?php
+namespace App\Model;
+
+use Nette;
+
+final class PostFacade
+{
+	public function __construct(
+		private Nette\Database\Explorer $database,
+	) {
+	}
+
+	public function getPublicArticles()
+	{
+		return $this->database
+			->table('posts')
+			->where('created_at < ', new \DateTime)
+			->order('created_at DESC');
+	}
+}
+```
+
+V razredu posredujemo podatkovno zbirko Explorer:[api:Nette\Database\Explorer]. S tem bomo izkoristili moč [vsebnika DI |dependency-injection:passing-dependencies].
+
+Preklopili bomo na `HomePresenter`, ki ga bomo uredili tako, da se bomo znebili odvisnosti od `Nette\Database\Explorer` in jo nadomestili z novo odvisnostjo od našega novega razreda.
+
+```php .{file:app/Presenters/HomePresenter.php}
+<?php
+namespace App\Presenters;
+
+use App\Model\PostFacade;
+use Nette;
+
+final class HomePresenter extends Nette\Application\UI\Presenter
+{
+	public function __construct(
+		private PostFacade $facade,
+	) {
+	}
+
+	public function renderDefault(): void
+	{
+		$this->template->posts = $this->facade
+			->getPublicArticles()
+			->limit(5);
+	}
+}
+```
+
+V razdelku uporaba uporabljamo `App\Model\PostFacade`, zato lahko kodo PHP skrajšamo na `PostFacade`. Ta objekt zahtevamo v konstruktorju, ga zapišemo v lastnost `$facade` in ga uporabimo v metodi renderDefault.
+
+Zadnji preostali korak je naučiti vsebnik DI, da ustvari ta objekt. To običajno storimo tako, da v datoteko `config/services.neon` v razdelku `services` dodamo točko z navedbo polnega imena razreda in parametrov konstruktorja.
+S tem ga tako rekoč registriramo in objekt se nato imenuje **storitev**. Zahvaljujoč čarovniji, ki se imenuje [samodejna vključitev |dependency-injection:autowiring], nam običajno ni treba navesti parametrov konstruktorja, saj jih DI prepozna in posreduje samodejno. Tako bi bilo dovolj, če bi samo navedli ime razreda:
+
+```neon .{file:config/services.neon}
+...
+
+services:
+	- App\Model\PostFacade
+```
+
+Vendar vam te vrstice tudi ni treba dodati. V razdelku `search` na začetku `services.neon` je opredeljeno, da bo vse razrede, ki se končajo s `-Facade` ali `-Factory`, DI poiskal samodejno, kar velja tudi za `PostFacade`.
+
+
+Povzetek .[#toc-summary]
+========================
+
+Razred `PostFacade` v konstruktorju zahteva `Nette\Database\Explorer`, in ker je ta razred registriran v vsebniku DI, vsebnik ustvari ta primerek in ga posreduje. DI nam na ta način ustvari primerek `PostFacade` in ga v konstruktorju posreduje razredu HomePresenter, ki je zanj zaprosil. Nekakšna lutka Matrjoška v kodi :) Vse komponente zahtevajo le tisto, kar potrebujejo, in jim je vseeno, kje in kako se ustvari. Za ustvarjanje poskrbi vsebnik DI.
+
+.[note]
+Tukaj si lahko preberete več o [vbrizgavanju odvisnosti |dependency-injection:introduction] in o [konfiguraciji |nette:configuring].
+
+{{priority: -1}}
+{{sitename: Nette Quickstart}}

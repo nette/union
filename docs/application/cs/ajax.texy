@@ -4,19 +4,19 @@ AJAX & snippety
 <div class=perex>
 
 Moderní webové aplikace dnes běží napůl na serveru, napůl v prohlížeči. AJAX je tím klíčovým spojovacím prvkem. Jakou podporu nabízí Nette Framework?
-
 - posílání výřezů šablony (tzv. snippety)
 - předávání proměnných mezi PHP a JavaScriptem
 - debugování AJAXových aplikací
 
 </div>
 
-AJAXový požadavek lze detekovat metodou služby [zapouzdřující HTTP požadavek |http:request] `$httpRequest->isAjax()` (detekuje podle HTTP hlavičky `X-Requested-With`). Uvnitř presenteru je k dispozici "zkratka" v podobě metody `$this->isAjax()`.
+
+AJAXový požadavek
+=================
 
 AJAXový požadavek se nijak neliší od klasického požadavku - je zavolán presenter s určitým view a parametry. Je také věcí presenteru, jak bude na něj reagovat: může použít vlastní rutinu, která vrátí nějaký fragment HTML kódu (HTML snippet), XML dokument, JSON objekt nebo kód v JavaScriptu.
 
-.[caution]
-Nette neobsahuje implementaci AJAX požadavků na straně klienta. Doporučujeme knihovnu [Naja |https://naja.js.org] nebo [Nittro framework |https://www.nittro.org].
+Na straně serveru lze AJAXový požadavek detekovat metodou služby [zapouzdřující HTTP požadavek |http:request] `$httpRequest->isAjax()` (detekuje podle HTTP hlavičky `X-Requested-With`). Uvnitř presenteru je k dispozici "zkratka" v podobě metody `$this->isAjax()`.
 
 Pro odesílání dat prohlížeči ve formátu JSON lze využít předpřipravený objekt `payload`:
 
@@ -48,13 +48,50 @@ public function handleClick($param): void
 }
 ```
 
-Nicméně daleko silnější nástroj představuje vestavěná podpora AJAXových snippetů. Díky ní lze udělat z obyčejné aplikace AJAXovou prakticky několika řádky kódu. Jak to celé funguje, demonstruje příklad Fifteen, jehož kód najdete na [GitHubu |https://github.com/nette-examples/fifteen].
+
+Naja
+====
+
+K obsluze AJAXových požadavků na straně prohlížeče slouží [knihovna Naja |https://naja.js.org]. Tu [nainstalujte |https://naja.js.org/#/guide/01-install-setup-naja] jako node.js balíček (pro použití s aplikacemi Webpack, Rollup, Vite, Parcel a dalšími):
+
+```shell
+npm install naja
+```
+
+…nebo přímo vložte do šablony stránky:
+
+```html
+<script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
+```
+
+Aby se z obyčejného odkazu (signálu) nebo odeslání formuláře vytvořil AJAXový požadavek, stačí označit příslušný odkaz, formulář nebo tlačítko třídou `ajax`:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+nebo
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
+
+Snippety
+========
+
+Daleko silnější nástroj představuje vestavěná podpora AJAXových snippetů. Díky ní lze udělat z obyčejné aplikace AJAXovou prakticky několika řádky kódu. Jak to celé funguje, demonstruje příklad Fifteen, jehož kód najdete na [GitHubu |https://github.com/nette-examples/fifteen].
 
 Snippety fungují tak, že při prvotním (tedy neAJAXovém) požadavku se přenese celá stránka a poté se při každém již AJAXovém [subrequestu |components#Signál] (= požadavku na stejný presenter a view) přenáší pouze kód změněných částí ve zmíněném úložišti `payload`. K tomu slouží dva mechanismy: invalidace a renderování snippetů.
 
+Snippety vám mohou připomínat Hotwire pro Ruby on Rails nebo Symfony UX Turbo, nicméně Nette s nimi přišlo už o čtrnáct let dříve.
 
-Invalidace
-==========
+
+Invalidace snippetů
+===================
 
 Každý objekt třídy [Control |components] (což je i samotný Presenter) si umí zapamatovat, jestli při signálu došlo ke změnám, které si vyžadují jej překreslit. K tomu slouží dvojice metod `redrawControl()` a  `isControlInvalid()`. Příklad:
 
@@ -66,7 +103,6 @@ public function handleLogin(string $user): void
 	// ...
 }
 ```
-
 Nette však nabízí ještě jemnější rozlišení, než na úrovni komponent. Uvedené metody mohou totiž jako argument přijímat název tzv. "snippetu", nebo-li výstřižku. Lze tedy invalidovat (rozuměj: vynutit překreslení) na úrovni těchto snippetů (každý objekt může mít libovolné množství snippetů). Pokud se invaliduje celá komponenta, tak se i každý snippet překreslí. Komponenta je "invalidní" i tehdy, pokud je invalidní některá její subkomponenta.
 
 ```php
@@ -89,9 +125,7 @@ Díky invalidaci snippetů přesně víme, které části kterých prvků bude p
 Tagy `{snippet} … {/snippet}` .{toc: Tag snippet}
 =================================================
 
-Nette je založeno na myšlence **logických**, nikoliv **grafických prvků**, tj. objekt třídy Control nepředstavuje pravoúhlou oblast ve stránce, ale logickou komponentu, která se může renderovat i do více podob (např. hypotetická komponenta DataGrid může mít jednu metodu pro vykreslení mřížky a druhou pro vykreslení "stránkovadla" apod). Každý prvek může být navíc na stránce vykreslen vícekrát, nebo podmíněně, nebo  pokaždé s jinou šablonou atd.
-
-Není tedy možné jednoduše zavolat nějakou metodu `render` na každém invalidním objektu. K vykreslování je nutné přistupovat tak, jako když se kreslí celá stránka. Vykreslování stránky probíhá velmi podobně, jako u neAJAXového požadavku,  načtou se tytéž šablony atd. Klíčovým úkolem však je vypustit ty části, které se na výstup vůbec dostat nemají, a ty, které se vykreslit mají, přidružit s identifikátorem a poslat klientovi ve formátu, kterému bude obslužný JavaScript rozumět.
+Vykreslování stránky probíhá velmi podobně jako při běžném požadavku: načtou se stejné šablony atd. Podstatné však je vynechání částí, které se nemají dostat na výstup; ostatní části se přiřadí k identifikátoru a pošlou se uživateli ve formátu srozumitelném pro obslužný program JavaScriptu.
 
 
 Syntaxe
@@ -105,7 +139,7 @@ Pokud se uvnitř šablony nachází control nebo snippet, musíme jej obalit pá
 {/snippet}
 ```
 
-Snippetu jiného typu než `<div>` nebo snippetu s dalšími HTML atributy docílíme nejsnáze použitím atributové varianty:
+Snippetu jiného typu než `<div>` nebo snippetu s dalšími HTML atributy docílíme použitím atributové varianty:
 
 ```latte
 <article n:snippet="header" class="foo bar">
@@ -134,18 +168,19 @@ Dynamické snippety nelze invalidovat přímo (invalidace `item-1` neudělá vů
 V příkladu výše zkrátka musíte zajistit, aby při ajaxovém požadavku byla v proměnné `$list` pouze jedna položka a tedy aby ten cyklus `foreach` naplnil pouze jeden dynamický snippet:
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	/**
-	 * Zde je nějaká logika pro získání celého seznamu. Správně to patří do
-	 * modelu, ale pro příklad to nebudu komplikovat.
+	 * Tato metoda vrací data pro seznam.
+	 * Obvykle se jedná pouze o vyžádání dat z modelu.
+	 * Pro účely tohoto příkladu jsou data zadána natvrdo.
 	 */
 	private function getTheWholeList(): array
 	{
 		return [
 			'První',
 			'Druhý',
-			'Třetí'
+			'Třetí',
 		];
 	}
 
@@ -248,5 +283,3 @@ public function handleChangeCountBasket(int $id, int $count): void
 
 }
 ```
-
-{{composer: nette/application}}

@@ -15,42 +15,31 @@ use Nette;
 /**
  * Provides access to individual files that have been uploaded by a client.
  *
- * @property-read string $name
- * @property-read string $sanitizedName
- * @property-read string $untrustedFullPath
- * @property-read string|null $contentType
- * @property-read int $size
- * @property-read string $temporaryFile
- * @property-read int $error
- * @property-read bool $ok
- * @property-read string|null $contents
+ * @property-deprecated string $name
+ * @property-deprecated string $sanitizedName
+ * @property-deprecated string $untrustedFullPath
+ * @property-deprecated string|null $contentType
+ * @property-deprecated int $size
+ * @property-deprecated string $temporaryFile
+ * @property-deprecated int $error
+ * @property-deprecated bool $ok
+ * @property-deprecated string|null $contents
  */
 final class FileUpload
 {
 	use Nette\SmartObject;
 
-	public const ImageMimeTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/webp'];
+	public const ImageMimeTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/webp', 'image/avif'];
 
 	/** @deprecated use FileUpload::ImageMimeTypes */
 	public const IMAGE_MIME_TYPES = self::ImageMimeTypes;
 
-	/** @var string */
-	private $name;
-
-	/** @var string|null */
-	private $fullPath;
-
-	/** @var string|false|null */
-	private $type;
-
-	/** @var int */
-	private $size;
-
-	/** @var string */
-	private $tmpName;
-
-	/** @var int */
-	private $error;
+	private string $name;
+	private string|null $fullPath;
+	private string|false|null $type = null;
+	private int $size;
+	private string $tmpName;
+	private int $error;
 
 
 	public function __construct(?array $value)
@@ -75,6 +64,7 @@ final class FileUpload
 	 */
 	public function getName(): string
 	{
+		trigger_error(__METHOD__ . '() is deprecated, use getUntrustedName()', E_USER_DEPRECATED);
 		return $this->name;
 	}
 
@@ -137,7 +127,7 @@ final class FileUpload
 
 
 	/**
-	 * Returns the path of the temporary location of the uploaded file.
+	 * Returns the size of the uploaded file in bytes.
 	 */
 	public function getSize(): int
 	{
@@ -193,9 +183,8 @@ final class FileUpload
 
 	/**
 	 * Moves an uploaded file to a new location. If the destination file already exists, it will be overwritten.
-	 * @return static
 	 */
-	public function move(string $dest)
+	public function move(string $dest): static
 	{
 		$dir = dirname($dest);
 		Nette\Utils\FileSystem::createDir($dir);
@@ -205,7 +194,7 @@ final class FileUpload
 			[$this->tmpName, $dest],
 			function (string $message) use ($dest): void {
 				throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'. $message");
-			}
+			},
 		);
 		@chmod($dest, 0666); // @ - possible low permission to chmod
 		$this->tmpName = $dest;

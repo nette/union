@@ -1,0 +1,27 @@
+Pacchetto nette/utils
+*********************
+- [Array |Arrays]
+- [Callback |Callback]
+- [Data e ora |datetime]
+- [Sistema di file |filesystem]
+- [Cercatore |Finder]
+- [Aiutanti |helpers]
+- [Elementi HTML |HTML Elements]
+- [Immagini |Images]
+- [JSON |JSON]
+- [Paginatore |paginator]
+- [Stringhe casuali |random]
+- [Riflessione PHP |reflection]
+- [Stringhe |Strings]
+- [Galleggianti |Floats]
+- [SmartObject]
+- [StaticClass]
+- [Tipi PHP |type]
+- [Validatori |validators]
+
+
+Altre utilità
+*************
+- [NEON |neon:]
+- [Hashing di password |security:passwords]
+- [Parser e costruttore di URL |http:urls]

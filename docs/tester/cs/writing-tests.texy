@@ -7,7 +7,7 @@ Už když test píšete, můžete jej jednoduše spouštět a zjišťovat, jestl
 
 Test můžete dokonce otevřít v prohlížeči. Ale především - tím, že jej spustíte, tak test vykonáte. Okamžitě zjistíte, jestli prošel, nebo selhal.
 
-V úvodní kapitole jsme si [ukázali|guide#Píšeme testy] opravdu triviální test práce s polem. Teď už si vytvoříme vlastní třídu, kterou budeme testovat, byť bude také jednoduchá.
+V úvodní kapitole jsme si [ukázali|guide#Čím je Tester unikátní?] opravdu triviální test práce s polem. Teď už si vytvoříme vlastní třídu, kterou budeme testovat, byť bude také jednoduchá.
 
 Začneme od typické adresářové struktury pro knihovnu nebo projekt. Důležité je oddělit testy od zbytku kódu, například kvůli deploymentu, protože testy na ostrý server nahrávat nechceme. Struktura může být třeba taková:
 
@@ -29,8 +29,8 @@ A nyní vytvoříme jednotlivé soubory. Začneme od testované třídy, kterou 
 <?php
 class Rectangle
 {
-	private $width;
-	private $height;
+	private float $width;
+	private float $height;
 
 	public function __construct(float $width, float $height)
 	{
@@ -80,7 +80,7 @@ Tester\Environment::setup();                # inicializace Nette Tester
 
 // a další konfigurace (jde jen o příklad, v našem případě nejsou potřeba)
 date_default_timezone_set('Europe/Prague');
-define('TMP_DIR', '/tmp/app-tests');
+define('TmpDir', '/tmp/app-tests');
 ```
 
 .[note]
@@ -113,9 +113,11 @@ V našem případě má záporná hodnota vyhodit výjimku, což ověříme pomo
 
 ```php .{file:tests/RectangleTest.php}
 // šířka nesmí být záporná
-Assert::exception(function () {
-	$rect = new Rectangle(-1, 20);
-}, InvalidArgumentException::class, 'The dimension must not be negative.');
+Assert::exception(
+	fn() => new Rectangle(-1, 20),
+	InvalidArgumentException::class,
+	'The dimension must not be negative.',
+);
 ```
 
 A obdobný test přidáme pro výšku. Nakonec otestujeme, že `isSquare()` vrátí `true`, pokud jsou oba rozměry stejné. Zkuste si jako cvičení takové testy napsat.
@@ -126,14 +128,11 @@ Přehlednější testy
 
 Velikost souboru s testem může narůstat a rychle se stane nepřehledným. Proto je praktické jednotlivé testované oblasti seskupit do samostatných funkcí.
 
-Nejprve si ukážeme jednodušší, avšak elegantní variantu, a to pomocí globální funkce `test()`, kterou si prosím přidejte do souboru `bootstrap.php`:
+Nejprve si ukážeme jednodušší, avšak elegantní variantu, a to pomocí globální funkce `test()`. Tester ji nevytváří automaticky, aby nedošlo ke kolizi, kdybyste měli v kódu funkci se stejným jménem. Vytvoří ji až metoda `setupFunctions()`, kterou zavolejte v souboru `bootstrap.php`:
 
 ```php .{file:tests/bootstrap.php}
-function test(string $description, Closure $fn): void
-{
-	echo $description, "\n";
-	$fn();
-}
+Tester\Environment::setup();
+Tester\Environment::setupFunctions();
 ```
 
 Pomocí této funkce můžeme testovací soubor hezky rozčlenit na pojmenované celky. Při spuštění se budou postupně vypisovat popisky.
@@ -157,13 +156,23 @@ test('obecný čtverec', function () {
 });
 
 test('rozměry nesmí být záporné', function () {
-	Assert::exception(function () {
-		$rect = new Rectangle(-1, 20);
-	}, InvalidArgumentException::class);
+	Assert::exception(
+		fn() => new Rectangle(-1, 20),
+        InvalidArgumentException::class,
+	);
 
-	Assert::exception(function () {
-		$rect = new Rectangle(10, -1);
-	}, InvalidArgumentException::class);
+	Assert::exception(
+		fn() => new Rectangle(10, -1),
+        InvalidArgumentException::class,
+	);
+});
+```
+
+Pokud potřebujete před nebo po každém testu spustit kód, předejte ho funkci `setUp()` resp. `tearDown()`:
+
+```php
+setUp(function () {
+	// inicializační kód, který se spustí před každým test()
 });
 ```
 

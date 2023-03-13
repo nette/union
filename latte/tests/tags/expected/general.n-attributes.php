@@ -2,6 +2,8 @@
 %A%
 final class Template%a% extends Latte\Runtime\Template
 {
+	public const Source = '%a%.latte';
+
 	public const Blocks = [
 		['bl' => 'blockBl'],
 	];
@@ -107,7 +109,7 @@ final class Template%a% extends Latte\Runtime\Template
 		$ʟ_tag[0] = '';
 		if (true) /* line %d% */ {
 			echo '<';
-			echo $ʟ_tmp = ('li');
+			echo $ʟ_tmp = 'li' /* line %d% */;
 			$ʟ_tag[0] = '</' . $ʟ_tmp . '>' . $ʟ_tag[0];
 			echo '>';
 		}
@@ -226,7 +228,7 @@ final class Template%a% extends Latte\Runtime\Template
 		$ʟ_tag[1] = '';
 		if (true) /* line %d% */ {
 			echo '<';
-			echo $ʟ_tmp = ('b');
+			echo $ʟ_tmp = 'b' /* line %d% */;
 			$ʟ_tag[1] = '</' . $ʟ_tmp . '>' . $ʟ_tag[1];
 			echo '>';
 		}
@@ -236,7 +238,7 @@ final class Template%a% extends Latte\Runtime\Template
 		$ʟ_tag[2] = '';
 		if (false) /* line %d% */ {
 			echo '<';
-			echo $ʟ_tmp = ('b');
+			echo $ʟ_tmp = 'b' /* line %d% */;
 			$ʟ_tag[2] = '</' . $ʟ_tmp . '>' . $ʟ_tag[2];
 			echo '>';
 		}
@@ -248,7 +250,7 @@ final class Template%a% extends Latte\Runtime\Template
 		$ʟ_tag[3] = '';
 		if (true) /* line %d% */ {
 			echo '<';
-			echo $ʟ_tmp = ('b');
+			echo $ʟ_tmp = 'b' /* line %d% */;
 			$ʟ_tag[3] = '</' . $ʟ_tmp . '>' . $ʟ_tag[3];
 			echo ($ʟ_tmp = array_filter(['first'])) ? ' class="' . LR\Filters::escapeHtmlAttr(implode(" ", array_unique($ʟ_tmp))) . '"' : "" /* line %d% */;
 			echo '>';
@@ -272,7 +274,7 @@ final class Template%a% extends Latte\Runtime\Template
 				foreach ([1] as $foo) /* line %d% */ {
 					if (0) /* line %d% */ {
 						echo '<';
-						echo $ʟ_tmp = ('span');
+						echo $ʟ_tmp = 'span' /* line %d% */;
 						$ʟ_tag[4] = '</' . $ʟ_tmp . '>' . $ʟ_tag[4];
 						echo '>';
 					}
@@ -298,7 +300,7 @@ final class Template%a% extends Latte\Runtime\Template
 		$ʟ_tag[5] = '';
 		if (true) /* line %d% */ {
 			echo '<';
-			echo $ʟ_tmp = ('div');
+			echo $ʟ_tmp = 'div' /* line %d% */;
 			$ʟ_tag[5] = '</' . $ʟ_tmp . '>' . $ʟ_tag[5];
 			echo '>';
 		}
@@ -310,7 +312,7 @@ final class Template%a% extends Latte\Runtime\Template
 			$ʟ_tag[7] = '';
 			if (false) /* line %d% */ {
 				echo '<';
-				echo $ʟ_tmp = ('span');
+				echo $ʟ_tmp = 'span' /* line %d% */;
 				$ʟ_tag[7] = '</' . $ʟ_tmp . '>' . $ʟ_tag[7];
 				echo '>';
 			}
@@ -396,7 +398,7 @@ final class Template%a% extends Latte\Runtime\Template
 		try {
 			$ʟ_tag[8] = '';
 			echo '<';
-			echo $ʟ_tmp = (Latte\Essential\Nodes\NTagNode::check('div', 'span'));
+			echo $ʟ_tmp = LR\Filters::safeTag(Latte\Essential\Nodes\NTagNode::check('div', 'span', false)) /* line %d% */;
 			$ʟ_tag[8] = '</' . $ʟ_tmp . '>' . $ʟ_tag[8];
 			echo '>';
 			ob_start();
@@ -420,7 +422,7 @@ final class Template%a% extends Latte\Runtime\Template
 		try {
 			$ʟ_tag[9] = '';
 			echo '<';
-			echo $ʟ_tmp = (Latte\Essential\Nodes\NTagNode::check('div', 'span'));
+			echo $ʟ_tmp = LR\Filters::safeTag(Latte\Essential\Nodes\NTagNode::check('div', 'span', false)) /* line %d% */;
 			$ʟ_tag[9] = '</' . $ʟ_tmp . '>' . $ʟ_tag[9];
 			echo '>';
 			ob_start();
@@ -443,7 +445,7 @@ final class Template%a% extends Latte\Runtime\Template
 		if (1) /* line %d% */ {
 			$ʟ_tag[10] = '';
 			echo '<';
-			echo $ʟ_tmp = (Latte\Essential\Nodes\NTagNode::check('div', 'span'));
+			echo $ʟ_tmp = LR\Filters::safeTag(Latte\Essential\Nodes\NTagNode::check('div', 'span', false)) /* line %d% */;
 			$ʟ_tag[10] = '</' . $ʟ_tmp . '>' . $ʟ_tag[10];
 			echo '>n:tag & n:if=1';
 			echo $ʟ_tag[10];
@@ -452,7 +454,7 @@ final class Template%a% extends Latte\Runtime\Template
 		if (0) /* line %d% */ {
 			$ʟ_tag[11] = '';
 			echo '<';
-			echo $ʟ_tmp = (Latte\Essential\Nodes\NTagNode::check('div', 'span'));
+			echo $ʟ_tmp = LR\Filters::safeTag(Latte\Essential\Nodes\NTagNode::check('div', 'span', false)) /* line %d% */;
 			$ʟ_tag[11] = '</' . $ʟ_tmp . '>' . $ʟ_tag[11];
 			echo '>n:tag & n:if=0';
 			echo $ʟ_tag[11];
@@ -474,7 +476,7 @@ final class Template%a% extends Latte\Runtime\Template
 	}
 
 
-	/** n:block="bl" on line %d% */
+	/** n:block="bl" on line 18 */
 	public function blockBl(array $ʟ_args): void
 	{
 		extract($this->params);

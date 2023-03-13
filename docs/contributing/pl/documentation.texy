@@ -1,0 +1,69 @@
+Wkład w dokumentację
+********************
+
+.[perex]
+Wkład w dokumentację jest jednym z najbardziej wartościowych działań, ponieważ pomaga innym zrozumieć framework.
+
+
+Jak pisać? .[#toc-how-to-write]
+-------------------------------
+
+Dokumentacja jest przeznaczona przede wszystkim dla osób, które są nowe w temacie. Dlatego powinna spełniać kilka ważnych punktów:
+
+- Zacznij od prostych i ogólnych tematów. Przejdź do bardziej zaawansowanych tematów na końcu
+- Staraj się wyjaśnić temat tak jasno, jak to możliwe. Na przykład, spróbuj najpierw wytłumaczyć temat koledze.
+- Podawaj tylko te informacje, które użytkownik rzeczywiście musi znać dla danego tematu
+- Upewnij się, że informacje są dokładne. Testuj każdy kod
+- Bądź zwięzły - skróć to, co piszesz o połowę. A potem nie krępuj się zrobić tego ponownie
+- Oszczędnie używaj wyróżnień, od pogrubionych czcionek po ramki typu `.[note]`
+- Stosuj się do [Standardów Kodowania |Coding Standard] w kodzie
+
+Ucz się również [składni |syntax]. Aby uzyskać podgląd artykułu podczas pisania, możesz użyć [edytora |https://editor.nette.org/] podglądu.
+
+
+Mutacje językowe .[#toc-language-mutations]
+-------------------------------------------
+
+Angielski jest językiem podstawowym, więc twoje zmiany powinny być w języku angielskim. Jeśli angielski nie jest twoją mocną stroną, użyj [DeepL Translator |https://www.deepl.com/translator] i inni sprawdzą twój tekst.
+
+Tłumaczenie na inne języki zostanie wykonane automatycznie po zatwierdzeniu i dopracowaniu twojej edycji.
+
+
+Trywialne edycje .[#toc-trivial-edits]
+--------------------------------------
+
+Aby wnieść swój wkład w dokumentację, musisz mieć konto na [GitHubie |https://github.com].
+
+Najłatwiejszym sposobem na dokonanie niewielkiej zmiany w dokumentacji jest użycie linków na końcu każdej strony:
+
+- *Show on GitHub* otwiera wersję źródłową strony na GitHubie. Następnie wystarczy nacisnąć przycisk `E` i można rozpocząć edycję (trzeba być zalogowanym na GitHubie)
+- *Open preview* otwiera edytor, w którym można od razu zobaczyć ostateczną formę wizualną
+
+Ponieważ [edytor |https://editor.nette.org/] podglądu nie ma możliwości zapisywania zmian bezpośrednio na GitHubie, należy skopiować tekst źródłowy do schowka (za pomocą przycisku *Copy to clipboard*), a następnie wkleić go do edytora na GitHubie.
+Poniżej pola edycyjnego znajduje się formularz do przesłania. Tutaj nie zapomnij krótko podsumować i wyjaśnić powodu swojej edycji. Po przesłaniu tworzony jest tzw. pull request (PR), który można dalej edytować.
+
+
+Większe edycje .[#toc-larger-edits]
+-----------------------------------
+
+Bardziej właściwe jest zapoznanie się z podstawami pracy z systemem kontroli wersji Git, niż poleganie wyłącznie na interfejsie GitHub. Jeśli nie jesteś zaznajomiony z Gitem, możesz zapoznać się z [git - prostym przewodnikiem |https://rogerdudler.github.io/git-guide/] i rozważyć użycie jednego z wielu dostępnych [klientów graficznych |https://git-scm.com/downloads/guis].
+
+Edytuj dokumentację w następujący sposób:
+
+1) na GitHubie utwórz [fork |https://help.github.com/en/github/getting-started-with-github/fork-a-repo] repozytorium [nette/docs |https://github.com/nette/docs]
+2) [sklonuj |https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository] to repozytorium na swój komputer
+3) następnie wprowadź zmiany w [odpowiedniej gałęzi |#Documentation Structure]
+4) sprawdzić, czy w tekście nie ma dodatkowych spacji za pomocą narzędzia [Code-Checker |code-checker:]
+5) zapisz (commit) zmiany
+6) jeśli jesteś zadowolony ze zmian, wepchnij je na GitHub do swojego forka
+7) stamtąd prześlij je do repozytorium `nette/docs` tworząc [pull request|https://help.github.com/articles/creating-a-pull-request] (PR)
+
+Powszechne jest otrzymywanie komentarzy z sugestiami. Śledź proponowane zmiany i włączaj je. Dodaj sugerowane zmiany jako nowe commity i wyślij je ponownie do GitHub. Nigdy nie twórz nowego pull requesta tylko po to, by zmodyfikować istniejący.
+
+
+Struktura dokumentacji .[#toc-documentation-structure]
+------------------------------------------------------
+
+Cała dokumentacja znajduje się na GitHubie w repozytorium [nette/docs |https://github.com/nette/docs]. Aktualna wersja znajduje się w gałęzi master, natomiast starsze wersje znajdują się w gałęziach takich jak `doc-3.x`, `doc-2.x`.
+
+Zawartość każdej gałęzi podzielona jest na główne foldery reprezentujące poszczególne obszary dokumentacji. Na przykład `application/` odpowiada https://doc.nette.org/en/application, `latte/` odpowiada https://latte.nette.org, itd. Każdy z tych folderów zawiera podfoldery reprezentujące mutacje językowe (`cs`, `en`, ...) oraz opcjonalnie podfolder `files` z obrazkami, które można wstawić na strony w dokumentacji.

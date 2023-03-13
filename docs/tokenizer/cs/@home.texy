@@ -2,9 +2,7 @@ Tokenizer: tokenizace řetězců
 *****************************
 
 .[perex]
-Tokenizer je velmi jednoduchý nástroj, který používá regulární výrazy k rozdělení řetězce do tokenů. K čemu je to užitečné? Můžete si vytvořit vlastní jazyky.
-
-*(Pro zkušenější programátory)*
+Tokenizer je velmi jednoduchý nástroj, který používá regulární výrazy k rozdělení řetězce do tokenů. **Tato knihovna se již nevyvíjí.**
 
 Instalace:
 
@@ -91,11 +89,8 @@ class Parser
 	const T_WHITESPACE = 2;
 	const T_STRING = 3;
 
-	/** @var Tokenizer */
-	private $tokenizer;
-
-	/** @var Stream */
-	private $stream;
+	private Tokenizer $tokenizer;
+	private Stream $stream;
 
 	public function __construct()
 	{
@@ -207,5 +202,4 @@ $stream->isCurrent(T_AT, '@');
 Poslední metoda `reset()` vrací kurzor na začátek, takže můžete opakovat průchod tokeny.
 
 
-{{composer: nette/tokenizer}}
 {{leftbar: utils:@left-menu}}

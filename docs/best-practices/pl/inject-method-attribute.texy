@@ -1,0 +1,67 @@
+Metody i atrybuty wstrzykiwania
+*******************************
+
+.[perex]
+W tym artykule skupimy się na różnych sposobach przekazywania zależności do prezenterów w frameworku Nette. Porównamy preferowaną metodę, jaką jest konstruktor, z innymi opcjami, takimi jak `inject` metody i atrybuty.
+
+Również dla prezenterów przekazywanie zależności za pomocą [konstruktora |dependency-injection:passing-dependencies#Constructor Injection] jest preferowanym sposobem.
+Jednakże, jeśli stworzysz wspólnego przodka, z którego dziedziczą inne prezentery (np. BasePresenter), a ten przodek również posiada zależności, pojawia się problem, który nazywamy [piekłem |dependency-injection:passing-dependencies#Constructor hell] konstruktora.
+Można to obejść, stosując alternatywne metody, które obejmują metody wstrzykiwania i atrybuty (adnotacje).
+
+
+Metody `inject*()` .[#toc-inject-methods]
+=========================================
+
+Jest to forma przekazywania zależności za pomocą [seterów |dependency-injection:passing-dependencies#Setter Injection]. Nazwy tych seterów zaczynają się od przedrostka inject.
+Nette DI automatycznie wywołuje tak nazwane metody zaraz po utworzeniu instancji prezentera i przekazuje do nich wszystkie wymagane zależności. Dlatego muszą być one zadeklarowane jako publiczne.
+
+`inject*()` metody można uznać za rodzaj rozszerzenia konstruktora na wiele metod. Dzięki temu `BasePresenter` może przyjmować zależności poprzez inną metodę i pozostawić konstruktor wolny dla swoich potomków:
+
+```php
+abstract class BasePresenter extends Nette\Application\UI\Presenter
+{
+	private Foo $foo;
+
+	public function injectBase(Foo $foo): void
+	{
+		$this->foo = $foo;
+	}
+}
+
+class MyPresenter extends BasePresenter
+{
+	private Bar $bar;
+
+	public function __construct(Bar $bar)
+	{
+		$this->bar = $bar;
+	}
+}
+```
+
+Prezenter może zawierać dowolną liczbę metod `inject*()`, a każda z nich może mieć dowolną liczbę parametrów. Jest to również świetne rozwiązanie dla przypadków, w których prezenter [składa się z cech |presenter-traits], a każda z nich wymaga własnej zależności.
+
+
+`Inject` Atrybuty .[#toc-inject-attributes]
+===========================================
+
+Jest to forma wstrzyknięcia [do właściwości |dependency-injection:passing-dependencies#Property Injection]. Wystarczy wskazać, które właściwości powinny zostać wstrzyknięte, a Nette DI automatycznie przekazuje zależności zaraz po utworzeniu instancji prezentera. Aby je wstawić, konieczne jest zadeklarowanie ich jako publicznych.
+
+Właściwości oznaczane są atrybutem: (wcześniej używano adnotacji `/** @inject */`)
+
+```php
+use Nette\DI\Attributes\Inject; // ta linia jest ważna.
+
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+	#[Inject]
+	public Cache $cache;
+}
+```
+
+Zaletą tej metody przekazywania zależności była bardzo oszczędna forma notacji. Jednak po wprowadzeniu [promocji właściwości konstru |https://blog.nette.org/pl/php-8-0-kompletny-przeglad-nowosci#toc-constructor-property-promotion]ktora, korzystanie z konstruktora wydaje się łatwiejsze.
+
+Z drugiej strony, metoda ta cierpi na te same wady, co przekazywanie zależności do właściwości w ogóle: nie mamy kontroli nad zmianami w zmiennej, a jednocześnie zmienna staje się częścią publicznego interfejsu klasy, co jest niepożądane.
+
+
+{{sitename: Najlepsze praktyki}}

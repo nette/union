@@ -1,0 +1,104 @@
+Настройка базы данных
+*********************
+
+.[perex]
+Обзор вариантов конфигурации для базы данных Nette.
+
+Если вы используете не весь фреймворк, а только эту библиотеку, прочитайте [Как загрузить файл конфигурации|bootstrap:].
+
+
+Одно подключение .[#toc-single-connection]
+------------------------------------------
+
+Настройте одно подключение к базе данных:
+
+```neon
+database:
+	# DSN, единственный обязательный ключ
+	dsn: "sqlite:%appDir%/Model/demo.db"
+	user: ...
+	password: ...
+```
+
+Создает сервисы `Nette\Database\Connection` и `Nette\Database\Explorer`, которые обычно передаются [автоподключением |dependency-injection:autowiring] или ссылкой на [их имя |#DI Services].
+
+Другие настройки:
+
+```neon
+database:
+	# отображает панель Database в Tracy Bar
+	debugger: ...     # (bool) по умолчанию true
+
+	# отображает запрос EXPLAIN в Tracy Bar
+	explain: ...      # (bool) по умолчанию true
+
+	# включить автосвязывание для этого соединения
+	autowired: ...    # (bool) по умолчанию true для первого соединения
+
+	# условные обозначения таблицы: discovered, static, или имя класса
+	conventions: discovered  # (string) по умолчанию 'discovered'
+
+	options:
+		# подключаться к базе данных только при необходимости?
+		lazy: ...     # (bool) по умолчанию false
+
+		# Класс драйвера базы данных PHP
+		driverClass:  # (string)
+
+		# только для MySQL: устанавливает sql_mode
+		sqlmode:      # (string)
+
+		# только для MySQL: устанавливает SET NAMES
+		charset:      # (string) по умолчанию 'utf8mb4' ('utf8' до v5.5.3)
+
+		# только для Oracle и SQLite: формат даті
+		formatDateTime: # (string) по умолчанию 'U'
+```
+
+Ключ `options` может содержать другие опции, которые можно найти в [документации по драйверу PDO |https://www.php.net/manual/en/pdo.drivers.php], например:
+
+```neon
+база данных:
+	options:
+		PDO::MYSQL_ATTR_COMPRESS: true
+```
+
+
+Множественные подключения .[#toc-multiple-connections]
+------------------------------------------------------
+
+В конфигурации мы можем определить больше соединений с базой данных, разделив их на именованные секции:
+
+```neon
+database:
+	main:
+		dsn: 'mysql:host=127.0.0.1;dbname=test'
+		user: root
+		password: password
+
+	another:
+		dsn: 'sqlite::memory:'
+```
+
+Автоподключение включено только для сервисов из первой секции. Это можно изменить с помощью `autowired: false` или `autowired: true`.
+
+
+Услуги DI .[#toc-di-services]
+-----------------------------
+
+Эти сервисы добавляются в контейнер DI, где `###` представляет собой имя соединения:
+
+| Имя | Тип | Описание
+|----------------------------------------------------------
+| `database.###.connection` | [api:Nette\Database\Connection] | database connection
+| `database.###.explorer` | [api:Nette\Database\Explorer] | [Database Explorer |explorer]
+
+
+Если задать только одно соединение, то имена сервисов будут `database.default.connection` и `database.default.explorer`. Если задать несколько соединений, как в приведенном примере, то имена будут соответствовать разделам, т.е. `database.main.connection`, `database.main.explorer`, а затем `database.another.connection` и `database.another.explorer`.
+
+Неаутентифицированные сервисы мы передаем в явном виде, ссылаясь на их имя:
+
+```neon
+services:
+	- UserFacade(@database.another.connection)
+```

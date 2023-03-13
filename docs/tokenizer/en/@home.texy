@@ -2,9 +2,7 @@ Tokenizer: String Tokenization
 ******************************
 
 .[perex]
-Tokenizer is a simple tool that uses regular expressions to split given string into tokens. What the hell is that good for, you might ask? Well, you can create your own languages.
-
-*(For more experienced programmers)*
+Tokenizer is a simple tool that uses regular expressions to split given string into tokens. **This library is no longer being developed.**
 
 Installation:
 
@@ -91,11 +89,8 @@ class Parser
 	const T_WHITESPACE = 2;
 	const T_STRING = 3;
 
-	/** @var Tokenizer */
-	private $tokenizer;
-
-	/** @var Stream */
-	private $stream;
+	private Tokenizer $tokenizer;
+	private Stream $stream;
 
 	public function __construct()
 	{
@@ -207,5 +202,4 @@ $stream->isCurrent(T_AT, '@');
 And the last method `reset()` resets the cursor, so you can iterate the token stream again.
 
 
-{{composer: nette/tokenizer}}
 {{leftbar: utils:@left-menu}}

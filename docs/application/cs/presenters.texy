@@ -31,7 +31,7 @@ Obrázek představuje seznam metod, které se postupně od shora dolů volají, 
 `__construct()`
 ---------------
 
-Konstruktor nepatří tak úplně do životního cyklu presenteru, protože se volá v okamžiku vytváření objektu. Ale uvádíme jej kvůli důležitosti, kvůli předávání závislostí.
+Konstruktor nepatří tak úplně do životního cyklu presenteru, protože se volá v okamžiku vytváření objektu. Ale uvádíme jej kvůli důležitosti. Konstruktor (společně s [metodou inject|best-practices:inject-method-attribute]) slouží k předávání závislostí.
 
 Presenter by neměl obstarávat byznys logiku aplikace, zapisovat a číst z databáze, provádět výpočty atd. Od toho jsou třídy z vrstvy, kterou označujeme jako model. Například třída `ArticleRepository` může mít na starosti načítání a ukládání článků. Aby s ní mohl presenter pracovat, nechá si ji [předat pomocí dependency injection |dependency-injection:passing-dependencies]:
 
@@ -39,12 +39,9 @@ Presenter by neměl obstarávat byznys logiku aplikace, zapisovat a číst z dat
 ```php
 class ArticlePresenter extends Nette\Application\UI\Presenter
 {
-	/** @var ArticleRepository */
-	private $articles;
-
-	public function __construct(ArticleRepository $articles)
-	{
-		$this->articles = $articles;
+	public function __construct(
+		private ArticleRepository $articles,
+	) {
 	}
 }
 ```
@@ -114,97 +111,18 @@ Volá se na konci životního cyklu presenteru.
 Odeslání odpovědi
 =================
 
-Odpovědí presenteru může být HTML stránka, odeslání souboru, JSON nebo třeba přesměrování na jinou stránku.
+Odpovědí presenteru je zpravidla [vykreslení šablony s HTML stránkou|templates], ale může jí být také odeslání souboru, JSON nebo třeba přesměrování na jinou stránku.
 
-Kdykoliv během životního cyklu můžeme některou z následujících metod odeslat odpověď, čímž se presenter ukončí:
+Kdykoliv během životního cyklu můžeme některou z následujících metod odeslat odpověď a zároveň tak ukončit presenter:
 
 - `redirect()`, `redirectPermanent()`, `redirectUrl()` a `forward()` [přesměruje|#přesměrování]
 - `error()` ukončí presenter [kvůli chybě|#Chyba 404 a spol.]
-- `sendJson($data)` presenter ukončí a odešle data ve formátu JSON
-- `sendTemplate()` presenter ukončí a ihned vykreslí šablonu
+- `sendJson($data)` presenter ukončí a [odešle data |#Odeslání JSON] ve formátu JSON
+- `sendTemplate()` presenter ukončí a ihned [vykreslí šablonu |templates]
 - `sendResponse($response)` presenter ukončí a odešle [vlastní odpověď|#Odpovědi]
 - `terminate()` presenter ukončí bez odpovědi
 
-Příklad odeslání JSONu:
-
-```php
-public function actionData(): void
-{
-	$data = ['hello' => 'nette'];
-	$this->sendJson($data);
-}
-```
-
-**Teď něco důležitého**: pokud explicitně neřekneme, co má presenter odpovědět, bude odpovědí [vykreslení šablony|#Vykreslení šablony] s HTML stránkou. Proč? Protože v 99 % případů chceme vykreslit šablonu, tudíž presenter tohle chování bere jako výchozí a chce nám ulehčit práci.
-
-
-Vykreslení šablony
-==================
-
-Nette používá šablonovací systém [Latte |latte:]. Jednak proto, že jde o nejlépe zabezpečený šablonovací systém pro PHP, a zároveň také systém nejintuitivnější. Nemusíte se učit mnoho nového, vystačíte si se znalostí PHP a několika značek.
-
-Je obvyklé, že stránka se složí ze šablony layoutu + šablony dané akce. Takhle třeba může vypadat šablona layoutu, všimněte si bloků `{block}` a značky `{include}`:
-
-```latte
-<!DOCTYPE html>
-<html>
-<head>
-	<title>{block title}My App{/block}</title>
-</head>
-<body>
-	<header>...</header>
-	{include content}
-	<footer>...</footer>
-</body>
-</html>
-```
-
-A tohle bude šablona akce:
-
-```latte
-{block title}Homepage{/block}
-
-{block content}
-<h1>Homepage</h1>
-...
-{/block}
-```
-
-Ta definuje blok `content`, který se vloží na místo `{include content}` v layoutu, a také re-definuje blok `title`, kterým přepíše `{block title}` v layoutu. Zkuste si představit výsledek.
-
-Cestu k šablonám odvodí presenter podle jednoduché logiky. Třeba u presenteru `Product` a akce `show` zkusí, zda existuje jeden z těchto souborů umístěných relativně od adresáře s třídou presenteru:
-
-- `templates/Product/show.latte`
-- `templates/Product.show.latte`
-
-Pokud šablonu nenajde, je odpovědí [chyba 404|#Chyba 404 a spol.].
-
-Taktéž se pokusí dohledat layout:
-
-- `templates/Product/@layout.latte`
-- `templates/Product.@layout.latte`
-- `templates/@layout.latte` layout společný pro více presenterů
-
-Umístění, kde se dohledávají šablony, můžete [snadno změnit|#Šablony].
-
-
-Proměnné v šabloně
-------------------
-
-Proměnné do šablony předáváme tak, že je zapisujeme do `$this->template`. Třeba takto vytvoříme proměnnou `$article`:
-
-```php
-$this->template->article = $this->articles->getById($id);
-```
-
-Presentery a komponenty předávají do šablon několik užitečných proměnných automaticky:
-
-- `$basePath` je absolutní URL cesta ke kořenovému adresáři (např. `/eshop`)
-- `$baseUrl` je absolutní URL ke kořenovému adresáři (např. `http://localhost/eshop`)
-- `$user` je objekt [reprezentující uživatele |security:authentication]
-- `$presenter` je aktuální presenter
-- `$control` je aktuální komponenta nebo presenter
-- `$flashes` pole [zpráv |#flash zprávy] zaslaných funkcí `flashMessage()`
+Pokud žádnou z těchto metod nezavoláte, presenter automaticky přistoupí k vykreslí šablony. Proč? Protože v 99 % případů chceme vykreslit šablonu, tudíž presenter tohle chování bere jako výchozí a chce nám ulehčit práci.
 
 
 Vytváření odkazů
@@ -240,7 +158,7 @@ Metoda `forward()` přejde na nový presenter okamžitě bez HTTP přesměrován
 $this->forward('Product:show');
 ```
 
-Příklad tzv. dočasného přesměrování s HTTP kódem 302 nebo 303:
+Příklad tzv. dočasného přesměrování s HTTP kódem 302 (nebo 303, je-li metoda aktuálního požadavku POST):
 
 ```php
 $this->redirect('Product:show', $id);
@@ -252,7 +170,7 @@ Permanentní přesměrování s HTTP kódem 301 docílíte takto:
 $this->redirectPermanent('Product:show', $id);
 ```
 
-Na jinou URL mimo aplikaci lze přesměrovat metodou `redirectUrl()`:
+Na jinou URL mimo aplikaci lze přesměrovat metodou `redirectUrl()`. Jako druhý parametr lze uvést HTTP kód, výchozí je 302 (nebo 303, je-li metoda aktuálního požadavku POST):
 
 ```php
 $this->redirectUrl('https://nette.org');
@@ -304,49 +222,71 @@ HTTP kód chyby lze předat jako druhý parametr, výchozí je 404. Metoda fungu
 Nastavení error-preseteru se provádí v [konfiguraci application|configuration].
 
 
-Persistentní parametry
-======================
+Odeslání JSON
+=============
 
-Persistentní parametry se v odkazech **přenášejí automaticky**. To znamená, že je nemusíme explicitně uvádět v každém volání `link()` nebo `n:href` v šabloně, ale přesto se přenesou.
-
-Pokud má vaše aplikace více jazykových mutací, tak aktuální jazyk je parameter, který musí být neustále součástí URL. A bylo by neskutečně únavné ho v každém odkazu uvádět. To není s Nette potřeba. Prostě si parametr `lang` označíme jako persistentní tímto způsobem:
+Příklad action-metody, která odešle data ve formátu JSON a ukončí presenter:
 
 ```php
-class ProductPresenter extends Nette\Application\UI\Presenter
+public function actionData(): void
 {
-	/** @persistent */
-	public $lang;
+	$data = ['hello' => 'nette'];
+	$this->sendJson($data);
 }
 ```
 
-Pokud aktuální hodnota parametru `lang` bude `'en'`, tak URL vytvořené pomocí `link()` nebo `n:href` v šabloně bude obsahovat `lang=en`. Paráda!
 
-Při vytváření odkazu nicméně lze persistentní parametr uvést a tím změnit jeho hodnotu:
+Persistentní parametry
+======================
+
+Persistentní parametry slouží k udržování stavu mezi různými požadavky. Jejich hodnota zůstává stejná i po kliknutí na odkaz. Na rozdíl od dat v session se přenášejí v URL. A to zcela automaticky, není tedy potřeba je explicitně uvádět v `link()` nebo `n:href`.
+
+Příklad použití? Máte multijazyčnou aplikaci. Aktuální jazyk je parameter, který musí být neustále součástí URL. Ale bylo by neskutečně únavné ho v každém odkazu uvádět. Tak z něj uděláte persistentní parametr `lang` a bude se přenášet sám. Paráda!
+
+Vytvoření persistentního parametru je v Nette nesmírně jednoduché. Stačí vytvořit veřejnou property a označit ji atributem: (dříve se používalo `/** @persistent */`)
+
+```php
+use Nette\Application\Attributes\Persistent;  // tento řádek je důležitý
+
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $lang; // musí být public
+}
+```
+
+Pokud bude `$this->lang` mít hodnotu například `'en'`, tak i odkazy vytvořené pomocí `link()` nebo `n:href` budou obsahovat parameter `lang=en`. A po kliknutí na odkaz bude opět `$this->lang = 'en'`.
+
+U property doporučujeme uvádět i datový typ (např. `string`) a můžete uvést i výchozí hodnotu. Hodnoty parametrů lze [validovat |#Validace persistentních parametrů].
+
+Persistentní parametry se standardně přenášejí mezi všemi akcemi daného presenteru. Aby se přenášely i mezi více presentery, je potřeba je definovat buď:
+
+- ve společném předkovi, od kterého presentery dědí
+- v traitě, kterou presentery použijí:
+
+```php
+trait LangAware
+{
+	#[Persistent]
+	public string $lang;
+}
+
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	use LangAware;
+}
+```
+
+Při vytváření odkazu lze persistentnímu parametru změnit hodnotu:
 
 ```latte
 <a n:href="Product:show $id, lang: cs">detail v češtině</a>
 ```
 
-Nebo jej lze naopak odstranit tím, že ho vynulujeme:
+Nebo jej lze *vyresetovat*, tj. odstranit z URL. Pak bude nabývat svou výchozí hodnotu:
 
 ```latte
 <a n:href="Product:show $id, lang: null">klikni</a>
-```
-
-Persistentní proměnná musí být deklarovaná jako public. Můžeme uvést i výchozí hodnotu. Bude-li mít parametr hodnotu stejnou jako výchozí, nebude v URL obsažen.
-
-Persistence zohledňuje hierarchii tříd presenterů, tedy parametr definovaný v určitém presenteru nebo traitě je poté automaticky přenášen do každého presenteru z něj dědícího nebo užívajícího stejnou traitu.
-
-V PHP 8 můžete pro označení persistentních parametrů použít také atributy:
-
-```php
-use Nette\Application\Attributes\Persistent;
-
-class ProductPresenter extends Nette\Application\UI\Presenter
-{
-	#[Persistent]
-	public $lang;
-}
 ```
 
 
@@ -370,8 +310,32 @@ S tím, co jsme si dosud v této kapitole ukázali, si nejspíš úplně vystač
 Požadavek a parametry
 ---------------------
 
-Požadavek, který vyřizuje presenter, je objekt [api:Nette\Application\Request] a vrací ho metoda presenteru `getRequest()`. Jeho součástí je pole parametrů a každý z nich patří buď některé z komponent, nebo přímo presenteru (což je vlastně také komponenta, byť speciální). Nette tedy parametry přerozdělí
-a předá mezi jednotlivé komponenty (a presenter) zavoláním metody `loadState(array $params)`, což dále popisujeme v kapitole [Komponenty|components]. Získat parametry lze metodu `getParameters(): array`, jednotlivě pomocí `getParameter($name)`. Hodnoty parametrů jsou řetězce či pole řetězců, jde v podstatě o surové data získané přímo z URL.
+Požadavek, který vyřizuje presenter, je objekt [api:Nette\Application\Request] a vrací ho metoda presenteru `getRequest()`. Jeho součástí je pole parametrů a každý z nich patří buď některé z komponent, nebo přímo presenteru (což je vlastně také komponenta, byť speciální). Nette tedy parametry přerozdělí a předá mezi jednotlivé komponenty (a presenter) zavoláním metody `loadState(array $params)`. Získat parametry lze metodu `getParameters(): array`, jednotlivě pomocí `getParameter($name)`. Hodnoty parametrů jsou řetězce či pole řetězců, jde v podstatě o surové data získané přímo z URL.
+
+
+Validace persistentních parametrů
+---------------------------------
+
+Hodnoty [persistentních parametrů |#Persistentní parametry] přijatých z URL zapisuje do properties metoda `loadState()`. Ta také kontroluje, zda odpovídá datový typ uvedený u property, jinak odpoví chybou 404 a stránka se nezobrazí.
+
+Nikdy slepě nevěřte persistentním parametrům, protože mohou být snadno uživatelem přepsány v URL. Takto například ověříme, zda je jazyk `$this->lang` mezi podporovanými. Vhodnou cestou je přepsat zmíněnou metodu `loadState()`:
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $lang;
+
+	public function loadState(array $params): void
+	{
+		parent::loadState($params); // zde se nastaví $this->lang
+		// následuje vlastní kontrola hodnoty:
+		if (!in_array($this->lang, ['en', 'cs'])) {
+			$this->error();
+		}
+	}
+}
+```
 
 
 Uložení a obnovení požadavku
@@ -461,34 +425,10 @@ $this->sendResponse(new Responses\CallbackResponse($callback));
 ```
 
 
-Hledání šablon
---------------
+Další četba
+===========
 
-Šablony se standardně očekávají v těchto souborech umístěných relativně od adresáře s třídou presenteru:
-
-- `templates/<Presenter>/<view>.latte`
-- `templates/<Presenter>.<view>.latte`
-
-Kde `<Presenter>` je název aktuálního presenteru (např. `Product`) a `<view>` je název aktuální akce. View lze změnit pomocí `$this->setView('jineView')`. Můžete také místo dohledávání přímo určit jméno souboru se šablonou pomocí `$this->template->setFile('/path/to/template.latte')`.
-
-Cesty, kde se dohledávají šablony, lze změnit překrytím metody [formatTemplateFiles |api:Nette\Application\UI\Presenter::formatTemplateFiles()], která vrací pole možných názvů souborů.
-
-Layout se očekává v těchto souborech:
-
-- `templates/<Presenter>/@<layout>.latte`
-- `templates/<Presenter>.@<layout>.latte`
-- `templates/@<layout>.latte` layout společný pro více presenterů
-
-Kde `<Presenter>` je název aktuálního presenteru a `<layout>` je řetězec `'layout'`, což lze změnit pomocí `$this->setLayout('jinyLayout')`, takže se budou zkoušet soubory `@jinyLayout.latte`.
-Můžete také přímo určit jméno souboru se šablonou layoutu pomocí `$this->setLayout('/path/to/template.latte')`. Pomocí `setLayout(false)` lze dohledávání layoutu vypnout.
-
-Cesty, kde se dohledávají šablony layoutu, lze změnit překrytím metody [formatLayoutTemplateFiles |api:Nette\Application\UI\Presenter::formatLayoutTemplateFiles()], která vrací pole možných názvů souborů.
-
-
-Odkazy
-------
-
-Odkazy generované pomocí `link()` nebo `n:href` jsou vždy absolutní cesty, ale nikoliv absolutní URL s protokolem a doménou `http://domain`. Aby presenter generoval absolutní URL, je třeba nastavit `$this->absoluteUrls = true`.
-
-
-{{composer: nette/application}}
+- [Metody a atributy inject |best-practices:inject-method-attribute]
+- [Skládání presenterů z trait |best-practices:presenter-traits]
+- [Předání nastavení do presenterů |best-practices:passing-settings-to-presenters]
+- [Jak se vrátit k dřívější stránce |best-practices:restore-request]

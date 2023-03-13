@@ -1,0 +1,528 @@
+Mi az a Dependency Injection?
+*****************************
+
+.[perex]
+Ez a fejezet megismerteti Önt azokkal az alapvető programozási gyakorlatokkal, amelyeket bármilyen alkalmazás írása során követnie kell. Ezek az alapok szükségesek a tiszta, érthető és karbantartható kód írásához.
+
+Ha megtanulod és betartod ezeket a szabályokat, a Nette minden lépésnél a segítségedre lesz. El fogja végezni helyetted a rutinfeladatokat, és maximális kényelmet biztosít, így magára a logikára koncentrálhatsz.
+
+Az elvek, amelyeket itt bemutatunk, meglehetősen egyszerűek. Nem kell aggódnia semmi miatt.
+
+
+Emlékszel az első programodra? .[#toc-remember-your-first-program]
+------------------------------------------------------------------
+
+Nem tudjuk, hogy milyen nyelven írta, de ha PHP volt, akkor valahogy így nézhetett ki:
+
+```php
+function osszeg(float $a, float $b): float
+{
+	return $a + $b;
+}
+
+echo osszeg(23, 1); // 24-et ír ki.
+```
+
+Néhány triviális kódsor, de nagyon sok kulcsfogalom rejtőzik benne. Hogy vannak változók. Hogy a kódot kisebb egységekre bontják, amelyek például függvények. Hogy bemeneti argumentumokat adunk át nekik, és eredményt adnak vissza. Csak a feltételek és a ciklusok hiányoznak.
+
+Az a tény, hogy egy függvény bemeneti adatokat fogad el, és egy eredményt ad vissza, tökéletesen érthető fogalom, amelyet más területeken, például a matematikában is használnak.
+
+Egy függvénynek van egy szignatúrája, amely a nevéből, a paraméterek listájából és azok típusából, végül pedig a visszatérési érték típusából áll. Felhasználóként minket a szignatúra érdekel, és általában nem kell tudnunk semmit a belső megvalósításról.
+
+Most képzeljük el, hogy a függvény aláírás így néz ki:
+
+```php
+function osszeg(float $x): float
+```
+
+Egyetlen paraméteres kiegészítés? Ez furcsa... Mi a helyzet ezzel?
+
+```php
+function osszeg(): float
+```
+
+Ez tényleg furcsa, nem? Hogyan használják a funkciót?
+
+```php
+echo osszeg(); // mit ír ki?
+```
+
+Ha ilyen kódot néznénk, összezavarodnánk. Nemcsak egy kezdő nem értené, de még egy tapasztalt programozó sem értené az ilyen kódot.
+
+Kíváncsi vagy, hogy egy ilyen függvény valójában hogyan nézne ki belülről? Honnan szerezné meg az összegzőket? Valószínűleg *valahogyan* magától szerezné meg őket, talán így:
+
+```php
+function osszeg(): float
+{
+	$a = Input::get('a');
+	$b = Input::get('b');
+	return $a + $b;
+}
+```
+
+Kiderült, hogy a függvény testében rejtett kötések vannak más függvényekhez (vagy statikus metódusokhoz), és ahhoz, hogy megtudjuk, honnan származnak az összeadók, tovább kell ásnunk.
+
+
+Ne erre! .[#toc-not-this-way]
+-----------------------------
+
+Az imént bemutatott dizájn sok negatív tulajdonság lényege:
+
+- A függvény aláírás úgy tett, mintha nem lenne szüksége az összegzőkre, ami összezavart minket.
+- fogalmunk sincs, hogyan lehetne a függvényt két másik számmal kiszámítani.
+- meg kellett néznünk a kódot, hogy rájöjjünk, honnan származnak az összegzők
+- rejtett függőségeket találtunk
+- a teljes megértéshez ezeket a függőségeket is meg kell vizsgálni
+
+És egyáltalán az összeadási függvény feladata a bemenetek beszerzése? Természetesen nem az.  Az ő feladata csak az összeadás.
+
+
+Ilyen kóddal nem akarunk találkozni, és biztosan nem akarjuk megírni. A megoldás egyszerű: térjünk vissza az alapokhoz, és használjunk csak paramétereket:
+
+
+```php
+function osszeg(float $a, float $b): float
+{
+	return $a + $b;
+}
+```
+
+
+1. szabály: Hadd adassák át neked .[#toc-rule-1-let-it-be-passed-to-you]
+------------------------------------------------------------------------
+
+A legfontosabb szabály: **minden adatot, amelyre a függvényeknek vagy osztályoknak szükségük van, át kell adni nekik**.
+
+Ahelyett, hogy rejtett módokat találnának ki, hogy maguk férjenek hozzá az adatokhoz, egyszerűen adja át a paramétereket. Ezzel időt takarít meg, amelyet rejtett utak kitalálásával töltene, amelyek biztosan nem javítanának a kódján.
+
+Ha mindig és mindenhol követi ezt a szabályt, akkor máris úton van a rejtett függőségek nélküli kód felé. Olyan kódhoz, amely nemcsak a szerző, hanem mindenki számára érthető, aki utólag elolvassa. Ahol minden érthető a függvények és osztályok szignatúrájából, és nem kell rejtett titkokat keresni az implementációban.
+
+Ezt a technikát szaknyelven **függőségi injektálásnak** nevezik. Ezeket az adatokat pedig **függőségeknek** nevezik. Ez csak közönséges paraméterátadás, semmi több.
+
+.[note]
+Kérlek, ne keverd össze a függőségi injektálást, ami egy tervezési minta, a "függőségi injektálási konténerrel", ami egy eszköz, valami szögesen más. A konténerekkel később fogunk foglalkozni.
+
+
+A függvényektől az osztályokig .[#toc-from-functions-to-classes]
+----------------------------------------------------------------
+
+És hogyan kapcsolódnak az osztályok? Egy osztály összetettebb egység, mint egy egyszerű függvény, de az 1. szabály itt is teljes mértékben érvényes. Csak [több módja van az argumentumok átadásának |passing-dependencies]. Például egészen hasonlóan, mint egy függvény esetében:
+
+```php
+class Matematika
+{
+	public function osszeg(float $a, float $b): float
+	{
+		return $a + $b;
+	}
+}
+
+$math = new Matematika;
+echo $math->osszeg(23, 1); // 24
+```
+
+Vagy más metódusokon keresztül, vagy közvetlenül a konstruktoron keresztül:
+
+```php
+class Osszeg
+{
+	public function __construct(
+		private float $a,
+		private float $b,
+	) {
+	}
+
+	public function calculate(): float
+	{
+		return $this->a + $this->b;
+	}
+
+}
+
+$osszeg = new Osszeg(23, 1);
+echo $osszeg->calculate(); // 24
+```
+
+Mindkét példa teljesen megfelel a függőségi injektálásnak.
+
+
+Valós életbeli példák .[#toc-real-life-examples]
+------------------------------------------------
+
+A való világban nem fogsz számok összeadására szolgáló osztályokat írni. Térjünk át a gyakorlati példákra.
+
+Legyen egy `Article` osztályunk, amely egy blogbejegyzést reprezentál:
+
+```php
+class Article
+{
+	public int $id;
+	public string $title;
+	public string $content;
+
+	public function save(): void
+	{
+		// a cikk elmentése az adatbázisba
+	}
+}
+```
+
+és a használat a következő lesz:
+
+```php
+$article = new Article;
+$article->title = '10 Things You Need to Know About Losing Weight';
+$article->content = 'Every year millions of people in ...';
+$article->save();
+```
+
+A `save()` módszer elmenti a cikket egy adatbázis-táblába. Ennek megvalósítása a [Nette Database |database:] segítségével gyerekjáték lesz, ha nem lenne egy bökkenő: honnan szerzi meg a `Article` az adatbázis-kapcsolatot, azaz egy `Nette\Database\Connection` osztályú objektumot ?
+
+Úgy tűnik, rengeteg lehetőségünk van. Valahonnan egy statikus változóból is veheti. Vagy egy olyan osztályból örökli, amely adatbázis-kapcsolatot biztosít. Vagy kihasználja egy [singleton |global-state#Singleton] előnyeit. Vagy használhatunk úgynevezett facades-t, amit a Laravelben használnak:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+class Article
+{
+	public int $id;
+	public string $title;
+	public string $content;
+
+	public function save(): void
+	{
+		DB::insert(
+			'INSERT INTO articles (title, content) VALUES (?, ?)',
+			[$this->title, $this->content],
+		);
+	}
+}
+```
+
+Nagyszerű, megoldottuk a problémát.
+
+Vagy mégis?
+
+Emlékezzünk vissza az [1. szabályra: Legyen átadva |#rule #1: Let It Be Passed to You]: minden függőséget, amire az osztálynak szüksége van, át kell adni neki. Mert ha megszegjük ezt a szabályt, akkor elindultunk a rejtett függőségekkel teli, piszkos kódhoz vezető úton, amely tele van rejtett függőségekkel, érthetetlenséggel, és az eredmény egy olyan alkalmazás lesz, amelyet fájdalmas lesz karbantartani és fejleszteni.
+
+A `Article` osztály felhasználójának fogalma sincs arról, hogy a `save()` metódus hol tárolja a cikket. Egy adatbázis táblában? Melyikben, a termelési vagy a tesztelésben? És hogyan lehet ezt megváltoztatni?
+
+A felhasználónak meg kell néznie, hogyan van implementálva a `save()` metódus, és meg kell találnia a `DB::insert()` metódus használatát. Tehát tovább kell keresnie, hogy megtudja, hogyan szerez ez a módszer adatbázis-kapcsolatot. A rejtett függőségek pedig elég hosszú láncot alkothatnak.
+
+A tiszta és jól megtervezett kódban soha nincsenek rejtett függőségek, Laravel-facadek vagy statikus változók. A tiszta és jól megtervezett kódban az argumentumok átadásra kerülnek:
+
+```php
+class Article
+{
+	public function save(Nette\Database\Connection $db): void
+	{
+		$db->query('INSERT INTO articles', [
+			'title' => $this->title,
+			'content' => $this->content,
+		]);
+	}
+}
+```
+
+Egy még praktikusabb megközelítés, mint később látni fogjuk, a konstruktoron keresztül történik:
+
+```php
+class Article
+{
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
+	}
+
+	public function save(): void
+	{
+		$this->db->query('INSERT INTO articles', [
+			'title' => $this->title,
+			'content' => $this->content,
+		]);
+	}
+}
+```
+
+.[note]
+Ha tapasztalt programozó vagy, azt gondolhatod, hogy a `Article` egyáltalán nem kellene, hogy rendelkezzen `save()` metódussal; tisztán adatkomponenst kellene képviselnie, és egy külön tárolónak kellene gondoskodnia a mentésről. Ennek van is értelme. De ez messze túlmutatna a téma keretein, ami a függőségi injektálás, és az egyszerű példák bemutatására tett erőfeszítésen.
+
+Ha olyan osztályt írsz, aminek a működéséhez például adatbázisra van szüksége, ne találd ki, honnan szerzed be, hanem legyen átadva. Vagy a konstruktor paramétereként, vagy egy másik metódus paramétereként. Ismerd el a függőségeket. Ismerd el őket az osztályod API-jában. Érthető és kiszámítható kódot fogsz kapni.
+
+És mi a helyzet ezzel az osztállyal, amely hibaüzeneteket naplóz:
+
+```php
+class Logger
+{
+	public function log(string $message)
+	{
+		$file = LOG_DIR . '/log.txt';
+		file_put_contents($file, $message . "\n", FILE_APPEND);
+	}
+}
+```
+
+Mit gondolsz, betartottuk az [1. számú szabályt: hadd adassák át neked |#rule #1: Let It Be Passed to You]?
+
+Nem tettük meg.
+
+A kulcsinformációt, azaz a naplófájlt tartalmazó könyvtárat maga az osztály *kapja* a konstansból.
+
+Nézd meg a használati példát:
+
+```php
+$logger = new Logger;
+$logger->log('The temperature is 23 °C');
+$logger->log('The temperature is 10 °C');
+```
+
+A megvalósítás ismerete nélkül tudna válaszolni arra a kérdésre, hogy hová íródnak az üzenetek? Gondolnád, hogy a `LOG_DIR` állandó létezése szükséges a működéséhez? És tudnál-e létrehozni egy második példányt, amely más helyre írna? Biztosan nem.
+
+Javítsuk meg az osztályt:
+
+```php
+class Logger
+{
+	public function __construct(
+		private string $file,
+	) {
+	}
+
+	public function log(string $message): void
+	{
+		file_put_contents($this->file, $message . "\n", FILE_APPEND);
+	}
+}
+```
+
+Az osztály most már sokkal érthetőbb, konfigurálhatóbb és ezáltal hasznosabb.
+
+```php
+$logger = new Logger('/path/to/log.txt');
+$logger->log('The temperature is 15 °C');
+```
+
+
+De nem érdekel! .[#toc-but-i-don-t-care]
+----------------------------------------
+
+*"Amikor létrehozok egy cikkobjektumot, és meghívom a save() parancsot, nem akarok foglalkozni az adatbázissal; csak azt akarom, hogy abba az adatbázisba kerüljön elmentésre, amelyet a konfigurációban beállítottam."*
+
+*"Amikor a Logger-t használom, csak azt akarom, hogy az üzenet kiírásra kerüljön, és nem akarok foglalkozni azzal, hogy hova. Legyen a globális beállítások használata."*
+
+Ezek jogos észrevételek.
+
+Példaként nézzünk meg egy olyan osztályt, amely hírleveleket küld és naplózza, hogyan ment:
+
+```php
+class NewsletterDistributor
+{
+	public function distribute(): void
+	{
+		$logger = new Logger(/* ... */);
+		try {
+			$this->sendEmails();
+			$logger->log('Emails have been sent out');
+
+		} catch (Exception $e) {
+			$logger->log('An error occurred during the sending');
+			throw $e;
+		}
+	}
+}
+```
+
+A továbbfejlesztett `Logger`, amely már nem használja a `LOG_DIR` konstanst, megköveteli a fájl elérési útvonalának megadását a konstruktorban. Hogyan lehet ezt megoldani? A `NewsletterDistributor` osztályt nem érdekli, hogy az üzenetek hova íródnak, csak írni akarja őket.
+
+A megoldás ismét az [1. szabály: Hagyd, hogy átadják n |#rule #1: Let It Be Passed to You]eked: adj át minden adatot, amire az osztálynak szüksége van.
+
+Ez tehát azt jelenti, hogy a konstruktoron keresztül átadjuk a napló elérési útvonalát, amit aztán a `Logger` objektum létrehozásakor használunk?
+
+```php
+class NewsletterDistributor
+{
+	public function __construct(
+		private string $file, // ⛔ NEM ÍGY!
+	) {
+	}
+
+	public function distribute(): void
+	{
+		$logger = new Logger($this->file);
+```
+
+Nem, nem így! Az útvonal nem tartozik a `NewsletterDistributor` osztály számára szükséges adatok közé, sőt, a `Logger` osztálynak van rá szüksége. Látod a különbséget? A `NewsletterDistributor` osztálynak magára a naplózóra van szüksége. Tehát ezt fogjuk átadni:
+
+```php
+class NewsletterDistributor
+{
+	public function __construct(
+		private Logger $logger, // ✅
+	) {
+	}
+
+	public function distribute(): void
+	{
+		try {
+			$this->sendEmails();
+			$this->logger->log('Emails have been sent out');
+
+		} catch (Exception $e) {
+			$this->logger->log('An error occurred during the sending');
+			throw $e;
+		}
+	}
+}
+```
+
+A `NewsletterDistributor` osztály aláírásaiból egyértelmű, hogy a naplózás is része a funkcióinak. És a logger cseréje egy másikra, esetleg tesztelés céljából, teljesen triviális feladat.
+Ráadásul, ha a `Logger` osztály konstruktora megváltozik, az nem befolyásolja a mi osztályunkat.
+
+
+2. szabály: Vedd el, ami a tiéd .[#toc-rule-2-take-what-s-yours]
+----------------------------------------------------------------
+
+Ne hagyd magad félrevezetni, és ne engedd át magad a függőségeid függőségein. Csak a saját függőségeidet add át.
+
+Ennek köszönhetően a más objektumokat használó kód teljesen független lesz a konstruktoraikban bekövetkező változásoktól. Az API-ja sokkal igazabb lesz. És mindenekelőtt triviális lesz ezeket a függőségeket másokkal helyettesíteni.
+
+
+Új családtag .[#toc-new-family-member]
+--------------------------------------
+
+A fejlesztőcsapat úgy döntött, hogy létrehoz egy második loggert, amely az adatbázisba ír. Ezért létrehozunk egy `DatabaseLogger` osztályt. Tehát két osztályunk van, `Logger` és `DatabaseLogger`, az egyik egy fájlba ír, a másik az adatbázisba ... nem tűnik furcsának az elnevezés?
+Nem lenne jobb átnevezni a `Logger` -t `FileLogger`-re ? Határozottan igen.
+
+De tegyük ezt okosan. Létrehozunk egy interfészt az eredeti név alatt:
+
+```php
+interface Logger
+{
+	function log(string $message): void;
+}
+```
+
+... amelyet mindkét logger végrehajt:
+
+```php
+class FileLogger implements Logger
+// ...
+
+class DatabaseLogger implements Logger
+// ...
+```
+
+És emiatt nem kell semmit sem változtatni a kód többi részén, ahol a naplózót használjuk. Például a `NewsletterDistributor` osztály konstruktora továbbra is megelégszik azzal, hogy paraméterként a `Logger` címet kéri. Az pedig csak rajtunk múlik majd, hogy melyik példányt adjuk át.
+
+**Ez az oka annak, hogy soha nem adjuk hozzá a `Interface` utótagot vagy a `I` előtagot az interfésznevekhez.** Máskülönben nem lehetne ilyen szépen fejleszteni a kódot.
+
+
+Houston, van egy problémánk .[#toc-houston-we-have-a-problem]
+-------------------------------------------------------------
+
+Míg a logger egyetlen példányával - legyen az fájl- vagy adatbázis-alapú - az egész alkalmazásban boldogulhatunk, és egyszerűen átadhatjuk azt mindenhol, ahol valamit naplózni kell, addig a `Article` osztály esetében ez teljesen másképp van. Annak példányait szükség szerint hozzuk létre, akár többször is. Hogyan kezeljük az adatbázis-függőséget a konstruktorában?
+
+Egy példa lehet egy olyan vezérlő, amelynek egy űrlap elküldése után egy cikket kell elmentenie az adatbázisba:
+
+```php
+class EditController extends Controller
+{
+	public function formSubmitted($data)
+	{
+		$article = new Article(/* ... */);
+		$article->title = $data->title;
+		$article->content = $data->content;
+		$article->save();
+	}
+}
+```
+
+Egy lehetséges megoldás kézenfekvő: adjuk át az adatbázis-objektumot a `EditController` konstruktornak, és használjuk a `$article = new Article($this->db)` címet.
+
+Csakúgy, mint az előző esetben a `Logger` és a fájl elérési útvonalával, ez nem a helyes megközelítés. Az adatbázis nem a `EditController`, hanem a `Article` függvénye. Az adatbázis átadása ellentétes a [2. szabállyal: vedd el, ami a tiéd |#rule #2: take what's yours]. Ha a `Article` osztály konstruktora megváltozik (új paramétert adunk hozzá), akkor a kódot módosítani kell, ahol a példányok létrehozására sor kerül. Ufff.
+
+Houston, mit javasolsz?
+
+
+3. szabály: Hagyd, hogy a gyár kezelje a dolgot .[#toc-rule-3-let-the-factory-handle-it]
+----------------------------------------------------------------------------------------
+
+A rejtett függőségek kiküszöbölésével és az összes függőség argumentumként való átadásával sokkal konfigurálhatóbb és rugalmasabb osztályokat kaptunk. És ezért szükségünk van valami másra, ami ezeket a rugalmasabb osztályokat létrehozza és konfigurálja helyettünk. Ezt nevezzük gyáraknak.
+
+Az ökölszabály a következő: ha egy osztály függőségekkel rendelkezik, a példányaik létrehozását bízzuk a gyárra.
+
+A gyárak a `new` operátor okosabb helyettesítői a függőségi injektálás világában.
+
+.[note]
+Kérjük, ne keverjük össze a *factory method* tervezési mintával, amely a gyárak használatának egy speciális módját írja le, és nem kapcsolódik ehhez a témához.
+
+
+Gyár .[#toc-factory]
+--------------------
+
+A gyár egy olyan metódus vagy osztály, amely objektumokat hoz létre és konfigurál. A `Article` -t előállító osztályt `ArticleFactory`-nek fogjuk nevezni, és így nézhet ki:
+
+```php
+class ArticleFactory
+{
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
+	}
+
+	public function create(): Article
+	{
+		return new Article($this->db);
+	}
+}
+```
+
+A vezérlőben való használata a következő:
+
+```php
+class EditController extends Controller
+{
+	public function __construct(
+		private ArticleFactory $articleFactory,
+	) {
+	}
+
+	public function formSubmitted($data)
+	{
+		// hagyja, hogy a gyár létrehozzon egy objektumot
+		$article = $this->articleFactory->create();
+		$article->title = $data->title;
+		$article->content = $data->content;
+		$article->save();
+	}
+}
+```
+
+Ezen a ponton, ha a `Article` osztály konstruktorának aláírása megváltozik, a kód egyetlen része, amelyre reagálnia kell, maga a `ArticleFactory`. A `Article` objektumokkal dolgozó minden más kódot, például a `EditController`, ez nem érinti.
+
+Talán elgondolkodik azon, hogy valóban jobbá tettük-e a dolgokat. A kód mennyisége megnőtt, és az egész kezd gyanúsan bonyolultnak tűnni.
+
+Ne aggódjon, hamarosan eljutunk a Nette DI konténerhez. És ez számos trükköt tartogat a tarsolyában, ami nagyban leegyszerűsíti a függőségi injektálást használó alkalmazások építését. Például a `ArticleFactory` osztály helyett csak [egy egyszerű interfészt |factory] kell [írni |factory]:
+
+```php
+interface ArticleFactory
+{
+	function create(): Article;
+}
+```
+
+De most már elébe megyünk a dolgoknak, kérlek, legyetek türelemmel :-)
+
+
+Összefoglaló .[#toc-summary]
+----------------------------
+
+A fejezet elején azt ígértük, hogy bemutatjuk a tiszta kód tervezésének folyamatát. Mindössze annyit kell tennünk, hogy az osztályok:
+
+- [átadják a szükséges függőségeket |#Rule #1: Let It Be Passed to You]
+- [fordítva, ne adják át azt, amire nincs közvetlen szükségük |#Rule #2: Take What's Yours]
+- [és hogy a függőségekkel rendelkező objektumokat a legjobb gyárakban létrehozni |#Rule #3: Let the Factory Handle it]
+
+Első pillantásra úgy tűnhet, hogy ennek a három szabálynak nincsenek messzemenő következményei, de a kódtervezés gyökeresen más szemléletéhez vezetnek. Megéri ez? Azok a fejlesztők, akik felhagytak a régi szokásokkal, és következetesen használni kezdték a függőségi injektálást, ezt a lépést szakmai életük döntő pillanatának tekintik. Megnyitotta előttük a letisztult és karbantartható alkalmazások világát.
+
+De mi van akkor, ha a kód nem használja következetesen a függőségi injektálást? Mi van, ha statikus metódusokra vagy singletonokra támaszkodik? Okoz ez problémát? [Igen, és nagyon alapvető problémákat okoz |global-state].

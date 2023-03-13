@@ -1,0 +1,17 @@
+Εγχώνευση εξάρτησης
+*******************
+- [Τι είναι η DI; |introduction]
+- [Παγκόσμια κατάσταση & Singletons |global-state]
+- [Πέρασμα εξαρτήσεων |passing-dependencies]
+- [Τι είναι το DI Container; |container]
+- [Συχνές ερωτήσεις |faq]
+
+
+Nette DI
+--------
+- [Nette DI Container |nette-container]
+- [Διαμόρφωση |configuration]
+- [Ορισμοί υπηρεσιών |services]
+- [Αυτόματη καλωδίωση |autowiring]
+- [Παραγόμενα εργοστάσια |factory]
+- [Δημιουργία επεκτάσεων για το Nette DI |extensions]

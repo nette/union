@@ -1,0 +1,47 @@
+Zaczynając od Latte
+*******************
+
+<div class=perex>
+
+Szablony poprawiają organizację kodu, oddzielają logikę aplikacji od prezentacji i zwiększają bezpieczeństwo. Oferują znacznie lepsze funkcje i możliwości ekspresji w generowaniu HTML niż sam PHP.
+
+Latte jest najbezpieczniejszym systemem szablonowania dla PHP. Spodoba Ci się jego intuicyjna składnia. Szeroka gama przydatnych funkcji znacznie ułatwi Ci pracę.
+Zapewnia najwyższej klasy ochronę przed [krytycznymi podatnościami |safety-first] i pozwala skupić się na tworzeniu wysokiej jakości aplikacji bez obaw o ich bezpieczeństwo.
+
+
+Jak pisać szablony za pomocą Latte? .[#toc-how-to-write-templates-using-latte]
+------------------------------------------------------------------------------
+
+Latte jest sprytnie zaprojektowany i łatwy do nauczenia dla osób zaznajomionych z PHP, ponieważ mogą one szybko przyjąć jego podstawowe tagi.
+
+- Najpierw zapoznaj się ze [składnią Lat |syntax] te i wypróbuj [WSZYSTKO W SIECI |https://fiddle.nette.org/latte/#9cc0cf6d89]
+- Zapoznaj się z podstawowym zestawem [tagów |tags] i [filtrów |filters]
+- Napisz szablony w [edytorze z obsługą Lat |recipes#Editors and IDE]te
+
+
+Jak używać Latte w PHP? .[#toc-how-to-use-latte-in-php]
+-------------------------------------------------------
+
+Wdrożenie Latte do nowej aplikacji to kwestia kilku minut:
+
+- Najpierw [zainstaluj i uruchom Latte |develop#Installation]
+- Pozwól, aby [narzędzie do debugowania Tracy Cię rozpieszczało|develop#debugging-and-tracy]
+- Rozszerzenie Latte o [niestandardową funkcjonalność |extending-latte]
+
+Jeśli konwertujesz stary projekt napisany w zwykłym PHP na Latte, [narzędzie do konwersji kodu PHP na Lat |cookbook/migration-from-php] te ułatwi Ci migrację. A może planujesz przejść na Latte z Twiga? Mamy dla Ciebie [konwerter szablonów Tw |cookbook/migration-from-twig] ig na Latte.
+
+
+Co jeszcze może zrobić Latte? .[#toc-what-else-can-latte-do]
+------------------------------------------------------------
+
+Latte przychodzi w pełni wyposażona, ze wszystkimi niezbędnymi rzeczami w zestawie.
+
+- Twoją produktywność zwiększą [mechanizmy dziedziczenia |template-inheritance], które ponownie wykorzystują powtarzające się elementy i struktury.
+- Pancerna [piaskownica |sandbox] bunkra izoluje szablony z niezaufanych źródeł, na przykład edytowane przez samych użytkowników
+- Dla dalszej inspiracji, oto [wskazówki i porady |recipes]
+
+</div>
+
+
+
+{{description: Latte jest najbezpieczniejszym systemem templatkowania dla PHP. Zapobiega to wielu lukom w zabezpieczeniach. Docenisz jego intuicyjną składnię i docenisz wiele przydatnych tweaków.}}

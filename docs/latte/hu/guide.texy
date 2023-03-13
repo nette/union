@@ -1,0 +1,46 @@
+Kezdő lépések a Latte-val
+*************************
+
+<div class=perex>
+
+A sablonok javítják a kódszervezést, elválasztják az alkalmazás logikáját a megjelenítéstől, és növelik a biztonságot. A HTML generálásához sokkal jobb funkciókat és kifejező képességeket kínálnak, mint maga a PHP.
+
+A Latte a legbiztonságosabb sablonkészítő rendszer a PHP számára. Imádni fogja intuitív szintaxisát. A hasznos funkciók széles skálája jelentősen leegyszerűsíti a munkáját.
+Kiváló védelmet nyújt a [kritikus sebezhetőségekkel |safety-first] szemben, és lehetővé teszi, hogy a magas színvonalú alkalmazások létrehozására összpontosítson anélkül, hogy azok biztonsága miatt aggódnia kellene.
+
+
+Hogyan írhat sablonokat a Latte használatával? .[#toc-how-to-write-templates-using-latte]
+-----------------------------------------------------------------------------------------
+
+A Latte okosan megtervezett és könnyen megtanulható a PHP-t ismerők számára, mivel gyorsan elsajátíthatják az alapvető címkéket.
+
+- Először ismerkedjen meg a [Latte szintaxisával |syntax], és [PRÓBÁLJA KI AZ EGÉSZET ONLINE |https://fiddle.nette.org/latte/#9cc0cf6d89]
+- Nézze meg a [címkék |tags] és [szűrők |filters]alapkészletét
+- Írjon sablonokat a [Latte-támogatással rendelkező szerkesztőben |recipes#Editors and IDE]
+
+
+Hogyan használjuk a Latte-t PHP-ben? .[#toc-how-to-use-latte-in-php]
+--------------------------------------------------------------------
+
+A Latte implementálása új alkalmazásába percek kérdése:
+
+- Először is, [telepítse és futtassa a Latte |develop#Installation]
+- Kényeztesse magát a [Tracy hibakereső eszközzel |develop#Debugging and Tracy]
+- Bővítse a Latte-ot [egyéni funkciókkal |extending-latte]
+
+Ha egy régi, egyszerű PHP nyelven írt projektet konvertál Latte-ra, a [PHP kód Latte-ra való konvertálására szolgáló eszköz |cookbook/migration-from-php] megkönnyíti az áttérést. Vagy azt tervezi, hogy a Twigről áttér a Latte-ra? Van egy [Twig sablon konvertáló Latte-ra |cookbook/migration-from-twig] az Ön számára.
+
+
+Mit tud még a Latte? .[#toc-what-else-can-latte-do]
+---------------------------------------------------
+
+A Latte teljesen felszerelt, minden lényeges dologgal együtt.
+
+- Termelékenységét az [öröklési mechanizmusok |template-inheritance] növelik, amelyek ismétlődő elemeket és struktúrákat használnak újra.
+- A [Sandbox |Sandbox] páncélbunker elszigeteli a sablonokat a nem megbízható forrásoktól, például a felhasználók által saját maguk által szerkesztettektől
+- További inspirációként itt talál [tippeket és trükköket |recipes]
+
+</div>
+
+
+{{description: A Latte a legbiztonságosabb templating rendszer a PHP számára. Számos biztonsági rést megelőz. Értékelni fogod az intuitív szintaxisát, és értékelni fogod a sok hasznos finomítást.}}

@@ -4,16 +4,16 @@ Generated Factories
 .[perex]
 Nette DI can automatically generate factory code based on the interface, which saves you from writing code.
 
-A factory is a class that creates and configures objects. It therefore passes their dependencies to them as well. We showed what such a factory looks like in [introduction|introduction#factory]:
+A factory is a class that creates and configures objects. It therefore passes their dependencies to them as well. Please do not confuse with the *factory method* design pattern, which describes a specific way of using factories and is not related to this topic.
+
+We have shown what such a factory looks like in the [introductory chapter |introduction#factory]:
 
 ```php
 class ArticleFactory
 {
-	private Nette\Database\Connection $db;
-
-	public function __construct(Nette\Database\Connection $db)
-	{
-		$this->db = $db;
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
 	}
 
 	public function create(): Article
@@ -37,11 +37,9 @@ So the factory `ArticleFactory` has a method `create` that creates objects `Arti
 ```php
 class Article
 {
-	private $db;
-
-	public function __construct(Nette\Database\Connection $db)
-	{
-		$this->db = $db;
+	public function __construct(
+		private Nette\Database\Connection $db,
+	) {
 	}
 }
 ```
@@ -60,11 +58,9 @@ Thus, in the code that uses the factory, we request the object by interface and 
 ```php
 class UserController
 {
-	private $articleFactory;
-
-	public function __construct(ArticleFactory $articleFactory)
-	{
-		$this->articleFactory = $articleFactory;
+	public function __construct(
+		private ArticleFactory $articleFactory,
+	) {
 	}
 
 	public function foo()
@@ -84,13 +80,10 @@ The factory method `create` can accept parameters which it then passes to the co
 ```php
 class Article
 {
-	private $db;
-	private $authorId;
-
-	public function __construct(Nette\Database\Connection $db, int $authorId)
-	{
-		$this->db = $db;
-		$this->authorId = $authorId;
+	public function __construct(
+		private Nette\Database\Connection $db,
+		private int $authorId,
+	) {
 	}
 }
 ```
@@ -141,99 +134,88 @@ services:
 ```
 
 
-Component Factory
-=================
+Accessor
+========
 
-How to create complex components with many dependencies without "messing up" the presenters that will use them? Thanks to the clever features of the DI container in Nette, as with using classic services, we can leave most of the work to the framework.
+Besides factories, Nette can also generate so called accessors. Accessor is an object with `get()` method returning a particular service from the DI container. Multiple `get()` calls will always return the same instance.
 
-Let's take as an example a component that has dependencies on several services:
+Accessors bring lazy-loading to dependencies. Let's have a class logging errors to a special database. If the database connection would be passed as a dependency in its constructor, the connection would need to be always created although it would be used only rarely when an error appears so the connection would stay mostly unused.
+Instead, the class can pass an accessor and when its `get()` method is called, only then the database object is created:
+
+How to create an accessor? Write an interface only and Nette DI will generate the implementation. The interface must have exactly one method called `get` and must declare the return type:
 
 ```php
-class MyControl extends Nette\Application\UI\Control
+interface PDOAccessor
 {
-	public function __construct(
-		EmailValidator $emailValidator,
-		Registrator $registrator,
-		Mailer $mailer
-	) {
-		//
-	}
+	function get(): PDO;
 }
 ```
 
-If we were writing a classic service, there would be nothing to worry about. The DI container would invisibly take care of passing all the dependencies. But we usually handle components by creating a new instance of them directly in the presenter in the factory methods `createComponent…()`.
-And passing all our dependencies to the presenter to then pass them to the component is a tiresome and cumbersome solution. It means introducing private variables in the presenter that find no use outside of a single method. And the thought of the amount of code you have to write...
-
-```php
-class MyPresenter extends Nette\Application\UI\Presenter
-{
-	private $emailValidator;
-	private $registrator;
-	private $mailer;
-
-	public function __construct(
-		EmailValidator $emailValidator,
-		Registrator $registrator,
-		Mailer $mailer
-	) {
-		$this->emailValidator = $emailValidator;
-		$this->registrator = $registrator;
-		$this->mailer = $mailer;
-	}
-
-	protected function createComponentMyControl(): MyControl
-	{
-		$control = new MyControl(
-			$this->emailValidator,
-			$this->registrator,
-			$this->mailer
-		);
-		return $control;
-	}
-}
-```
-
-The logical question is why don't we just register the component as a classic service, pass it to the presenter and then return it in the `createComponent…()` method? However, this approach is extremely inappropriate because we normally want to create the component multiple times.
-
-The architecturally correct solution, which does not pollute the presenter with unnecessary dependencies, is to write a factory for the component. Again, we can have it generated based on the interface. For example, our interface for a component might look like this:
-
-```php
-interface MyControlFactory
-{
-	public function create(): MyControl;
-}
-```
-
-We register the factory in the configuration file:
+Add the accessor to the configuration file together with the definition of the service the accessor will return:
 
 ```neon
 services:
-	- MyControlFactory
+	- PDOAccessor
+	- PDO(%dsn%, %user%, %password%)
 ```
 
-In the presenter, it will then be enough to get the factory and call the method `create`:
+The accessor returns a service of type `PDO` and because there's only one such service in the configuration, the accessor will return it. With multiple configured services of that type you can specify which one should be returned using its name, for example `- PDOAccessor(@db1)`.
+
+
+Multifactory/Accessor
+=====================
+So far, the factories and accessors could only create or return just one object. A multifactory combined with an accessor can be created as well. The interface of such multifactory class can consist of multiple methods called `create<name>()` and `get<name>()`, for example:
 
 ```php
-class MyPresenter extends Nette\Application\UI\Presenter
+interface MultiFactory
 {
-	private $myControlFactory;
-
-	public function __construct(MyControlFactory $myControlFactory)
-	{
-		$this->myControlFactory = $myControlFactory;
-	}
-
-	protected function createComponentMyControl(): MyControl
-	{
-		$control = $this->myControlFactory->create();
-		return $control;
-	}
+	function createArticle(): Article;
+	function createFoo(): Model\Foo;
+	function getDb(): PDO;
 }
 ```
 
-The created component will be automatically passed its dependencies by the constructor.
+Instead of passing multiple generated factories and accessors, you can pass just one complex multifactory.
 
-{{composer: nette/di}}
-/--comment
-TODO: extensive update
-\--
+Alternatively, you can use `create()` and `get()` with a parameter instead of multiple methods:
+
+```php
+interface MultiFactoryAlt
+{
+	function create($name);
+	function get($name): PDO;
+}
+```
+
+In this case, `MultiFactory::createArticle()` does the same thing as `MultiFactoryAlt::create('article')`. However, the alternative syntax has a few disadvantages. It's not clear which `$name` values are supported and the return type cannot be specified in the interface when using multiple different `$name` values.
+
+
+Definition with a List
+----------------------
+Hos to define a multifactory in your configuration? Let's create three services which will be returned by the multifactory, and the multifactory itself:
+
+```neon
+services:
+	article: Article
+	- Model\Foo
+	- PDO(%dsn%, %user%, %password%)
+	- MultiFactory(
+		article: @article  # createArticle()
+		foo: @Model\Foo    # createFoo()
+		db: @\PDO          # getDb()
+	)
+```
+
+
+Definition with Tags
+--------------------
+
+Another option how to define a multifactory is to use [tags|services#Tags]:
+
+```neon
+services:
+	- App\Router\RouterFactory::createRouter
+	- App\Model\DatabaseAccessor(
+		db1: @database.db1.explorer
+	)
+```

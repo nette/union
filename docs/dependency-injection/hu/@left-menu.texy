@@ -1,0 +1,17 @@
+Függőségi injekció
+******************
+- [Mi az a DI? |introduction]
+- [Globális állapot és singletonok |global-state]
+- [Függőségek átadása |passing-dependencies]
+- [Mi az a DI Container? |container]
+- [Gyakran ismételt kérdések |faq]
+
+
+Nette DI
+--------
+- [Nette DI konténer |nette-container]
+- [Konfiguráció |configuration]
+- [Szolgáltatás definíciók |services]
+- [Autowiring |autowiring]
+- [Generált gyárak |factory]
+- [Bővítmények létrehozása a Nette DI számára |extensions]

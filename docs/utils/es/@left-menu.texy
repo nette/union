@@ -1,0 +1,27 @@
+Paquete nette/utils
+*******************
+- [Buscador |Finder]
+- [Cadenas aleatorias |random]
+- [Cuerdas |Strings]
+- [Devolución de llamada |Callback]
+- [Elementos HTML |HTML Elements]
+- [Fecha y hora |datetime]
+- [Flotadores |Floats]
+- [Funciones auxiliares |helpers]
+- [Imágenes |Images]
+- [JSON]
+- [Matrices |Arrays]
+- [Paginador |paginator]
+- [Reflexión PHP |reflection]
+- [Sistema de archivos |filesystem]
+- [SmartObject]
+- [StaticClass]
+- [Tipos de PHP |type]
+- [Validadores |validators]
+
+
+Otras utilidades
+****************
+- [NEON |neon:]
+- [Cifrado de contraseñas |security:passwords]
+- [Parser y constructor de URL |http:urls]

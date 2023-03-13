@@ -19,19 +19,14 @@ use Nette\Forms\Form;
  */
 final class DataClassGenerator
 {
-	/** @var string */
-	public $classNameSuffix = 'FormData';
-
-	/** @var bool */
-	public $propertyPromotion = false;
-
-	/** @var bool */
-	public $useSmartObject = true;
+	public string $classNameSuffix = 'FormData';
+	public bool $propertyPromotion = false;
+	public bool $useSmartObject = true;
 
 
 	public function generateCode(Form $form, ?string $baseName = null): string
 	{
-		$baseName = $baseName ?? preg_replace('~Form$~', '', ucwords((string) $form->getName()));
+		$baseName ??= preg_replace('~Form$~', '', ucwords((string) $form->getName()));
 		return $this->processContainer($form, $baseName);
 	}
 

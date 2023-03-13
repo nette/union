@@ -1,0 +1,67 @@
+Injektálási módszerek és attribútumok
+*************************************
+
+.[perex]
+Ebben a cikkben a Nette keretrendszerben a függőségek bemutatóknak való átadásának különböző módjaira fogunk összpontosítani. Összehasonlítjuk az előnyben részesített módszert, azaz a konstruktort, más lehetőségekkel, például a `inject` módszerekkel és attribútumokkal.
+
+A prezenterek esetében is a függőségek átadása a [konstruktor |dependency-injection:passing-dependencies#Constructor Injection] segítségével az előnyben részesített mód.
+Ha azonban létrehozunk egy közös őst, amelytől más prezenterek is örökölnek (pl. BasePresenter), és ez az ős is rendelkezik függőségekkel, akkor felmerül egy probléma, amelyet [konstruktorpokolnak |dependency-injection:passing-dependencies#Constructor hell] nevezünk.
+Ez megkerülhető alternatív módszerekkel, amelyek közé tartoznak az injektáló metódusok és attribútumok (annotációk).
+
+
+`inject*()` Módszerek .[#toc-inject-methods]
+============================================
+
+Ez a függőségi átadás egy formája [a setterek |dependency-injection:passing-dependencies#Setter Injection] használatával. Ezeknek a beállítóknak a neve az inject előtaggal kezdődik.
+A Nette DI automatikusan meghívja az ilyen nevű metódusokat közvetlenül a prezentáló példány létrehozása után, és átadja az összes szükséges függőséget. Ezért ezeket a metódusokat nyilvánosnak kell deklarálni.
+
+`inject*()` A metódusok egyfajta konstruktor-bővítésnek tekinthetők több metódusra. Ennek köszönhetően a `BasePresenter` átveheti a függőségeket egy másik metóduson keresztül, és a konstruktort szabadon hagyhatja a leszármazottak számára:
+
+```php
+abstract class BasePresenter extends Nette\Application\UI\Presenter
+{
+	private Foo $foo;
+
+	public function injectBase(Foo $foo): void
+	{
+		$this->foo = $foo;
+	}
+}
+
+class MyPresenter extends BasePresenter
+{
+	private Bar $bar;
+
+	public function __construct(Bar $bar)
+	{
+		$this->bar = $bar;
+	}
+}
+```
+
+A prezenter tetszőleges számú `inject*()` metódust tartalmazhat, és mindegyiknek tetszőleges számú paramétere lehet. Ez olyan esetekben is nagyszerű, amikor a prezenter [vonásokból áll |presenter-traits], és mindegyiknek saját függőségre van szüksége.
+
+
+`Inject` Attribútumok .[#toc-inject-attributes]
+===============================================
+
+Ez a [tulajdonságokba való befecskendezés |dependency-injection:passing-dependencies#Property Injection] egy formája. Elegendő megadni, hogy mely tulajdonságokat kell befecskendezni, és a Nette DI automatikusan átadja a függőségeket közvetlenül a prezentáló példány létrehozása után. A beillesztéshez szükséges, hogy publicként deklaráljuk őket.
+
+A tulajdonságokat egy attribútummal jelöljük: (korábban a `/** @inject */` megjegyzést használtuk)
+
+```php
+use Nette\DI\Attributes\Inject; // ez a sor fontos
+
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+	#[Inject]
+	public Cache $cache;
+}
+```
+
+A függőségek átadásának ezen módszerének előnye a nagyon gazdaságos jelölési forma volt. A [konstruktori tulajdonságok promóciójának |https://blog.nette.org/hu/php-8-0-teljes-attekintes-az-ujdonsagokrol#toc-constructor-property-promotion] bevezetésével azonban a konstruktor használata egyszerűbbnek tűnik.
+
+Másrészt ez a módszer ugyanazokkal a hiányosságokkal küzd, mint a függőségek tulajdonságokba történő átadása általában: nincs kontrollunk a változó változásai felett, ugyanakkor a változó az osztály nyilvános interfészének részévé válik, ami nem kívánatos.
+
+
+{{sitename: Legjobb gyakorlatok}}

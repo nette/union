@@ -20,31 +20,20 @@ use Tracy;
  */
 final class RoutingPanel implements Tracy\IBarPanel
 {
-	use Nette\SmartObject;
-
-	/** @var Routing\Router */
-	private $router;
-
-	/** @var Nette\Http\IRequest */
-	private $httpRequest;
-
-	/** @var Nette\Application\IPresenterFactory */
-	private $presenterFactory;
+	private Routing\Router $router;
+	private Nette\Http\IRequest $httpRequest;
+	private Nette\Application\IPresenterFactory $presenterFactory;
 
 	/** @var \stdClass[] */
-	private $routers = [];
-
-	/** @var array|null */
-	private $matched;
-
-	/** @var \ReflectionClass|\ReflectionMethod */
-	private $source;
+	private array $routers = [];
+	private ?array $matched = null;
+	private \ReflectionClass|\ReflectionMethod|null $source = null;
 
 
 	public function __construct(
 		Routing\Router $router,
 		Nette\Http\IRequest $httpRequest,
-		Nette\Application\IPresenterFactory $presenterFactory
+		Nette\Application\IPresenterFactory $presenterFactory,
 	) {
 		$this->router = $router;
 		$this->httpRequest = $httpRequest;
@@ -74,7 +63,7 @@ final class RoutingPanel implements Tracy\IBarPanel
 			$matched = $this->matched;
 			$routers = $this->routers;
 			$source = $this->source;
-			$hasModule = (bool) array_filter($routers, function (\stdClass $rq): string { return $rq->module; });
+			$hasModule = (bool) array_filter($routers, fn(\stdClass $rq): string => $rq->module);
 			$url = $this->httpRequest->getUrl();
 			$method = $this->httpRequest->getMethod();
 			require __DIR__ . '/templates/RoutingPanel.panel.phtml';
@@ -91,7 +80,7 @@ final class RoutingPanel implements Tracy\IBarPanel
 		string $module = '',
 		?string $path = null,
 		int $level = -1,
-		int $flag = 0
+		array $flag = [],
 	): void
 	{
 		if ($router instanceof Routing\RouteList) {
@@ -130,7 +119,7 @@ final class RoutingPanel implements Tracy\IBarPanel
 			return;
 		}
 
-		$matched = $flag & Routing\RouteList::ONE_WAY ? 'oneway' : 'no';
+		$matched = empty($flag['oneWay']) ? 'no' : 'oneway';
 		$params = $e = null;
 		try {
 			$params = $httpRequest
@@ -156,7 +145,7 @@ final class RoutingPanel implements Tracy\IBarPanel
 		$this->routers[] = (object) [
 			'level' => max(0, $level),
 			'matched' => $matched,
-			'class' => get_class($router),
+			'class' => $router::class,
 			'defaults' => $router instanceof Routing\Route || $router instanceof Routing\SimpleRouter ? $router->getDefaults() : [],
 			'mask' => $router instanceof Routing\Route ? $router->getMask() : null,
 			'params' => $params,
@@ -180,11 +169,11 @@ final class RoutingPanel implements Tracy\IBarPanel
 		$rc = new \ReflectionClass($class);
 
 		if ($rc->isSubclassOf(Nette\Application\UI\Presenter::class)) {
-			if (isset($params[Presenter::SIGNAL_KEY])) {
-				$method = $class::formatSignalMethod($params[Presenter::SIGNAL_KEY]);
+			if (isset($params[Presenter::SignalKey])) {
+				$method = $class::formatSignalMethod($params[Presenter::SignalKey]);
 
-			} elseif (isset($params[Presenter::ACTION_KEY])) {
-				$action = $params[Presenter::ACTION_KEY];
+			} elseif (isset($params[Presenter::ActionKey])) {
+				$action = $params[Presenter::ActionKey];
 				$method = $class::formatActionMethod($action);
 				if (!$rc->hasMethod($method)) {
 					$method = $class::formatRenderMethod($action);

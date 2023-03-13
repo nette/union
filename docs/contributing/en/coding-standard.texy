@@ -11,14 +11,13 @@ General Rules
 =============
 
 - Every PHP file must contain `declare(strict_types=1)`
-- Two empty lines are used to seperate methods for better readability.
+- Two empty lines are used to separate methods for better readability.
 - The reason for using shut-up operator must be documented: `@mkdir($dir); // @ - directory may exist`
 - If weak typed comparison operator is used (ie. `==`, `!=`, ...), the intention must be documented: `// == to accept null`
 - You can write more exceptions into one file `exceptions.php`
-- Interfaces do not specify method visibility because they are always public.
-- Every properties, methods and parameters must have documented type. Either natively or via annotation.
-- Arrays must be written by short notation.
-- The single quote should be used to demarcate the string, except when a literal itself contains apostrophes.
+- The visibility of methods is not specified for interfaces because they are always public.
+- Each property, return value, and parameter must have a type specified. On the other hand, for final constants, we never specify the type because it is obvious.
+- Single quotes should be used to delimit the string, except when the literal itself contains apostrophes.
 
 
 Naming Conventions
@@ -30,6 +29,30 @@ Naming Conventions
 - Class names must contain not only specificity (`Array`) but also generality (`ArrayIterator`). The exception are PHP attributes.
 - "Class constants and enums should use PascalCaps":https://blog.nette.org/en/for-less-screaming-in-the-code.
 - "Interfaces and abstract classes should not contain prefixes or postfixes":https://blog.nette.org/en/prefixes-and-suffixes-do-not-belong-in-interface-names like `Abstract`, `Interface` or `I`.
+
+
+Wrapping and Braces
+===================
+
+Nette Coding Standard corresponds to PSR-12 (or PER Coding Style), in some points it specifies it more or modifies it:
+
+- arrow functions are written without a space before the parenthesis, i.e. `fn($a) => $b`
+- no empty line is required between different types of `use` import statements
+- the return type of a function/method and the opening curly bracket are always on separate lines:
+
+```php
+	public function find(
+		string $dir,
+		array $options,
+	): array
+	{
+		// method body
+	}
+```
+
+The opening curly bracket on a separate line is important for visually separating the function/method signature from the body. If the signature is on one line, the separation is clear (image on the left), if it's on multiple lines, in PSR the signatures and bodies blend together (in the middle), while in the Nette standard they remain separated (on the right):
+
+[* new-line-after.webp *]
 
 
 Documentation Blocks (phpDoc)

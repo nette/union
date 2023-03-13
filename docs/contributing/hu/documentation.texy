@@ -1,0 +1,69 @@
+Hozzájárulás a dokumentációhoz
+******************************
+
+.[perex]
+A dokumentációhoz való hozzájárulás az egyik legértékesebb tevékenység, mivel segít másoknak megérteni a keretrendszert.
+
+
+Hogyan írjunk? .[#toc-how-to-write]
+-----------------------------------
+
+A dokumentáció elsősorban azoknak szól, akik újak a témában. Ezért több fontos pontnak kell megfelelnie:
+
+- Kezdje egyszerű és általános témákkal. A végén térjen át a haladóbb témákra
+- Igyekezzen a lehető legvilágosabban elmagyarázni a témát. Például próbálja meg először elmagyarázni a témát egy kollégának.
+- Csak olyan információkat adjon meg, amelyeket a felhasználónak valóban tudnia kell az adott témához.
+- Győződjön meg arról, hogy az információi pontosak. Teszteljen minden kódot
+- Legyen tömör - vágja félbe, amit ír. És aztán nyugodtan csináld újra
+- Használjon takarékosan kiemelést, a félkövér betűtípusoktól kezdve a keretekig, mint pl. `.[note]`
+- Kövesse a [kódolási szabványt |Coding Standard] a kódban
+
+Tanuld meg a [szintaxist |syntax] is. A cikk írás közbeni előnézetéhez használhatja az [előnézeti szerkesztőt |https://editor.nette.org/].
+
+
+Nyelvi mutációk .[#toc-language-mutations]
+------------------------------------------
+
+Az angol az elsődleges nyelv, ezért a módosításoknak angolul kell történniük. Ha az angol nem az erősséged, használd a [DeepL fordítót |https://www.deepl.com/translator], és mások ellenőrzik a szövegedet.
+
+A más nyelvekre történő fordítás automatikusan megtörténik a szerkesztésed jóváhagyása és finomhangolása után.
+
+
+Triviális szerkesztések .[#toc-trivial-edits]
+---------------------------------------------
+
+A dokumentációhoz való hozzájáruláshoz egy fiókkal kell rendelkeznie a [GitHubon |https://github.com].
+
+A legegyszerűbb módja annak, hogy egy apró változtatást végezzünk a dokumentációban, ha az egyes oldalak végén található linkeket használjuk:
+
+- *Megjelenítés a GitHubon* megnyitja az oldal forrásváltozatát a GitHubon. Ezután csak nyomd meg a `E` gombot, és máris kezdheted a szerkesztést (be kell jelentkezned a GitHubra).
+- *Előnézet megnyitása* megnyit egy szerkesztőt, ahol azonnal láthatja a végleges vizuális formát
+
+Mivel [az előnézeti szerkesztő |https://editor.nette.org/] nem képes a változtatások közvetlen mentésére a GitHubra, a forrásszöveget a vágólapra kell másolnia (a *Másolás a vágólapra* gomb segítségével), majd beillesztenie a GitHubon lévő szerkesztőbe.
+A szerkesztőmező alatt található egy űrlap a beküldéshez. Itt ne felejtse el röviden összefoglalni és megmagyarázni a szerkesztés okát. A beküldés után egy úgynevezett pull request (PR) jön létre, amelyet tovább lehet szerkeszteni.
+
+
+Nagyobb szerkesztések .[#toc-larger-edits]
+------------------------------------------
+
+Célszerűbb a Git verziókezelő rendszerrel való munka alapjait ismerni, mint kizárólag a GitHub felületére hagyatkozni. Ha nem ismeri a Gitet, olvassa el a [git - az egyszerű útmutatót |https://rogerdudler.github.io/git-guide/], és fontolja meg a számos elérhető [grafikus kliens |https://git-scm.com/downloads/guis] egyikének használatát.
+
+Szerkessze a dokumentációt a következő módon:
+
+1) a GitHubon hozzon létre egy [elágazást |https://help.github.com/en/github/getting-started-with-github/fork-a-repo] a [nette/docs |https://github.com/nette/docs] tárolóból.
+2) [klónozza |https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository] ezt a tárolót a számítógépére
+3) ezután végezzen módosításokat a [megfelelő ágban |#Documentation Structure]
+4) a [Code-Checker |code-checker:] eszközzel ellenőrizze, hogy nincsenek-e extra szóközök a szövegben.
+5) mentse (commit) a változtatásokat
+6) ha elégedett vagy a változtatásokkal, tedd fel a GitHubra a saját elágazásodba.
+7) onnan küldje el őket a `nette/docs` tárolóba egy [pull request|https://help.github.com/articles/creating-a-pull-request] (PR) létrehozásával.
+
+Gyakori, hogy javaslatokat tartalmazó megjegyzéseket kapunk. Tartsd szemmel a javasolt változtatásokat és építsd be őket. A javasolt változtatásokat új commitként add hozzá, és küldd el újra a GitHubra. Soha ne hozzon létre új pull requestet csak azért, hogy egy meglévőt módosítson.
+
+
+Dokumentáció szerkezete .[#toc-documentation-structure]
+-------------------------------------------------------
+
+A teljes dokumentáció a GitHubon található a [nette/docs |https://github.com/nette/docs] tárolóban. Az aktuális verzió a master ágban található, míg a régebbi verziók a `doc-3.x`, `doc-2.x` ágakban találhatók.
+
+Az egyes ágak tartalma fő mappákra van osztva, amelyek a dokumentáció egyes területeit képviselik. Például a `application/` megfelel a https://doc.nette.org/en/application, a `latte/` megfelel a https://latte.nette.org, stb. Mindegyik mappa tartalmaz nyelvi mutációkat képviselő almappákat (`cs`, `en`, ...) és opcionálisan egy `files` almappát a dokumentáció oldalaira beilleszthető képekkel.

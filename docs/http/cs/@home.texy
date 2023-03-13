@@ -1,5 +1,5 @@
-HTTP
-****
+Nette HTTP
+**********
 
 .[perex]
 Balíček `nette/http` zapouzdřuje [HTTP request|request] & [response], práci se [sessions] a [parsování a skládání URL |urls].
@@ -13,5 +13,3 @@ Knihovnu stáhnete a nainstalujete pomocí nástroje [Composer|best-practices:co
 ```shell
 composer require nette/http
 ```
-
-{{composer: nette/http}}

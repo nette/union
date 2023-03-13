@@ -12,13 +12,15 @@ class A implements A, C
 
 	#[A]
 	public function test(
-		#[\Bar\D] C $a,
+		#[\Bar\D]
+		C $a,
 		self $b,
 		parent $c,
 		array $d,
 		?callable $e,
 		C|string $f,
-	): static|A {
+	): static|A
+	{
 	}
 }
 

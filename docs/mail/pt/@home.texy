@@ -1,0 +1,318 @@
+Envio de e-mails
+****************
+
+<div class=perex>
+
+Você vai enviar e-mails como boletins informativos ou confirmações de pedidos? Nette Framework fornece as ferramentas necessárias com uma API muito boa. Vamos mostrar:
+
+- como criar um e-mail, incluindo os anexos
+- como enviá-lo
+- como combinar e-mails e modelos
+
+</div>
+
+
+Instalação .[#toc-installation]
+===============================
+
+Baixe e instale o pacote usando [o Composer |best-practices:composer]:
+
+```shell
+composer require nette/mail
+```
+
+
+Criando e-mails .[#toc-creating-emails]
+=======================================
+
+O e-mail é um objeto [api:Nette\Mail\Message]:
+
+```php
+$mail = new Nette\Mail\Message;
+$mail->setFrom('John <john@example.com>')
+	->addTo('peter@example.com')
+	->addTo('jack@example.com')
+	->setSubject('Order Confirmation')
+	->setBody("Hello, Your order has been accepted.");
+```
+
+Todos os parâmetros devem ser codificados em UTF-8.
+
+Além de especificar os destinatários com o método `addTo()`, você também pode especificar o destinatário da cópia com `addCc()`, ou o destinatário da cópia cega com `addBcc()`. Todos esses métodos, incluindo `setFrom()`, aceitam o destinatário de três maneiras:
+
+```php
+$mail->setFrom('john.doe@example.com');
+$mail->setFrom('john.doe@example.com', 'John Doe');
+$mail->setFrom('John Doe <john.doe@example.com>');
+```
+
+O corpo de um e-mail escrito em HTML é passado usando o método `setHtmlBody()`:
+
+```php
+$mail->setHtmlBody('<p>Hello,</p><p>Your order has been accepted.</p>');
+```
+
+Você não tem que criar uma alternativa de texto, Nette a gerará automaticamente para você. E se o e-mail não tiver um conjunto de assuntos, ele será retirado do `<title>` elemento.
+
+As imagens também podem ser inseridas com extrema facilidade no corpo HTML de um e-mail. Basta passar o caminho onde as imagens estão fisicamente localizadas como segundo parâmetro, e a Nette as incluirá automaticamente no e-mail:
+
+```php
+// adiciona automaticamente /caminho/para/imagens/background.gif ao e-mail
+$mail->setHtmlBody(
+	<b>Hello</b> <img src="background.gif">",
+	/caminho/para/imagens',
+);
+```
+
+O algoritmo de incorporação de imagem suporta os seguintes padrões: `<img src=...>`, `<body background=...>`, `url(...)` dentro do atributo HTML `style` e sintaxe especial `[[...]]`.
+
+O envio de e-mails pode ser ainda mais fácil?
+
+Os e-mails são como cartões postais. Nunca envie senhas ou outras credenciais por e-mail. .[tip]
+
+
+Anexos .[#toc-attachments]
+--------------------------
+
+Você pode, é claro, anexar anexos ao e-mail. Use o site `addAttachment(string $file, string $content = null, string $contentType = null)`.
+
+```php
+// insere o arquivo /caminho/para/exemplo.zip no e-mail com o nome exemplo.zip
+$mail->addAttachment('/caminho/para/exemplo.zip');
+
+// insere o arquivo /caminho/para/exemplo.zip no e-mail sob o nome info.zip
+$mail->addAttachment('info.zip', file_get_contents('/path/to/example.zip'));
+
+// anexa novo conteúdo do arquivo exemplo.txt "Olá John!
+$mail->addAttachment('example.txt', 'Olá John!');
+```
+
+
+Modelos .[#toc-templates]
+-------------------------
+
+Se você enviar e-mails HTML, é uma ótima idéia escrevê-los no sistema de modelos [Latte |latte:]. Como fazer isso?
+
+```php
+$latte = new Latte\Engine;
+$params = [
+	'orderId' => 123,
+];
+
+$mail = new Nette\Mail\Message;
+$mail->setFrom('John <john@example.com>')
+	->addTo('jack@example.com')
+	->setHtmlBody(
+		$latte->renderToString('/path/to/email.latte', $params),
+		'/path/to/images',
+	);
+```
+
+Arquivo `email.latte`:
+
+```latte
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Order Confirmation</title>
+	<style>
+	body {
+		background: url("background.png")
+	}
+	</style>
+</head>
+<body>
+	<p>Hello,</p>
+
+	<p>Your order number {$orderId} has been accepted.</p>
+</body>
+</html>
+```
+
+Nette insere automaticamente todas as imagens, define o assunto de acordo com o `<title>` e gera uma alternativa de texto para o corpo HTML.
+
+
+Utilização na aplicação Nette .[#toc-using-in-nette-application]
+----------------------------------------------------------------
+
+Se você utiliza e-mails juntamente com a Aplicação Nette, ou seja, apresentadores, você pode querer criar links em modelos usando o atributo `n:href` ou a tag `{link}`. O Latte basicamente não os conhece, mas é muito fácil adicioná-los. A criação de links pode fazer o objeto `Nette\Application\LinkGenerator`, que você obtém passando por ele usando a [injeção de dependência |dependency-injection:passing-dependencies].
+
+```php
+use Nette;
+
+class MailSender
+{
+	public function __construct(
+		private Nette\Application\LinkGenerator $linkGenerator,
+		private Nette\Bridges\ApplicationLatte\TemplateFactory $templateFactory,
+	) {
+	}
+
+	private function createTemplate(): Nette\Application\UI\Template
+	{
+		$template = $this->templateFactory->createTemplate();
+		$template->getLatte()->addProvider('uiControl', $this->linkGenerator);
+		return $template;
+	}
+
+	public function createEmail(): Nette\Mail\Message
+	{
+		$template = $this->createTemplate();
+		$html = $template->renderToString('/path/to/email.latte', $params);
+
+		$mail = new Nette\Mail\Message;
+		$mail->setHtmlBody($html);
+		// ...
+		return $mail;
+	}
+}
+```
+
+No modelo, o link é criado como em um modelo normal. Todos os links criados sobre o LinkGenerator são absolutos:
+
+```latte
+<a n:href="Presenter:action">Link</a>
+```
+
+
+Envio de e-mails .[#toc-sending-emails]
+=======================================
+
+O Mailer é a classe responsável pelo envio de e-mails. Ele implementa a interface [api:Nette\Mail\Mailer] e vários mailers prontos estão disponíveis que apresentaremos.
+
+A estrutura adiciona automaticamente um serviço `Nette\Mail\Mailer` baseado na [configuração |#Configuring] do recipiente DI, que você obtém passando-o usando a [injeção de dependência |dependency-injection:passing-dependencies].
+
+
+SendmailMailer .[#toc-sendmailmailer]
+-------------------------------------
+
+O mailer padrão é o SendmailMailer que usa a função PHP [php:mail]. Exemplo de uso:
+
+```php
+$mailer = new Nette\Mail\SendmailMailer;
+$mailer->send($mail);
+```
+
+Se você quiser configurar `returnPath` e o servidor ainda o sobrescreve, use `$mailer->commandArgs = '-fmy@email.com'`.
+
+
+SmtpMailer .[#toc-smtpmailer]
+-----------------------------
+
+Para enviar correio através do servidor SMTP, use `SmtpMailer`.
+
+```php
+$mailer = new Nette\Mail\SmtpMailer(
+	host: 'smtp.gmail.com',
+	username: 'franta@gmail.com',
+	password: '*****',
+	encryption: 'ssl',
+);
+$mailer->send($mail);
+```
+
+Os seguintes parâmetros adicionais podem ser passados para o construtor:
+
+* `port` - se não estiver definido, será utilizado o padrão 25 ou 465 para `ssl`
+* `timeout` - tempo limite para conexão SMTP
+* `persistent` - usar conexão persistente
+* `clientHost` - designação do cliente
+* `streamOptions` - permite definir "opções de contexto SSL":https://www.php.net/manual/en/context.ssl.php para conexão
+
+
+FallbackMailer .[#toc-fallbackmailer]
+-------------------------------------
+
+Ele não envia e-mails, mas os envia através de um conjunto de remetentes. Se um remetente falhar, ele repete a tentativa no próximo. Se o último falhar, ele começa novamente a partir do primeiro.
+
+```php
+$mailer = new Nette\Mail\FallbackMailer([
+	$smtpMailer,
+	$backupSmtpMailer,
+	$sendmailMailer,
+]);
+$mailer->send($mail);
+```
+
+Outros parâmetros no construtor incluem o número de repetições e tempo de espera em milissegundos.
+
+
+DKIM .[#toc-dkim]
+=================
+
+O DKIM (DomainKeys Identified Mail) é uma tecnologia de e-mail confiável que também ajuda a detectar mensagens falsificadas. A mensagem enviada é assinada com a chave privada do domínio do remetente e esta assinatura é armazenada no cabeçalho do e-mail.
+O servidor do destinatário compara esta assinatura com a chave pública armazenada nos registros DNS do domínio. Combinando a assinatura, é mostrado que o e-mail realmente originou-se do domínio do remetente e que a mensagem não foi modificada durante a transmissão da mensagem.
+
+Você pode configurar o mailer para assinar o e-mail na [configuração |#Configuring]. Se você não usa injeção de dependência, ela é usada da seguinte forma:
+
+```php
+$signer = new Nette\Mail\DkimSigner(
+	domain: 'nette.org',
+	selector: 'dkim',
+	privateKey: file_get_contents('../dkim/dkim.key'),
+	passPhrase: '****',
+);
+
+$mailer = new Nette\Mail\SendmailMailer; // or SmtpMailer
+$mailer->setSigner($signer);
+$mailer->send($mail);
+```
+
+
+Configurando .[#toc-configuring]
+================================
+
+Visão geral das opções de configuração para o Nette Mail. Se você não estiver usando toda a estrutura, mas apenas esta biblioteca, leia [como carregar a configuração |bootstrap:].
+
+Por padrão, o mailer `Nette\Mail\SendmailMailer` é usado para enviar e-mails, que não está mais configurado. Entretanto, podemos mudá-lo para `Nette\Mail\SmtpMailer`:
+
+```neon
+mail:
+	# usar SmtpMailer
+	smtp: true       # (bool) default to false
+
+	host: ...        # (string)
+	port: ...        # (int)
+	username: ...    # (string)
+	password: ...    # (string)
+	timeout: ...     # (int)
+	encryption: ...  # (ssl|tls|null) padrão a nulo (tem pseudônimo 'seguro')
+	clientHost: ...  # (string) padrão de $_SERVER['HTTP_HOST']
+	persistent: ...  # (bool) falha em falso
+
+	# contexto para conexão com o servidor SMTP, padrão para stream_context_get_default()
+	context:
+		ssl:         # todas as opções em https://www.php.net/manual/en/context.ssl.php
+			permit_signed_signed: ...
+			...
+		http:        # todas as opções em https://www.php.net/manual/en/context.http.php
+			header: ...
+			...
+```
+
+Você pode desativar a autenticação do certificado SSL usando a opção `context › ssl › verify_peer: false`. É ** fortemente recomendado não fazer** isso, pois isso tornará a aplicação vulnerável. Em vez disso, "adicionar certificados à loja de confiança":https://www.php.net/manual/en/openssl.configuration.php.
+
+Para aumentar a confiança, podemos assinar e-mails usando [a tecnologia DKIM |https://blog.nette.org/pt/assine-e-mails-com-dkim]:
+
+```neon
+mail:
+	dkim:
+		domain: myweb.com
+		selector: lovenette
+		privateKey: %appDir%/cert/dkim.priv
+		passPhrase: ...
+```
+
+
+Serviços DI .[#toc-di-services]
+===============================
+
+Esses serviços são adicionados ao contêiner DI:
+
+| Nome | Tipo | Descrição
+|-----------------------------------------------------
+| `mail.mailer`| [api:Nette\Mail\Mailer] | [classe de envio de e-mail |#Sending Emails]
+| `mail.signer`| [api:Nette\Mail\Signer] | [Assinatura DKIM |#DKIM]
+
+
+{{leftbar: nette:@menu-topics}}

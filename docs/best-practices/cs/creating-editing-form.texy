@@ -18,11 +18,9 @@ use Nette\Application\UI\Form;
 
 class RecordPresenter extends Nette\Application\UI\Presenter
 {
-	private $facade;
-
-	public function __construct(Facade $facade)
-	{
-		$this->facade = $facade;
+	public function __construct(
+		private Facade $facade,
+	) {
 	}
 
 	protected function createComponentRecordForm(): Form
@@ -61,13 +59,11 @@ use Nette\Application\UI\Form;
 
 class RecordPresenter extends Nette\Application\UI\Presenter
 {
-	private $facade;
-
 	private $record;
 
-	public function __construct(Facade $facade)
-	{
-		$this->facade = $facade;
+	public function __construct(
+		private Facade $facade,
+	) {
 	}
 
 	public function actionEdit(int $id): void
@@ -110,8 +106,7 @@ class RecordPresenter extends Nette\Application\UI\Presenter
 
 V metodě *action*, která se spouští hned na začátku [životního cyklu presenteru|application:presenters#zivotni-cyklus-presenteru], ověříme existenci záznamu a oprávnění uživatele jej editovat.
 
-Záznam si uložíme do property `$record`, abychom jej měli k dispozici v metodě `createComponentRecordForm()` kvůli nastavení výchozích hodnot, a `recordFormSucceeded()` kvůli ID. Alternativním řešením by bylo nastavit výchozí hodnoty přímo v `actionEdit()` a hodnotu ID,
-která je součástí URL, získat pomocí `getParameter('id')`:
+Záznam si uložíme do property `$record`, abychom jej měli k dispozici v metodě `createComponentRecordForm()` kvůli nastavení výchozích hodnot, a `recordFormSucceeded()` kvůli ID. Alternativním řešením by bylo nastavit výchozí hodnoty přímo v `actionEdit()` a hodnotu ID, která je součástí URL, získat pomocí `getParameter('id')`:
 
 
 ```php
@@ -150,11 +145,9 @@ A nyní oba presentery spojíme do jednoho. Buď bychom mohli v metodě `createC
 ```php
 class RecordPresenter extends Nette\Application\UI\Presenter
 {
-	private $facade;
-
-	public function __construct(Facade $facade)
-	{
-		$this->facade = $facade;
+	public function __construct(
+		private Facade $facade,
+	) {
 	}
 
 	public function actionAdd(): void

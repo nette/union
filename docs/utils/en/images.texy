@@ -4,6 +4,7 @@ Image Functions
 .[perex]
 The [api:Nette\Utils\Image] class simplifies image manipulation, such as resizing, cropping, sharpening, drawing, or merging multiple images.
 
+
 PHP has an extensive set of functions for manipulating images. But the API is not very nice. It wouldn't be a Nette Framework to come up with a sexy API.
 
 Installation:
@@ -40,14 +41,16 @@ Or we load the image from a file:
 $image = Image::fromFile('nette.jpg');
 ```
 
+Supported formats are JPEG, PNG, GIF, WebP, AVIF and BMP, but your version of PHP must also support them (check the `phpinfo()`, section GD). Animations are not supported.
+
 Need to detect the image format when loading? The method returns format in the second parameter:
 
 ```php
 $image = Image::fromFile('nette.jpg', $type);
-// $type is Image::JPEG, Image::PNG, Image::GIF, Image::WEBP or Image::BMP
+// $type is Image::JPEG, Image::PNG, Image::GIF, Image::WEBP, Image::AVIF or Image::BMP
 ```
 
-As of nette/utils 3.2, `Image::detectTypeFromFile()` can be used.
+Only the detection without loading the image is done by `Image::detectTypeFromFile()`.
 
 
 Save the Image
@@ -59,13 +62,13 @@ The image can be saved to a file:
 $image->save('resampled.jpg');
 ```
 
-We can specify the compression quality in the range 0..100 for JPEG (default 85) and WEBP (default 80) and 0..9 for PNG (default 9):
+We can specify compression quality in the range 0..100 for JPEG (default 85), WEBP (default 80) and AVIF (default 30) and 0..9 for PNG (default 9):
 
 ```php
 $image->save('resampled.jpg', 80); // JPEG, quality 80%
 ```
 
-If the format is not obvious from the file extension, you can specify it with one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` and `Image::BMP`:
+If the format is not obvious from the file extension, it can be specified by one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF`, and `Image::BMP`:
 
 ```php
 $image->save('resampled.tmp', null, Image::JPEG);
@@ -110,28 +113,28 @@ Any dimension can be specified in percentages:
 $image->resize('75%', 300); // 75 % × 300px
 ```
 
-The behavior of the `resize` function could be affected with following flags:
+The behavior of `resize` can be influenced by the following flags. All but `Image::Stretch` preserve the aspect ratio.
 
 |---------------------------------------------------------------------------------------
 | Flag                   | Description
 |---------------------------------------------------------------------------------------
-| `Image::FIT` (default) | resulting dimensions will be less or equal as specified
-| `Image::FILL`          | fills the target area and possibly extends it in one direction
-| `Image::EXACT`         | fills the whole area and cuts what exceeds
-| `Image::SHRINK_ONLY`   | just scales down (does not extend a small image)
-| `Image::STRETCH`       | does not keep the aspect ratio
+| `Image::OrSmaller` (default) | resulting dimensions will be less or equal as specified
+| `Image::OrBigger`         | fills the target area and possibly extends it in one direction
+| `Image::Cover`            | fills the whole area and cuts what exceeds
+| `Image::ShrinkOnly`       | just scales down (does not extend a small image)
+| `Image::Stretch`          | does not keep the aspect ratio
 
 
 The flags are passed as the third argument of the function:
 
 ```php
-$image->resize(500, 300, Image::STRETCH);
+$image->resize(500, 300, Image::OrBigger);
 ```
 
 Flags can be combined:
 
 ```php
-$image->resize(500, 300, Image::SHRINK_ONLY | Image::STRETCH);
+$image->resize(500, 300, Image::ShrinkOnly | Image::Stretch);
 ```
 
 Images can be flipped vertically or horizontally by specifying one of the dimensions (or both) as a negative number:
@@ -216,48 +219,53 @@ Overview of Methods
 ===================
 
 
-static fromBlank(int $width, int $height, array $color = null): Image .[method]
--------------------------------------------------------------------------------
+static fromBlank(int $width, int $height, array $color=null): Image .[method]
+-----------------------------------------------------------------------------
 Creates a new true color image of the given dimensions. The default color is black.
 
 
-static fromFile(string $file, int &$detectedFormat = null): Image .[method]
----------------------------------------------------------------------------
-Reads an image from a file and returns its type in `$detectedFormat`. Supported types are `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` and `Image::BMP`.
+static fromFile(string $file, int &$detectedFormat=null): Image .[method]
+-------------------------------------------------------------------------
+Reads an image from a file and returns its type in `$detectedFormat`. The supported types are `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` and `Image::BMP`.
 
 
-static fromString(string $s, int &$detectedFormat = null): Image .[method]
---------------------------------------------------------------------------
-Reads an image from a string and returns its type in `$detectedFormat`. Supported types are `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` and `Image::BMP`.
+static fromString(string $s, int &$detectedFormat=null): Image .[method]
+------------------------------------------------------------------------
+Reads an image from a string and returns its type in `$detectedFormat`. The supported types are `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF`, and `Image::BMP`.
 
 
-static rgb(int $red, int $green, int $blue, int $transparency = 0): array .[method]
------------------------------------------------------------------------------------
+static rgb(int $red, int $green, int $blue, int $transparency=0): array .[method]
+---------------------------------------------------------------------------------
 Creates a color that can be used in other methods, such as `ellipse()`, `fill()`, and so on.
 
 
-static typeToExtension(int $type): string .[method]{data-version:v3.1.1}
-------------------------------------------------------------------------
+static typeToExtension(int $type): string .[method]
+---------------------------------------------------
 Returns the file extension for the given `Image::XXX` constant.
 
 
-static typeToMimeType(int $type): string .[method]{data-version:v3.1.1}
------------------------------------------------------------------------
+static typeToMimeType(int $type): string .[method]
+--------------------------------------------------
 Returns the mime type for the given `Image::XXX` constant.
 
 
-static detectTypeFromFile(string $file): ?int .[method]{data-version:v3.2.0}
-----------------------------------------------------------------------------
-Returns the type of image file as `Image::XXX` constant.
+static extensionToType(string $extension): int .[method]
+--------------------------------------------------------
+Returns the image type as a constant `Image::XXX` according to the file extension.
 
 
-static detectTypeFromString(string $s): ?int .[method]{data-version:v3.2.0}
----------------------------------------------------------------------------
-Returns the type of image from string as `Image::XXX` constant.
+static detectTypeFromFile(string $file, int &$width=null, int &$height=null): ?int .[method]
+--------------------------------------------------------------------------------------------
+Returns the type of image file as `Image::XXX` constant and in the `$width` and `$height` parameters also its dimensions.
 
 
-affine(array $affine, array $clip = null): Image .[method]
-----------------------------------------------------------
+static detectTypeFromString(string $s, int &$width=null, int &$height=null): ?int .[method]
+-------------------------------------------------------------------------------------------
+Returns the type of image from string as `Image::XXX` constant and in the `$width` and `$height` parameters also its dimensions.
+
+
+affine(array $affine, array $clip=null): Image .[method]
+--------------------------------------------------------
 Return an image containing the affine transformed src image, using an optional clipping area. ([more|https://www.php.net/manual/en/function.imageaffine]).
 
 
@@ -266,8 +274,8 @@ affineMatrixConcat(array $m1, array $m2): array .[method]
 Returns the concatenation of two affine transformation matrices, what is useful if multiple transformations should be applied to the same image in one go. ([more|https://www.php.net/manual/en/function.imageaffinematrixconcat])
 
 
-affineMatrixGet(int $type, mixed $options = null): array .[method]
-------------------------------------------------------------------
+affineMatrixGet(int $type, mixed $options=null): array .[method]
+----------------------------------------------------------------
 Returns an affine transformation matrix. ([more|https://www.php.net/manual/en/function.imageaffinematrixget])
 
 
@@ -373,8 +381,8 @@ colorsTotal(): int .[method]
 Returns the number of colors in an image palette. ([more|https://www.php.net/manual/en/function.imagecolorstotal])
 
 
-colorTransparent(int $color = null): int .[method]
---------------------------------------------------
+colorTransparent(int $color=null): int .[method]
+------------------------------------------------
 Gets or sets the transparent color in the image. ([more|https://www.php.net/manual/en/function.imagecolortransparent])
 
 
@@ -424,8 +432,8 @@ crop(int|string $left, int|string $top, int|string $width, int|string $height): 
 Crops an image to the given rectangular area. Dimensions can be passed as integers in pixels or strings in percent (i.e. `'50%'`).
 
 
-cropAuto(int $mode = -1, float $threshold = .5, int $color = -1): Image .[method]
----------------------------------------------------------------------------------
+cropAuto(int $mode=-1, float $threshold=.5, int $color=-1): Image .[method]
+---------------------------------------------------------------------------
 Automatically crops an image according to the given `$mode`. ([more|https://www.php.net/manual/en/function.imagecropauto])
 
 
@@ -474,8 +482,8 @@ flip(int $mode): void .[method]
 Flips the image using the given `$mode`. ([more|https://www.php.net/manual/en/function.imageflip])
 
 
-ftText(int $size, int $angle, int $x, int $y, int $col, string $fontFile, string $text, array $extrainfo = null): array .[method]
----------------------------------------------------------------------------------------------------------------------------------
+ftText(int $size, int $angle, int $x, int $y, int $col, string $fontFile, string $text, array $extrainfo=null): array .[method]
+-------------------------------------------------------------------------------------------------------------------------------
 Write text to the image using fonts using FreeType 2. ([more|https://www.php.net/manual/en/function.imagefttext])
 
 
@@ -484,8 +492,8 @@ gammaCorrect(float $inputgamma, float $outputgamma): void .[method]
 Applies gamma correction to the image given an input and an output gamma. ([more|https://www.php.net/manual/en/function.imagegammacorrect])
 
 
-getClip(): array .[method]{data-version:PHP 7.2}
-------------------------------------------------
+getClip(): array .[method]
+--------------------------
 Retrieves the current clipping rectangle, i.e. the area beyond which no pixels will be drawn. ([more|https://www.php.net/manual/en/function.imagegetclip])
 
 
@@ -504,8 +512,8 @@ getWidth(): int .[method]
 Returns the width of the image.
 
 
-interlace(int $interlace = null): int .[method]
------------------------------------------------
+interlace(int $interlace=null): int .[method]
+---------------------------------------------
 Turns the interlace bit on or off. If the interlace bit is set and the image is used as a JPEG image, the image is created as a progressive JPEG. ([more|https://www.php.net/manual/en/function.imageinterlace])
 
 
@@ -524,8 +532,8 @@ line(int $x1, int $y1, int $x2, int $y2, int $color): void .[method]
 Draws a line between the two given points. ([more|https://www.php.net/manual/en/function.imageline])
 
 
-openPolygon(array $points, int $numPoints, int $color): void .[method]{data-version:PHP 7.2}
---------------------------------------------------------------------------------------------
+openPolygon(array $points, int $numPoints, int $color): void .[method]
+----------------------------------------------------------------------
 Draws an open polygon on the image. Contrary to `polygon()`, no line is drawn between the last and the first point. ([more|https://www.php.net/manual/en/function.imageopenpolygon])
 
 
@@ -539,8 +547,8 @@ paletteToTrueColor(): void .[method]
 Converts a palette based image, created by functions like `create()` to a true color image, like `createtruecolor()`. ([more|https://www.php.net/manual/en/function.imagepalettetotruecolor])
 
 
-place(Image $image, int|string $left = 0, int|string $top = 0, int $opacity = 100): Image .[method]
----------------------------------------------------------------------------------------------------
+place(Image $image, int|string $left=0, int|string $top=0, int $opacity=100): Image .[method]
+---------------------------------------------------------------------------------------------
 Copies `$image` to the image at the coordinates `$left` and `$top`. Coordinates can be passed as integers in pixels or strings in percent (i.e. `'50%'`).
 
 
@@ -549,23 +557,18 @@ polygon(array $points, int $numPoints, int $color): void .[method]
 Creates a polygon in the image. ([more|https://www.php.net/manual/en/function.imagepolygon])
 
 
-psText(string $text, int $font, int $size, int $color, int $backgroundColor, int $x, int $y, int $space = null, int $tightness = null, float $angle = null, int $antialiasSteps = null): array .[method]
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Draws a text on an image using PostScript Type1 fonts. ([more|https://www.php.net/manual/en/function.imagepstext])
-
-
 rectangle(int $x1, int $y1, int $x2, int $y2, int $col): void .[method]
 -----------------------------------------------------------------------
 Creates a rectangle starting at the specified coordinates. ([more|https://www.php.net/manual/en/function.imagerectangle])
 
 
-resize(int|string $width, int|string $height, int $flags = Image::FIT): Image .[method]
----------------------------------------------------------------------------------------
+resize(int|string $width, int|string $height, int $flags=Image::OrSmaller): Image .[method]
+-------------------------------------------------------------------------------------------
 Scales an image, see [more info|#Image Resize]. Dimensions can be passed as integers in pixels or strings in percent (i.e. `'50%'`).
 
 
-resolution(int $resX = null, int $resY = null): mixed .[method]{data-version:PHP 7.2}
--------------------------------------------------------------------------------------
+resolution(int $resX=null, int $resY=null): mixed .[method]
+-----------------------------------------------------------
 Allows to set and get the resolution of an image in DPI (dots per inch). If none of the optional parameters is given, the current resolution is returned as indexed array. If only `$resX` is given, the horizontal and vertical resolution are set to this value. If both optional parameters are given, the horizontal and vertical resolution are set to these values, respectively.
 
 The resolution is only used as meta information when images are read from and written to formats supporting this kind of information (curently PNG and JPEG). It does not affect any drawing operations. The default resolution for new images is 96 DPI. ([more|https://www.php.net/manual/en/function.imageresolution])
@@ -579,11 +582,11 @@ Rotates the image using the given `$angle` in degrees. The center of rotation is
 Requires *Bundled GD extension*, so it is not sure it will work everywhere.
 
 
-save(string $file, int $quality = null, int $type = null): void .[method]
--------------------------------------------------------------------------
+save(string $file, int $quality=null, int $type=null): void .[method]
+---------------------------------------------------------------------
 Saves an image to a file.
 
-Compression quality is in the range 0..100 for JPEG (default 85) and WEBP (default 80) and 0..9 for PNG (default 9). If the type is not obvious from the file extension, you can specify it with one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` and `Image::BMP`.
+The compression quality is in the range 0..100 for JPEG (default 85), WEBP (default 80) and AVIF (default 30) and 0..9 for PNG (default 9). If the type is not obvious from the file extension, you can specify it using one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF`, and `Image::BMP`.
 
 
 saveAlpha(bool $saveflag): void .[method]
@@ -593,16 +596,16 @@ Sets the flag which determines whether to retain full alpha channel information 
 Alphablending has to be disabled (`alphaBlending(false)`) to retain the alpha-channel in the first place. ([more|https://www.php.net/manual/en/function.imagesavealpha])
 
 
-scale(int $newWidth, int $newHeight = -1, int $mode = IMG_BILINEAR_FIXED): Image .[method]
-------------------------------------------------------------------------------------------
+scale(int $newWidth, int $newHeight=-1, int $mode=IMG_BILINEAR_FIXED): Image .[method]
+--------------------------------------------------------------------------------------
 Scales an image using the given interpolation algorithm. ([more|https://www.php.net/manual/en/function.imagescale])
 
 
-send(int $type = Image::JPEG, int $quality = null): void .[method]
-------------------------------------------------------------------
+send(int $type=Image::JPEG, int $quality=null): void .[method]
+--------------------------------------------------------------
 Outputs an image to the browser.
 
-Compression quality is in the range 0..100 for JPEG (default 85) and WEBP (default 80) and 0..9 for PNG (default 9). The type is one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` and `Image::BMP`.
+The compression quality is in the range 0..100 for JPEG (default 85), WEBP (default 80) and AVIF (default 30) and 0..9 for PNG (default 9). Type is one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` and `Image::BMP`.
 
 
 setBrush(Image $brush): void .[method]
@@ -610,13 +613,13 @@ setBrush(Image $brush): void .[method]
 Sets the brush image to be used by all line drawing functions (such as `line()` and `polygon()`) when drawing with the special colors IMG_COLOR_BRUSHED or IMG_COLOR_STYLEDBRUSHED. ([more|https://www.php.net/manual/en/function.imagesetbrush])
 
 
-setClip(int $x1, int $y1, int $x2, int $y2): void .[method]{data-version:PHP 7.2}
----------------------------------------------------------------------------------
+setClip(int $x1, int $y1, int $x2, int $y2): void .[method]
+-----------------------------------------------------------
 Sets the current clipping rectangle, i.e. the area beyond which no pixels will be drawn. ([more|https://www.php.net/manual/en/function.imagesetclip])
 
 
-setInterpolation(int $method = IMG_BILINEAR_FIXED): void .[method]
-------------------------------------------------------------------
+setInterpolation(int $method=IMG_BILINEAR_FIXED): void .[method]
+----------------------------------------------------------------
 Sets the interpolation method which affects methods `rotate()` and `affine()`. ([more|https://www.php.net/manual/en/function.imagesetinterpolation])
 
 
@@ -660,11 +663,11 @@ stringUp(int $font, int $x, int $y, string $s, int $col): void .[method]
 Draws a string vertically at the given coordinates. ([more|https://www.php.net/manual/en/function.imagestringup])
 
 
-toString(int $type = Image::JPEG, int $quality = null): string .[method]
-------------------------------------------------------------------------
+toString(int $type=Image::JPEG, int $quality=null): string .[method]
+--------------------------------------------------------------------
 Outputs an image to string.
 
-Compression quality is in the range 0..100 for JPEG (default 85) and WEBP (default 80) and 0..9 for PNG (default 9). The type is one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP` and `Image::BMP`.
+The compression quality is in the range 0..100 for JPEG (default 85), WEBP (default 80) and AVIF (default 30) and 0..9 for PNG (default 9). Type is one of the constants `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` and `Image::BMP`.
 
 
 trueColorToPalette(bool $dither, int $ncolors): void .[method]
@@ -675,6 +678,3 @@ Converts a truecolor image to a palette image. ([more|https://www.php.net/manual
 ttfText(int $size, int $angle, int $x, int $y, int $color, string $fontfile, string $text): array .[method]
 -----------------------------------------------------------------------------------------------------------
 Writes the given text into the image using TrueType fonts. ([more|https://www.php.net/manual/en/function.imagettftext])
-
-
-{{composer: nette/utils}}

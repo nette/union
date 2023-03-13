@@ -45,12 +45,13 @@ Cesta dynamických snippetů
 
 Dynamický snippet znamená v terminologii Latte specifický případ užití makra `{snippet}`, kdy je v názvu snippetu použita proměnná. Takový snippet se nemůže v šabloně nalézat jen tak kdekoliv - musí být obalen statickým snippetem, tj. obyčejným, nebo uvnitř `{snippetArea}`. Naši šablonu bychom mohli upravit následovně.
 
+
 ```latte
 {snippet articlesContainer}
 	<article n:foreach="$articles as $article">
 		<h2>{$article->title}</h2>
 		<div class="content">{$article->content}</div>
-		{snippet article-$article->id}
+		{snippet article-{$article->id}}
 			{if !$article->liked}
 				<a n:href="like! $article->id" class=ajax>to se mi líbí</a>
 			{else}
@@ -91,7 +92,7 @@ public function handleLike(int $articleId): void
 	if ($this->isAjax()) {
 		// ...
 		$this->template->articles = [
-			$this->connection->table('articles')->get($articleId)
+			$this->connection->table('articles')->get($articleId),
 		];
 	} else {
 		// ...
@@ -116,11 +117,9 @@ Cesta komponent
 ```php
 class LikeControl extends Nette\Application\UI\Control
 {
-	private $article;
-
-	public function __construct($article)
-	{
-		$this->article = $article;
+	public function __construct(
+		private Article $article,
+	) {
 	}
 
 	public function handleLike(): void
@@ -170,18 +169,6 @@ protected function createComponentLikeControl()
 ```
 
 Máme téměř hotovo: aplikace nyní bude fungovat AJAXově. I zde nás čeká aplikaci optimalizovat, protože vzhledem k použití Nette Database se při zpracování signálu zbytečně načtou všechny články z databáze namísto jednoho. Výhodou však je, že nedojde k jejich vykreslování, protože se vyrenderuje skutečně jen naše komponenta.
-
-
-Pro a proti
-===========
-
-|----------------------------
-| | Cesta dynamických snippetů | Cesta komponent |
-|----------------------------
-|* zápis | rychlejší | pomalejší (třeba vytvořit komponentu) |
-|* invalidace | složitější | jednodušší |
-|* výkon | zbytečně se renderují všechny "řádky" | renderuje se jen 1 "řádek" |
-|* znovupoužitelnost | ne | ano |
 
 {{priority: -1}}
 {{sitename: Best Practices}}

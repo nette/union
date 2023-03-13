@@ -3,6 +3,8 @@ Aplikace v Nette
 - [Jak fungují aplikace? |how-it-works]
 - [Bootstrap]
 - [Presentery |presenters]
+- [Šablony |templates]
+- [Moduly |modules]
 - [Routování |routing]
 - [Vytváření odkazů URL |creating-links]
 - [Interaktivní komponenty |components]
@@ -13,4 +15,8 @@ Aplikace v Nette
 
 Další četba
 ***********
+- [Proč používat Nette? |www:10-reasons-why-nette]
+- [Instalace |nette:installation]
+- [Píšeme první aplikaci! |quickstart:]
 - [Návody a postupy |best-practices:]
+- [Řešení problémů |nette:troubleshooting]

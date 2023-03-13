@@ -1,0 +1,1060 @@
+Latte Etichete
+**************
+
+.[perex]
+Rezumat și descriere a tuturor etichetelor Latte încorporate.
+
+.[table-latte-tags language-latte]
+|## Imprimare
+| `{$var}`, `{...}` sau `{=...}` | [tipărește o variabilă sau o expresie scăpată |#printing].
+| `{$var\|filter}` | [tipărește cu filtre |#filters]
+| `{l}` sau `{r}` | tipărește caracterul `{` or `}`
+
+.[table-latte-tags language-latte]
+|## Condiții
+| `{if}`... `{elseif}`... `{else}`... `{/if}` | [condiție dacă |#if-elseif-else]
+| `{ifset}`... `{elseifset}`... `{/ifset}` | [condiție ifset |#ifset-elseifset]
+| `{ifchanged}`... `{/ifchanged}` | [testează dacă a avut loc o schimbare |#ifchanged]
+| `{switch}` `{case}` `{default}` `{/switch}` | [condition switch |#switch-case-default]
+
+.[table-latte-tags language-latte]
+|## Bucle
+| `{foreach}`... `{/foreach}` | [foreach |#foreach]
+| `{for}`... `{/for}` | [for |#for]
+| `{while}`... `{/while}` | [while |#while]
+| `{continueIf $cond}` | [continuă la următoarea iterație |#continueif-skipif-breakif]
+| `{skipIf $cond}` | [săriți peste iterația curentă a buclei |#continueif-skipif-breakif]
+| `{breakIf $cond}` | [întrerupe bucla |#continueif-skipif-breakif]
+| `{exitIf $cond}` | [ieșire anticipată |#exitif]
+| `{first}`... `{/first}` | [este prima iterație? |#first-last-sep]
+| `{last}`... `{/last}` | [este ultima iterație? |#first-last-sep]
+| `{sep}`... `{/sep}` | [va urma următoarea iterație? |#first-last-sep]
+| `{iterateWhile}`... `{/iterateWhile}` | [structurat foreach |#iterateWhile]
+| `$iterator` | [variabilă specială în interiorul buclei foreach |#$iterator]
+
+.[table-latte-tags language-latte]
+|## Includerea altor șabloane
+| `{include 'file.latte'}` | [include un șablon din alt fișier |#include]
+| `{sandbox 'file.latte'}` | [include un șablon în modul sandbox |#sandbox]
+
+.[table-latte-tags language-latte]
+|## Blocuri, machete, moștenirea șablonului
+| `{block}` | [bloc anonim |#block]
+| `{block blockname}` | [definiție bloc |template-inheritance#blocks]
+| `{define blockname}` | [definiție bloc pentru utilizare viitoare |template-inheritance#definitions]
+| `{include blockname}` | [imprimă blocul |template-inheritance#printing-blocks]
+| `{include blockname from 'file.latte'}` | [tipărește un bloc din fișier |template-inheritance#printing-blocks]
+| `{import 'file.latte'}` | [încarcă blocuri dintr-un alt șablon |template-inheritance#horizontal-reuse]
+| `{layout 'file.latte'}` / `{extends}` | [specifică un fișier de machetare |template-inheritance#layout-inheritance]
+| `{embed}`... `{/embed}` | [încarcă șablonul sau blocul și vă permite să suprascrieți blocurile |template-inheritance#unit-inheritance]
+| `{ifset blockname}`... `{/ifset}` | [condiție dacă blocul este definit |template-inheritance#checking-block-existence]
+
+.[table-latte-tags language-latte]
+|## Gestionarea excepțiilor
+| `{try}`... `{else}`... `{/try}` | [prinderea excepțiilor |#try]
+| `{rollback}` | [elimină blocul de încercare |#rollback]
+
+.[table-latte-tags language-latte]
+|## Variabile
+| `{var $foo = value}` | [crearea de variabile |#var-default]
+| `{default $foo = value}` | [valoare implicită atunci când variabila nu este declarată |#var-default]
+| `{parameters}` | [declară variabile, tipuri și valori implicite |#parameters]
+| `{capture}`... `{/capture}` | [captează o secțiune într-o variabilă |#capture]
+
+.[table-latte-tags language-latte]
+|## Tipuri
+| `{varType}` | [declară tipul de variabilă |type-system#varType]
+| `{varPrint}` | [sugerează tipuri de variabile |type-system#varPrint]
+| `{templateType}` | [declară tipurile de variabile folosind clasa |type-system#templateType]
+| `{templatePrint}` | [generează o clasă cu proprietăți |type-system#templatePrint]
+
+.[table-latte-tags language-latte]
+|## Traducere
+| `{_string}` | [tipărește traducerea |#Translation]
+| `{translate}`... `{/translate}` | [traduce conținutul |#Translation]
+
+.[table-latte-tags language-latte]
+|## Altele
+| `{contentType}` | [comută modul de scăpare și trimite antetul HTTP |#contenttype]
+| `{debugbreak}` | [setează un punct de întrerupere în cod |#debugbreak]
+| `{do}` | [evaluează o expresie fără a o imprima |#do]
+| `{dump}` | [transferă variabilele în bara Tracy Bar |#dump]
+| `{php}` | [execută orice cod PHP |#php]
+| `{spaceless}`... `{/spaceless}` | [elimină spațiile albe inutile |#spaceless]
+| `{syntax}` | [schimbă sintaxa în timpul execuției |#syntax]
+| `{trace}` | [afișează urma de stivă |#trace]
+
+.[table-latte-tags language-latte]
+|## HTML tag helpers
+| `n:class` | [atribut de clasă inteligentă |#n:class]
+| `n:attr` | [atribute HTML inteligente |#n:attr]
+| `n:tag` | [nume dinamic al elementului HTML |#n:tag]
+| `n:ifcontent` | [Omite tagul HTML gol |#n:ifcontent]
+
+.[table-latte-tags language-latte]
+|## Disponibil numai în Nette Framework
+| `n:href` | [link în elementele HTML `<a>`  |application:creating-links#In the Presenter Template]
+| `{link}` | [tipărește un link |application:creating-links#In the Presenter Template]
+| `{plink}` | [tipărește un link către un prezentator |application:creating-links#In the Presenter Template]
+| `{control}` | [tipărește o componentă |application:components#Rendering]
+| `{snippet}`... `{/snippet}` | [un fragment de șablon care poate fi trimis prin AJAX |application:ajax#tag-snippet]
+| `{snippetArea}` | plic de fragmente
+| `{cache}`... `{/cache}` | [pune în cache o secțiune de șablon |caching:en#caching-in-latte]
+
+.[table-latte-tags language-latte]
+|## Disponibil numai cu Nette Forms
+| `{form}`... `{/form}` | [tipărește un element de formular |forms:rendering#form]
+| `{label}`... `{/label}` | [tipărește o etichetă de intrare a unui formular |forms:rendering#label-input]
+| `{input}` | [tipărește un element de intrare în formular |forms:rendering#label-input]
+| `{inputError}` | [tipărește mesajul de eroare pentru elementul de intrare al formularului |forms:rendering#inputError]
+| `n:name` | [activează un element de intrare HTML |forms:rendering#n:name]
+| `{formPrint}` | [generează schița unui formular Latte |forms:rendering#formPrint]
+| `{formPrintClass}` | [tipărește clasa PHP pentru datele formularului |forms:in-presenter#mapping-to-classes]
+| `{formContext}`... `{/formContext}` | [redarea parțială a formularului |forms:rendering#special-cases]
+| `{formContainer}`... `{/formContainer}` | [redarea formularului container |forms:rendering#special-cases]
+
+
+Imprimare .[#toc-printing]
+==========================
+
+
+`{$var}` `{...}` `{=...}`
+-------------------------
+
+Latte utilizează eticheta `{=...}` pentru a imprima orice expresie la ieșire. Dacă expresia începe cu o variabilă sau cu un apel de funcție, nu este necesar să se scrie un semn egal. Ceea ce, în practică, înseamnă că aproape niciodată nu este necesar să fie scris:
+
+```latte
+Name: {$name} {$surname}<br>
+Age: {date('Y') - $birth}<br>
+```
+
+Puteți scrie ca expresie orice știți din PHP. Pur și simplu nu trebuie să învățați un nou limbaj. De exemplu:
+
+
+```latte
+{='0' . ($num ?? $num * 3) . ', ' . PHP_VERSION}
+```
+
+Vă rugăm să nu căutați niciun sens în exemplul anterior, dar dacă găsiți vreunul acolo, scrieți-ne :-)
+
+
+Ieșire prin evadare .[#toc-escaping-output]
+-------------------------------------------
+
+Care este cea mai importantă sarcină a unui sistem de șabloane? Să evite găurile de securitate. Și exact asta face Latte de fiecare dată când imprimați ceva la ieșire. El scapă automat totul:
+
+```latte
+<p>{='one < two'}</p>   {* prints: '<p>one &lt; two</p>' *}
+```
+
+Mai exact, Latte folosește escape-ul sensibil la context, care este o caracteristică atât de importantă și unică încât [i-am dedicat un capitol separat |safety-first#context-aware-escaping].
+
+Și dacă imprimați conținut codificat HTML dintr-o sursă de încredere? Atunci puteți să dezactivați cu ușurință scăparea:
+
+```latte
+{$trustedHtmlString|noescape}
+```
+
+.[warning]
+Utilizarea abuzivă a filtrului `noescape` poate duce la o vulnerabilitate XSS! Nu îl utilizați niciodată decât dacă sunteți **absolut sigur** de ceea ce faceți și dacă șirul pe care îl imprimați provine dintr-o sursă de încredere.
+
+
+Imprimarea în JavaScript .[#toc-printing-in-javascript]
+-------------------------------------------------------
+
+Datorită scăpării sensibile la context, este foarte ușor să imprimați variabile în JavaScript, iar Latte le va scăpa în mod corespunzător.
+
+Variabila nu trebuie să fie un șir de caractere, este acceptat orice tip de date, care este apoi codificat ca JSON:
+
+```latte
+{var $foo = ['hello', true, 1]}
+<script>
+	alert({$foo});
+</script>
+```
+
+Generează:
+
+```latte
+<script>
+	alert(["hello", true, 1]);
+</script>
+```
+
+Acesta este și motivul pentru care **nu puneți variabilele între ghilimele**: Latte le adaugă în jurul șirurilor de caractere. Iar dacă doriți să puneți o variabilă de șir de caractere în alt șir de caractere, pur și simplu le concatenați:
+
+```latte
+<script>
+	alert('Hello ' + {$name} + '!');  // OK
+
+	alert({="Hello $name!"});         // OK
+
+	alert('Hello {$name} !');         // ERROR!
+</script>
+```
+
+
+Filtre .[#toc-filters]
+----------------------
+
+Expresia tipărită poate fi modificată [prin filtre |syntax#filters]. De exemplu, acest exemplu convertește șirul în majuscule și îl scurtează la maximum 30 de caractere:
+
+```latte
+{$string|upper|truncate:30}
+```
+
+De asemenea, puteți aplica filtre la părți ale unei expresii, după cum urmează:
+
+```latte
+{$left . ($middle|upper) . $right}
+```
+
+
+Condiții .[#toc-conditions]
+===========================
+
+
+`{if}` `{elseif}` `{else}`
+--------------------------
+
+Condițiile se comportă în același mod ca și omologii lor din PHP. Puteți utiliza aceleași expresii pe care le cunoașteți din PHP, nu trebuie să învățați un nou limbaj.
+
+```latte
+{if $product->inStock > Stock::Minimum}
+	In stock
+{elseif $product->isOnWay()}
+	On the way
+{else}
+	Not available
+{/if}
+```
+
+La fel ca orice tag pair, o pereche de `{if} ... {/ if}` poate fi scrisă ca [n:attribute |syntax#n:attributes], de exemplu:
+
+```latte
+<p n:if="$count > 0">In stock {$count} items</p>
+```
+
+Știați că puteți adăuga prefixul `tag-` la n:attribute? În acest caz, condiția va afecta doar etichetele HTML, iar conținutul dintre ele va fi întotdeauna tipărit:
+
+```latte
+<a href="..." n:tag-if="$clickable">Hello</a>
+
+{* prints 'Hello' when $clickable is falsey *}
+{* prints '<a href="...">Hello</a>' when $clickable is truthy *}
+```
+
+Frumos.
+
+
+`{/if $cond}`
+-------------
+
+S-ar putea să fiți surprins de faptul că expresia din condiția `{if}` poate fi, de asemenea, specificată în eticheta end. Acest lucru este util în situațiile în care nu cunoaștem încă valoarea condiției la deschiderea tag-ului. Să o numim o decizie amânată.
+
+De exemplu, începem să listăm un tabel cu înregistrări din baza de date și abia după ce finalizăm raportul ne dăm seama că nu exista nicio înregistrare în baza de date. Deci, punem condiția în tag-ul de sfârșit `{/if}` și, dacă nu există nicio înregistrare, nu se va imprima nimic:
+
+```latte
+{if}
+	<h1>Printing rows from the database</h1>
+
+	<table>
+	{foreach $resultSet as $row}
+		...
+	{/foreach}
+	</table>
+{/if isset($row)}
+```
+
+Practic, nu-i așa?
+
+De asemenea, puteți utiliza `{else}` în condiția amânată, dar nu și `{elseif}`.
+
+
+`{ifset}` `{elseifset}`
+-----------------------
+
+.[note]
+A se vedea și [`{ifset block}` |template-inheritance#checking-block-existence]
+
+Utilizați condiția `{ifset $var}` pentru a determina dacă o variabilă (sau mai multe variabile) există și dacă are o valoare diferită de cea nulă. De fapt, este același lucru cu `if (isset($var))` în PHP. La fel ca orice tag pair, aceasta poate fi scrisă sub forma [n:attribute |syntax#n:attributes], așa că haideți să o arătăm în exemplu:
+
+```latte
+<meta name="robots" content="{$robots}" n:ifset="$robots">
+```
+
+
+`{ifchanged}`
+-------------
+
+`{ifchanged}` verifică dacă valoarea unei variabile s-a schimbat de la ultima iterație din buclă (foreach, for sau while).
+
+Dacă specificăm una sau mai multe variabile în etichetă, aceasta va verifica dacă vreuna dintre ele s-a schimbat și va imprima conținutul în consecință. De exemplu, exemplul următor tipărește prima literă a unui nume ca titlu de fiecare dată când se schimbă atunci când se listează nume:
+
+```latte
+{foreach ($names|sort) as $name}
+	{ifchanged $name[0]} <h2>{$name[0]}</h2> {/ifchanged}
+
+	<p>{$name}</p>
+{/foreach}
+```
+
+Cu toate acestea, dacă nu se furnizează niciun argument, conținutul redat în sine va fi verificat în raport cu starea sa anterioară. Acest lucru înseamnă că, în exemplul anterior, putem omite în siguranță argumentul din tag. Și, bineînțeles, putem folosi și [n:attribute |syntax#n:attributes]:
+
+```latte
+{foreach ($names|sort) as $name}
+	<h2 n:ifchanged>{$name[0]}</h2>
+
+	<p>{$name}</p>
+{/foreach}
+```
+
+De asemenea, puteți include o clauză `{else}` în interiorul `{ifchanged}`.
+
+
+`{switch}` `{case}` `{default}`
+-------------------------------
+Compară valoarea cu mai multe opțiuni. Aceasta este similară structurii `switch` pe care o cunoașteți din PHP. Cu toate acestea, Latte o îmbunătățește:
+
+- utilizează o comparație strictă (`===`)
+- nu are nevoie de un `break`
+
+Așadar, este echivalentul exact al structurii `match` cu care vine PHP 8.0.
+
+```latte
+{switch $transport}
+	{case train}
+		By train
+	{case plane}
+		By plane
+	{default}
+		Differently
+{/switch}
+```
+
+Clauza `{case}` poate conține mai multe valori separate prin virgule:
+
+```latte
+{switch $status}
+{case $status::New}<b>new item</b>
+{case $status::Sold, $status::Unknown}<i>not available</i>
+{/switch}
+```
+
+
+Bucle .[#toc-loops]
+===================
+
+În Latte, toate buclele pe care le cunoașteți din PHP vă sunt disponibile: foreach, for și while.
+
+
+`{foreach}`
+-----------
+
+Ciclul se scrie exact la fel ca în PHP:
+
+```latte
+{foreach $langs as $code => $lang}
+	<span>{$lang}</span>
+{/foreach}
+```
+
+În plus, el are câteva ajustări utile despre care vom vorbi acum.
+
+De exemplu, Latte verifică dacă variabilele create nu suprascriu accidental variabilele globale cu același nume. Acest lucru vă va salva atunci când presupuneți că `$lang` este limba curentă a paginii și nu vă dați seama că `foreach $langs as $lang` a suprascris acea variabilă.
+
+Bucla foreach poate fi, de asemenea, scrisă foarte elegant și economic cu [n:attribute |syntax#n:attributes]:
+
+```latte
+<ul>
+	<li n:foreach="$items as $item">{$item->name}</li>
+</ul>
+```
+
+Știați că puteți adăuga prefixul `inner-` la n:attribute? Astfel, numai partea interioară a elementului va fi repetată în buclă:
+
+```latte
+<div n:inner-foreach="$items as $item">
+	<h4>{$item->title}</h4>
+	<p>{$item->description}</p>
+</div>
+```
+
+Deci, se tipărește ceva de genul:
+
+```latte
+<div>
+	<h4>Foo</h4>
+	<p>Lorem ipsum.</p>
+	<h4>Bar</h4>
+	<p>Sit dolor.</p>
+</div>
+```
+
+
+`{else}` .{toc: foreach-else}
+-----------------------------
+
+Bucla `foreach` poate primi o clauză opțională `{else}` al cărei text este afișat dacă matricea dată este goală:
+
+```latte
+<ul>
+	{foreach $people as $person}
+		<li>{$person->name}</li>
+	{else}
+		<li><em>Sorry, no users in this list</em></li>
+	{/foreach}
+</ul>
+```
+
+
+`$iterator`
+-----------
+
+În cadrul buclei `foreach` se inițializează variabila `$iterator`. Aceasta conține informații importante despre bucla curentă.
+
+- `$iterator->first` - este aceasta prima iterație?
+- `$iterator->last` - este aceasta ultima iterație?
+- `$iterator->counter` - contorul de iterații, începe de la 1
+- `$iterator->counter0` - contorul de iterații, începe de la 0
+- `$iterator->odd` - este această iterație impară?
+- `$iterator->even` - este această iterație pară?
+- `$iterator->parent` - iteratorul care îl înconjoară pe cel curent
+- `$iterator->nextValue` - următorul element din buclă
+- `$iterator->nextKey` - cheia următorului element din buclă
+
+
+```latte
+{foreach $rows as $row}
+	{if $iterator->first}<table>{/if}
+
+	<tr id="row-{$iterator->counter}">
+		<td>{$row->name}</td>
+		<td>{$row->email}</td>
+	</tr>
+
+	{if $iterator->last}</table>{/if}
+{/foreach}
+```
+
+Lapte este inteligent și `$iterator->last` funcționează nu numai pentru array-uri, ci și atunci când bucla se execută peste un iterator general în care numărul de elemente nu este cunoscut dinainte.
+
+
+`{first}` `{last}` `{sep}`
+--------------------------
+
+Aceste etichete pot fi utilizate în interiorul buclei `{foreach}`. Conținutul din `{first}` este redat pentru prima trecere.
+Conținutul din `{last}` este redat ... puteți ghici? Da, pentru ultima trecere. Acestea sunt, de fapt, prescurtări pentru `{if $iterator->first}` și `{if $iterator->last}`.
+
+Etichetele pot fi scrise și sub forma [n:attributes |syntax#n:attributes]:
+
+```latte
+{foreach $rows as $row}
+	{first}<h1>List of names</h1>{/first}
+
+	<p>{$row->name}</p>
+
+	<hr n:last>
+{/foreach}
+```
+
+Conținutul `{sep}` este redat dacă iterația nu este ultima, astfel încât este potrivit pentru imprimarea delimitatorilor, cum ar fi virgulele între elementele enumerate:
+
+```latte
+{foreach $items as $item} {$item} {sep}, {/sep} {/foreach}
+```
+
+Este destul de practic, nu-i așa?
+
+
+`{iterateWhile}`
+----------------
+
+Aceasta simplifică gruparea datelor liniare în timpul iterației într-o buclă foreach prin efectuarea iterației într-o buclă imbricata, atâta timp cât condiția este îndeplinită. [Citiți instrucțiunile din cartea de bucate |cookbook/iteratewhile].
+
+De asemenea, poate înlocui în mod elegant `{first}` și `{last}` în exemplul de mai sus:
+
+```latte
+{foreach $rows as $row}
+	<table>
+
+	{iterateWhile}
+	<tr id="row-{$iterator->counter}">
+		<td>{$row->name}</td>
+		<td>{$row->email}</td>
+	</tr>
+	{/iterateWhile true}
+
+	</table>
+{/foreach}
+```
+
+
+`{for}`
+-------
+
+Scriem ciclul exact în același mod ca în PHP:
+
+```latte
+{for $i = 0; $i < 10; $i++}
+	<span>Item #{$i}</span>
+{/for}
+```
+
+Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes]:
+
+```latte
+<h1 n:for="$i = 0; $i < 10; $i++">{$i}</h1>
+```
+
+
+`{while}`
+---------
+
+Din nou, scriem ciclul exact în același mod ca în PHP:
+
+```latte
+{while $row = $result->fetch()}
+	<span>{$row->title}</span>
+{/while}
+```
+
+Sau ca [n:attribute |syntax#n:attributes]:
+
+```latte
+<span n:while="$row = $result->fetch()">
+	{$row->title}
+</span>
+```
+
+O variantă cu o condiție în tag-ul final corespunde buclei do-while din PHP:
+
+```latte
+{while}
+	<span>{$item->title}</span>
+{/while $item = $item->getNext()}
+```
+
+
+`{continueIf}` `{skipIf}` `{breakIf}`
+-------------------------------------
+
+Există etichete speciale pe care le puteți utiliza pentru a controla orice buclă - `{continueIf ?}` și `{breakIf ?}` care trec la următoarea iterație și, respectiv, încheie bucla, dacă sunt îndeplinite condițiile:
+
+```latte
+{foreach $rows as $row}
+	{continueIf $row->date < $now}
+	{breakIf $row->parent === null}
+	...
+{/foreach}
+```
+
+
+Eticheta `{skipIf}` este foarte asemănătoare cu `{continueIf}`, dar nu incrementează contorul. Astfel, nu există găuri în numerotare atunci când tipăriți `$iterator->counter` și săriți peste unele elemente. De asemenea, clauza {else} va fi redată atunci când săriți peste toate elementele.
+
+```latte
+<ul>
+	{foreach $people as $person}
+		{skipIf $person->age < 18}
+		<li>{$iterator->counter}. {$person->name}</li>
+	{else}
+		<li><em>Sorry, no adult users in this list</em></li>
+	{/foreach}
+</ul>
+```
+
+
+`{exitIf}` .{data-version:3.0.5}
+--------------------------------
+
+Încheie redarea unui șablon sau a unui bloc atunci când este îndeplinită o condiție (de exemplu, "ieșire anticipată").
+
+```latte
+{exitIf !$messages}
+
+<h1>Messages</h1>
+<div n:foreach="$messages as $message">
+   {$message}
+</div>
+```
+
+
+Includerea șabloanelor .[#toc-including-templates]
+==================================================
+
+
+`{include 'file.latte'}` .{toc: include}
+----------------------------------------
+
+.[note]
+A se vedea și [`{include block}` |template-inheritance#printing-blocks]
+
+Eticheta `{include}` încarcă și redă șablonul specificat. În limbajul nostru preferat, PHP, este ca și cum ar fi:
+
+```php
+<?php include 'header.phtml'; ?>
+```
+
+Șabloanele incluse nu au acces la variabilele contextului activ, dar au acces la variabilele globale.
+
+Puteți transmite variabile către șablonul inserat în felul următor:
+
+```latte
+{include 'template.latte', foo: 'bar', id: 123}
+```
+
+Numele șablonului poate fi orice expresie PHP:
+
+```latte
+{include $someVar}
+{include $ajax ? 'ajax.latte' : 'not-ajax.latte'}
+```
+
+Conținutul inserat poate fi modificat cu ajutorul [filtrelor |syntax#filters]. Următorul exemplu elimină toate elementele HTML și ajustează cazul:
+
+```latte
+<title>{include 'heading.latte' |stripHtml|capitalize}</title>
+```
+
+ [Moștenirea șablonului |template inheritance] **nu este implicată** în mod implicit. Deși puteți adăuga etichete de bloc la șabloanele care sunt incluse, acestea nu vor înlocui blocurile corespunzătoare din șablonul în care sunt incluse. Gândiți-vă la incluziuni ca la părți independente și ecranate ale paginilor sau modulelor. Acest comportament poate fi schimbat cu ajutorul modificatorului `with blocks`:
+
+```latte
+{include 'template.latte' with blocks}
+```
+
+Relația dintre numele de fișier specificat în etichetă și fișierul de pe disc este o chestiune de [încărcător |extending-latte#Loaders].
+
+
+`{sandbox}`
+-----------
+
+Atunci când includeți un șablon creat de un utilizator final, ar trebui să aveți în vedere [sandboxing-ul |sandbox] acestuia (mai multe informații în [documentația sandbox |sandbox]):
+
+```latte
+{sandbox 'untrusted.latte', level: 3, data: $menu}
+```
+
+
+`{block}`
+=========
+
+.[note]
+A se vedea și [`{block name}` |template-inheritance#blocks]
+
+Blocurile fără nume servesc la capacitatea de a aplica [filtre |syntax#filters] unei părți din șablon. De exemplu, puteți aplica un filtru de [benzi |filters#strip] pentru a elimina spațiile inutile:
+
+```latte
+{block|strip}
+<ul>
+	<li>Hello World</li>
+</ul>
+{/block}
+```
+
+
+Gestionarea excepțiilor .[#toc-exception-handling]
+==================================================
+
+
+`{try}`
+-------
+
+Aceste etichete facilitează foarte mult crearea de șabloane robuste.
+
+Dacă apare o excepție în timpul redării blocului `{try}`, întregul bloc este aruncat și redarea va continua după el:
+
+```latte
+{try}
+	<ul>
+		{foreach $twitter->loadTweets() as $tweet}
+  			<li>{$tweet->text}</li>
+		{/foreach}
+	</ul>
+{/try}
+```
+
+Conținutul clauzei opționale `{else}` este redat numai atunci când apare o excepție:
+
+```latte
+{try}
+	<ul>
+		{foreach $twitter->loadTweets() as $tweet}
+  			<li>{$tweet->text}</li>
+		{/foreach}
+	</ul>
+	{else}
+	<p>Sorry, the tweets could not be loaded.</p>
+{/try}
+```
+
+Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes]:
+
+```latte
+<ul n:try>
+	...
+</ul>
+```
+
+De asemenea, este posibil să se definească [propriul gestionar de excepții |develop#exception handler], de exemplu, pentru logare:
+
+
+`{rollback}`
+------------
+
+Blocul `{try}` poate fi, de asemenea, oprit și sărit manual folosind `{rollback}`. Astfel, nu trebuie să verificați în prealabil toate datele de intrare și numai în timpul redării puteți decide dacă este utilă redarea obiectului.
+
+```latte
+{try}
+<ul>
+	{foreach $people as $person}
+ 		{skipIf $person->age < 18}
+ 		<li>{$person->name}</li>
+	{else}
+		{rollback}
+	{/foreach}
+</ul>
+{/try}
+```
+
+
+Variabile .[#toc-variables]
+===========================
+
+
+`{var}` `{default}`
+-------------------
+
+Vom crea noi variabile în șablon cu ajutorul etichetei `{var}`:
+
+```latte
+{var $name = 'John Smith'}
+{var $age = 27}
+
+{* Declarație multiplă *}
+{var $name = 'John Smith', $age = 27}
+```
+
+Eticheta `{default}` funcționează în mod similar, cu excepția faptului că creează variabile numai dacă acestea nu există:
+
+```latte
+{default $lang = 'cs'}
+```
+
+De asemenea, puteți specifica [tipurile de variabile |type-system]. Deocamdată, acestea sunt informative și Latte nu le verifică.
+
+```latte
+{var string $name = $article->getTitle()}
+{default int $id = 0}
+```
+
+
+`{parameters}`
+--------------
+
+La fel cum o funcție își declară parametrii, un șablon își poate declara variabilele la începutul său:
+
+```latte
+{parameters
+	$a,
+	?int $b,
+	int|string $c = 10
+}
+```
+
+Variabilele `$a` și `$b` care nu au o valoare implicită au automat valoarea implicită `null`. Tipurile declarate sunt în continuare informative, iar Latte nu le verifică.
+
+În afară de variabilele declarate, acestea nu sunt transmise în șablon. Aceasta este o diferență față de eticheta `{default}`.
+
+
+`{capture}`
+-----------
+
+Prin utilizarea etichetei `{capture}` puteți captura ieșirea într-o variabilă:
+
+```latte
+{capture $var}
+<ul>
+	<li>Hello World</li>
+</ul>
+{/capture}
+
+<p>Captured: {$var}</p>
+```
+
+Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes], ca orice altă etichetă de tip pereche:
+
+```latte
+<ul n:capture="$var">
+	<li>Hello World</li>
+</ul>
+```
+
+Rezultatul HTML este stocat în variabila `$var` ca obiect `Latte\Runtime\Html` pentru a [evita scăpările nedorite |develop#disabling-auto-escaping-of-variable] la imprimare.
+
+
+Altele .[#toc-others]
+=====================
+
+
+`{contentType}`
+---------------
+
+Utilizați eticheta pentru a specifica ce tip de conținut reprezintă șablonul. Opțiunile sunt următoarele:
+
+- `html` (tip implicit)
+- `xml`
+- `javascript`
+- `css`
+- `calendar` (iCal)
+- `text`
+
+Utilizarea sa este importantă, deoarece setează escape-ul [sensibil la context |safety-first#context-aware-escaping] și numai atunci Latte poate evada corect. De exemplu, `{contentType xml}` comută în modul XML, `{contentType text}` dezactive complet scăparea.
+
+În cazul în care parametrul este un tip MIME complet, cum ar fi `application/xml`, se trimite, de asemenea, un antet HTTP `Content-Type` către browser:
+
+```latte
+{contentType application/xml}
+<?xml version="1.0"?>
+<rss version="2.0">
+	<channel>
+		<title>RSS feed</title>
+		<item>
+			...
+		</item>
+	</channel>
+</rss>
+```
+
+
+`{debugbreak}`
+--------------
+
+Specifică locul în care se va întrerupe execuția codului. Este utilizat în scopuri de depanare pentru ca programatorul să inspecteze mediul de execuție și să se asigure că codul se execută conform așteptărilor. Este compatibil cu [Xdebug |https://xdebug.org]. În plus, puteți specifica o condiție în care codul trebuie să se întrerupă.
+
+```latte
+{debugbreak}                {* întrerupe programul *}
+
+{debugbreak $counter == 1}  {* întrerupe programul dacă este îndeplinită condiția *}
+```
+
+
+`{do}`
+------
+
+Execută codul PHP și nu tipărește nimic. Ca și în cazul celorlalte etichete, codul PHP este o singură expresie, a se vedea [Limitări PHP |syntax#PHP Limitations in Latte].
+
+```latte
+{do $num++}
+```
+
+
+`{dump}`
+--------
+
+Aruncă o variabilă sau contextul curent.
+
+```latte
+{dump $name} {* aruncă variabila $name *}
+
+{dump}       {* descarcă toate variabilele definite *}
+```
+
+.[caution]
+Necesită pachetul [Tracy |tracy:en].
+
+
+`{php}`
+-------
+
+Vă permite să executați orice cod PHP. Eticheta trebuie să fie activată cu ajutorul extensiei [RawPhpExtension |develop#RawPhpExtension].
+
+
+`{spaceless}`
+-------------
+
+Elimină spațiile albe inutile. Este similar cu filtrul [fără spațiu |filters#spaceless].
+
+```latte
+{spaceless}
+	<ul>
+		<li>Hello</li>
+	</ul>
+{/spaceless}
+```
+
+Ieșiri:
+
+```latte
+<ul> <li>Hello</li> </ul>
+```
+
+Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes]:
+
+
+`{syntax}`
+----------
+
+Etichetele Latte nu trebuie să fie incluse doar în acolade simple. Puteți alege un alt separator, chiar și în timpul execuției. Acest lucru se face prin `{syntax…}`, unde parametrul poate fi:
+
+- double: `{{...}}`
+- off: dezactivează complet etichetele Latte
+
+Prin utilizarea notației n:attribute putem dezactiva Latte doar pentru un bloc JavaScript:
+
+```latte
+<script n:syntax="off">
+	var obj = {var: 123}; // this isn't a tag any more
+</script>
+```
+
+ [Latte |recipes#Latte inside JavaScript or CSS] poate fi folosit foarte confortabil în JavaScript, doar evitați construcțiile ca în acest exemplu, unde litera urmează imediat după `{`, vezi [Latte în JavaScript sau CSS |recipes#Latte inside JavaScript or CSS].
+
+Dacă dezactivați Latte cu `{syntax off}` (adică tag-ul, nu atributul n:), acesta va ignora cu strictețe toate tag-urile până la `{/syntax}`.
+
+
+{trace}
+-------
+
+Aruncă o excepție `Latte\RuntimeException`, a cărei urmă din stivă este în spiritul șabloanelor. Astfel, în loc să apeleze funcții și metode, implică apelarea de blocuri și inserarea de șabloane. Dacă utilizați un instrument pentru afișarea clară a excepțiilor aruncate, cum ar fi [Tracy |tracy:en], veți vedea clar stiva de apelare, inclusiv toate argumentele transmise.
+
+
+Ajutoare pentru etichete HTML .[#toc-html-tag-helpers]
+======================================================
+
+
+n:class .[#toc-n-class]
+-----------------------
+
+Datorită `n:class`, este foarte ușor să generați atributul HTML `class` exact așa cum aveți nevoie.
+
+Exemplu: Am nevoie ca elementul activ să aibă clasa `active`:
+
+```latte
+{foreach $items as $item}
+	<a n:class="$item->isActive() ? active">...</a>
+{/foreach}
+```
+
+Și mai am nevoie ca primul element să aibă clasele `first` și `main`:
+
+```latte
+{foreach $items as $item}
+	<a n:class="$item->isActive() ? active, $iterator->first ? 'first main'">...</a>
+{/foreach}
+```
+
+Iar toate elementele trebuie să aibă clasa `list-item`:
+
+```latte
+{foreach $items as $item}
+	<a n:class="$item->isActive() ? active, $iterator->first ? 'first main', list-item">...</a>
+{/foreach}
+```
+
+Uimitor de simplu, nu-i așa?
+
+
+n:attr .[#toc-n-attr]
+---------------------
+
+Atributul `n:attr` poate genera atribute HTML arbitrare cu aceeași eleganță ca și [n:class |#n:class].
+
+```latte
+{foreach $data as $item}
+	<input type="checkbox" n:attr="value: $item->getValue(), checked: $item->isActive()">
+{/foreach}
+```
+
+În funcție de valorile returnate, acesta afișează, de ex:
+
+```latte
+<input type="checkbox">
+
+<input type="checkbox" value="Hello">
+
+<input type="checkbox" value="Hello" checked>
+```
+
+
+n:tag .[#toc-n-tag]
+-------------------
+
+Atributul `n:tag` poate schimba în mod dinamic numele unui element HTML.
+
+```latte
+<h1 n:tag="$heading" class="main">{$title}</h1>
+```
+
+Dacă `$heading === null`, atributul `<h1>` este tipărit fără modificări. În caz contrar, numele elementului este schimbat cu valoarea variabilei, astfel încât pentru `$heading === 'h3'` se scrie:
+
+```latte
+<h3 class="main">...</h3>
+```
+
+Deoarece Latte este un sistem de modelare securizat, acesta verifică dacă noul nume de etichetă este valid și nu conține valori nedorite sau rău intenționate.
+
+
+n:ifcontent .[#toc-n-ifcontent]
+-------------------------------
+
+Împiedică tipărirea unui element HTML gol, adică a unui element care nu conține decât spații albe.
+
+```latte
+<div>
+	<div class="error" n:ifcontent>{$error}</div>
+</div>
+```
+
+În funcție de valorile variabilei `$error`, se va imprima:
+
+```latte
+{* $error = '' *}
+<div>
+</div>
+
+{* $error = 'Required' *}
+<div>
+	<div class="error">Required</div>
+</div>
+```
+
+
+Traducere .[#toc-translation]
+=============================
+
+Pentru a face ca etichetele de traducere să funcționeze, trebuie să configurați [translator |develop#TranslatorExtension]. De asemenea, puteți utiliza [`translate` |filters#translate] filtru pentru traducere.
+
+
+`{_...}`
+--------
+
+Traduce valorile în alte limbi.
+
+```latte
+<a href="basket">{_'Basket'}</a>
+<span>{_$item}</span>
+```
+
+Traducătorului i se pot transmite și alți parametri:
+
+```latte
+<a href="basket">{_'Basket', domain: order}</a>
+```
+
+
+`{translate}`
+-------------
+
+Překládá části šablony:
+
+```latte
+<h1>{translate}Order{/translate}</h1>
+
+{translate domain: order}Lorem ipsum ...{/translate}
+```
+
+Eticheta poate fi scrisă și sub forma [n:attribute |syntax#n:attributes], pentru a traduce interiorul elementului:
+
+```latte
+<h1 n:translate>Order</h1>
+```

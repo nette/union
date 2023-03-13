@@ -1,0 +1,104 @@
+Configuration de la base de données
+***********************************
+
+.[perex]
+Aperçu des options de configuration de la base de données Nette.
+
+Si vous n'utilisez pas l'ensemble du framework, mais seulement cette bibliothèque, lisez [comment charger la configuration |bootstrap:].
+
+
+Connexion unique .[#toc-single-connection]
+------------------------------------------
+
+Configurez une connexion unique à la base de données :
+
+```neon
+database:
+	# DSN, uniquement la clé obligatoire
+	dsn: "sqlite:%appDir%/Model/demo.db"
+	user: ...
+	password: ...
+```
+
+Crée les services `Nette\Database\Connection` et `Nette\Database\Explorer`, qui sont généralement transmis par [autowiring |dependency-injection:autowiring] ou par référence à [leur nom |#DI Services].
+
+Autres paramètres :
+
+```neon
+database:
+	# affiche le panneau de la base de données dans Tracy Bar ?
+	debugger: ...     # (bool) vaut true par défaut
+
+	# affiche la requête EXPLAIN dans Tracy Bar ?
+	explain: ...      # (bool) vaut true par défaut
+
+	# activer le câblage automatique pour cette connexion ?
+	autowired: ...    # (bool) vaut true par défaut pour la première connexion
+
+	# conventions de la table: découverte, statique, ou nom de classe
+	conventions: discovered # (string) Valeur par défaut: 'discovered'.
+
+	options:
+		# pour ne se connecter à la base de données qu'en cas de besoin ?
+		lazy: ...     # (bool) a pour valeur par défaut false
+
+		# Classe du pilote de base de données PHP
+		driverClass:  # (string)
+
+		# seulement MySQL: définit sql_mode
+		sqlmode:      # (string)
+
+		# uniquement MySQL: sets SET NAMES
+		charset:      # (string) par défaut 'utf8mb4' ('utf8' avant v5.5.3)
+
+		# uniquement Oracle et SQLite: format de date
+		formatDateTime: # (string) vaut par défaut 'U'.
+```
+
+La clé `options` peut contenir d'autres options qui peuvent être trouvées dans la [documentation du pilote PDO |https://www.php.net/manual/en/pdo.drivers.php], telles que :
+
+```neon
+database:
+	options:
+		PDO::MYSQL_ATTR_COMPRESS: true
+```
+
+
+Connexions multiples .[#toc-multiple-connections]
+-------------------------------------------------
+
+Dans la configuration, nous pouvons définir plusieurs connexions de base de données en les divisant en sections nommées :
+
+```neon
+database:
+	main:
+		dsn: 'mysql:host=127.0.0.1;dbname=test'
+		user: root
+		password: password
+
+	another:
+		dsn: 'sqlite::memory:'
+```
+
+L'autocâblage n'est activé que pour les services de la première section. Ceci peut être modifié en utilisant `autowired: false` ou `autowired: true`.
+
+
+Services DI .[#toc-di-services]
+-------------------------------
+
+Ces services sont ajoutés au conteneur DI, où `###` représente le nom de la connexion :
+
+| Nom | Type | Description
+|----------------------------------------------------------
+| `database.###.connection` | [api:Nette\Database\Connection] | connexion à la base de données
+| `database.###.explorer` | [api:Nette\Database\Explorer] | [Database Explorer |explorer]
+
+
+Si nous définissons une seule connexion, les noms des services seront `database.default.connection` et `database.default.explorer`. Si nous définissons plusieurs connexions comme dans l'exemple ci-dessus, les noms correspondront aux sections, c'est-à-dire `database.main.connection`, `database.main.explorer` et ensuite `database.another.connection` et `database.another.explorer`.
+
+Nous passons les services non authentifiés explicitement en faisant référence à leur nom :
+
+```neon
+services:
+	- UserFacade(@database.another.connection)
+```

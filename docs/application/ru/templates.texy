@@ -1,0 +1,278 @@
+Шаблоны
+*******
+
+.[perex]
+Nette использует систему шаблонов [Latte |latte:]. Latte используется потому, что это самая безопасная система шаблонов для PHP, и в то же время самая интуитивно понятная. Вам не нужно изучать много нового, достаточно знать PHP и несколько тегов Latte.
+
+Обычно страница заполняется из шаблона макета + шаблона действия. Вот как может выглядеть шаблон макета, обратите внимание на блоки `{block}` и тег `{include}`:
+
+```latte
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{block title}Мое приложение{/block}</title>
+</head>
+<body>
+	<header>...</header>
+	{include content}
+	<footer>...</footer>
+</body>
+</html>
+```
+
+А это может быть шаблоном действий:
+
+```latte
+{block title}Главная страница{/block}
+
+{block content}
+<h1>Главная страница</h1>
+...
+{/block}
+```
+
+Он определяет блок `content`, который вставляется вместо `{include content}` в макете, а также переопределяет блок `title`, который перезаписывает `{block title}` в макете. Попытайтесь представить себе результат.
+
+
+Поиск шаблонов .[#toc-search-for-templates]
+-------------------------------------------
+
+Путь к шаблонам определяется ведущим с помощью простой логики. Он попытается проверить, есть ли один из этих файлов, расположенный относительно каталога класса ведущего, где `<Presenter>` это имя текущего ведущего, а `<view>` это имя текущего события:
+
+- `templates/<Presenter>/<view>.latte`
+- `templates/<Presenter>.<view>.latte`
+
+Если шаблон не найден, он попытается выполнить поиск в каталоге `templates` на один уровень выше, т.е. на том же уровне, что и каталог с классом ведущего.
+
+Если шаблон не найден и там, ответом будет [ошибка 404 |presenters#Error 404 etc.].
+
+Вы также можете изменить вид с помощью `$this->setView('jineView')`. Или, вместо прямого поиска, укажите имя файла шаблона с помощью `$this->template->setFile('/path/to/template.latte')`.
+
+.[note]
+Файлы, в которых производится поиск шаблонов, можно изменить, наложив метод [formatTemplateFiles() |api:Nette\Application\UI\Presenter::formatTemplateFiles()], который возвращает массив возможных имен файлов.
+
+В этих файлах ожидается компоновка:
+
+- `templates/<Presenter>/@<layout>.latte`
+- `templates/<Presenter>.@<layout>.latte`
+- `templates/@<layout>.latte` макет, общий для нескольких докладчиков
+
+Где `<Presenter>` это имя текущего ведущего и `<layout>` это имя макета, которое по умолчанию равно `'layout'`. Имя может быть изменено с помощью `$this->setLayout('jinyLayout')`, поэтому будут опробованы файлы `@jinyLayout.latte`.
+
+Вы также можете напрямую указать имя файла шаблона макета с помощью `$this->setLayout('/path/to/template.latte')`. Использование `$this->setLayout(false)` отключает отслеживание макета.
+
+.[note]
+Файлы, в которых производится поиск шаблонов макета, можно изменить, наложив метод [formatLayoutTemplateFiles() |api:Nette\Application\UI\Presenter::formatLayoutTemplateFiles()], который возвращает массив возможных имен файлов.
+
+
+Переменные в шаблоне .[#toc-variables-in-the-template]
+------------------------------------------------------
+
+Переменные передаются в шаблон путем записи их в `$this->template`, а затем они доступны в шаблоне как локальные переменные:
+
+```php
+$this->template->article = $this->articles->getById($id);
+```
+
+Таким образом, мы можем легко передавать любые переменные в шаблоны. Однако при разработке надежных приложений часто полезнее ограничить себя. Например, путем явного определения списка переменных, которые ожидает шаблон, и их типов. Это позволит PHP проверять типы, IDE - правильно шептать, а статический анализ - обнаруживать ошибки.
+
+И как определить такое перечисление? Просто в виде класса и его свойств. Мы назовем его как presenter, но с `Template` в конце:
+
+```php
+/**
+ * @property-read ArticleTemplate $template
+ */
+class ArticlePresenter extends Nette\Application\UI\Presenter
+{
+}
+
+class ArticleTemplate extends Nette\Bridges\ApplicationLatte\Template
+{
+	public Model\Article $article;
+	public Nette\Security\User $user;
+
+	// и другие переменные
+}
+```
+
+Объект `$this->template` в presenter теперь будет экземпляром класса `ArticleTemplate`. Таким образом, PHP будет проверять объявленные типы при записи. А начиная с PHP 8.2, он также будет предупреждать при записи в несуществующую переменную; в предыдущих версиях этого можно добиться с помощью свойства [Nette\SmartObject |utils:smartobject].
+
+Аннотация `@property-read` предназначена для IDE и статического анализа, она заставит работать шепот, см. "PhpStorm и завершение кода для $this->template":https://blog.nette.org/en/phpstorm-and-code-completion-for-this-template.
+
+[* phpstorm-completion.webp *]
+
+Вы также можете позволить себе роскошь шептать в шаблонах, просто установите плагин Latte в PhpStorm и поместите имя класса в начало шаблона, более подробную информацию смотрите в статье "Latte: как набирать систему":https://blog.nette.org/ru/latte-kak-ispol-zovat-sistemu-tipov:
+
+```latte
+{templateType App\Presenters\ArticleTemplate}
+...
+```
+
+Таким же образом шаблоны работают в компонентах, просто следуйте соглашению об именовании и создайте класс шаблона `FifteenTemplate` для компонента, например, `FifteenControl`.
+
+Если вам нужно создать `$template` как экземпляр другого класса, используйте метод `createTemplate()`:
+
+```php
+public function renderDefault(): void
+{
+	$template = $this->createTemplate(SpecialTemplate::class);
+	$template->foo = 123;
+	// ...
+	$this->sendTemplate($template);
+}
+```
+
+
+Переменные по умолчанию .[#toc-default-variables]
+-------------------------------------------------
+
+Презентаторы и компоненты автоматически передают шаблонам несколько полезных переменных:
+
+- `$basePath` - абсолютный URL-путь к корневому каталогу (например, `/eshop`).
+- `$baseUrl` - это абсолютный URL-адрес корневого каталога (например. `http://localhost/eshop`)
+- `$user` - это объект, [представляющий пользователя |security:authentication].
+- `$presenter` - нынешний ведущий
+- `$control` - текущий компонент или ведущий
+- `$flashes` - это массив [сообщений |presenters#flash-messages], отправленных функциями `flashMessage()`
+
+Если вы используете пользовательский класс шаблона, эти переменные будут переданы, если вы создадите для них свойство.
+
+
+Создание ссылок .[#toc-creating-links]
+--------------------------------------
+
+Шаблон создает таким образом ссылки на других ведущих и мероприятия:
+
+```latte
+<a n:href="Product:show">detail produktu</a>
+```
+
+Атрибут `n:href` очень удобен для HTML-тегов. `<a>`. Если мы хотим указать ссылку в другом месте, например, в тексте, мы используем `{link}`:
+
+```latte
+Adresa je: {link Home:default}
+```
+
+Дополнительные сведения см. в разделе [Создание ссылок URL |creating-links].
+
+
+Пользовательские фильтры, теги и т.д. .[#toc-custom-filters-tags-etc]
+---------------------------------------------------------------------
+
+Система шаблонов Latte может быть расширена с помощью пользовательских фильтров, функций, тегов и т.д. Это можно сделать непосредственно в методе `render<View>` или `beforeRender()`:
+
+```php
+public function beforeRender(): void
+{
+	// přidání filtru
+	$this->template->addFilter('foo', /* ... */);
+
+	// nebo konfigurujeme přímo objekt Latte\Engine
+	$latte = $this->template->getLatte();
+	$latte->addFilterLoader(/* ... */);
+}
+```
+
+Latte версии 3 предлагает более продвинутый способ создания [расширения |latte:creating-extension] для каждого веб-проекта. Вот краткий пример такого класса:
+
+```php
+namespace App\Templating;
+
+final class LatteExtension extends Latte\Extension
+{
+	public function __construct(
+		private App\Model\Facade $facade,
+		private Nette\Security\User $user,
+		// ...
+	) {
+	}
+
+	public function getFilters(): array
+	{
+		return [
+			'timeAgoInWords' => $this->filterTimeAgoInWords(...),
+			'money' => $this->filterMoney(...),
+			// ...
+		];
+	}
+
+	public function getFunctions(): array
+	{
+		return [
+			'canEditArticle' =>
+				fn($article) => $this->facade->canEditArticle($article, $this->user->getId()),
+			// ...
+		];
+	}
+
+	// ...
+}
+```
+
+Мы регистрируем его с помощью [конфигурации |configuration#Latte]:
+
+```neon
+latte:
+	extensions:
+		- App\Templating\LatteExtension
+```
+
+
+Перевод .[#toc-translating]
+---------------------------
+
+Если вы программируете многоязычное приложение, вам, вероятно, потребуется вывести часть текста в шаблоне на разных языках. Для этого в Nette Framework определен интерфейс перевода [api:Nette\Localization\Translator], который имеет единственный метод `translate()`. Он принимает сообщение `$message`, которое обычно является строкой, и любые другие параметры. Задача состоит в том, чтобы вернуть переведенную строку.
+В Nette нет реализации по умолчанию, вы можете выбрать в соответствии с вашими потребностями из нескольких готовых решений, которые можно найти на [Componette |https://componette.org/search/localization]. В их документации описано, как настроить транслятор.
+
+Шаблоны могут быть настроены с переводчиком, который [мы передадим нам |dependency-injection:passing-dependencies], используя метод `setTranslator()`:
+
+```php
+protected function beforeRender(): void
+{
+	// ...
+	$this->template->setTranslator($translator);
+}
+```
+
+В качестве альтернативы переводчик можно установить с помощью [конфигурации |configuration#Latte]:
+
+```neon
+latte:
+	extensions:
+		- Latte\Essential\TranslatorExtension
+```
+
+Транслятор можно использовать, например, в качестве фильтра `|translate`, передав дополнительные параметры в метод `translate()` (см. `foo, bar`):
+
+```latte
+<a href="basket">{='Basket'|translate}</a>
+<span>{$item|translate}</span>
+<span>{$item|translate, foo, bar}</span>
+```
+
+Или как тег подчеркивания:
+
+```latte
+<a href="basket">{_'Basket'}</a>
+<span>{_$item}</span>
+<span>{_$item, foo, bar}</span>
+```
+
+Для перевода раздела шаблона существует парный тег `{translate}` (начиная с версии Latte 2.11, ранее использовался тег `{_}` ):
+
+```latte
+<a href="order">{translate}Order{/translate}</a>
+<a href="order">{translate foo, bar}Order{/translate}</a>
+```
+
+Translator по умолчанию вызывается во время выполнения при рендеринге шаблона. Latte версии 3, однако, может переводить весь статический текст во время компиляции шаблона. Это экономит производительность, поскольку каждая строка переводится только один раз, а результирующий перевод записывается в скомпилированную форму. При этом в каталоге кэша создается несколько скомпилированных версий шаблона, по одной для каждого языка. Для этого достаточно указать язык в качестве второго параметра:
+
+```php
+protected function beforeRender(): void
+{
+	// ...
+	$this->template->setTranslator($translator, $lang);
+}
+```
+
+Под статическим текстом подразумевается, например, `{_'hello'}` или `{translate}hello{/translate}`. Нестатический текст, такой как `{_$foo}`, будет продолжать компилироваться на лету.

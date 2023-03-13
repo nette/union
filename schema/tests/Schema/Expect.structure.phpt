@@ -102,9 +102,10 @@ test('array items', function () {
 
 
 test('default value must be readonly', function () {
-	Assert::exception(function () {
-		$schema = Expect::structure([])->default([]);
-	}, Nette\InvalidStateException::class);
+	Assert::exception(
+		fn() => Expect::structure([])->default([]),
+		Nette\InvalidStateException::class,
+	);
 });
 
 

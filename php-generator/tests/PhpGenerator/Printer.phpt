@@ -7,7 +7,6 @@ use Nette\PhpGenerator\Literal;
 use Nette\PhpGenerator\Printer;
 use Tester\Assert;
 
-
 require __DIR__ . '/../bootstrap.php';
 
 
@@ -15,7 +14,7 @@ $printer = new Printer;
 
 
 $class = (new ClassType('Example'))
-	->setFinal(true)
+	->setFinal()
 	->setExtends('ParentClass')
 	->addImplement('IExample')
 	->addComment("Description of class.\nThis is example\n");
@@ -43,13 +42,22 @@ $class->addProperty('short', ['aaaaaaaa' => 1, 'bbbbbbbb' => 2, 'cccccccc' => 3,
 
 $class->addMethod('first')
 	->addComment('@return resource')
-	->setFinal(true)
+	->setFinal()
 	->setReturnType('stdClass')
 	->setBody("func(); \r\nreturn ?;", [['aaaaaaaaaaaa' => 1, 'bbbbbbbbbbb' => 2, 'cccccccccccccc' => 3, 'dddddddddddd' => 4, 'eeeeeeeeeeee' => 5, 'ffffffff' => 6]])
 	->addParameter('var')
 		->setType('stdClass');
 
 $class->addMethod('second');
+
+$method = $class->addMethod('multi')
+	->addParameter('foo')
+		->addAttribute('Foo');
+
+$method = $class->addMethod('multiType')
+	->setReturnType('array')
+	->addParameter('foo')
+		->addAttribute('Foo');
 
 
 sameFile(__DIR__ . '/expected/Printer.class.expect', $printer->printClass($class));
@@ -61,17 +69,6 @@ $printer->linesBetweenMethods = 3;
 $printer->bracesOnNextLine = false;
 sameFile(__DIR__ . '/expected/Printer.class-alt.expect', $printer->printClass($class));
 
-
-
-$printer = new Printer;
-$function = new Nette\PhpGenerator\GlobalFunction('func');
-$function
-	->setReturnType('stdClass')
-	->setBody("func(); \r\nreturn 123;")
-	->addParameter('var')
-		->setType('stdClass');
-
-sameFile(__DIR__ . '/expected/Printer.function.expect', $printer->printFunction($function));
 
 
 $closure = new Nette\PhpGenerator\Closure;
@@ -87,6 +84,6 @@ sameFile(__DIR__ . '/expected/Printer.closure.expect', $printer->printClosure($c
 // printer validates class
 Assert::exception(function () {
 	$class = new ClassType;
-	$class->setFinal(true)->setAbstract(true);
+	$class->setFinal()->setAbstract();
 	(new Printer)->printClass($class);
 }, Nette\InvalidStateException::class, 'Anonymous class cannot be abstract or final.');

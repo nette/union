@@ -13,10 +13,11 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-before(function () {
+setUp(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
+	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+	ob_start();
 	Form::initialize(true);
 });
 
@@ -199,9 +200,7 @@ test('filter in BLANK condition', function () {
 	$form = new Form;
 	$input = $form->addText('text');
 	$input->addCondition($form::Blank)
-		->addFilter(function () use ($input) {
-			return 'default';
-		});
+		->addFilter(fn() => 'default');
 
 	Assert::same('', $input->getValue());
 	$input->validate();
@@ -216,9 +215,7 @@ test('filter in !FILLED condition', function () {
 	$input = $form->addText('text');
 	$input->addCondition($form::Filled)
 		->elseCondition()
-		->addFilter(function () use ($input) {
-			return 'default';
-		});
+		->addFilter(fn() => 'default');
 
 	Assert::same('', $input->getValue());
 	$input->validate();

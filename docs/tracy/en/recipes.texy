@@ -28,8 +28,7 @@ Faster Loading
 ==============
 
 The basic integration is straightforward, however if you have slow blocking scripts in web page, they can slow the Tracy loading.
-The solution is to place `<?php Tracy\Debugger::renderLoader() ?>` into your template before
-any scripts:
+The solution is to place `<?php Tracy\Debugger::renderLoader() ?>` into your template before any scripts:
 
 ```latte
 <!DOCTYPE html>
@@ -56,8 +55,7 @@ Debugger::setSessionStorage(new Tracy\NativeSession);
 Debugger::enable();
 ```
 
-In case starting a session requires more complex initialization, you can start Tracy immediately (so that it can handle any errors that occur) and then initialize the session handler
-and finally inform Tracy that the session is ready to be used using the `dispatch()` function:
+In case starting a session requires more complex initialization, you can start Tracy immediately (so that it can handle any errors that occur) and then initialize the session handler and finally inform Tracy that the session is ready to be used using the `dispatch()` function:
 
 ```php
 Debugger::setSessionStorage(new Tracy\NativeSession);
@@ -71,6 +69,24 @@ Debugger::dispatch();
 ```
 
 The `setSessionStorage()` function has existed since version 2.9, before that Tracy always used the native PHP session.
+
+
+Custom Scrubber
+===============
+
+Scrubber is a filter that prevents sensitive data from leaking from dumps, such as passwords or credentials. The filter is called for each item of the dumped array or object and returns `true` if the value is sensitive. In this case, `*****` is printed instead of the value.
+
+```php
+// avoids dumping key values and properties such as `password`,
+// `password_repeat`, `check_password`, `DATABASE_PASSWORD`, etc.
+$scrubber = function(string $key, $value, ?string $class): bool
+{
+	return preg_match('#password#i', $key) && $value !== null;
+};
+
+// we use it for all dumps inside BlueScreen
+Tracy\Debugger::getBlueScreen()->scrubber = $scrubber;
+```
 
 
 Custom Logger
@@ -101,6 +117,24 @@ If we use the full Nette Framework, we can set it in the NEON configuration file
 ```neon
 services:
 	tracy.logger: SlackLogger
+```
+
+
+Monolog Integration
+-------------------
+
+Tracy package provides a PSR-3 adapter, allowing for integration of [monolog/monolog](https://github.com/Seldaek/monolog).
+
+```php
+$monolog = new Monolog\Logger('main-channel');
+$monolog->pushHandler(new Monolog\Handler\StreamHandler($logFilePath, Monolog\Logger::DEBUG));
+
+$tracyLogger = new Tracy\Bridges\Psr\PsrToTracyLoggerAdapter($monolog);
+Debugger::setLogger($tracyLogger);
+Debugger::enable();
+
+Debugger::log('info'); // writes: [<TIMESTAMP>] main-channel.INFO: info [] []
+Debugger::log('warning', Debugger::WARNING); // writes: [<TIMESTAMP>] main-channel.WARNING: warning [] []
 ```
 
 

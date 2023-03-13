@@ -18,7 +18,7 @@ Filters are functions that change or format the data to a form we want. This is 
 | `indent`     | [indents the text from left with number of tabs |#indent]
 | `join`       | [joins an array to a string |#implode]
 | `last`       | [returns last element of array or character of string |#last]
-| `length`     | returns length of a string or array
+| `length`     | [returns length of a string or array |#length]
 | `number`     | [formats number |#number]
 | `padLeft`    | [completes the string to given length from left |#padLeft]
 | `padRight`   | [completes the string to given length from right |#padRight]
@@ -58,13 +58,12 @@ Filters are functions that change or format the data to a form we want. This is 
 | `noescape`   | [prints a variable without escaping |#noescape]
 | `query`      | [generates a query string in the URL |#query]
 
-There are also escaping filters for HTML (`escapeHtml` and `escapeHtmlComment`), XML (`escapeXml`), JavaScript (`escapeJs`), CSS (`escapeCss`) and iCalendar (`escapeICal`),
-which Latte uses itself thanks to [context-aware escaping |safety-first#Context-aware escaping] and you do not need to write them.
+There are also escaping filters for HTML (`escapeHtml` and `escapeHtmlComment`), XML (`escapeXml`), JavaScript (`escapeJs`), CSS (`escapeCss`) and iCalendar (`escapeICal`), which Latte uses itself thanks to [context-aware escaping |safety-first#Context-aware escaping] and you do not need to write them.
 
 .[table-latte-filters]
 |## Security
 | `checkUrl`   | [sanitizes string for use inside href attribute |#checkUrl]
-| `noCheck`    | [prevents automatic URL sanitization |#noCheck]
+| `nocheck`    | [prevents automatic URL sanitization |#nocheck]
 
 Latte the `src` and `href` attributes [checks automatically |safety-first#link checking], so you almost don't need to use the `checkUrl` filter.
 
@@ -104,9 +103,7 @@ Filters can be applied on expression:
 
 ```php
 $latte = new Latte\Engine;
-$latte->addFilter('shortify', function (string $s, int $len = 10): string {
-	return mb_substr($s, 0, $len);
-});
+$latte->addFilter('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0, $len));
 ```
 
 We use it in a template like this:
@@ -121,8 +118,8 @@ Filters
 =======
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Filter that simplifies the listing of linear data in the form of a table. It returns an array of array with the given number of items. If you provide a second parameter this is used to fill up missing items on the last row.
 
 ```latte
@@ -156,8 +153,8 @@ Prints:
 ```
 
 
-breakLines
-----------
+breakLines .[filter]
+--------------------
 Inserts HTML line breaks before all newlines.
 
 ```latte
@@ -189,8 +186,8 @@ Rounds a number up to a given precision.
 See also [#floor], [#round].
 
 
-capitalize
-----------
+capitalize .[filter]
+--------------------
 Returns a title-cased version of the value. Words will start with uppercase letters, all remaining characters are lowercase. Requires PHP extension `mbstring`.
 
 ```latte
@@ -200,8 +197,8 @@ Returns a title-cased version of the value. Words will start with uppercase lett
 See also [#firstUpper], [#lower], [#upper].
 
 
-checkUrl
---------
+checkUrl .[filter]
+------------------
 Enforces URL sanitization. It checks if the variable contains a web URL (ie. HTTP/HTTPS protocol) and prevents the writing of links that may pose a security risk.
 
 ```latte
@@ -217,11 +214,11 @@ Prints:
 <a data-href="javascript:window.close()">unchecked</a>
 ```
 
-See also [#noCheck].
+See also [#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 Returns value clamped to the inclusive range of min and max.
 
 ```latte
@@ -263,8 +260,8 @@ Returns a date in the given format using options of [php:strftime] or [php:date]
 ```
 
 
-escapeUrl
----------
+escapeUrl .[filter]
+-------------------
 Escapes a variable to be used as a parameter in URL.
 
 ```latte
@@ -274,8 +271,8 @@ Escapes a variable to be used as a parameter in URL.
 See also [#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Splits a string by the given delimiter and returns an array of strings. Alias for `split`.
 
 ```latte
@@ -297,8 +294,8 @@ You can use also alias `split`:
 See also [#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Returns the first element of array or character of string:
 
 ```latte
@@ -322,8 +319,8 @@ Rounds a number down to a given precision.
 See also [#ceil], [#round].
 
 
-firstUpper
-----------
+firstUpper .[filter]
+--------------------
 Converts a first letter of value to uppercase. Requires PHP extension `mbstring`.
 
 ```latte
@@ -342,7 +339,7 @@ Return a string which is the concatenation of the strings in the array. Alias fo
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-You can also use an alias `join`: .{data-version:2.10.2}
+You can also use an alias `join`:
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -370,8 +367,8 @@ Prints:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Returns the last element of array or character of string:
 
 ```latte
@@ -382,8 +379,8 @@ Returns the last element of array or character of string:
 See also [#first], [#random].
 
 
-length
-------
+length .[filter]
+----------------
 Returns length of a string or array.
 
 - for strings, it will return length in UTF‑8 characters
@@ -399,8 +396,8 @@ Returns length of a string or array.
 ```
 
 
-lower
------
+lower .[filter]
+---------------
 Converts a value to lowercase. Requires PHP extension `mbstring`.
 
 ```latte
@@ -410,17 +407,17 @@ Converts a value to lowercase. Requires PHP extension `mbstring`.
 See also [#capitalize], [#firstUpper], [#upper].
 
 
-noCheck
--------
+nocheck .[filter]
+-----------------
 Prevents automatic URL sanitization. Latte [automatically checks|safety-first#Link checking] if the variable contains a web URL (ie. HTTP/HTTPS protocol) and prevents the writing of links that may pose a security risk.
 
-If the link uses a different scheme, such as `javascript:` or `data:`, and you are sure of its contents, you can disable the check via `|noCheck`.
+If the link uses a different scheme, such as `javascript:` or `data:`, and you are sure of its contents, you can disable the check via `|nocheck`.
 
 ```latte
 {var $link = 'javascript:window.close()'}
 
 <a href="{$link}">checked</a>
-<a href="{$link|noCheck}">unchecked</a>
+<a href="{$link|nocheck}">unchecked</a>
 ```
 
 Prints:
@@ -433,8 +430,8 @@ Prints:
 See also [#checkUrl].
 
 
-noescape
---------
+noescape .[filter]
+------------------
 Disables automatic escaping.
 
 ```latte
@@ -484,8 +481,8 @@ Pads a string to a certain length with another string from right.
 ```
 
 
-query .{data-version:2.10}
---------------------------
+query  .[filter]
+----------------
 Dynamically generates a query string in the URL:
 
 ```latte
@@ -505,8 +502,8 @@ Keys with a value of `null` are omitted.
 See also [#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Returns random element of array or character of string:
 
 ```latte
@@ -534,7 +531,7 @@ Replaces all occurrences of the search string with the replacement string.
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Multiple replacements can be made at once: .{data-version:2.10.2}
+Multiple replacements can be made at once:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -550,8 +547,8 @@ Replaces all occurrences according to regular expression.
 ```
 
 
-reverse
--------
+reverse .[filter]
+-----------------
 Reverses given string or array.
 
 ```latte
@@ -576,8 +573,8 @@ Rounds a number to a given precision.
 See also [#ceil], [#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Extracts a slice of an array or a string.
 
 ```latte
@@ -594,8 +591,8 @@ If length is given and is positive, then the sequence will have up to that many 
 Filter will reorder and reset the integer array keys by default. This behaviour can be changed by setting preserveKeys to true. String keys are always preserved, regardless of this parameter.
 
 
-sort .{data-version:2.9}
-------------------------
+sort  .[filter]
+---------------
 Filter that sorts an array and maintain index association.
 
 ```latte
@@ -612,15 +609,15 @@ Array sorted in reverse order.
 {/foreach}
 ```
 
-You can pass your own comparison function as a parameter: .{data-version:2.10.2}
+You can pass your own comparison function as a parameter:
 
 ```latte
 {var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
 
-spaceless .{data-version:2.10.2}
---------------------------------
+spaceless  .[filter]
+--------------------
 Removes unnecessary whitespace from the output. You can also use alias `strip`.
 
 ```latte
@@ -638,8 +635,8 @@ Prints:
 ```
 
 
-stripHtml
----------
+stripHtml .[filter]
+-------------------
 Converts HTML to plain text. That is, it removes HTML tags and converts HTML entities to text.
 
 ```latte
@@ -658,8 +655,8 @@ Extracts a slice of a string. This filter has been replaced by a [#slice] filter
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 It translates expressions into other languages. To make the filter available, you need [set up translator|develop#TranslatorExtension]. You can also use the [tags for translation|tags#Translation].
 
 ```latte
@@ -690,8 +687,8 @@ Shortens a string to the maximum given length but tries to preserve whole words.
 ```
 
 
-upper
------
+upper .[filter]
+---------------
 Converts a value to uppercase. Requires PHP extension `mbstring`.
 
 ```latte
@@ -701,8 +698,8 @@ Converts a value to uppercase. Requires PHP extension `mbstring`.
 See also [#capitalize], [#firstUpper], [#lower].
 
 
-webalize
---------
+webalize .[filter]
+------------------
 Converts to ASCII.
 
 Converts spaces to hyphens. Removes characters that aren’t alphanumerics, underscores, or hyphens. Converts to lowercase. Also strips leading and trailing whitespace.
@@ -714,6 +711,3 @@ Converts spaces to hyphens. Removes characters that aren’t alphanumerics, unde
 
 .[caution]
 Requires package [nette/utils|utils:].
-
-
-{{composer: latte/latte}}
