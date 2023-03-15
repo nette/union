@@ -6,16 +6,13 @@ Nette dokumentáció
 <div>
 
 
-Bevezetés
----------
-- [Miért használja a Nette-et? |www:10-reasons-why-nette]
-- [Telepítés |Installation]
-- [Készítse el első alkalmazását! |quickstart:]
-
-
 Általános
 ---------
-- [Csomagok listája |www:packages]
+- [Miért használja a Nette-et? |www:10-reasons-why-nette]
+- <b>[Készítse el első alkalmazását! |quickstart:]<b>
+
+
+- [Csomagok és telepítés |www:packages]
 - [Karbantartás és PHP |www:maintenance]
 - [Kiadási megjegyzések |https://nette.org/releases]
 - [Frissítési útmutató |migrations:en]
@@ -23,7 +20,6 @@ Bevezetés
 - [Ki hozza létre a Nette-et |https://nette.org/contributors]
 - [A Nette története |www:history]
 - [Vegyen részt |contributing:]
-- [Szponzorfejlesztés |https://nette.org/en/donate]
 - [API hivatkozás |https://api.nette.org/]
 </div>
 
@@ -84,11 +80,11 @@ Segédprogramok
 - [JSON |utils:JSON]
 - [NEON |neon:]
 - [Password Hashing |security:passwords]
+- [SmartObject |utils:SmartObject]
 - [PHP típusok |utils:type]
 - [Strings |utils:Strings]
 - [Validátorok |utils:validators]
 - [RobotLoader |robot-loader:]
-- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
 - [SafeStream |safe-stream:]
 - [...mások |utils:]
 </div>

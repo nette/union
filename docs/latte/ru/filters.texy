@@ -118,8 +118,8 @@ $latte->addFilter('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0, $
 =======================
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Фильтр, упрощающий вывод линейных данных в виде таблицы. Он возвращает массив массивов с заданным количеством элементов. Если указан второй параметр, он используется для заполнения недостающих элементов в последней строке.
 
 ```latte
@@ -217,8 +217,8 @@ checkUrl .[filter]
 См. также [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Возвращает значение, зажатое в инклюзивный диапазон min и max.
 
 ```latte
@@ -271,8 +271,8 @@ escapeUrl .[filter]
 См. также [query |#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Разделяет строку по заданному разделителю и возвращает массив строк. Псевдоним для `split`.
 
 ```latte
@@ -294,8 +294,8 @@ explode(string separator = '') .[filter]
 См. также [implode |#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Возвращает первый элемент массива или символ строки:
 
 ```latte
@@ -339,7 +339,7 @@ implode(string glue = '') .[filter]
 {=[1, 2, 3]|implode:'|'}  {* выходы '1|2|3' *}
 ```
 
-Вы также можете использовать псевдоним `join`:
+Вы также можете использовать псевдоним `join`: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* выходы '123' *}
@@ -367,8 +367,8 @@ indent(int level = 1, string char = "\t") .[filter]
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Возвращает последний элемент массива или символ строки:
 
 ```latte
@@ -481,8 +481,8 @@ padRight(int length, string pad = ' ') .[filter]
 ```
 
 
-query  .[filter]
-----------------
+query  .[filter]{data-version:2.10}
+-----------------------------------
 Динамически генерирует строку запроса в URL:
 
 ```latte
@@ -502,8 +502,8 @@ query  .[filter]
 См. также [escapeUrl |#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Возвращает случайный элемент массива или символ строки:
 
 ```latte
@@ -531,7 +531,7 @@ replace(string|array search, string replace = '') .[filter]
 {='hello world'|replace: 'world', 'friend'}  {* выходы 'hello friend' *}
 ```
 
-Одновременно может быть произведено несколько замен:
+Одновременно может быть произведено несколько замен: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* выходы 'lehho worhd' *}
@@ -573,8 +573,8 @@ round(int precision = 0) .[filter]
 См. также [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Извлекает фрагмент массива или строки.
 
 ```latte
@@ -591,8 +591,8 @@ slice(int start, int length = null, bool preserveKeys = false) .[filter]
 Filter по умолчанию переупорядочивает и сбрасывает ключи целочисленного массива. Это поведение можно изменить, установив preserveKeys в true. Строковые ключи всегда сохраняются, независимо от этого параметра.
 
 
-sort  .[filter]
----------------
+sort  .[filter]{data-version:2.9}
+---------------------------------
 Фильтр, сортирующий массив и сохраняющий ассоциацию индексов.
 
 ```latte
@@ -609,15 +609,15 @@ sort  .[filter]
 {/foreach}
 ```
 
-В качестве параметра можно передать собственную функцию сравнения:
+В качестве параметра можно передать собственную функцию сравнения: .{data-version:2.10.2}
 
 ```latte
 {var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
 
-spaceless  .[filter]
---------------------
+spaceless  .[filter]{data-version:2.10.2}
+-----------------------------------------
 Удаляет ненужные пробельные символы из вывода. Вы также можете использовать псевдоним `strip`.
 
 ```latte
@@ -655,8 +655,8 @@ substr(int offset, int length = null) .[filter]
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Переводит выражения на другие языки. Чтобы сделать фильтр доступным, необходимо [настроить переводчик |develop#TranslatorExtension]. Вы также можете использовать [теги для перевода |tags#Translation].
 
 ```latte

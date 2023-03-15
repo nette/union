@@ -9,7 +9,6 @@
 | `divisibleBy`| [ελέγχει αν μια μεταβλητή διαιρείται με έναν αριθμό |#divisibleBy]
 | `even` | [ελέγχει αν ο δεδομένος αριθμός είναι ζυγός |#even]
 | `first` | [επιστρέφει το πρώτο στοιχείο του πίνακα ή τον χαρακτήρα της συμβολοσειράς |#first]
-| `hasBlock` | [ανιχνεύει την ύπαρξη ενός μπλοκ |#hasBlock]
 | `last` | [επιστρέφει το τελευταίο στοιχείο του πίνακα ή τον χαρακτήρα της συμβολοσειράς |#last]
 | `odd` | [ελέγχει αν ο δεδομένος αριθμός είναι περιττός |#odd]
 | `slice` | [εξάγει ένα τμήμα ενός πίνακα ή μιας συμβολοσειράς |#slice]
@@ -45,8 +44,8 @@ $latte->addFunction('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0,
 =============================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Επιστρέφει την τιμή που είναι δεσμευμένη στο εύρος των min και max.
 
 ```latte
@@ -56,8 +55,8 @@ clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
 Βλέπε επίσης [filter clamp |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Ελέγχει αν μια μεταβλητή είναι διαιρετή με έναν αριθμό.
 
 ```latte
@@ -65,8 +64,8 @@ divisibleBy(int $value, int $by): bool .[method]
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Ελέγχει αν ο δεδομένος αριθμός είναι ζυγός.
 
 ```latte
@@ -74,8 +73,8 @@ even(int $value): bool .[method]
 ```
 
 
-first(string|array $value): mixed .[method]
--------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Επιστρέφει το πρώτο στοιχείο του πίνακα ή τον χαρακτήρα της συμβολοσειράς:
 
 ```latte
@@ -86,19 +85,8 @@ first(string|array $value): mixed .[method]
 Βλέπε επίσης [last |#last], [filter first |filters#first].
 
 
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Ελέγχει αν υπάρχει το μπλοκ με το καθορισμένο όνομα:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-Δείτε επίσης τον [έλεγχο ύπαρξης μπλοκ |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Επιστρέφει το τελευταίο στοιχείο του πίνακα ή τον τελευταίο χαρακτήρα της συμβολοσειράς:
 
 ```latte
@@ -109,8 +97,8 @@ last(string|array $value): mixed .[method]
 Βλέπε επίσης [first |#first], [filter last |filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Ελέγχει αν ο δεδομένος αριθμός είναι περιττός.
 
 ```latte
@@ -118,8 +106,8 @@ odd(int $value): bool .[method]
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Εξαγάγει μια φέτα ενός πίνακα ή μιας συμβολοσειράς.
 
 ```latte

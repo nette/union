@@ -9,7 +9,6 @@ Oltre alle comuni funzioni PHP, è possibile utilizzarle anche nei template.
 | `divisibleBy`| [controlla se una variabile è divisibile per un numero |#divisibleBy]
 | `even` | [controlla se il numero dato è pari |#even]
 | `first` | [restituisce il primo elemento di un array o un carattere di una stringa |#first]
-| `hasBlock` | [rileva l'esistenza di un blocco |#hasBlock]
 | `last` | [restituisce l'ultimo elemento di un array o un carattere di una stringa |#last]
 | `odd` | [controlla se il numero dato è dispari |#odd]
 | `slice` | [estrae una fetta di un array o di una stringa |#slice]
@@ -45,8 +44,8 @@ Funzioni .[#toc-functions]
 ==========================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Restituisce un valore limitato all'intervallo compreso tra min e max.
 
 ```latte
@@ -56,8 +55,8 @@ Restituisce un valore limitato all'intervallo compreso tra min e max.
 Vedere anche [filtro clamp |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Verifica se una variabile è divisibile per un numero.
 
 ```latte
@@ -65,8 +64,8 @@ Verifica se una variabile è divisibile per un numero.
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Verifica se il numero dato è pari.
 
 ```latte
@@ -74,8 +73,8 @@ Verifica se il numero dato è pari.
 ```
 
 
-first(string|array $value): mixed .[method]
--------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Restituisce il primo elemento di una matrice o un carattere di una stringa:
 
 ```latte
@@ -86,19 +85,8 @@ Restituisce il primo elemento di una matrice o un carattere di una stringa:
 Vedere anche [last |#last], [filter first |filters#first].
 
 
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Controlla se il blocco con il nome specificato esiste:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-Si veda anche il [controllo dell'esistenza del blocco |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Restituisce l'ultimo elemento della matrice o il carattere della stringa:
 
 ```latte
@@ -109,8 +97,8 @@ Restituisce l'ultimo elemento della matrice o il carattere della stringa:
 Vedere anche [first |#first], [filter last |filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Controlla se il numero dato è dispari.
 
 ```latte
@@ -118,8 +106,8 @@ Controlla se il numero dato è dispari.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Estrae una fetta di un array o di una stringa.
 
 ```latte

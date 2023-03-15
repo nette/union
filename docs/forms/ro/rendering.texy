@@ -1,13 +1,13 @@
 Redarea formularelor
 ********************
 
-Aspectul formelor poate fi foarte divers. În practică, putem întâlni două extreme. Pe de o parte, există necesitatea de a reda într-o aplicație o serie de formulare care să fie asemănătoare din punct de vedere vizual, iar noi apreciem redarea ușoară fără șablon cu ajutorul `$form->render()`. Acesta este, de obicei, cazul interfețelor administrative.
+Aspectul formularelor poate fi foarte diferit. De fapt, există două extreme. O parte este necesitatea de a reda din nou un set de formulare foarte asemănătoare, cu un efort redus sau chiar inexistent. De obicei, administrațiile și back-end-urile.
 
-Pe de altă parte, există diverse formulare în care fiecare este unic. Aspectul lor este cel mai bine descris folosind limbajul HTML în șablon. Și, bineînțeles, pe lângă cele două extreme menționate, vom întâlni multe forme care se încadrează undeva la mijloc.
+Cealaltă parte este reprezentată de formulare mici și dulci, fiecare dintre ele fiind o operă de artă. Aspectul lor poate fi scris cel mai bine în HTML. Bineînțeles, pe lângă aceste extreme, există multe formulare chiar între ele.
 
 
-Renderizare cu Latte .[#toc-rendering-with-latte]
-=================================================
+Latte .[#toc-latte]
+===================
 
  [Sistemul de modelare Latte |latte:] facilitează în mod fundamental redarea formularelor și a elementelor acestora. În primul rând, vom arăta cum să redăm formularele manual, element cu element, pentru a obține un control total asupra codului. Ulterior vom arăta cum să [automatizăm |#Automatic rendering] această redare.
 
@@ -152,12 +152,6 @@ Putem detecta prezența unei erori folosind metoda `hasErrors()` și putem seta 
 ```
 
 
-`{form}`
---------
-
-Etichete `{form signInForm}...{/form}` sunt o alternativă la `<form n:name="signInForm">...</form>`.
-
-
 Redare automată .[#toc-automatic-rendering]
 -------------------------------------------
 
@@ -237,15 +231,15 @@ Trebuie doar să importați blocul într-un singur loc, la începutul modelului 
 Cazuri speciale .[#toc-special-cases]
 -------------------------------------
 
-Dacă aveți nevoie să redați doar partea interioară a formularului fără etichete HTML `<form>`de exemplu, atunci când trimiteți fragmente, ascundeți-le folosind atributul `n:tag-if`:
+Dacă aveți nevoie doar de redarea conținutului interior al unui formular fără `<form>` & `</form>` HTML, de exemplu, într-o solicitare AJAX, puteți deschide și închide formularul cu `{formContext} … {/formContext}`. Funcționează similar cu `{form}` în sens logic, aici vă permite să utilizați alte etichete pentru a desena elementele formularului, dar în același timp nu desenează nimic.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 Tag-ul `formContainer` ajută la redarea intrărilor în interiorul unui container de formular.
@@ -262,8 +256,8 @@ Tag-ul `formContainer` ajută la redarea intrărilor în interiorul unui contain
 ```
 
 
-Rendering fără Latte .[#toc-rendering-without-latte]
-====================================================
+Fără Latte .[#toc-without-latte]
+================================
 
 Cel mai simplu mod de a reda un formular este de a apela:
 
@@ -327,13 +321,13 @@ Este un obiect care asigură redarea formularului. Acesta poate fi setat prin me
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -363,12 +357,12 @@ Rezultă următorul fragment:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -433,8 +427,6 @@ $form->addText('street', 'Street:');
 $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
-
-Dispozitivul de redare desenează mai întâi grupurile și apoi elementele care nu aparțin niciunui grup.
 
 
 Suport Bootstrap .[#toc-bootstrap-support]

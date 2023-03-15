@@ -14,8 +14,7 @@ Pakiet Nette/utils
 - [Tablice |arrays]
 - [Funkcje pomocnicze |helpers]
 - [Struny |strings]
-- [SmartObject]
-- [StaticClass]
+- [SmartObject |smartobject]
 - [System plików |filesystem]
 - [Walidator |validators]
 

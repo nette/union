@@ -1,13 +1,13 @@
 Изобразяване на форми
 *********************
 
-Външният вид на формите може да бъде много разнообразен. На практика можем да се сблъскаме с две крайности. От една страна, има нужда от визуализиране на поредица от формуляри в дадено приложение, които визуално си приличат един на друг, и оценяваме лесното визуализиране без шаблон с помощта на `$form->render()`. Такъв обикновено е случаят с административните интерфейси.
+Външният вид на формите може да варира значително. Всъщност има две крайности. Първият е, че се налага да създадете отново набор от много сходни формуляри с малко или никакви усилия. Обикновено това са формуляри в задната част на системата.
 
-От друга страна, има различни формуляри, в които всеки един е уникален. Техният външен вид се описва най-добре с помощта на езика HTML в шаблона. И разбира се, освен двете споменати крайности, ще срещнем много форми, които попадат някъде по средата.
+На другия полюс са малки, сладки форми, всяка от които е произведение на изкуството. Тяхното оформление е най-добре да бъде написано в HTML. Разбира се, отвъд тези крайности има много междинни форми.
 
 
-Рендъринг с Latte .[#toc-rendering-with-latte]
-==============================================
+Latte .[#toc-latte]
+===================
 
 [Системата за шаблони Latte |latte:] улеснява значително изчертаването на форми и техните елементи. Първо ще ви покажем как да визуализирате формулярите ръчно, елемент по елемент, за да получите пълен контрол върху кода. По-късно ще ви покажем как да [автоматизирате |#Automatic-Rendering] такова визуализиране.
 
@@ -152,12 +152,6 @@ protected function createComponentSignInForm(): Form
 ```
 
 
-`{form}`
---------
-
-Етикети `{form signInForm}...{/form}` са алтернатива на `<form n:name="signInForm">...</form>`.
-
-
 Автоматично визуализиране .[#toc-automatic-rendering]
 -----------------------------------------------------
 
@@ -237,15 +231,15 @@ protected function createComponentSignInForm(): Form
 Специални случаи .[#toc-special-cases]
 --------------------------------------
 
-Ако трябва да визуализирате само вътрешната част на формуляра без HTML тагове `<form>`например при изпращане на фрагменти, скрийте ги с помощта на атрибута `n:tag-if`:
+Ако трябва да покажете само вътрешното съдържание на формуляра, без да `<form>` & `</form>` HTML тагове, например в AJAX заявка, можете да отваряте и затваряте формуляра, като използвате `{formContext} … {/formContext}`. В логически смисъл той работи подобно на `{form}`, като тук ви позволява да използвате други тагове, за да рисувате елементи на формата, но в същото време не рисува нищо.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Имя пользователя: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 Тагът `formContainer` помага за визуализиране на входните данни в контейнера на формата.
@@ -262,8 +256,8 @@ protected function createComponentSignInForm(): Form
 ```
 
 
-Изобразяване без Latte .[#toc-rendering-without-latte]
-======================================================
+Без Latte .[#toc-without-latte]
+===============================
 
 Най-лесният начин за показване на формата е да извикате
 
@@ -327,13 +321,13 @@ Renderer .[#toc-renderer]
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -363,12 +357,12 @@ $form->render();
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -433,8 +427,6 @@ $form->addText('street', 'Улица:');
 $form->addText('city', 'Город:');
 $form->addSelect('country', 'Страна:', $countries);
 ```
-
-Рендърът рисува първо групите, а след това елементите, които не принадлежат към никоя група.
 
 
 Поддръжка на Bootstrap .[#toc-bootstrap-support]

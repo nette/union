@@ -23,9 +23,9 @@ $form->addPassword('password', 'Heslo:')
 	->addRule($form::MinLength, 'Heslo musí mít alespoň %d znaků', 8);
 ```
 
-**Validační pravidla se ověřují pouze v případě, že uživatel prvek vyplnil.**
+Nette přichází s celou řadu předdefinovaných pravidel, jejichž názvy jsou konstanty třídy `Nette\Forms\Form`.
 
-Nette přichází s celou řadu předdefinovaných pravidel, jejichž názvy jsou konstanty třídy `Nette\Forms\Form`. U všech prvků můžeme použít tyto pravidla:
+U všech prvků můžeme použít tyto pravidla:
 
 | konstanta | popis | typ argumentu
 |-------
@@ -38,11 +38,7 @@ Nette přichází s celou řadu předdefinovaných pravidel, jejichž názvy jso
 | `IsNotIn` | hodnota se nerovná žádné položce v poli | `array`
 | `Valid` | je prvek vyplněn správně? (pro [#podmínky]) | -
 
-
-Textové vstupy
---------------
-
-U prvků `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()`, `addFloat()` lze použít i některá následující pravidla:
+U prvků `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()` lze použít i následující pravidla:
 
 | `MinLength` | minimální délka textu | `int`
 | `MaxLength` | maximální délka textu | `int`
@@ -61,9 +57,15 @@ U prvků `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addIntege
 Validační pravidla `Integer`, `Numeric` a `Float` rovnou převádí hodnotu na integer resp. float. A dále pravidlo `URL` akceptuje i adresu bez schématu (např. `nette.org`) a schéma doplní (`https://nette.org`).
 Výraz v `Pattern` a `PatternIcase` musí platit pro celou hodnotu, tj. jako by byl obalen znaky `^` a `$`.
 
+U prvků `addUpload()`, `addMultiUpload()` lze použít i následující pravidla:
 
-Počet položek
--------------
+| `MaxFileSize` | maximální velikost souboru | `int`
+| `MimeType` | MIME type, povoleny zástupné znaky (`'video/*'`) | `string\|string[]`
+| `Image` | obrázek JPEG, PNG, GIF, WebP | -
+| `Pattern` | jméno souboru vyhovuje regulárnímu výrazu | `string`
+| `PatternInsensitive` | jako `Pattern`, ale nezávislé na velikosti písmen | `string`
+
+`MimeType` a `Image` vyžadují PHP rozšíření `fileinfo`. Že je soubor či obrázek požadovaného typu detekují na základě jeho signatury a **neověřují integritu celého souboru.** Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|http:request#toImage].
 
 U prvků `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` lze použít i následující pravidla pro omezení počtu vybraných položek resp. uploadovaných souborů:
 
@@ -72,22 +74,8 @@ U prvků `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` lze použí
 | `Length` | počet v rozsahu nebo přesný počet | dvojice `[int, int]` nebo `int`
 
 
-Upload souborů
---------------
-
-U prvků `addUpload()`, `addMultiUpload()` lze použít i následující pravidla:
-
-| `MaxFileSize` | maximální velikost souboru | `int`
-| `MimeType` | MIME type, povoleny zástupné znaky (`'video/*'`) | `string\|string[]`
-| `Image` | obrázek JPEG, PNG, GIF, WebP, AVIF | -
-| `Pattern` | jméno souboru vyhovuje regulárnímu výrazu | `string`
-| `PatternInsensitive` | jako `Pattern`, ale nezávislé na velikosti písmen | `string`
-
-`MimeType` a `Image` vyžadují PHP rozšíření `fileinfo`. Že je soubor či obrázek požadovaného typu detekují na základě jeho signatury a **neověřují integritu celého souboru.** Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|http:request#toImage].
-
-
 Chybové hlášky
-==============
+--------------
 
 Všechny předdefinované pravidla s výjimkou `Pattern` a `PatternInsensitive` mají výchozí chybovou hlášku, takže ji lze vynechat. Nicméně uvedením a formulací všech hlášek na míru uděláte formulář uživatelsky přívětivější.
 
@@ -293,7 +281,7 @@ Tím skriptem je `netteForms.js` a je dostupný z více možných zdrojů:
 Skript můžete vložit přímo do HTML stránky ze CDN:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Nebo zkopírovat lokálně do veřejné složky projektu (např. z `vendor/nette/forms/src/assets/netteForms.min.js`):

@@ -2,12 +2,11 @@ Generatore di codice PHP
 ************************
 
 <div class=perex>
-State cercando uno strumento per generare codice PHP per classi, funzioni o file completi?
-
-- Supporta tutte le più recenti caratteristiche di PHP (come gli enum, ecc.)
+- Avete bisogno di generare codice PHP per classi, funzioni, file PHP e così via?
+- Supporta tutte le più recenti caratteristiche di PHP, come enum, attributi, ecc.
 - Permette di modificare facilmente le classi esistenti
-- Uscita conforme allo stile di codifica PSR-12 / PER
-- Libreria matura, stabile e ampiamente utilizzata
+- Output conforme a PSR-12
+- Libreria altamente matura, stabile e ampiamente utilizzata
 </div>
 
 
@@ -53,6 +52,7 @@ Il risultato sarà questo:
  */
 final class Demo extends ParentClass implements Countable
 {
+	use Nette\SmartObject;
 }
 ```
 
@@ -67,8 +67,7 @@ Possiamo aggiungere costanti (classe [Constant |api:Nette\PhpGenerator\Constant]
 
 ```php
 $class->addConstant('ID', 123)
-	->setProtected() // visiblità costante
-	->setType('int')
+	->setProtected() // visibilità costante
 	->setFinal();
 
 $class->addProperty('items', [1, 2, 3])
@@ -84,7 +83,7 @@ $class->addProperty('list')
 Genera:
 
 ```php
-finale protetto const int ID = 123;
+final protected const ID = 123;
 
 /** @var int[] */
 private static $items = [1, 2, 3];
@@ -138,7 +137,7 @@ public function __construct(
 }
 ```
 
-Le proprietà e le classi di sola lettura possono essere contrassegnate tramite `setReadOnly()`.
+Le proprietà di sola lettura introdotte da PHP 8.1 possono essere contrassegnate tramite `setReadOnly()`.
 
 ------
 
@@ -171,7 +170,7 @@ $class->addMember($methodRecount);
 Interfaccia o tratto .[#toc-interface-or-trait]
 -----------------------------------------------
 
-È possibile creare interfacce e tratti (classi [InterfaceType |api:Nette\PhpGenerator\InterfaceType] e [TraitType |api:Nette\PhpGenerator\TraitType]):
+È possibile creare interfacce e tratti:
 
 ```php
 $interface = new Nette\PhpGenerator\InterfaceType('MyInterface');
@@ -195,7 +194,6 @@ Risultato:
 class Demo
 {
 	use SmartObject;
-	/** @use MyTrait<Foo> */
 	use MyTrait {
 		sayHello as protected;
 	}
@@ -206,7 +204,7 @@ class Demo
 Enum .[#toc-enums]
 ------------------
 
-È possibile creare facilmente gli enum introdotti da PHP 8.1 (classe [EnumType |api:Nette\PhpGenerator\EnumType]):
+È possibile creare facilmente gli enum che PHP 8.1 introduce:
 
 ```php
 $enum = new Nette\PhpGenerator\EnumType('Suit');
@@ -277,7 +275,7 @@ $function->addParameter('a');
 $function->addParameter('b');
 echo $function;
 
-// oppure utilizzare PsrPrinter per ottenere un output conforme a PSR-2 / PSR-12 / PER
+// oppure utilizzare PsrPrinter per ottenere un output conforme a PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFunction($function);
 ```
 
@@ -305,7 +303,7 @@ $closure->addUse('c')
 	->setReference();
 echo $closure;
 
-// oppure utilizzare PsrPrinter per un output conforme a PSR-2 / PSR-12 / PER
+// oppure utilizzare PsrPrinter per un output conforme a PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printClosure($closure);
 ```
 
@@ -472,56 +470,30 @@ function foo($a)
 Stampanti e conformità PSR .[#toc-printers-and-psr-compliance]
 --------------------------------------------------------------
 
-La classe [Printer |api:Nette\PhpGenerator\Printer] viene utilizzata per generare codice PHP:
+Il codice PHP è generato dagli oggetti `Printer`. Esiste un `PsrPrinter` il cui output è conforme a PSR-2 e PSR-12 e utilizza gli spazi per l'indentazione e un `Printer` che utilizza le tabulazioni per l'indentazione.
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
 // ...
 
-$printer = new Nette\PhpGenerator\Printer;
-echo $printer->printClass($class); // come: echo $class
-```
-
-Può generare codice per tutti gli altri elementi, offrendo metodi come `printFunction()`, `printNamespace()`, ecc.
-
-Inoltre, è disponibile la classe `PsrPrinter`, il cui output è conforme allo stile di codifica PSR-2 / PSR-12 / PER:
-
-```php
 $printer = new Nette\PhpGenerator\PsrPrinter;
-echo $printer->printClass($class);
+echo $printer->printClass($class); // 4 spazi di rientro
 ```
 
-Avete bisogno di regolare il comportamento in base alle vostre esigenze? Create la vostra stampante ereditando dalla classe `Printer`. È possibile riconfigurare queste variabili:
+Avete bisogno di personalizzare il comportamento della stampante? Createne una vostra ereditando la classe `Printer`. È possibile riconfigurare queste variabili:
 
 ```php
 class MyPrinter extends Nette\PhpGenerator\Printer
 {
-	// lunghezza della riga dopo la quale la riga si interromperà
 	public int $wrapLength = 120;
-	// carattere di indentazione, può essere sostituito da una sequenza di spazi
 	public string $indentation = "\t";
-	// numero di righe vuote tra le proprietà
 	public int $linesBetweenProperties = 0;
-	// numero di righe vuote tra i metodi
 	public int $linesBetweenMethods = 2;
-	// numero di righe vuote tra gruppi di dichiarazioni d'uso per classi, funzioni e costanti
 	public int $linesBetweenUseTypes = 0;
-	// posizione della parentesi graffa di apertura per funzioni e metodi
 	public bool $bracesOnNextLine = true;
-	// inserire un parametro in una sola riga, anche se ha un attributo o è promosso
-	public bool $singleParameterOnOneLine = false;
-	// omits namespaces that do not contain any class or function
-	public bool $omitEmptyNamespaces = true;
-	// separatore tra la parentesi destra e il tipo di ritorno di funzioni e metodi
 	public string $returnTypeColon = ': ';
 }
 ```
-
-Come e perché differiscono esattamente le stampanti standard `Printer` e `PsrPrinter`? Perché non c'è una sola stampante, `PsrPrinter`, nel pacchetto?
-
-Lo standard `Printer` formatta il codice come lo facciamo in tutto Nette. Poiché Nette è stato creato molto prima di PSR, e anche perché PSR per molti anni non ha consegnato gli standard in tempo, ma a volte anche con diversi anni di ritardo dall'introduzione di una nuova funzionalità in PHP, questo ha portato ad alcune piccole differenze nello [standard di codifica |contributing:coding-standard].
-La differenza maggiore è solo l'uso dei tabulatori al posto degli spazi. Sappiamo che l'uso delle tabulazioni nei nostri progetti consente di regolare la larghezza, il che è [essenziale per le persone con problemi di vista |contributing:coding-standard#Tabs Instead of Spaces].
-Un esempio di differenza minore è il posizionamento della parentesi graffa su una riga separata per funzioni e metodi e sempre. Riteniamo che la raccomandazione del PSR sia illogica e [porti a una diminuzione della chiarezza del codice |contributing:coding-standard#Wrapping and Braces].
 
 
 Tipi .[#toc-types]
@@ -533,8 +505,7 @@ Ogni tipo o tipo di unione/intersezione può essere passato come stringa; si pos
 use Nette\PhpGenerator\Type;
 
 $member->setType('array'); // o Type::Array;
-$member->setType('?array'); // or Type::nullable(Type::Array);
-$member->setType('array|string'); // or Type::union(Type::Array, Type::String)
+$member->setType('array|string'); // o Type::union('array', 'stringa')
 $member->setType('Foo&Bar'); // o Type::intersection(Foo::class, Bar::class)
 $member->setType(null); // rimuove il tipo
 ```
@@ -580,13 +551,6 @@ new Literal('substr(?, ?)', [$a, $b]);
 // genera, ad esempio: substr('ciao', 5);
 ```
 
-Il letterale che rappresenta la creazione di un nuovo oggetto è facilmente generabile con il metodo `new`:
-
-```php
-Literal::new(Demo::class, [$a, 'foo' => $b]);
-// genera, ad esempio: nuovo Demo(10, pippo: 20)
-```
-
 
 Attributi .[#toc-attributes]
 ----------------------------
@@ -595,15 +559,10 @@ Attributi .[#toc-attributes]
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
-$class->addAttribute('Table', [
-	'name' => 'user',
-	'constraints' => [
-		Literal::new('UniqueConstraint', ['name' => 'ean', 'columns' => ['ean']]),
-	],
-]);
+$class->addAttribute('Deprecated');
 
 $class->addProperty('list')
-	->addAttribute('Deprecated');
+	->addAttribute('WithArguments', [1, 2]);
 
 $method = $class->addMethod('count')
 	->addAttribute('Foo\Cached', ['mode' => true]);
@@ -617,18 +576,16 @@ echo $class;
 Risultato:
 
 ```php
-#[Table(name: 'user', constraints: [new UniqueConstraint(name: 'ean', columns: ['ean'])])]
+#[Deprecated]
 class Demo
 {
-	#[Deprecated]
+	#[WithArguments(1, 2)]
 	public $list;
 
 
 	#[Foo\Cached(mode: true)]
-	public function count(
-		#[Bar]
-		$items,
-	) {
+	public function count(#[Bar] $items)
+	{
 	}
 }
 ```
@@ -683,8 +640,9 @@ echo $namespace->resolveName('range', $namespace::NameFunction); // 'iter\range'
 Risoluzione dei nomi di classe .[#toc-class-names-resolving]
 ------------------------------------------------------------
 
-**Quando una classe fa parte di uno spazio dei nomi, viene resa in modo leggermente diverso: tutti i tipi (ad esempio, i suggerimenti sui tipi, i tipi di ritorno, il nome della classe madre, le interfacce implementate, i tratti utilizzati e gli attributi) vengono automaticamente *risolti* (a meno che non si disattivi, vedere sotto).
-Ciò significa che è necessario usare nomi di classe **completamente qualificati** nelle definizioni, che verranno sostituiti con alias (basati su clausole di utilizzo) o nomi pienamente qualificati nel codice risultante:
+**Quando la classe fa parte dello spazio dei nomi, viene resa in modo leggermente diverso**: tutti i tipi (cioè i suggerimenti sui tipi, i tipi di ritorno, il nome della classe genitore,
+interfacce implementate, tratti e attributi utilizzati) sono automaticamente *risolti* (a meno che non lo si disattivi, vedere sotto).
+Ciò significa che bisogna **usare i nomi completi delle classi** nelle definizioni, che saranno sostituiti da alias (secondo le dichiarazioni d'uso) o da nomi pienamente qualificati nel codice risultante:
 
 ```php
 $namespace = new Nette\PhpGenerator\PhpNamespace('Foo');
@@ -695,13 +653,13 @@ $class->addImplement('Foo\A') // si semplificherà in A
 	->addTrait('Bar\AliasedClass'); // semplificherà in AliasedClass
 
 $method = $class->addMethod('method');
-$method->addComment('@return ' . $namespace->simplifyType('Foo\D')); // nei commenti semplifica manualmente
+$method->addComment('@return ' . $namespace->simplifyName('Foo\D')); // nei commenti semplificare manualmente
 $method->addParameter('arg')
 	->setType('Bar\OtherClass'); // si risolverà in \Bar\OtherClass
 
 echo $namespace;
 
-// o usare PsrPrinter per un output conforme a PSR-2 / PSR-12 / PER
+// o usare PsrPrinter per un output conforme a PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printNamespace($namespace);
 ```
 
@@ -754,7 +712,7 @@ $function = $file->addFunction('Foo\foo');
 
 echo $file;
 
-// oppure utilizzare PsrPrinter per un output conforme a PSR-2 / PSR-12 / PER
+// oppure utilizzare PsrPrinter per un output conforme a PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFile($file);
 ```
 
@@ -812,7 +770,7 @@ $function = Nette\PhpGenerator\GlobalFunction::from('foo', withBody: true);
 Caricamento da file PHP .[#toc-loading-from-php-file]
 -----------------------------------------------------
 
-È anche possibile caricare funzioni, classi, interfacce ed enum direttamente da una stringa di codice PHP. Ad esempio, creiamo l'oggetto `ClassType` in questo modo:
+È anche possibile caricare classi e funzioni direttamente da un file PHP non ancora caricato o da una stringa di codice PHP:
 
 ```php
 $class = Nette\PhpGenerator\ClassType::fromCode(<<<XX
@@ -825,20 +783,13 @@ $class = Nette\PhpGenerator\ClassType::fromCode(<<<XX
 	XX);
 ```
 
-Quando si caricano le classi dal codice PHP, i commenti di una sola riga al di fuori dei corpi dei metodi vengono ignorati (ad esempio per le proprietà, ecc.), perché questa libreria non dispone di un'API per gestirli.
-
-È anche possibile caricare direttamente l'intero file PHP, che può contenere un numero qualsiasi di classi, funzioni o anche spazi dei nomi multipli:
+Caricare l'intero file PHP, che può contenere più classi o anche più spazi dei nomi:
 
 ```php
 $file = Nette\PhpGenerator\PhpFile::fromCode(file_get_contents('classes.php'));
 ```
 
-Vengono caricati anche il commento iniziale del file e la dichiarazione `strict_types`. D'altra parte, tutto il resto del codice globale viene ignorato.
-
 Questo richiede l'installazione di `nikic/php-parser`.
-
-.[note]
-Se è necessario manipolare il codice globale nei file o le singole dichiarazioni nei corpi dei metodi, è meglio usare direttamente la libreria `nikic/php-parser`.
 
 
 Dumper di variabili .[#toc-variables-dumper]
@@ -858,6 +809,6 @@ echo $dumper->dump($var); // stampa ['a', 'b', 123].
 Tabella di compatibilità .[#toc-compatibility-table]
 ----------------------------------------------------
 
-PhpGenerator 4.0 e 4.1 sono compatibili con PHP 8.0-8.3.
+PhpGenerator 4.0 è compatibile con PHP 8.0 - 8.2
 
 {{leftbar: nette:@menu-topics}}

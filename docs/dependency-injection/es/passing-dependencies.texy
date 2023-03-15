@@ -12,7 +12,7 @@ Los argumentos, o "dependencias" en la terminología DI, se pueden pasar a las c
 
 </div>
 
-A continuación ilustraremos las distintas variantes con ejemplos concretos.
+Los tres primeros métodos se aplican en general en todos los lenguajes orientados a objetos, el cuarto es específico de los presentadores Nette, por lo que se trata en [capítulo aparte |best-practices:inject-method-attribute]. A continuación veremos más detenidamente cada una de estas opciones y las mostraremos con ejemplos concretos.
 
 
 Inyección de constructor .[#toc-constructor-injection]
@@ -21,17 +21,17 @@ Inyección de constructor .[#toc-constructor-injection]
 Las dependencias se pasan como argumentos al constructor cuando se crea el objeto:
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function __construct(Cache $cache)
+	public function __construct(Cache $service)
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass($cache);
+$service = new MyService($cache);
 ```
 
 Esta forma es útil para dependencias obligatorias que la clase necesita absolutamente para funcionar, ya que sin ellas la instancia no puede ser creada.
@@ -40,10 +40,10 @@ Desde PHP 8.0, podemos usar una forma más corta de notación que es funcionalme
 
 ```php
 // PHP 8.0
-class MyClass
+class MyService
 {
 	public function __construct(
-		private Cache $cache,
+		private Cache $service,
 	) {
 	}
 }
@@ -53,10 +53,10 @@ A partir de PHP 8.1, una propiedad puede ser marcada con una bandera `readonly` 
 
 ```php
 // PHP 8.1
-class MyClass
+class MyService
 {
 	public function __construct(
-		private readonly Cache $cache,
+		private readonly Cache $service,
 	) {
 	}
 }
@@ -65,84 +65,24 @@ class MyClass
 El contenedor DI pasa dependencias al constructor automáticamente usando [autowiring]. Argumentos que no se pueden pasar de esta forma (por ejemplo cadenas, números, booleanos) [escribir en configuración |services#Arguments].
 
 
-Infierno constructor .[#toc-constructor-hell]
----------------------------------------------
-
-El término *infierno de constructores* se refiere a una situación en la que un hijo hereda de una clase padre cuyo constructor requiere dependencias, y el hijo también requiere dependencias. También debe asumir y pasar las dependencias del padre:
-
-```php
-abstract class BaseClass
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass extends BaseClass
-{
-	private Database $db;
-
-	// ⛔ CONSTRUCTOR HELL
-	public function __construct(Cache $cache, Database $db)
-	{
-		parent::__construct($cache);
-		$this->db = $db;
-	}
-}
-```
-
-El problema surge cuando queremos cambiar el constructor de la clase `BaseClass`, por ejemplo cuando se añade una nueva dependencia. Entonces tenemos que modificar también todos los constructores de los hijos. Lo que convierte tal modificación en un infierno.
-
-¿Cómo evitarlo? La solución es **priorizar la [composición sobre la herencia** |faq#Why composition is preferred over inheritance].
-
-Así que vamos a diseñar el código de forma diferente. Evitaremos las clases [abstractas |nette:introduction-to-object-oriented-programming#abstract-classes] `Base*`. En lugar de que `MyClass` obtenga alguna funcionalidad heredando de `BaseClass`, tendrá esa funcionalidad pasada como una dependencia:
-
-```php
-final class SomeFunctionality
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass
-{
-	private SomeFunctionality $sf;
-	private Database $db;
-
-	public function __construct(SomeFunctionality $sf, Database $db) // ✅
-	{
-		$this->sf = $sf;
-		$this->db = $db;
-	}
-}
-```
-
-
 Inyección de Setter .[#toc-setter-injection]
 ============================================
 
-Las dependencias se pasan llamando a un método que las almacena en una propiedad privada. La convención de nomenclatura habitual para estos métodos es de la forma `set*()`, que es por lo que se llaman setters, pero por supuesto pueden llamarse de cualquier otra forma.
+Las dependencias se pasan llamando a un método que las almacena en una propiedad privada. La convención de nomenclatura habitual para estos métodos es de la forma `set*()`, por lo que se denominan setters.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass;
-$obj->setCache($cache);
+$service = new MyService;
+$service->setCache($cache);
 ```
 
 Este método es útil para dependencias opcionales que no son necesarias para la función de la clase, ya que no se garantiza que el objeto las reciba realmente (es decir, que el usuario llame al método).
@@ -150,16 +90,16 @@ Este método es útil para dependencias opcionales que no son necesarias para la
 Al mismo tiempo, este método permite llamar al setter repetidamente para cambiar la dependencia. Si esto no es deseable, añada una comprobación al método, o a partir de PHP 8.1, marque la propiedad `$cache` con la bandera `readonly`.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
 		if ($this->cache) {
 			throw new RuntimeException('La dependencia ya se ha establecido');
 		}
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 ```
@@ -168,7 +108,8 @@ La llamada al setter se define en la configuración del contenedor DI en [secci�
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- setCache
 ```
@@ -180,13 +121,13 @@ Inyección de propiedades .[#toc-property-injection]
 Las dependencias se pasan directamente a la propiedad:
 
 ```php
-class MyClass
+class MyService
 {
 	public Cache $cache;
 }
 
-$obj = new MyClass;
-$obj->cache = $cache;
+$service = new MyService;
+$service->cache = $cache;
 ```
 
 Este método se considera inapropiado porque la propiedad debe declararse como `public`. Por lo tanto, no tenemos control sobre si la dependencia pasada será realmente del tipo especificado (esto era cierto antes de PHP 7.4) y perdemos la capacidad de reaccionar a la dependencia recién asignada con nuestro propio código, por ejemplo para evitar cambios posteriores. Al mismo tiempo, la propiedad pasa a formar parte de la interfaz pública de la clase, lo que puede no ser deseable.
@@ -195,16 +136,11 @@ La configuración de la variable se define en la configuración del contenedor D
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- $cache = @\Cache
 ```
-
-
-Inyectar .[#toc-inject]
-=======================
-
-Mientras que los tres métodos anteriores son generalmente válidos en todos los lenguajes orientados a objetos, la inyección por método, anotación o atributo *inject* es específica de los presentadores Nette. Se tratan en [un capítulo aparte |best-practices:inject-method-attribute].
 
 
 ¿Qué camino elegir? .[#toc-which-way-to-choose]

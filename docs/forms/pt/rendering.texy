@@ -1,13 +1,13 @@
 Prestação de formulários
 ************************
 
-A aparência das formas pode ser muito diversificada. Na prática, podemos encontrar dois extremos. Por um lado, há a necessidade de renderizar uma série de formulários em uma aplicação que são visualmente semelhantes entre si, e apreciamos a fácil renderização sem um modelo usando `$form->render()`. Este é geralmente o caso das interfaces administrativas.
+As aparências dos formulários podem ser muito diferentes. Na verdade, existem dois extremos. Um lado é a necessidade de tornar um conjunto de formas muito semelhantes novamente, com pouco ou nenhum esforço. Normalmente administrações e back-ends.
 
-Por outro lado, existem várias formas onde cada uma é única. Sua aparência é melhor descrita usando a linguagem HTML no modelo. E é claro que, além dos dois extremos mencionados, vamos encontrar muitos formulários que se enquadram em algum lugar no meio.
+O outro lado são pequenas formas doces, sendo cada uma delas uma obra de arte. Seu layout pode ser melhor escrito em HTML. É claro que, além desses extremos, há muitos formulários entre eles.
 
 
-Renderização com Latte .[#toc-rendering-with-latte]
-===================================================
+Latte .[#toc-latte]
+===================
 
 O [sistema de modelos Latte |latte:] facilita fundamentalmente a renderização de formulários e seus elementos. Primeiro, mostraremos como renderizar formulários manualmente, elemento por elemento, para obter controle total sobre o código. Mais tarde, mostraremos como [automatizar |#Automatic rendering] tal renderização.
 
@@ -152,12 +152,6 @@ Podemos detectar a presença de um erro usando o método `hasErrors()` e definir
 ```
 
 
-`{form}`
---------
-
-Etiquetas `{form signInForm}...{/form}` são uma alternativa para `<form n:name="signInForm">...</form>`.
-
-
 Renderização automática .[#toc-automatic-rendering]
 ---------------------------------------------------
 
@@ -237,15 +231,15 @@ Você só precisa importar o bloco em um lugar, no início do modelo de layout:
 Casos especiais .[#toc-special-cases]
 -------------------------------------
 
-Se você precisar renderizar somente a parte interna do formulário sem tags HTML `<form>`por exemplo, ao enviar snippets, oculte-os usando o atributo `n:tag-if`:
+Se você precisar apenas renderizar o conteúdo interno de uma forma sem `<form>` & `</form>` Tags HTML, por exemplo, em um pedido AJAX, você pode abrir e fechar o formulário com `{formContext} … {/formContext}`. Funciona de forma similar a `{form}` em um sentido lógico, aqui permite que você use outras tags para desenhar elementos do formulário, mas ao mesmo tempo não desenha nada.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 A etiqueta `formContainer` ajuda na renderização de entradas dentro de um contêiner de formulário.
@@ -262,8 +256,8 @@ A etiqueta `formContainer` ajuda na renderização de entradas dentro de um cont
 ```
 
 
-Renderização sem Latte .[#toc-rendering-without-latte]
-======================================================
+Sem o Latte .[#toc-without-latte]
+=================================
 
 A maneira mais fácil de entregar um formulário é telefonar:
 
@@ -327,13 +321,13 @@ Se não definirmos um renderizador personalizado, será usado o renderizador pad
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -363,12 +357,12 @@ Resultados no seguinte trecho:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -433,8 +427,6 @@ $form->addText('street', 'Street:');
 $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
-
-O renderizador desenha primeiro os grupos e depois os elementos que não pertencem a nenhum grupo.
 
 
 Suporte de Bootstrap .[#toc-bootstrap-support]

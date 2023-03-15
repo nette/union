@@ -4,7 +4,7 @@ Formato NEON
 .[perex]
 NEON es un formato de datos estructurados legibles por humanos. En Nette, se utiliza para archivos de configuración. También se utiliza para datos estructurados como configuraciones, traducciones de idiomas, etc. [Pruébalo en el sandbox |https://ne-on.org].
 
-NEON son las siglas de *Nette Object Notation*. Es menos complejo y desgarbado que XML o JSON, pero proporciona capacidades similares. Es muy similar a YAML. La principal ventaja es que NEON tiene las llamadas [entidades |#entities], gracias a las cuales la configuración de los servicios DI es [tan sexy |https://gist.github.com/dg/26baf3ce8f29d0f751e9dddfaa06504f]. Y permite tabuladores para la indentación.
+NEON son las siglas de *Nette Object Notation*. Es menos complejo y desgarbado que XML o JSON, pero proporciona capacidades similares. Es muy similar a YAML. La principal ventaja es que NEON tiene las llamadas [entidades |#entities], gracias a las cuales la configuración de los servicios DI es tan sexy. Y permite tabuladores para la indentación.
 
 NEON está construido desde cero para ser fácil de usar.
 
@@ -119,11 +119,11 @@ Los valores de las correspondencias y secuencias pueden ser otras correspondenci
 
 ```neon
 pets:
-   - Cat
-   - Dog
+ - Cat
+ - Dog
 cars:
-   - Volvo
-   - Skoda
+ - Volvo
+ - Skoda
 ```
 
 En PHP, la misma estructura se escribiría como:
@@ -160,28 +160,6 @@ item: [
 	 - Dog
 ]
 ```
-
-En el caso anterior, escribimos un mapeo cuyos elementos eran secuencias. Ahora, intentémoslo al revés y creemos una secuencia que contenga mapeos:
-
-```neon
--
-	name: John
-	age: 35
--
-	name: Peter
-	age: 28
-```
-
-No es necesario que las viñetas estén en líneas separadas; también pueden colocarse así:
-
-```neon
-- name: John
-  age: 35
-- name: Peter
-  age: 28
-```
-
-Depende de ti si alineas las viñetas en una columna utilizando espacios o un tabulador.
 
 Debido a que PHP utiliza la misma estructura para mapeo y secuencias, es decir, arrays, ambos pueden ser fusionados. La indentación es la misma esta vez:
 

@@ -155,20 +155,6 @@ Ali neposredno na vrednosti (v kombinaciji z [`{=expr}` | https://latte.nette.or
 ```
 
 
-Dinamične oznake HTML .[#toc-dynamic-html-tags]
-===============================================
-
-Latte podpira dinamične oznake HTML, ki so uporabne, kadar je potrebna prilagodljivost imen oznak:
-
-```latte
-<h{$level}>Heading</h{$level}>
-```
-
-Zgornja koda lahko na primer ustvari `<h1>Heading</h1>` ali `<h2>Heading</h2>` odvisno od vrednosti spremenljivke `$level`. Dinamične oznake HTML v Latte morajo biti vedno v paru. Njihova alternativa je [n:tag |tags#n:tag].
-
-Ker je Latte varen sistem za oblikovanje predlog, preveri, ali je dobljeno ime oznake veljavno in ne vsebuje neželenih ali zlonamernih vrednosti. Prav tako zagotavlja, da je končno ime oznake vedno enako začetnemu imenu oznake.
-
-
 Komentarji .[#toc-comments]
 ===========================
 
@@ -252,19 +238,35 @@ Operater `in` se lahko uporablja za zamenjavo funkcije `in_array()`. Primerjava 
 ```
 
 
+.{data-version:2.9}
+Izbirno veriženje z operatorjem z nedefinirano varnostjo .[#toc-optional-chaining-with-undefined-safe-operator]
+---------------------------------------------------------------------------------------------------------------
+
+Operator undefined-safe `??->` je podoben operatorju nullsafe `?->`, vendar ne sproži napake, če spremenljivka, lastnost ali indeks sploh ne obstajajo.
+
+```latte
+{$order??->id}
+```
+
+to je način, kako povedati, da ko je `$order` definiran in ni null, se bo izračunal `$order->id`, ko pa je `$order` null ali ne obstaja, prenehamo s tem, kar počnemo, in preprosto vrnemo null.
+
+```latte
+{$user??->address??->street}
+// roughly means isset($user) && isset($user->address) ? $user->address->street : null
+```
+
+
 Okno v zgodovino .[#toc-a-window-into-history]
 ----------------------------------------------
 
 Latte je v svoji zgodovini ponudil številne sintaktične bonbončke, ki so se nekaj let pozneje pojavili tudi v samem jeziku PHP. V Latte je bilo na primer mogoče zapisati polja kot `[1, 2, 3]` namesto `array(1, 2, 3)` ali uporabiti operator nullsafe `$obj?->foo` veliko prej, preden je bilo to mogoče v samem PHP. Latte je uvedel tudi operator za razširitev polj `(expand) $arr`, ki je enakovreden današnjemu operatorju `...$arr` iz PHP.
 
-Operator undefined-safe `??->`, ki je podoben operatorju nullsafe `?->`, vendar ne sproži napake, če spremenljivka ne obstaja, je bil ustvarjen iz zgodovinskih razlogov in danes priporočamo uporabo standardnega operatorja PHP `?->`.
-
 
 Omejitve PHP v Latte .[#toc-php-limitations-in-latte]
 =====================================================
 
-V Latte je mogoče zapisati samo izraze PHP. To pomeni, da ni mogoče uporabljati izrazov, ki se končajo s podpičjem. Ne morete deklarirati razredov ali uporabljati [kontrolnih struktur |https://www.php.net/manual/en/language.control-structures.php], kot so `if`, `foreach`, `switch`, `return`, `try`, `throw` in druge, namesto katerih Latte ponuja svoje [oznake |tags].
-Prav tako ne morete uporabljati [atributov |https://www.php.net/manual/en/language.attributes.php], [zaklepajev |https://www.php.net/manual/en/language.operators.execution.php] ali [čarobnih konstant |https://www.php.net/manual/en/language.constants.magic.php].
-Ne morete uporabiti niti `unset`, `echo`, `include`, `require`, `exit`, `eval`, ker to niso funkcije, temveč posebni konstrukti jezika PHP in zato niso izrazi. Podprti so samo večvrstični komentarji `/* ... */`.
+V Latte je mogoče zapisati samo izraze PHP. To pomeni, da ne morete deklarirati razredov ali uporabljati [kontrolnih struktur |https://www.php.net/manual/en/language.control-structures.php], kot so `if`, `foreach`, `switch`, `return`, `try`, `throw` in druge, namesto katerih Latte ponuja svoje [oznake |tags].
+Prav tako ne morete uporabljati [atributov |https://www.php.net/manual/en/language.attributes.php], [zaklepajev |https://www.php.net/manual/en/language.operators.execution.php] ali [čarobnih konstant |https://www.php.net/manual/en/language.constants.magic.php], ker to ne bi bilo smiselno.
+Ne morete uporabljati niti `unset`, `echo`, `include`, `require`, `exit`, `eval`, ker to niso funkcije, temveč posebni konstrukti jezika PHP in zato niso izrazi.
 
 Vendar lahko te omejitve obidete tako, da aktivirate razširitev [RawPhpExtension |develop#RawPhpExtension], ki vam omogoča uporabo katere koli kode PHP v oznaki `{php ...}` na odgovornost avtorja predloge.

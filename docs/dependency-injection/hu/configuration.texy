@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Ha nem használja a `$container->getParameters()` tömböt, kikapcsolhatja a paraméterek exportálását. Továbbá csak azokat a címkéket exportálhatja, amelyeken keresztül a `$container->findByTag(...)` módszerrel szolgáltatásokat kap.
+Ha nem használja a `$container->parameters` tömböt, kikapcsolhatja a paraméterek exportálását. Továbbá csak azokat a címkéket exportálhatja, amelyeken keresztül a `$container->findByTag(...)` módszerrel szolgáltatásokat kap.
 Ha egyáltalán nem hívja meg a módszert, akkor a `false` segítségével teljesen letilthatja a címkék exportálását.
 
 Jelentősen csökkentheti az [autowiring |autowiring] metaadatait, ha a `$container->getByType()` metódus paramétereként megadja a használt osztályokat.
@@ -191,15 +191,20 @@ Csak adjuk meg, hogy mely könyvtárakban (és alkönyvtárakban) kell keresni a
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# te magad választod ki a szekciók nevét
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Általában azonban nem akarjuk az összes osztályt és interfészt felvenni, így szűrhetjük őket:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# szűrés fájlnév alapján (string|string[])
 		files:
@@ -215,7 +220,7 @@ Vagy kiválaszthatjuk azokat az osztályokat, amelyek a következő osztályok k
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,7 +231,7 @@ Meghatározhatunk negatív szabályokat is, azaz osztálynév maszkokat vagy ős
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
 			classes: ...
 			extends: ...
@@ -237,7 +242,7 @@ A hozzáadott szolgáltatásokhoz címkéket lehet beállítani:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

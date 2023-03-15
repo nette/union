@@ -38,7 +38,7 @@ La Norma de Codificación Nette corresponde a la PSR-12 (o Estilo de Codificaci�
 
 - las funciones de flecha se escriben sin espacio antes del paréntesis, es decir `fn($a) => $b`
 - no se requiere una línea vacía entre los distintos tipos de sentencias import de `use`
-- el tipo de retorno de una función/método y la llave de apertura están siempre en líneas separadas:
+- el tipo de retorno de la función/método y el paréntesis de apertura deben colocarse en líneas separadas para una mejor legibilidad:
 
 ```php
 	public function find(
@@ -49,10 +49,6 @@ La Norma de Codificación Nette corresponde a la PSR-12 (o Estilo de Codificaci�
 		// method body
 	}
 ```
-
-La llave de apertura en una línea separada es importante para separar visualmente la firma de la función/método del cuerpo. Si la firma está en una línea, la separación es clara (imagen de la izquierda); si está en varias líneas, en PSR las firmas y los cuerpos se mezclan (en el centro), mientras que en la norma Nette permanecen separados (a la derecha):
-
-[* new-line-after.webp *]
 
 
 Bloques de documentación (phpDoc) .[#toc-documentation-blocks-phpdoc]

@@ -12,7 +12,7 @@ Argumentele, sau "dependențele" în terminologia DI, pot fi transmise claselor 
 
 </div>
 
-În continuare, vom ilustra diferitele variante cu exemple concrete.
+Primele trei metode se aplică în general în toate limbajele orientate pe obiecte, cea de-a patra este specifică prezentatorilor Nette, așa că este discutată într-un [capitol separat |best-practices:inject-method-attribute]. În continuare, vom analiza mai îndeaproape fiecare dintre aceste opțiuni și le vom prezenta cu exemple specifice.
 
 
 Injectarea constructorilor .[#toc-constructor-injection]
@@ -21,17 +21,17 @@ Injectarea constructorilor .[#toc-constructor-injection]
 Dependențele sunt transmise ca argumente constructorului atunci când obiectul este creat:
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function __construct(Cache $cache)
+	public function __construct(Cache $service)
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass($cache);
+$service = new MyService($cache);
 ```
 
 Această formă este utilă pentru dependențele obligatorii de care clasa are neapărat nevoie pentru a funcționa, deoarece fără ele instanța nu poate fi creată.
@@ -40,10 +40,10 @@ Această formă este utilă pentru dependențele obligatorii de care clasa are n
 
 ```php
 // PHP 8.0
-class MyClass
+class MyService
 {
 	public function __construct(
-		private Cache $cache,
+		private Cache $service,
 	) {
 	}
 }
@@ -53,10 +53,10 @@ class MyClass
 
 ```php
 // PHP 8.1
-class MyClass
+class MyService
 {
 	public function __construct(
-		private readonly Cache $cache,
+		private readonly Cache $service,
 	) {
 	}
 }
@@ -65,84 +65,24 @@ class MyClass
 Containerul DI transmite dependențele către constructor în mod automat, utilizând [autowiring |autowiring]. Argumentele care nu pot fi transmise [în |services#Arguments] acest mod (de exemplu, șiruri de caractere, numere, booleeni) se [scriu în configurație |services#Arguments].
 
 
-Iadul Constructorilor .[#toc-constructor-hell]
-----------------------------------------------
-
-Termenul *constructor hell* se referă la o situație în care un copil moștenește dintr-o clasă părinte al cărei constructor necesită dependențe, iar copilul necesită și el dependențe. De asemenea, acesta trebuie să preia și să transmită dependențele părintelui:
-
-```php
-abstract class BaseClass
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass extends BaseClass
-{
-	private Database $db;
-
-	// ⛔ CONSTRUCTOR HELL
-	public function __construct(Cache $cache, Database $db)
-	{
-		parent::__construct($cache);
-		$this->db = $db;
-	}
-}
-```
-
-Problema apare atunci când dorim să modificăm constructorul clasei `BaseClass`, de exemplu atunci când se adaugă o nouă dependență. Atunci trebuie să modificăm și toți constructorii copiilor. Ceea ce face ca o astfel de modificare să fie un iad.
-
-Cum se poate preveni acest lucru? Soluția constă în **prioritizarea [compoziției în detrimentul moștenirii** |faq#Why composition is preferred over inheritance].
-
-Deci, să proiectăm codul în mod diferit. Vom evita clasele [abstracte |nette:introduction-to-object-oriented-programming#abstract-classes] `Base*`. În loc ca `MyClass` să primească o anumită funcționalitate prin moștenirea de la `BaseClass`, aceasta va avea acea funcționalitate transmisă ca dependență:
-
-```php
-final class SomeFunctionality
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass
-{
-	private SomeFunctionality $sf;
-	private Database $db;
-
-	public function __construct(SomeFunctionality $sf, Database $db) // ✅
-	{
-		$this->sf = $sf;
-		$this->db = $db;
-	}
-}
-```
-
-
 Injectarea setterilor .[#toc-setter-injection]
 ==============================================
 
-Dependențele sunt transmise prin apelarea unei metode care le stochează într-o proprietate privată. Convenția de denumire obișnuită pentru aceste metode este de forma `set*()`, motiv pentru care sunt numite setters, dar, desigur, pot fi numite în orice alt mod.
+Dependențele sunt transmise prin apelarea unei metode care le stochează într-o proprietate privată. Convenția de denumire obișnuită pentru aceste metode este de forma `set*()`, motiv pentru care sunt numite setteri.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass;
-$obj->setCache($cache);
+$service = new MyService;
+$service->setCache($cache);
 ```
 
 Această metodă este utilă pentru dependențele opționale care nu sunt necesare pentru funcția clasei, deoarece nu este garantat faptul că obiectul le va primi efectiv (adică, că utilizatorul va apela metoda).
@@ -150,16 +90,16 @@ Această metodă este utilă pentru dependențele opționale care nu sunt necesa
 În același timp, această metodă permite ca setterul să fie apelat în mod repetat pentru a modifica dependența. Dacă acest lucru nu este de dorit, adăugați o verificare la metodă sau, începând cu PHP 8.1, marcați proprietatea `$cache` cu steagul `readonly`.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
 		if ($this->cache) {
 			throw new RuntimeException('The dependency has already been set');
 		}
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 ```
@@ -168,7 +108,8 @@ Apelarea setterului este definită în configurația containerului DI în [secț
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- setCache
 ```
@@ -180,13 +121,13 @@ Injectarea proprietăților .[#toc-property-injection]
 Dependențele sunt trecute direct în proprietate:
 
 ```php
-class MyClass
+class MyService
 {
 	public Cache $cache;
 }
 
-$obj = new MyClass;
-$obj->cache = $cache;
+$service = new MyService;
+$service->cache = $cache;
 ```
 
 Această metodă este considerată nepotrivită deoarece proprietatea trebuie declarată ca fiind `public`. Prin urmare, nu avem niciun control asupra faptului că dependența transmisă va fi de tipul specificat (acest lucru era valabil înainte de PHP 7.4) și pierdem posibilitatea de a reacționa la dependența nou atribuită cu propriul cod, de exemplu pentru a preveni modificările ulterioare. În același timp, proprietatea devine parte a interfeței publice a clasei, ceea ce poate să nu fie de dorit.
@@ -195,16 +136,11 @@ Setarea variabilei este definită în configurația containerului DI în [secți
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- $cache = @\Cache
 ```
-
-
-Injectați .[#toc-inject]
-========================
-
-În timp ce cele trei metode anterioare sunt, în general, valabile în toate limbajele orientate pe obiecte, injectarea prin metodă, adnotare sau atributul *inject* este specifică prezentatorilor Nette. Acestea sunt discutate [într-un capitol separat |best-practices:inject-method-attribute].
 
 
 Ce modalitate să alegeți? .[#toc-which-way-to-choose]

@@ -76,12 +76,6 @@ latte:
 	# генерира шаблони с declare(strict_types=1)
 	strictTypes: ...     # (bool) по подразбиране е false
 
-	# активира [режим на строг парсер |latte:develop#strict mode]
-	strictParsing: ...   # (bool) по подразбиране е false
-
-	# позволява [проверка на генерирания код |latte:develop#Checking Generated Code]
-	phpLinter: ...       # (string) по подразбиране е null
-
 	# клас $this->template
 	templateClass: App\MyTemplateClass # по подразбиране Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -158,18 +152,3 @@ PHP
 php:
 	date.timezone: Europe/Prague
 ```
-
-
-Услуги на DI .[#toc-di-services]
-================================
-
-Тези услуги се добавят към контейнера DI:
-
-| Име | Тип | Описание
-|----------------------------------------------------------
-| `application.application` | [api:Nette\Application\Application] | [стартиране на пълно приложение |how-it-works#Nette Application]
-| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
-| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | фабрика за презентатори
-| `application.###` | [api:Nette\Application\UI\Presenter] | индивидуални презентатори
-| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | фабрика за `Latte\Engine`
-| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | фабрика за [`$this->template` |templates]

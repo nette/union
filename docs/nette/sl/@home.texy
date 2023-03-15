@@ -6,16 +6,13 @@ Nette Dokumentacija
 <div>
 
 
-Uvod
-----
-- [Zakaj uporabljati Nette |www:10-reasons-why-nette]?
-- [Namestitev |Installation]
-- [Ustvarite svojo prvo aplikacijo |quickstart:]!
-
-
 Splošno
 -------
-- [Seznam paketov |www:packages]
+- [Zakaj uporabljati Nette |www:en:10-reasons-why-nette]?
+- <b>[Ustvarite svojo prvo aplikacijo! |quickstart:]<b>
+
+
+- [Paketi in namestitev |www:packages]
 - [Vzdrževanje in PHP |www:maintenance]
 - [Opombe k izdaji |https://nette.org/releases]
 - [Vodnik za nadgradnjo |migrations:en]
@@ -23,7 +20,6 @@ Splošno
 - [Kdo ustvarja Nette |https://nette.org/contributors]
 - [Zgodovina družbe Nette |www:history]
 - [Vključite se |contributing:]
-- [Razvoj sponzorjev |https://nette.org/en/donate]
 - [Sklic na API |https://api.nette.org/]
 </div>
 
@@ -84,11 +80,11 @@ Storitve
 - [JSON |utils:JSON]
 - [NEON |neon:]
 - [Hashing gesel |security:passwords]
+- [SmartObject |utils:SmartObject]
 - [Tipi PHP |utils:type]
 - [Nizi |utils:Strings]
 - [Validatorji |utils:validators]
 - [RobotLoader |robot-loader:]
-- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
 - [SafeStream |safe-stream:]
 - [...drugi |utils:]
 </div>

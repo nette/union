@@ -1,13 +1,13 @@
 Form Oluşturma
 **************
 
-Formların görünümü çok çeşitli olabilir. Uygulamada iki uç noktayla karşılaşabiliriz. Bir yandan, bir uygulamada görsel olarak birbirine benzeyen bir dizi form oluşturma ihtiyacı vardır ve `$form->render()` kullanarak şablon olmadan kolay oluşturmayı takdir ederiz. Bu durum genellikle yönetim arayüzleri için geçerlidir.
+Formların görünümleri büyük farklılıklar gösterebilir. Aslında iki uç nokta vardır. Bir tarafta, çok az veya hiç çaba sarf etmeden, çok benzer bir dizi formu baştan oluşturma ihtiyacı vardır. Genellikle yönetimler ve arka uçlar.
 
-Öte yandan, her birinin benzersiz olduğu çeşitli formlar vardır. Bunların görünümü en iyi şablonda HTML dili kullanılarak tanımlanır. Ve elbette, bahsedilen her iki aşırı uca ek olarak, arada bir yere düşen birçok formla karşılaşacağız.
+Diğer tarafta ise her biri bir sanat eseri olan minik tatlı formlar var. Bunların düzeni en iyi HTML ile yazılabilir. Elbette, bu uç noktaların yanı sıra, bu ikisinin arasında kalan pek çok form vardır.
 
 
-Latte ile Rendering .[#toc-rendering-with-latte]
-================================================
+Latte .[#toc-latte]
+===================
 
 [Latte şablonlama sistemi |latte:], formların ve öğelerinin oluşturulmasını temel olarak kolaylaştırır. İlk olarak, kod üzerinde tam kontrol elde etmek için formların öğe öğe manuel olarak nasıl oluşturulacağını göstereceğiz. Daha sonra bu işlemin nasıl [otomatikleştirileceğini |#Automatic rendering] göstereceğiz.
 
@@ -152,12 +152,6 @@ Mesaj yoksa boş bir öğe oluşturmaktan kaçınmak `n:ifcontent` ile zarif bir
 ```
 
 
-`{form}`
---------
-
-Etiketler `{form signInForm}...{/form}` bir alternatiftir `<form n:name="signInForm">...</form>`.
-
-
 Otomatik Rendering .[#toc-automatic-rendering]
 ----------------------------------------------
 
@@ -237,15 +231,15 @@ Bloğu yalnızca bir yerde, düzen şablonunun başında içe aktarmanız gereki
 Özel Durumlar .[#toc-special-cases]
 -----------------------------------
 
-Formun yalnızca iç kısmını HTML etiketleri olmadan oluşturmanız gerekiyorsa `<form>`örneğin snippet gönderirken, `n:tag-if` özniteliğini kullanarak bunları gizleyin:
+Bir formun yalnızca iç içeriğini oluşturmanız gerekiyorsa `<form>` & `</form>` HTML etiketleri, örneğin bir AJAX isteğinde, formu `{formContext} … {/formContext}` ile açıp kapatabilirsiniz. Mantıksal anlamda `{form}` ile benzer şekilde çalışır, burada form öğelerini çizmek için diğer etiketleri kullanmanıza izin verir, ancak aynı zamanda hiçbir şey çizmez.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 Etiket `formContainer` bir form konteyneri içindeki girdilerin oluşturulmasına yardımcı olur.
@@ -262,8 +256,8 @@ Etiket `formContainer` bir form konteyneri içindeki girdilerin oluşturulmasın
 ```
 
 
-Latte Olmadan Rendering .[#toc-rendering-without-latte]
-=======================================================
+Latte olmadan .[#toc-without-latte]
+===================================
 
 Bir formu oluşturmanın en kolay yolu çağırmaktır:
 
@@ -327,13 +321,13 @@ Eğer özel bir renderer ayarlamazsak, varsayılan renderer [api:Nette\Forms\Ren
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -363,12 +357,12 @@ Sonuçlar aşağıdaki kod parçacığına dönüşür:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -433,8 +427,6 @@ $form->addText('street', 'Street:');
 $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
-
-Oluşturucu önce grupları, ardından da herhangi bir gruba ait olmayan öğeleri çizer.
 
 
 Bootstrap Desteği .[#toc-bootstrap-support]

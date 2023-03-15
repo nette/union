@@ -68,16 +68,6 @@ Jak vidíte, funkce obdrží levou stranu filtru před pipe `|` jako první argu
 
 Funkce představující filtr může samozřejmě přijímat libovolný počet parametrů, podporovány jsou i variadic parametry.
 
-Pokud filtr vrací řetězec v HTML, můžete jej označit tak, aby jej Latte automaticky (a tedy dvojitě) neescapovalo. Vyhnete se tak potřebě uvádět v šabloně `|noescape`.
-Nejjednodušší cestou je řetězec zabalit do objektu `Latte\Runtime\Html`, druhou cestu představují [Kontextové filtry|#Kontextové filtry].
-
-```php
-$latte->addFilter('money', fn(float $amount) => new Latte\Runtime\Html("<i>$amount Kč</i>"));
-```
-
-.[note]
-Filtr musí v takovém případě zajistit správné escapování dat.
-
 
 Filtry pomocí třídy
 -------------------
@@ -102,9 +92,11 @@ $params = new TemplateParameters(/* ... */);
 $latte->render('template.latte', $params);
 ```
 
+Pokud používáte PHP 7.x a Latte 2.x, místo atributu uveďte anotaci `/** @filter */`.
 
-Zavaděč filtrů
---------------
+
+Zavaděč filtrů .{data-version:2.10}
+-----------------------------------
 
 Místo registrace jednotlivých filtrů lze vytvořit tzv. zavaděč, což je funkce, které se zavolá s názvem filtru jako argumentem a vrátí jeho PHP callable, nebo null.
 
@@ -160,7 +152,7 @@ $latte->addFilter('money', function (FilterInfo $info, float $amount): string {
 
 	// změníme content-type na HTML
 	$info->contentType = ContentType::Html;
-	return "<i>$amount Kč</i>";
+	return "<i>$num Kč</i>";
 });
 ```
 
@@ -170,8 +162,8 @@ Filtr musí v takovém případě zajistit správné escapování dat.
 Všechny filtry, které se používají nad [bloky|tags#block] (např. jako `{block|foo}...{/block}`), musí být kontextové.
 
 
-Funkce
-======
+Funkce .{data-version:2.6}
+==========================
 
 V Latte lze standardně používat všechny nativní funkce z PHP, pokud to nezakáže sandbox. Ale zároveň si můžete definovat funkce vlastní. Mohou přepsat funkce nativní.
 
@@ -213,6 +205,8 @@ class TemplateParameters
 $params = new TemplateParameters(/* ... */);
 $latte->render('template.latte', $params);
 ```
+
+Pokud používáte PHP 7.x a Latte 2.x, místo atributu uveďte anotaci `/** @function */`.
 
 
 Loadery
@@ -280,11 +274,11 @@ Většinou však značka není potřeba:
 - pokud měla upravovat oblast textu, obalte jej značkou [`{block}`|tags#block] a použijte [filtr|#Kontextové filtry]
 - pokud neměla nic vypisovat, ale pouze volat funkci, zavolejte ji pomocí [`{do}`|tags#do]
 
-Pokud přesto chcete vytvořit tag, skvěle! Vše podstatné najdete v kapitole [Vytváříme Extension|creating-extension].
+Pokud přesto chcete vytvořit tag, skvěle! Vše podstatné najdete v kapitole [Vytváříme Extension|creating-extension] (týká se Latte 3.x; viz také [podrobný návod pro Latte 2.x|http://css.nothrem.cz/latte-makra/]).
 
 
-Průchody kompilátoru
-====================
+Průchody kompilátoru .{data-version:3.0}
+========================================
 
 Průchody kompilátoru jsou funkce, které modifikují AST nebo sbírají v nich informace. V Latte je takto implementován například sandbox: projde všechny uzly AST, najde volání funkcí a metod a nahradí je za jím kontrolované volání.
 

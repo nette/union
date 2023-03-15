@@ -155,20 +155,6 @@ Veya doğrudan değer üzerinde (ile birlikte [`{=expr}` | https://latte.nette.o
 ```
 
 
-Dinamik HTML Etiketleri .[#toc-dynamic-html-tags]
-=================================================
-
-Latte, etiket adlarında esnekliğe ihtiyaç duyduğunuzda yararlı olan dinamik HTML etiketlerini destekler:
-
-```latte
-<h{$level}>Heading</h{$level}>
-```
-
-Örneğin, yukarıdaki kod şunları üretebilir `<h1>Heading</h1>` veya `<h2>Heading</h2>` değişkeninin değerine bağlı olarak `$level`. Latte'deki dinamik HTML etiketleri her zaman eşleştirilmelidir. Alternatifleri [n:tag |tags#n:tag].
-
-Latte güvenli bir şablonlama sistemi olduğundan, ortaya çıkan etiket adının geçerli olup olmadığını ve istenmeyen veya kötü amaçlı değerler içermediğini kontrol eder. Ayrıca, son etiket adının her zaman açılış etiketi adıyla aynı olmasını sağlar.
-
-
 Yorumlar .[#toc-comments]
 =========================
 
@@ -252,19 +238,35 @@ Operatör `in` .[#toc-operator-in]
 ```
 
 
+.{data-version:2.9}
+Tanımsız-Güvenli Operatör ile İsteğe Bağlı Zincirleme .[#toc-optional-chaining-with-undefined-safe-operator]
+------------------------------------------------------------------------------------------------------------
+
+Undefined-safe işleci `??->` nullsafe işlecine benzer `?->`, ancak bir değişken, özellik veya dizin mevcut değilse hata oluşturmaz.
+
+```latte
+{$order??->id}
+```
+
+bu, `$order` tanımlandığında ve null olmadığında, `$order->id` 'un hesaplanacağını söylemenin bir yoludur, ancak `$order` null olduğunda veya mevcut olmadığında, yaptığımız şeyi durdurun ve sadece null döndürün.
+
+```latte
+{$user??->address??->street}
+// roughly means isset($user) && isset($user->address) ? $user->address->street : null
+```
+
+
 Tarihe Açılan Bir Pencere .[#toc-a-window-into-history]
 -------------------------------------------------------
 
 Latte, tarihi boyunca, birkaç yıl sonra PHP'nin kendisinde ortaya çıkan bir dizi sözdizimsel şekerleme ile ortaya çıkmıştır. Örneğin, Latte'de dizileri şu şekilde yazmak mümkündü `[1, 2, 3]` yerine `array(1, 2, 3)` veya PHP'de mümkün olmadan çok önce nullsafe operatörünü `$obj?->foo` kullanabilir. Latte ayrıca PHP'nin bugünkü `...$arr` operatörüne eşdeğer olan `(expand) $arr` dizi genişletme operatörünü de tanıttı.
 
- `?->` nullsafe işlecine benzeyen, ancak değişken mevcut değilse hata vermeyen undefined-safe işleci `??->` tarihsel nedenlerle oluşturulmuştur ve bugün standart PHP işlecini `?->` kullanmanızı öneririz.
-
 
 Latte'deki PHP Sınırlamaları .[#toc-php-limitations-in-latte]
 =============================================================
 
-Latte'de sadece PHP ifadeleri yazılabilir. Yani, noktalı virgül ile biten ifadeler kullanılamaz. Latte'nin [etiketlerini |tags] sunduğu `if`, `foreach`, `switch`, `return`, `try`, `throw` ve diğerleri gibi sınıfları bildiremez veya [kontrol yapılarını |https://www.php.net/manual/en/language.control-structures.php] kullanamazsınız.
-Ayrıca [nitelikleri |https://www.php.net/manual/en/language.attributes.php], [geri |https://www.php.net/manual/en/language.operators.execution.php] işaretlerini veya [sihirli sabitleri |https://www.php.net/manual/en/language.constants.magic.php] kullanamazsınız.
-`unset`, `echo`, `include`, `require`, `exit`, `eval` bile kullanamazsınız, çünkü bunlar işlev değil, özel PHP dili yapılarıdır ve dolayısıyla ifade değildirler. Sadece çok satırlı yorumlar desteklenir `/* ... */`.
+Latte'de sadece PHP ifadeleri yazılabilir. Yani, Latte'nin [etiketlerini |tags] sunduğu `if`, `foreach`, `switch`, `return`, `try`, `throw` ve diğerleri gibi sınıfları bildiremez veya [kontrol yapılarını |https://www.php.net/manual/en/language.control-structures.php] kullanamazsınız.
+Ayrıca [nitelikler |https://www.php.net/manual/en/language.attributes.php], [geri |https://www.php.net/manual/en/language.operators.execution.php] işaretleri veya [sihirli sabitler |https://www.php.net/manual/en/language.constants.magic.php] de kullanamazsınız, çünkü bu mantıklı olmaz.
+Hatta `unset`, `echo`, `include`, `require`, `exit`, `eval` bile kullanamazsınız, çünkü bunlar fonksiyon değil, özel PHP dili yapılarıdır ve dolayısıyla ifade değildirler.
 
 Ancak, şablon yazarının sorumluluğunda `{php ...}` etiketinde herhangi bir PHP kodunu kullanmanıza olanak tanıyan [RawPhpExtension |develop#RawPhpExtension] uzantısını etkinleştirerek bu sınırlamaları aşabilirsiniz.

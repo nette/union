@@ -12,7 +12,7 @@ Argumenty, lub "zależności" w terminologii DI, mogą być przekazywane do klas
 
 </div>
 
-Zilustrujemy teraz różne warianty na konkretnych przykładach.
+Pierwsze trzy metody obowiązują ogólnie we wszystkich językach obiektowych, czwarta jest specyficzna dla prezenterów Nette, dlatego omówiono ją w [osobnym rozdziale |best-practices:inject-method-attribute]. Teraz przyjrzymy się bliżej każdej z tych opcji i pokażemy je na konkretnych przykładach.
 
 
 Przekazywanie przez konstruktora .[#toc-constructor-injection]
@@ -21,17 +21,17 @@ Przekazywanie przez konstruktora .[#toc-constructor-injection]
 Zależności są przekazywane jako argumenty do konstruktora w czasie tworzenia obiektu:
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function __construct(Cache $cache)
+	public function __construct(Cache $service)
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass($cache);
+$service = new MyService($cache);
 ```
 
 Ta forma jest odpowiednia dla obowiązkowych zależności, które klasa bezwzględnie potrzebuje do funkcjonowania, ponieważ bez nich nie można utworzyć instancji.
@@ -40,10 +40,10 @@ Od PHP 8.0 możemy używać krótszej formy notacji ([constructor property promo
 
 ```php
 // PHP 8.0
-class MyClass
+class MyService
 {
 	public function __construct(
-		private Cache $cache,
+		private Cache $service,
 	) {
 	}
 }
@@ -53,10 +53,10 @@ Od PHP 8.1 zmienna może być oznaczona flagą `readonly`, która deklaruje, że
 
 ```php
 // PHP 8.1
-class MyClass
+class MyService
 {
 	public function __construct(
-		private readonly Cache $cache,
+		private readonly Cache $service,
 	) {
 	}
 }
@@ -65,84 +65,24 @@ class MyClass
 Kontener DI przekazuje zależność do konstruktora automatycznie przez [autowiring |autowiring]. Argumenty, które nie mogą być przekazane [w |services#Arguments] ten sposób (np. ciągi znaków, liczby, booleans) [są zapisywane w konfiguracji |services#Arguments].
 
 
-Piekło konstruktorów .[#toc-constructor-hell]
----------------------------------------------
-
-Termin *constructor hell* odnosi się do sytuacji, w której dziecko dziedziczy po klasie rodzica, której konstruktor wymaga zależności, a dziecko również wymaga zależności. Musi ono również przejąć i przekazać zależności rodzica:
-
-```php
-abstract class BaseClass
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass extends BaseClass
-{
-	private Database $db;
-
-	// ⛔ CONSTRUCTOR HELL
-	public function __construct(Cache $cache, Database $db)
-	{
-		parent::__construct($cache);
-		$this->db = $db;
-	}
-}
-```
-
-Problem pojawia się, gdy chcemy zmienić konstruktor klasy `BaseClass`, na przykład gdy dodamy nową zależność. Wtedy musimy zmodyfikować również wszystkie konstruktory dzieci. Co czyni taką modyfikację piekłem.
-
-Jak temu zapobiec? Rozwiązaniem jest **przedkładanie [kompozycji nad dziedziczenie** |faq#Why composition is preferred over inheritance].
-
-Zaprojektujmy więc kod inaczej. Unikniemy [abstrakcyjnych |nette:introduction-to-object-oriented-programming#abstract-classes] klas `Base*`. Zamiast `MyClass` uzyskiwać pewną funkcjonalność poprzez dziedziczenie z `BaseClass`, będzie mieć tę funkcjonalność przekazaną jako zależność:
-
-```php
-final class SomeFunctionality
-{
-	private Cache $cache;
-
-	public function __construct(Cache $cache)
-	{
-		$this->cache = $cache;
-	}
-}
-
-final class MyClass
-{
-	private SomeFunctionality $sf;
-	private Database $db;
-
-	public function __construct(SomeFunctionality $sf, Database $db) // ✅
-	{
-		$this->sf = $sf;
-		$this->db = $db;
-	}
-}
-```
-
-
 Przekazywanie przez setera .[#toc-setter-injection]
 ===================================================
 
-Zależności są przekazywane przez wywołanie metody, która przechowuje je w prywatnej właściwości. Zwykła konwencja nazewnicza dla tych metod ma postać `set*()`, dlatego są one nazywane setterami, ale oczywiście mogą być nazywane inaczej.
+Zależności są przekazywane przez wywołanie metody, która przechowuje je w prywatnej zmiennej. Zwykła konwencja nazewnicza dla tych metod ma postać `set*()`, dlatego nazywa się je seterami.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 
-$obj = new MyClass;
-$obj->setCache($cache);
+$service = new MyService;
+$service->setCache($cache);
 ```
 
 Ta metoda jest przydatna dla opcjonalnych zależności, które nie są konieczne dla funkcji klasy, ponieważ nie jest gwarantowane, że obiekt faktycznie otrzyma zależność (tj. Że użytkownik wywoła metodę).
@@ -150,16 +90,16 @@ Ta metoda jest przydatna dla opcjonalnych zależności, które nie są konieczne
 Jednocześnie metoda ta pozwala na wielokrotne wywoływanie setera w celu zmiany zależności. Jeśli nie jest to pożądane, dodaj do metody kontrolę lub od PHP 8.1 oznacz zmienną `$cache` flagą `readonly`.
 
 ```php
-class MyClass
+class MyService
 {
 	private Cache $cache;
 
-	public function setCache(Cache $cache): void
+	public function setCache(Cache $service): void
 	{
 		if ($this->cache) {
 			throw new RuntimeException('The dependency has already been set');
 		}
-		$this->cache = $cache;
+		$this->cache = $service;
 	}
 }
 ```
@@ -168,7 +108,8 @@ Wywołanie setera jest zdefiniowane w konfiguracji kontenera DI w [sekcji |servi
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- setCache
 ```
@@ -180,13 +121,13 @@ Poprzez ustawienie zmiennej .[#toc-property-injection]
 Zależności są przekazywane przez zapis bezpośrednio do zmiennej członkowskiej:
 
 ```php
-class MyClass
+class MyService
 {
 	public Cache $cache;
 }
 
-$obj = new MyClass;
-$obj->cache = $cache;
+$service = new MyService;
+$service->cache = $cache;
 ```
 
 Metoda ta jest uważana za niewłaściwą, ponieważ zmienna członkowska musi być zadeklarowana jako `public`. Tym samym nie mamy kontroli nad tym, czy przekazana zależność jest rzeczywiście danego typu (tak było przed PHP 7.4) i tracimy możliwość reagowania na nowo przypisaną zależność własnym kodem, na przykład w celu zapobieżenia późniejszej zmianie. W tym samym czasie zmienna staje się częścią publicznego interfejsu klasy, co może nie być pożądane.
@@ -195,16 +136,11 @@ Ustawienia zmiennej definiujemy w konfiguracji kontenera DI w [sekcji setup |ser
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyService
 		setup:
 			- $cache = @\Cache
 ```
-
-
-Inject .[#toc-inject]
-=====================
-
-O ile poprzednie trzy metody obowiązują ogólnie we wszystkich językach obiektowych, o tyle wstrzykiwanie za pomocą metody, adnotacji lub atrybutu *inject* jest specyficzne dla prezenterów Nette. Zostały one omówione w [osobnym rozdziale |best-practices:inject-method-attribute].
 
 
 Jaką metodę wybrać? .[#toc-which-way-to-choose]

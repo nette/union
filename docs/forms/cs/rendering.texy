@@ -1,13 +1,13 @@
 Vykreslování formulářů
 **********************
 
-Vzhled formulářů může být velmi různorodý. V praxi můžeme narazit na dva extrémy. Na jedné straně stojí potřeba v aplikaci vykreslovat řadu formulářů, které jsou si vizuálně podobné jako vejce vejci, a oceníme snadné vykreslení bez šablony pomocí `$form->render()`. Jde obvykle o případ administračních rozhraní.
+Vzhled formulářů může být velmi různorodý. V praxi můžeme narazit na dva extrémy. Na jedné straně stojí potřeba v aplikaci vykreslovat řadu formulářů, které jsou si vizuálně podobné jako vejce vejci, a oceníme snadné vykreslení pomocí `$form->render()`. Jde obvykle o případ administračních rozhraní.
 
-Na druhé straně tu jsou rozmanité formuláře, kde platí: co kus, to originál. Jejich podobu nejlépe popíšeme jazykem HTML v šabloně formuláře. A samozřejmě kromě obou zmíněných extrémů narazíme na spoustu formulářů, které se pohybují někde mezi.
+Na druhé straně tu jsou rozmanité formuláře, kde platí: co kus, to originál. Jejich podobu nejlépe popíšeme jazykem HTML. A samozřejmě kromě obou zmíněných extrémů narazíme na spoustu formulářů, které se pohybují někde mezi.
 
 
-Vykreslení pomocí Latte
-=======================
+Latte
+=====
 
 [Šablonovací sytém Latte|latte:] zásadně usnadňuje vykreslení formulářů a jejich prvků. Nejprve si ukážeme, jak formuláře vykreslovat ručně po jednotlivých prvcích a tím získat plnou kontrolu nad kódem. Později si ukážeme, jak lze takové vykreslování [zautomatizovat |#Automatické vykreslování].
 
@@ -152,12 +152,6 @@ Přítomnost chyby můžeme zjistit metodou `hasErrors()` a podle toho nastavit 
 ```
 
 
-`{form}`
---------
-
-Značky `{form signInForm}...{/form}` jsou alternativou k `<form n:name="signInForm">...</form>`.
-
-
 Automatické vykreslování
 ------------------------
 
@@ -237,15 +231,15 @@ Blok přitom stačí importovat na jediném místě a to na začátku šablony l
 Speciální případy
 -----------------
 
-Pokud potřebujete vykreslit jen vnitřní část formuláře bez HTML značek `<form>`, například při posílání snippetů, skryjte je pomocí atributu `n:tag-if`:
+Pokud potřebujete vykreslit jen vnitřní část formuláře bez HTML značek `<form>` & `</form>`, například při AJAXovém požadavku, můžete formulář otevří a uzavřít do `{formContext} … {/formContext}`. Funguje podobně jako `<form n:form>` či `{form}` v logickém smyslu, tady umožní používat ostatní značky pro kreslení prvků formuláře, ale přitom nic nevykreslí.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 S vykreslením prvků uvnitř formulářového kontejneru pomůže tag `{formContainer}`.
@@ -262,8 +256,8 @@ S vykreslením prvků uvnitř formulářového kontejneru pomůže tag `{formCon
 ```
 
 
-Vykreslení bez Latte
-====================
+Bez Latte
+=========
 
 Nejjednodušší způsob, jak vykreslit formulář, je zavolat:
 
@@ -327,13 +321,13 @@ Pokud nenastavíme vlastní renderer, bude použit výchozí vykreslovač [api:N
 <tr class="required">
 	<th><label class="required" for="frm-name">Jméno:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Věk:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -363,12 +357,12 @@ Výsledkem je tento HTML kód:
 <dl>
 	<dt><label class="required" for="frm-name">Jméno:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Věk:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Pohlaví:</label></dt>
@@ -433,8 +427,6 @@ $form->addText('street', 'Street:');
 $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
-
-Renderer nejprve vykresluje skupiny a teprve poté prvky, které do žádné skupiny nepatří.
 
 
 Podpora pro Bootstrap

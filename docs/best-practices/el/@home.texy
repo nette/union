@@ -26,7 +26,6 @@
 ------
 - [Επαναχρησιμοποίηση εντύπων |form-reuse]
 - [Φόρμα για τη δημιουργία και επεξεργασία εγγραφής |creating-editing-form]
-- [Ας δημιουργήσουμε μια φόρμα επικοινωνίας |lets-create-contact-form]
 - [Εξαρτώμενα πλαίσια επιλογής |https://blog.nette.org/el/exartomena-selectboxes-kompsa-se-nette-kai-katharo-js]
 
 </div>
@@ -36,12 +35,10 @@
 Κοινό
 -----
 - [Πώς να φορτώσετε το αρχείο ρυθμίσεων |bootstrap:]
-- [Πώς να γράφετε microsites |microsites]
 - [Γιατί η Nette χρησιμοποιεί τη σημειογραφία σταθερών PascalCase; |https://blog.nette.org/el/gia-ligoteres-krauges-ston-kodika]
 - [Γιατί η Nette δεν χρησιμοποιεί την κατάληξη Interface; |https://blog.nette.org/el/ta-prothemata-kai-ta-epithemata-den-anekoun-sta-onomata-diasyndeses]
 - [Συμβουλές χρήσης του Composer |composer]
 - [Συμβουλές για επεξεργαστές & εργαλεία |editors-and-tools]
-- [Εισαγωγή στον αντικειμενοστραφή προγραμματισμό |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

@@ -2,10 +2,8 @@ Souborový systém
 ****************
 
 .[perex]
-[api:Nette\Utils\FileSystem] je třída s užitečnými funkcemi pro práci se souborovým systémem. Jednou z výhod oproti nativním PHP funkcím je, že v případě chyby vyhazují výjimky.
+[api:Nette\Utils\FileSystem] je statická třída s užitečnými funkcemi pro práci se souborovým systémem. Jednou z výhod oproti nativním PHP funkcím je, že v případě chyb vyhazují výjimky.
 
-
-Pokud potřebujete hledat soubory na disku, použijte [Finder|finder].
 
 Instalace:
 
@@ -175,28 +173,4 @@ Převede lomítka na znaky specifické pro aktuální platformu, tj. `\` ve Wind
 
 ```php
 $path = FileSystem::platformSlashes($path);
-```
-
-
-Statický vs nestatický přístup
-==============================
-
-Abyste kupříkladu pro účely testování mohli třídu snadno nahradit jinou (mockem), používejte ji nestaticky:
-
-```php
-class AnyClassUsingFileSystem
-{
-	public function __construct(
-		private FileSystem $fileSystem,
-	) {
-	}
-
-
-	public function readConfig(): string
-	{
-		return $this->fileSystem->read(/* ... */);
-	}
-
-	...
-}
 ```

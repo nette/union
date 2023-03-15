@@ -9,7 +9,6 @@
 | `divisibleBy`| [перевіряє, чи ділиться змінна на число |#divisibleBy]
 | `even` | [перевіряє, чи є дане число парним |#even]
 | `first` | [повертає перший елемент масиву або символ рядка |#first]
-| `hasBlock` | [виявляє наявність блоку |#hasBlock]
 | `last` | [pповертає останній елемент масиву або символ рядка |#last]
 | `odd` | [перевіряє, чи є дане число непарним |#odd]
 | `slice` | [витягує фрагмент масиву або рядка |#slice]
@@ -45,8 +44,8 @@ $latte->addFunction('shortify', fn(string $s, int $len = 10) => mb_substr($s, 0,
 =========================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Повертає значення, затиснуте у включно діапазоні min і max.
 
 ```latte
@@ -56,8 +55,8 @@ clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
 Див. також [затиск фільтра |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Перевіряє, чи ділиться змінна на число.
 
 ```latte
@@ -65,8 +64,8 @@ divisibleBy(int $value, int $by): bool .[method]
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Перевіряє, чи є задане число парним.
 
 ```latte
@@ -74,8 +73,8 @@ even(int $value): bool .[method]
 ```
 
 
-first(string|array $value): mixed .[method]
--------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Повертає перший елемент масиву або символ рядка:
 
 ```latte
@@ -86,19 +85,8 @@ first(string|array $value): mixed .[method]
 Див. також [last |#last], [filter first |filters#first].
 
 
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Перевіряє, чи існує блок з вказаною назвою:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-Див. також [перевірка існування блоку |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Повертає останній елемент масиву або символ рядка:
 
 ```latte
@@ -109,8 +97,8 @@ last(string|array $value): mixed .[method]
 Див. також [first |#first], [filter last |filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Перевіряє, чи є задане число непарним.
 
 ```latte
@@ -118,8 +106,8 @@ odd(int $value): bool .[method]
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Витягує фрагмент масиву або рядка.
 
 ```latte

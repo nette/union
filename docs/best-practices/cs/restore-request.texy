@@ -31,11 +31,9 @@ Presenter `SignPresenter` bude krom formuláře pro přihlášení obsahovat i p
 
 
 ```php
-use Nette\Application\Attributes\Persistent;
-
 class SignPresenter extends Nette\Application\UI\Presenter
 {
-	#[Persistent]
+	/** @persistent */
 	public string $backlink = '';
 
 	protected function createComponentSignInForm()

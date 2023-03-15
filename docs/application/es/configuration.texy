@@ -76,12 +76,6 @@ latte:
 	# genera plantillas con declare(strict_types=1)
 	strictTypes: ...     # (bool) por defecto false
 
-	# activa el [modo de análisis sintáctico estric |latte:develop#strict mode]to
-	strictParsing: ...   # (bool) por defecto es false
-
-	# habilita la [comprobación del código generado |latte:develop#Checking Generated Code]
-	phpLinter: ...       # (string) por defecto es null
-
 	# clase de $this->plantilla
 	templateClass: App\MyTemplateClass # por defecto Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -158,18 +152,3 @@ Puede establecer directivas PHP. Una visión general de todas las directivas se 
 php:
 	date.timezone: Europe/Prague
 ```
-
-
-Servicios DI .[#toc-di-services]
-================================
-
-Estos servicios se añaden al contenedor DI:
-
-| Nombre | Tipo | Descripción
-|----------------------------------------------------------
-| `application.application` | [api:Nette\Application\Application] | [Lanzador de aplicaciones completo |how-it-works#Nette Application]
-| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [Generador de enlaces |creating-links#LinkGenerator]
-| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | fábrica de presentadores
-| `application.###` | [api:Nette\Application\UI\Presenter] | presentadores individuales
-| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | fábrica para `Latte\Engine`
-| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | fábrica para [`$this->template` |templates]

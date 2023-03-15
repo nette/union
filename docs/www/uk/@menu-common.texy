@@ -1,20 +1,13 @@
-Вступ
-*****
-- [Чому варто використовувати Nette? |www:10-reasons-why-nette]
-- [Встановлення |nette:installation]
+Загальні теми
+*************
 - [Створіть свій перший додаток! |quickstart:]
-
-
-Загальні питання
-****************
-- [Список пакетів |www:packages]
+- [Пакети та встановлення |www:packages]
 - [Обслуговування та PHP |www:maintenance]
 - [Примітки до випуску |https://nette.org/releases]
-- [Посібник з оновлення |migrations:en]
-- [Виправлення неполадок |nette:Troubleshooting]
-- [Хто створює Nette |https://nette.org/contributors]
+- [Керівництво з оновлення |migrations:en]
+- [Вирішення проблем |nette:troubleshooting]
+- [Творці Nette |https://nette.org/contributors]
 - [Історія Nette |history]
-- [Долучитися |contributing:]
-- [Розвиток спонсорів |https://nette.org/en/donate]
-- [Посилання на API |https://api.nette.org]
+- [Взяти участь |contributing:]
+- [Довідник з API |https://api.nette.org]
 - [Кращі практики |best-practices:]

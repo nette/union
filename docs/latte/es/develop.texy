@@ -15,7 +15,9 @@ Versiones PHP soportadas (se aplica a las últimas versiones del parche Latte):
 
 | versión | compatible con PHP
 |-----------------|-------------------
-| Latte 3.0 | PHP 8.0 - 8.2
+| Latte 3.0       | PHP 8.0 – 8.2
+| Latte 2.11      | PHP 7.1 – 8.2
+| Latte 2.8 – 2.10| PHP 7.1 – 8.1
 
 
 Cómo renderizar una plantilla .[#toc-how-to-render-a-template]
@@ -131,61 +133,20 @@ Cómo extender Latte con filtros, etiquetas, etc. .[#toc-how-to-extend-latte-wit
 Si quieres reutilizar tus cambios en diferentes proyectos o si quieres compartirlos con otros, entonces debes [crear una extensión |creating-extension].
 
 
-Cualquier código en la plantilla `{php ...}` .{toc: RawPhpExtension}
-====================================================================
+Cualquier código en la plantilla `{php ...}` .{data-version:3.0}{toc: RawPhpExtension}
+======================================================================================
 
 Dentro de la etiqueta [`{do}` |tags#do] por lo que no puede, por ejemplo, insertar construcciones como `if ... else` o sentencias terminadas en punto y coma.
 
-Sin embargo, puede registrar la extensión `RawPhpExtension`, que añade la etiqueta `{php ...}`. Puede utilizarla para insertar cualquier código PHP. No está sujeta a ninguna regla del modo sandbox, por lo que su uso es responsabilidad del autor de la plantilla.
+Sin embargo, puede registrar la extensión `RawPhpExtension`, que añade la etiqueta `{php ...}`, que puede utilizarse para insertar cualquier código PHP bajo la responsabilidad del autor de la plantilla.
 
 ```php
 $latte->addExtension(new Latte\Essential\RawPhpExtension);
 ```
 
 
-Comprobación del código generado .[#toc-checking-generated-code]{data-version:3.0.7}
-====================================================================================
-
-Latte compila plantillas en código PHP. Por supuesto, se asegura de que el código generado es sintácticamente válido. Sin embargo, cuando se usan extensiones de terceros o RawPhpExtension, Latte no puede garantizar la corrección del fichero generado.
-Además, en PHP, puede escribir código que sea sintácticamente correcto pero que esté prohibido (por ejemplo, asignar un valor a la variable $this) y cause un Error de Compilación PHP.
-Si escribe una operación de este tipo en una plantilla, también se incluirá en el código PHP generado. Dado que existen más de doscientas operaciones prohibidas diferentes en PHP, Latte no pretende detectarlas. El propio PHP las marcará al renderizar, lo que normalmente no es un problema.
-
-Sin embargo, hay situaciones en las que se desea saber durante la compilación de la plantilla que no contiene errores de compilación de PHP. Especialmente cuando las plantillas pueden ser editadas por usuarios, o usted usa [Sandbox |Sandbox]. En tal caso, haga que las plantillas se comprueben durante la compilación.
-Puede activar esta funcionalidad usando el método Engine::enablePhpLint(). Ya que necesita llamar al binario PHP para la comprobación, pase su ruta como parámetro:
-
-```php
-$latte = new Latte\Engine;
-$latte->enablePhpLinter('/path/to/php');
-
-try {
-	$latte->compile('home.latte');
-} catch (Latte\CompileException $e) {
-	// atrapa errores Latte y también Compile Error en PHP
-	echo 'Error: ' . $e->getMessage();
-}
-```
-
-
-Modo estricto .[#toc-strict-mode]{data-version:3.0.8}
-=====================================================
-
-En el modo de análisis sintáctico estricto, Latte comprueba si faltan etiquetas HTML de cierre y también desactiva el uso de la variable `$this`. Para activarlo
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictParsing();
-```
-
-Para generar plantillas con la cabecera `declare(strict_types=1)`, haga lo siguiente:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictTypes();
-```
-
-
-Traducción en plantillas .{toc: TranslatorExtension}
-====================================================
+Traducción en plantillas .{data-version:3.0}{toc: TranslatorExtension}
+======================================================================
 
 Utilice la extensión `TranslatorExtension` para añadir [`{_...}` |tags#_], [`{translate}` |tags#translate] y filtrar [`translate` |filters#translate] a la plantilla. Se utilizan para traducir valores o partes de la plantilla a otros idiomas. El parámetro es el método (PHP callable) que realiza la traducción:
 
@@ -254,16 +215,14 @@ Al mismo tiempo, en la esquina inferior derecha, en la llamada Tracy Bar, aparec
 Dado que Latte compila las plantillas en código PHP legible, puede recorrerlas cómodamente en su IDE.
 
 
-Linter: Validando la Sintaxis de la Plantilla .{toc: Linter}
-============================================================
+Linter: Validando la Sintaxis de la Plantilla .{data-version:2.11}{toc: Linter}
+===============================================================================
 
 La herramienta Linter le ayudará a revisar todas las plantillas y comprobar si hay errores de sintaxis. Se ejecuta desde la consola:
 
 ```shell
 vendor/bin/latte-lint <path>
 ```
-
-Utilice el parámetro `--strict` para activar el modo [estricto|#strict mode].
 
 Si utiliza etiquetas personalizadas, cree también su Linter personalizado, por ejemplo `custom-latte-lint`:
 
@@ -274,23 +233,17 @@ Si utiliza etiquetas personalizadas, cree también su Linter personalizado, por 
 // introduzca la ruta real al archivo autoload.php
 require __DIR__ . '/vendor/autoload.php';
 
-$path = $argv[1] ?? '.';
+$linter = new Latte\Tools\Linter($engine);
+$linter->scanDirectory($path);
 
-$linter = new Latte\Tools\Linter;
-$latte = $linter->getEngine();
-// añada aquí sus extensiones individuales
-$latte->addExtension(/* ... */);
+$engine = new Latte\Engine;
+// registra aquí las extensiones individuales
+$engine->addExtension(/* ... */);
 
+$path = $argv[1];
+$linter = new Latte\Tools\Linter(engine: $engine);
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);
-```
-
-Alternativamente, puede pasar su propio objeto `Latte\Engine` al Linter:
-
-```php
-$latte = new Latte\Engine;
-// aquí configuramos el objeto $latte
-$linter = new Latte\Tools\Linter(engine: $latte);
 ```
 
 

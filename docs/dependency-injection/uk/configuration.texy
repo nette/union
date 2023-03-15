@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Якщо ви не використовуєте масив `$container->getParameters()`, можна вимкнути експорт параметрів. Крім того, ви можете експортувати тільки ті теги, через які ви отримуєте сервіси, використовуючи метод `$container->findByTag(...)`.
+Якщо ви не використовуєте масив `$container->parameters`, можна вимкнути експорт параметрів. Крім того, ви можете експортувати тільки ті теги, через які ви отримуєте сервіси, використовуючи метод `$container->findByTag(...)`.
 Якщо ви не викликаєте цей метод зовсім, можна повністю відключити експорт тегів, вказавши значення `false`.
 
 Ви можете значно зменшити метадані для автоматичного підключення, вказавши класи, які ви використовуєте як параметр у методі `$container->getByType()`.
@@ -191,15 +191,20 @@ return [
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# ви самі вибираєте назви секцій
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 Зазвичай, однак, ми не хочемо додавати всі класи та інтерфейси, тому ми можемо відфільтрувати їх:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# фільтрація за ім'ям файлу (string|string[])
 		files:
@@ -215,7 +220,7 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,7 +231,7 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
 			classes: ...
 			extends: ...
@@ -237,7 +242,7 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

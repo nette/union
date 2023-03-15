@@ -17,7 +17,6 @@ Los siguientes ejemplos suponen que se ha definido el siguiente alias de clase:
 
 ```php
 use Nette\Utils\Image;
-use Nette\Utils\ImageColor;
 ```
 
 
@@ -33,7 +32,7 @@ $image = Image::fromBlank(100, 200);
 Opcionalmente, puede especificar un color de fondo (por defecto es negro):
 
 ```php
-$image = Image::fromBlank(100, 200, ImageColor::rgb(125, 0, 0));
+$image = Image::fromBlank(100, 200, Image::rgb(125, 0, 0));
 ```
 
 O cargamos la imagen desde un archivo:
@@ -182,36 +181,16 @@ $image->cropAuto(IMG_CROP_BLACK);
 El método `cropAuto()` es una encapsulación de objeto de la función `imagecropauto()`, consulte [su documentación |https://www.php.net/manual/en/function.imagecropauto] para obtener más información.
 
 
-Colores .[#toc-colors]
-======================
-
-El método `ImageColor::rgb()` le permite definir un color utilizando los valores rojo, verde y azul (RGB). Opcionalmente, también puede especificar un valor de transparencia que va de 0 (completamente transparente) a 1 (completamente opaco), igual que en CSS.
-
-```php
-$color = ImageColor::rgb(255, 0, 0); // Red
-$transparentBlue = ImageColor::rgb(0, 0, 255, 0.5); // Semi-transparent blue
-```
-
-El método `ImageColor::hex()` permite definir un color utilizando el formato hexadecimal, de forma similar a CSS. Admite los formatos `#rgb`, `#rrggbb`, `#rgba`, y `#rrggbbaa`:
-
-```php
-$color = ImageColor::hex("#F00"); // Red
-$transparentGreen = ImageColor::hex("#00FF0080"); // Semi-transparent green
-```
-
-Los colores pueden utilizarse en otros métodos, como `ellipse()`, `fill()`, etc.
-
-
 Dibujo y edición .[#toc-drawing-and-editing]
 ============================================
 
-Puedes dibujar, puedes escribir, puedes usar todas las funciones PHP para la manipulación de imágenes, ver [Resumen de métodos |#Overview of methods], pero en una envoltura orientada a objetos:
+Puedes dibujar, puedes escribir, puedes usar todas las funciones PHP para trabajar con imágenes, como [imagefilledellipse() |https://www.php.net/manual/en/function.imagefilledellipse.php], pero usando el estilo objeto:
 
 ```php
-$image->filledEllipse($centerX, $centerY, $width, $height, ImageColor::rgb(255, 0, 0));
+$image->filledEllipse($cx, $cy, $width, $height, Image::rgb(255, 0, 0, 63));
 ```
 
-Dado que las funciones PHP para dibujar rectángulos son poco prácticas debido a la especificación de coordenadas, la clase `Image` ofrece sus sustitutos en forma de funciones [rectangleWH() |#rectangleWH()] y [filledRectangleWH() |#filledRectangleWH()].
+Véase el [resumen de métodos |#Overview of Methods].
 
 
 Fusionar varias imágenes .[#toc-merge-multiple-images]
@@ -221,7 +200,7 @@ Puedes colocar fácilmente otra imagen dentro de la imagen:
 
 ```php
 $logo = Image::fromFile('logo.png');
-$blank = Image::fromBlank(320, 240, ImageColor::rgb(52, 132, 210));
+$blank = Image::fromBlank(320, 240, Image::rgb(52, 132, 210));
 
 // coordinates can be set also in percentage
 $blank->place($logo, '80%', '80%'); // near the right bottom corner
@@ -240,8 +219,8 @@ Métodos .[#toc-overview-of-methods]
 ===================================
 
 
-static fromBlank(int $width, int $height, ImageColor $color=null): Image .[method]
-----------------------------------------------------------------------------------
+static fromBlank(int $width, int $height, array $color=null): Image .[method]
+-----------------------------------------------------------------------------
 Crea una nueva imagen en color verdadero de las dimensiones dadas. El color por defecto es el negro.
 
 
@@ -255,9 +234,9 @@ static fromString(string $s, int &$detectedFormat=null): Image .[method]
 Lee una imagen de una cadena y devuelve su tipo en `$detectedFormat`. Los tipos admitidos son `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` y `Image::BMP`.
 
 
-static rgb(int $red, int $green, int $blue, int $transparency=0): array .[method][deprecated]
----------------------------------------------------------------------------------------------
-Esta función ha sido sustituida por la clase `ImageColor`, ver [colores |#Colors].
+static rgb(int $red, int $green, int $blue, int $transparency=0): array .[method]
+---------------------------------------------------------------------------------
+Crea un color que puede utilizarse en otros métodos, como `ellipse()`, `fill()`, etc.
 
 
 static typeToExtension(int $type): string .[method]
@@ -283,11 +262,6 @@ Devuelve el tipo de archivo de imagen como constante `Image::XXX` y en los pará
 static detectTypeFromString(string $s, int &$width=null, int &$height=null): ?int .[method]
 -------------------------------------------------------------------------------------------
 Devuelve el tipo de imagen a partir de la cadena como constante `Image::XXX` y en los parámetros `$width` y `$height` también sus dimensiones.
-
-
-static calculateTextBox(string $text, string $fontFile, float $size, float $angle=0, array $options=[]): array .[method]
-------------------------------------------------------------------------------------------------------------------------
-Calcula las dimensiones del rectángulo que encierra el texto en una fuente y tamaño especificados. Devuelve una matriz asociativa que contiene las claves `left`, `top`, `width`, `height`. El margen izquierdo puede ser negativo si el texto comienza con un saliente a la izquierda.
 
 
 affine(array $affine, array $clip=null): Image .[method]
@@ -317,9 +291,19 @@ Activa los métodos de dibujo rápido antialiasing para líneas y polígonos al�
 El uso de primitivas con antialiasing y color de fondo transparente puede dar lugar a resultados inesperados. El método de mezcla utiliza el color de fondo como cualquier otro color. La falta de soporte de componentes alfa no permite un método de antialiasing basado en alfa. ([más |https://www.php.net/manual/en/function.imageantialias])
 
 
-arc(int $centerX, int $centerY, int $width, int $height, int $startAngle, int $endAngle, ImageColor $color): void .[method]
----------------------------------------------------------------------------------------------------------------------------
+arc(int $x, int $y, int $w, int $h, int $start, int $end, int $color): void .[method]
+-------------------------------------------------------------------------------------
 Dibuja un arco de círculo centrado en las coordenadas dadas. ([más |https://www.php.net/manual/en/function.imagearc])
+
+
+char(int $font, int $x, int $y, string $char, int $color): void .[method]
+-------------------------------------------------------------------------
+Dibuja el primer carácter de `$char` en la imagen con su parte superior izquierda en `$x`,`$y` (la parte superior izquierda es 0, 0) con el color `$color`. ([más |https://www.php.net/manual/en/function.imagechar])
+
+
+charUp(int $font, int $x, int $y, string $char, int $color): void .[method]
+---------------------------------------------------------------------------
+Dibuja el carácter `$char` verticalmente en la coordenada especificada en la imagen dada. ([más |https://www.php.net/manual/en/function.imagecharup])
 
 
 colorAllocate(int $red, int $green, int $blue): int .[method]
@@ -448,48 +432,43 @@ crop(int|string $left, int|string $top, int|string $width, int|string $height): 
 Recorta una imagen en el área rectangular dada. Las dimensiones pueden pasarse como números enteros en píxeles o cadenas en porcentaje (es decir, `'50%'`).
 
 
-cropAuto(int $mode=-1, float $threshold=.5, ?ImageColor $color=null): Image .[method]
--------------------------------------------------------------------------------------
+cropAuto(int $mode=-1, float $threshold=.5, int $color=-1): Image .[method]
+---------------------------------------------------------------------------
 Recorta automáticamente una imagen según la dirección `$mode`. ([más |https://www.php.net/manual/en/function.imagecropauto])
 
 
-ellipse(int $centerX, int $centerY, int $width, int $height, ImageColor $color): void .[method]
------------------------------------------------------------------------------------------------
+ellipse(int $cx, int $cy, int $w, int $h, int $color): void .[method]
+---------------------------------------------------------------------
 Dibuja una elipse centrada en las coordenadas especificadas. ([más |https://www.php.net/manual/en/function.imageellipse])
 
 
-fill(int $x, int $y, ImageColor $color): void .[method]
--------------------------------------------------------
+fill(int $x, int $y, int $color): void .[method]
+------------------------------------------------
 Realiza un relleno de inundación comenzando en la coordenada dada (arriba a la izquierda es 0, 0) con el `$color` dado en la imagen. ([más |https://www.php.net/manual/en/function.imagefill])
 
 
-filledArc(int $centerX, int $centerY, int $width, int $height, int $startAngle, int $endAngle, ImageColor $color, int $style): void .[method]
----------------------------------------------------------------------------------------------------------------------------------------------
+filledArc(int $cx, int $cy, int $w, int $h, int $s, int $e, int $color, int $style): void .[method]
+---------------------------------------------------------------------------------------------------
 Dibuja un arco parcial centrado en la coordenada especificada en la imagen. ([más |https://www.php.net/manual/en/function.imagefilledarc])
 
 
-filledEllipse(int $centerX, int $centerY, int $width, int $height, ImageColor $color): void .[method]
------------------------------------------------------------------------------------------------------
+filledEllipse(int $cx, int $cy, int $w, int $h, int $color): void .[method]
+---------------------------------------------------------------------------
 Dibuja una elipse centrada en la coordenada especificada en la imagen. ([más |https://www.php.net/manual/en/function.imagefilledellipse])
 
 
-filledPolygon(array $points, ImageColor $color): void .[method]
----------------------------------------------------------------
+filledPolygon(array $points, int $numPoints, int $color): void .[method]
+------------------------------------------------------------------------
 Crea un polígono relleno en la $imagen. ([más |https://www.php.net/manual/en/function.imagefilledpolygon])
 
 
-filledRectangle(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------
-Crea un rectángulo relleno con `$color` en la imagen comenzando en `$x1` & `$y1` y terminando en `$x2` & `$y2`. El punto 0, 0 es la esquina superior izquierda de la imagen. ([más |https://www.php.net/manual/en/function.imagefilledrectangle])
+filledRectangle(int $x1, int $y1, int $x2, int $y2, int $color): void .[method]
+-------------------------------------------------------------------------------
+Crea un rectángulo relleno con `$color` en la imagen comenzando en el punto 1 y terminando en el punto 2. 0, 0 es la esquina superior izquierda de la imagen. ([más |https://www.php.net/manual/en/function.imagefilledrectangle])
 
 
-filledRectangleWH(int $left, int $top, int $width, int $height, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------------------
-Crea un rectángulo relleno de `$color` en la imagen a partir del punto `$left` & `$top` con anchura `$width` y altura `$height`. El punto 0, 0 es la esquina superior izquierda de la imagen.
-
-
-fillToBorder(int $x, int $y, int $border, ImageColor $color): void .[method]
-----------------------------------------------------------------------------
+fillToBorder(int $x, int $y, int $border, int $color): void .[method]
+---------------------------------------------------------------------
 Realiza un relleno de inundación cuyo color de borde está definido por `$border`. El punto de partida del relleno es `$x`, `$y` (arriba a la izquierda es 0, 0) y la región se rellena con el color `$color`. ([más |https://www.php.net/manual/en/function.imagefilltoborder])
 
 
@@ -503,9 +482,9 @@ flip(int $mode): void .[method]
 Voltea la imagen utilizando la dirección `$mode`. ([más |https://www.php.net/manual/en/function.imageflip])
 
 
-ftText(float $size, float $angle, int $x, int $y, ImageColor $color, string $fontFile, string $text, array $options=[]): array .[method]
-----------------------------------------------------------------------------------------------------------------------------------------
-Escribe el texto de la imagen. ([más |https://www.php.net/manual/en/function.imagefttext])
+ftText(int $size, int $angle, int $x, int $y, int $col, string $fontFile, string $text, array $extrainfo=null): array .[method]
+-------------------------------------------------------------------------------------------------------------------------------
+Escribe texto en la imagen utilizando fuentes con FreeType 2. ([más |https://www.php.net/manual/en/function.imagefttext])
 
 
 gammaCorrect(float $inputgamma, float $outputgamma): void .[method]
@@ -548,13 +527,13 @@ layerEffect(int $effect): void .[method]
 Establezca la bandera de mezcla alfa para utilizar efectos de estratificación. ([más |https://www.php.net/manual/en/function.imagelayereffect])
 
 
-line(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
----------------------------------------------------------------------------
+line(int $x1, int $y1, int $x2, int $y2, int $color): void .[method]
+--------------------------------------------------------------------
 Dibuja una línea entre los dos puntos dados. ([más |https://www.php.net/manual/en/function.imageline])
 
 
-openPolygon(array $points, ImageColor $color): void .[method]
--------------------------------------------------------------
+openPolygon(array $points, int $numPoints, int $color): void .[method]
+----------------------------------------------------------------------
 Dibuja un polígono abierto en la imagen. Contrariamente a `polygon()`, no se traza ninguna línea entre el último y el primer punto. ([más |https://www.php.net/manual/en/function.imageopenpolygon])
 
 
@@ -573,19 +552,14 @@ place(Image $image, int|string $left=0, int|string $top=0, int $opacity=100): Im
 Copia `$image` en la imagen en las coordenadas `$left` y `$top`. Las coordenadas pueden pasarse como números enteros en píxeles o cadenas en porcentaje (es decir, `'50%'`).
 
 
-polygon(array $points, ImageColor $color): void .[method]
----------------------------------------------------------
+polygon(array $points, int $numPoints, int $color): void .[method]
+------------------------------------------------------------------
 Crea un polígono en la imagen. ([más |https://www.php.net/manual/en/function.imagepolygon])
 
 
-rectangle(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
---------------------------------------------------------------------------------
+rectangle(int $x1, int $y1, int $x2, int $y2, int $col): void .[method]
+-----------------------------------------------------------------------
 Crea un rectángulo que comienza en las coordenadas especificadas. ([más |https://www.php.net/manual/en/function.imagerectangle])
-
-
-rectangleWH(int $left, int $top, int $width, int $height, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------------
-Crea un rectángulo en las coordenadas dadas.
 
 
 resize(int|string $width, int|string $height, int $flags=Image::OrSmaller): Image .[method]
@@ -649,8 +623,8 @@ setInterpolation(int $method=IMG_BILINEAR_FIXED): void .[method]
 Establece el método de interpolación que afecta a los métodos `rotate()` y `affine()`. ([más |https://www.php.net/manual/en/function.imagesetinterpolation])
 
 
-setPixel(int $x, int $y, ImageColor $color): void .[method]
------------------------------------------------------------
+setPixel(int $x, int $y, int $color): void .[method]
+----------------------------------------------------
 Dibuja un píxel en la coordenada especificada. ([más |https://www.php.net/manual/en/function.imagesetpixel])
 
 
@@ -679,6 +653,16 @@ Enfoca un poco la imagen.
 Requiere la extensión *Bundled GD*, por lo que no es seguro que funcione en todas partes.
 
 
+string(int $font, int $x, int $y, string $str, int $col): void .[method]
+------------------------------------------------------------------------
+Dibuja una cadena en las coordenadas dadas. ([más |https://www.php.net/manual/en/function.imagestring])
+
+
+stringUp(int $font, int $x, int $y, string $s, int $col): void .[method]
+------------------------------------------------------------------------
+Dibuja una cadena verticalmente en las coordenadas dadas. ([más |https://www.php.net/manual/en/function.imagestringup])
+
+
 toString(int $type=Image::JPEG, int $quality=null): string .[method]
 --------------------------------------------------------------------
 Muestra una imagen en una cadena.
@@ -691,6 +675,6 @@ trueColorToPalette(bool $dither, int $ncolors): void .[method]
 Convierte una imagen truecolor en una imagen de paleta. ([más |https://www.php.net/manual/en/function.imagetruecolortopalette])
 
 
-ttfText(float $size, float $angle, int $x, int $y, ImageColor $color, string $fontFile, string $text, array $options=[]): array .[method]
------------------------------------------------------------------------------------------------------------------------------------------
-Escribe el texto dado en la imagen. ([más |https://www.php.net/manual/en/function.imagettftext])
+ttfText(int $size, int $angle, int $x, int $y, int $color, string $fontfile, string $text): array .[method]
+-----------------------------------------------------------------------------------------------------------
+Escribe el texto dado en la imagen utilizando fuentes TrueType. ([más |https://www.php.net/manual/en/function.imagettftext])
