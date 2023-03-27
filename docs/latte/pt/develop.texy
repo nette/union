@@ -15,7 +15,9 @@ Versões PHP suportadas (aplica-se às últimas versões de correção Latte):
 
 | versão | compatível com PHP
 |-----------------|-------------------
-PHP 3.0 | Latte 3.0 | PHP 8.0 - 8.2
+| Latte 3.0 | PHP 8.0 - 8.2
+| Latte 2.11 | PHP 7.1 - 8.2
+| Latte 2.8 - 2.10| PHP 7.1 - 8.1
 
 
 Como fazer um modelo .[#toc-how-to-render-a-template]
@@ -131,77 +133,20 @@ Como adicionar um filtro personalizado, função, etiqueta, etc. ao Latte? Descu
 Se você quiser reutilizar suas alterações em diferentes projetos ou se quiser compartilhá-las com outros, você deve então [criar uma extensão |creating-extension].
 
 
-Qualquer código no modelo `{php ...}` .{toc: RawPhpExtension}
-=============================================================
+Qualquer código no modelo `{php ...}` .{data-version:3.0}{toc: RawPhpExtension}
+===============================================================================
 
 Somente expressões PHP podem ser escritas dentro do [`{do}` |tags#do] por isso não é possível, por exemplo, inserir construções como `if ... else` ou declarações em ponto-e-vírgula.
 
-No entanto, você pode registrar a extensão `RawPhpExtension`, que adiciona a tag `{php ...}`. Você pode usá-la para inserir qualquer código PHP. Ela não está sujeita a nenhuma regra do modo sandbox, portanto, o uso é de responsabilidade do autor do modelo.
+Entretanto, você pode registrar a extensão `RawPhpExtension`, que acrescenta a tag `{php ...}`, que pode ser usada para inserir qualquer código PHP por conta e risco do autor do modelo.
 
 ```php
 $latte->addExtension(new Latte\Essential\RawPhpExtension);
 ```
 
 
-Verificação do código gerado .[#toc-checking-generated-code]{data-version:3.0.7}
-================================================================================
-
-O Latte compila modelos em código PHP. Naturalmente, ele garante que o código gerado seja sintaticamente válido. Entretanto, ao usar extensões de terceiros ou RawPhpExtension, o Latte não pode garantir a exatidão do arquivo gerado.
-Além disso, no PHP, você pode escrever um código sintaticamente correto, mas que é proibido (por exemplo, atribuir um valor à variável $this) e causar um erro de compilação do PHP.
-Se você escrever uma operação desse tipo em um modelo, ela também será incluída no código PHP gerado. Como há mais de duzentas operações diferentes proibidas no PHP, o Latte não tem como objetivo detectá-las. O próprio PHP as sinalizará durante a renderização, o que geralmente não é um problema.
-
-Entretanto, há situações em que você deseja saber, durante a compilação do modelo, se ele não contém erros de compilação do PHP. Especialmente quando os modelos podem ser editados pelos usuários ou quando você usa o [Sandbox |Sandbox]. Nesse caso, faça com que os modelos sejam verificados durante a compilação.
-Você pode ativar essa funcionalidade usando o método Engine::enablePhpLint(). Como ele precisa chamar o binário PHP para a verificação, passe seu caminho como parâmetro:
-
-```php
-$latte = new Latte\Engine;
-$latte->enablePhpLinter('/path/to/php');
-
-try {
-	$latte->compile('home.latte');
-} catch (Latte\CompileException $e) {
-	// captura erros de Latte e também erros de compilação em PHP
-	echo 'Error: ' . $e->getMessage();
-}
-```
-
-
-Local .[#toc-locale]{data-version:3.0.18}
-=========================================
-
-O Latte permite que você defina a localidade, o que afeta a formatação de números, datas e classificação. Ele é definido usando o método `setLocale()`. O identificador de localidade segue o padrão de tag de idioma da IETF, que usa a extensão PHP `intl`. Ele consiste em um código de idioma e possivelmente um código de país, por exemplo, `en_US` para inglês nos Estados Unidos, `de_DE` para alemão na Alemanha, etc.
-
-```php
-$latte = new Latte\Engine;
-$latte->setLocale('cs');
-```
-
-A configuração de localidade afeta os filtros [localDate |filters#localDate], [sort |filters#sort], [number |filters#number] e [bytes |filters#bytes].
-
-.[note]
-Requer a extensão PHP `intl`. A configuração no Latte não afeta a configuração global de localidade no PHP.
-
-
-Modo estrito .[#toc-strict-mode]{data-version:3.0.8}
-====================================================
-
-No modo de análise rigorosa, o Latte verifica a ausência de tags HTML de fechamento e também desativa o uso da variável `$this`. Para ativá-lo:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictParsing();
-```
-
-Para gerar modelos com o cabeçalho `declare(strict_types=1)`, faça o seguinte:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictTypes();
-```
-
-
-Tradução em Modelos .{toc: TranslatorExtension}
-===============================================
+Tradução em Modelos .{data-version:3.0}{toc: TranslatorExtension}
+=================================================================
 
 Use a extensão `TranslatorExtension` para adicionar [`{_...}` |tags#_], [`{translate}` |tags#translate] e filtro [`translate` |filters#translate] para o modelo. Eles são usados para traduzir valores ou partes do modelo para outros idiomas. O parâmetro é o método (chamado PHP) que realiza a tradução:
 
@@ -270,16 +215,14 @@ Ao mesmo tempo, no canto inferior direito da chamada Barra Tracy, aparece uma ab
 Como o Latte compila os modelos em código PHP legível, você pode passar convenientemente por eles em seu IDE.
 
 
-Linter: Validação da sintaxe do gabarito .{toc: Linter}
-=======================================================
+Linter: Validação da sintaxe do gabarito .{data-version:2.11}{toc: Linter}
+==========================================================================
 
 A ferramenta Linter o ajudará a percorrer todos os modelos e verificar a existência de erros de sintaxe. Ela é lançada a partir do console:
 
 ```shell
 vendor/bin/latte-lint <path>
 ```
-
-Use o parâmetro `--strict` para ativar [o modo estrito|#strict mode].
 
 Se você usa etiquetas personalizadas, crie também seu Linter personalizado, por exemplo, `custom-latte-lint`:
 
@@ -290,23 +233,17 @@ Se você usa etiquetas personalizadas, crie também seu Linter personalizado, po
 // digite o caminho real para o arquivo autoload.php
 require __DIR__ . '/vendor/autoload.php';
 
-$path = $argv[1] ?? '.';
+$linter = new Latte\Tools\Linter($engine);
+$linter->scanDirectory($path);
 
-$linter = new Latte\Tools\Linter;
-$latte = $linter->getEngine();
-// adicione suas extensões individuais aqui
-$latte->addExtension(/* ... */);
+$engine = new Latte\Engine;
+// registra aqui extensões individuais
+$engine->addExtension(/* ... */);
 
+$path = $argv[1];
+$linter = new Latte\Tools\Linter(engine: $engine);
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);
-```
-
-Como alternativa, você pode passar seu próprio objeto `Latte\Engine` para o Linter:
-
-```php
-$latte = new Latte\Engine;
-// Aqui configuramos o objeto $latte
-$linter = new Latte\Tools\Linter(engine: $latte);
 ```
 
 

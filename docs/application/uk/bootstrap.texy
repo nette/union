@@ -22,15 +22,15 @@ class Bootstrap
 {
 	public static function boot(): Configurator
 	{
-		$rootDir = dirname(__DIR__);
+		$appDir = dirname(__DIR__);
 		$configurator = new Configurator;
 		//$configurator->setDebugMode('secret@23.75.345.200');
-		$configurator->enableTracy($rootDir . '/log');
-		$configurator->setTempDirectory($rootDir . '/temp');
+		$configurator->enableTracy($appDir . '/log');
+		$configurator->setTempDirectory($appDir . '/temp');
 		$configurator->createRobotLoader()
 			->addDirectory(__DIR__)
 			->register();
-		$configurator->addConfig($rootDir . '/config/common.neon');
+		$configurator->addConfig($appDir . '/config/common.neon');
 		return $configurator;
 	}
 }
@@ -90,7 +90,7 @@ $configurator->setDebugMode(false);
 Для полегшення налагодження ми увімкнемо чудовий інструмент [Tracy |tracy:]. У режимі розробника він візуалізує помилки, а в режимі виробництва - записує помилки в зазначений каталог:
 
 ```php
-$configurator->enableTracy($rootDir . '/log');
+$configurator->enableTracy($appDir . '/log');
 ```
 
 
@@ -100,7 +100,7 @@ $configurator->enableTracy($rootDir . '/log');
 Nette використовує кеш для DI-контейнера, RobotLoader, шаблонів тощо. Тому необхідно задати шлях до директорії, де зберігатиметься кеш:
 
 ```php
-$configurator->setTempDirectory($rootDir . '/temp');
+$configurator->setTempDirectory($appDir . '/temp');
 ```
 
 У Linux або macOS встановіть [права на запис |nette:troubleshooting#Setting-Directory-Permissions] для каталогів `log/` і `temp/`.
@@ -143,16 +143,16 @@ $configurator->setTimeZone('Europe/Prague');
 Файли конфігурації завантажуються за допомогою `addConfig()`:
 
 ```php
-$configurator->addConfig($rootDir . '/config/common.neon');
+$configurator->addConfig($appDir . '/config/common.neon');
 ```
 
 Метод `addConfig()` може бути викликаний кілька разів для додавання декількох файлів.
 
 ```php
-$configurator->addConfig($rootDir . '/config/common.neon');
-$configurator->addConfig($rootDir . '/config/services.neon');
+$configurator->addConfig($appDir . '/config/common.neon');
+$configurator->addConfig($appDir . '/config/local.neon');
 if (PHP_SAPI === 'cli') {
-	$configurator->addConfig($rootDir . '/config/cli.php');
+	$configurator->addConfig($appDir . '/config/cli.php');
 }
 ```
 
@@ -174,7 +174,7 @@ $configurator->addStaticParameters([
 ]);
 ```
 
-У конфігураційних файлах ми можемо записати звичайну нотацію `%projectId%` для доступу до параметра з ім'ям `projectId`.
+У конфігураційних файлах можна використовувати звичайну нотацію `%projectId%` для доступу до параметра з ім'ям `projectId`. За замовчуванням конфігуратор заповнює такі параметри: `appDir`, `wwwDir`, `tempDir`, `vendorDir`, `debugMode` і `consoleMode`.
 
 
 Динамічні параметри .[#toc-dynamic-parameters]
@@ -195,20 +195,6 @@ $configurator->addDynamicParameters([
 	'env' => getenv(),
 ]);
 ```
-
-
-Параметри за замовчуванням .[#toc-default-parameters]
------------------------------------------------------
-
-Ви можете використовувати наступні статичні параметри у файлах конфігурації:
-
-- `%appDir%` - абсолютний шлях до каталогу з файлом `Bootstrap.php`
-- `%wwwDir%` - абсолютний шлях до каталогу, в якому знаходиться файл запису `index.php`
-- `%tempDir%` - абсолютний шлях до каталогу для тимчасових файлів
-- `%vendorDir%` - абсолютний шлях до каталогу, куди Composer встановлює бібліотеки
-- `%rootDir%` - абсолютний шлях до кореневого каталогу проекту
-- `%debugMode%` вказує на те, чи перебуває програма у режимі налагодження
-- `%consoleMode%` вказує на те, що запит надійшов через командний рядок
 
 
 Імпортовані сервіси .[#toc-imported-services]

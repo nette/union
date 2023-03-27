@@ -32,7 +32,7 @@ echo $url; // https://doc.nette.org/cs/?action=edit
 echo $url->getHost(); // nette.org
 ```
 
-Upozornění: prohlížeče neodesílají na server fragment, takže `$url->getFragment()` bude vracet prázdný řetězec.
+Prohlížeče neodesílají na server fragment, takže `$url->getFragment()` bude vracet prázdný řetězec.
 
 
 getQuery(string $key=null): string|array|null .[method]
@@ -139,6 +139,11 @@ Vrací všechny HTTP hlavičky jako asociativní pole.
 $headers = $httpRequest->getHeaders();
 echo $headers['Content-Type'];
 ```
+
+
+getReferer(): ?Nette\Http\UrlImmutable .[method]
+------------------------------------------------
+Z jaké URL uživatel přišel? Pozor, není vůbec spolehlivé.
 
 
 isSecured(): bool .[method]
@@ -350,18 +355,7 @@ Nevěřte hodnotě vrácené touto metodou. Klient mohl odeslat škodlivý náze
 
 getSanitizedName(): string .[method]
 ------------------------------------
-Vrací sanitizovaný název souboru. Obsahuje pouze ASCII znaky `[a-zA-Z0-9.-]`. Pokud název takové znaky neobsahuje, vrátí `'unknown'`. Pokud je soubor obrázek ve formátu JPEG, PNG, GIF, WebP nebo AVIF, vrátí i správnou příponu.
-
-.[caution]
-Vyžaduje PHP rozšíření `fileinfo`.
-
-
-getSuggestedExtension(): ?string .[method]{data-version:3.2.4}
---------------------------------------------------------------
-Vrací vhodnou příponu souboru (bez tečky) odpovídající zjištěnému MIME typu.
-
-.[caution]
-Vyžaduje PHP rozšíření `fileinfo`.
+Vrací sanitizovaný název souboru. Obsahuje pouze ASCII znaky `[a-zA-Z0-9.-]`. Pokud název takové znaky neobsahuje, vrátí `'unknown'`. Pokud je soubor obrázek ve formátu JPEG, PNG, GIF, nebo WebP, vrátí i správnou příponu.
 
 
 getUntrustedFullPath(): string .[method]
@@ -384,7 +378,7 @@ Vrací cestu k dočasné lokaci uploadovaného souboru. V případě, že upload
 
 isImage(): bool .[method]
 -------------------------
-Vrací `true`, pokud nahraný soubor je obrázek ve formátu JPEG, PNG, GIF, WebP nebo AVIF. Detekce probíhá na základě jeho signatury a neověřuje se integrita celého souboru. Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|#toImage].
+Vrací `true`, pokud nahraný soubor je obrázek ve formátu JPEG, PNG, GIF, nebo WebP. Detekce probíhá na základě jeho signatury a neověřuje se integrita celého souboru. Zda není obrázek poškozený lze zjistit například pokusem o jeho [načtení|#toImage].
 
 .[caution]
 Vyžaduje PHP rozšíření `fileinfo`.

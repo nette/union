@@ -266,25 +266,6 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
-Using with PSR-16 .{data-version:3.3.1}
-=======================================
-
-To use Nette Cache with the PSR-16 interface, you can utilize the `PsrCacheAdapter`. It allows seamless integration between Nette Cache and any code or library that expects a PSR-16 compatible cache.
-
-```php
-$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
-```
-
-Now you can use `$psrCache` as a PSR-16 cache:
-
-```php
-$psrCache->set('key', 'value', 3600); // stores the value for 1 hour
-$value = $psrCache->get('key', 'default');
-```
-
-The adapter supports all methods defined in PSR-16, including `getMultiple()`, `setMultiple()`, and `deleteMultiple()`.
-
-
 Output Caching
 ==============
 
@@ -461,30 +442,6 @@ You can change the journal in the configuration:
 services:
 	cache.journal: MyJournal
 ```
-
-
-DI Services
-===========
-
-These services are added to the DI container:
-
-| Name | Type | Description
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
-| `cache.storage` | [api:Nette\Caching\Storage] | repository
-
-
-Turning Off Cache
-=================
-
-One of the ways to turn off caching in the application is to set the storage to [DevNullStorage|#DevNullStorage]:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-This setting does not affect the caching of templates in Latte or the DI container, as these libraries do not use the services of nette/caching and manage their cache independently. Moreover, their cache [does not need to be turned off |nette:troubleshooting#how-to-disable-cache-during-development] in development mode.
 
 
 {{leftbar: nette:@menu-topics}}

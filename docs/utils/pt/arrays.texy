@@ -15,53 +15,12 @@ composer require nette/utils
 Arrays .[#toc-arrays]
 =====================
 
-[api:Nette\Utils\Arrays] é uma classe estática que contém um punhado de funções úteis de matriz. Seu equivalente para iteradores é [Nette\Utils\Iterables |iterables].
+[api:Nette\Utils\Arrays] é uma classe estática, que contém um punhado de funções de matriz úteis.
 
 Os exemplos a seguir assumem que a seguinte classe está definida:
 
 ```php
 use Nette\Utils\Arrays;
-```
-
-
-associate(array $array, mixed $path): array|\stdClass .[method]
----------------------------------------------------------------
-
-A função transforma de forma flexível o `$array` em uma matriz associativa ou objetos de acordo com o caminho especificado `$path`. O caminho pode ser uma string ou uma matriz. Ele consiste nos nomes das chaves na matriz de entrada e em operadores como '[]', '->', '=' e '|'. Lança `Nette\InvalidArgumentException` se o caminho for inválido.
-
-```php
-// conversão em uma matriz associativa usando uma chave simples
-$arr = [
-    ['name' => 'John', 'age' => 11],
-    ['name' => 'Mary', 'age' => null],
-    //...
-];
-$result = Arrays::associate($arr, 'name');
-// $result = ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// atribuir valores de uma chave a outra usando o operador =
-$result = Arrays::associate($arr, 'name=age'); // ou ['name', '=', 'age']
-// $result = ['John' => 11, 'Mary' => null, ...]
-```
-
-```php
-// criar um objeto usando o operador ->
-$result = Arrays::associate($arr, '->name'); // ou ['->', 'name']
-// $result = (object) ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// combinação de chaves usando o operador |
-$result = Arrays::associate($arr, 'name|age'); // ou ['name', '|', 'age']
-// $result: ['John' => ['name' => 'John', 'age' => 11], 'Paul' => ['name' => 'Paul', 'age' => 44]]
-```
-
-```php
-// adicionando a uma matriz usando []
-$result = Arrays::associate($arr, 'name[]'); // ou ['name', '[]']
-// $result: ['John' => [['name' => 'John', 'age' => 22], ['name' => 'John', 'age' => 11]]]
 ```
 
 
@@ -76,8 +35,8 @@ Arrays::contains(['1', false], 1); // false
 ```
 
 
-every(array $array, callable $predicate): bool .[method]
---------------------------------------------------------
+every(iterable $array, callable $callback): bool .[method]
+----------------------------------------------------------
 
 Testa se todos os elementos da matriz passam no teste implementado pela função fornecida, que tem a assinatura `function ($value, $key, array $array): bool`.
 
@@ -90,51 +49,15 @@ $res = Arrays::every($array, $isBelowThreshold); // true
 Veja [algumas() |#some()].
 
 
-filter(array $array, callable $predicate): array .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------
+first(array $array): mixed .[method]
+------------------------------------
 
-Retorna uma nova matriz contendo todos os pares de valores-chave que correspondem ao endereço `$predicate` fornecido. O retorno de chamada tem a assinatura `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::filter(
-	['a' => 1, 'b' => 2, 'c' => 3],
-	fn($v) => $v < 3,
-);
-// ['a' => 1, 'b' => 2]
-```
-
-
-first(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
--------------------------------------------------------------------------------------
-
-Retorna o primeiro item (que corresponde ao predicado especificado, se fornecido). Se não houver tal item, ele retorna o resultado da invocação de `$else` ou nulo.
-O `$predicate` tem a assinatura `function ($value, int|string $key, array $array): bool`.
-
-Ele não altera o ponteiro interno, ao contrário de `reset()`. Os parâmetros `$predicate` e `$else` existem desde a versão 4.0.4.
+Devolve o primeiro item da matriz ou nulo se a matriz estiver vazia. Ele não muda o ponteiro interno ao contrário de `reset()`.
 
 ```php
-Arrays::first([1, 2, 3]);                   // 1
-Arrays::first([1, 2, 3], fn($v) => $v > 2); // 3
-Arrays::first([]);                          // null
-Arrays::first([], else: fn() => false);     // false
+Arrays::first([1, 2, 3]); // 1
+Arrays::first([]);        // null
 ```
-
-Consulte [last() |#last()].
-
-
-firstKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------------------------
-
-Retorna a chave do primeiro item (que corresponde ao predicado especificado, se fornecido) ou nula se não houver tal item. O `$predicate` tem a assinatura `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::firstKey([1, 2, 3]);                   // 0
-Arrays::firstKey([1, 2, 3], fn($v) => $v > 2); // 2
-Arrays::firstKey(['a' => 1, 'b' => 2]);        // 'a'
-Arrays::firstKey([]);                          // null
-```
-
-Consulte [lastKey() |#lastKey()].
 
 
 flatten(array $array, bool $preserveKeys=false): array .[method]
@@ -265,63 +188,27 @@ Arrays::isList(['a' => 1, 'b' => 2]); // false
 ```
 
 
-last(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
-------------------------------------------------------------------------------------
+last(array $array): mixed .[method]
+-----------------------------------
 
-Retorna o último item (que corresponde ao predicado especificado, se fornecido). Se não houver tal item, ele retorna o resultado da invocação de `$else` ou nulo.
-O `$predicate` tem a assinatura `function ($value, int|string $key, array $array): bool`.
-
-Ele não altera o ponteiro interno, ao contrário de `end()`. Os parâmetros `$predicate` e `$else` existem desde a versão 4.0.4.
+Devolve o último item da matriz ou nulo se a matriz estiver vazia. Ele não muda o ponteiro interno ao contrário de `end()`.
 
 ```php
-Arrays::last([1, 2, 3]);                   // 3
-Arrays::last([1, 2, 3], fn($v) => $v < 3); // 2
-Arrays::last([]);                          // null
-Arrays::last([], else: fn() => false);     // false
+Arrays::last([1, 2, 3]); // 3
+Arrays::last([]);        // null
 ```
 
-Consulte [first() |#first()].
 
-
-lastKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
------------------------------------------------------------------------------------------------
-
-Retorna a chave do último item (que corresponde ao predicado especificado, se fornecido) ou nula se não houver tal item. O `$predicate` tem a assinatura `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::lastKey([1, 2, 3]);                    // 2
-Arrays::lastKey([1, 2, 3], fn($v) => $v < 3);  // 1
-Arrays::lastKey(['a' => 1, 'b' => 2]);         // 'b'
-Arrays::lastKey([]);                           // null
-```
-
-Consulte [firstKey() |#firstKey()].
-
-
-map(array $array, callable $transformer): array .[method]
+map(iterable $array, callable $callback): array .[method]
 ---------------------------------------------------------
 
-Liga para `$transformer` sobre todos os elementos da matriz e retorna a matriz de valores de retorno. A chamada de retorno tem a assinatura `function ($value, $key, array $array): bool`.
+Liga para `$callback` sobre todos os elementos da matriz e retorna a matriz de valores de retorno. A chamada de retorno tem a assinatura `function ($value, $key, array $array): bool`.
 
 ```php
 $array = ['foo', 'bar', 'baz'];
 $res = Arrays::map($array, fn($value) => $value . $value);
 // $res = ['foofoo', 'barbar', 'bazbaz']
 ```
-
-
-mapWithKeys(array $array, callable $transformer): array .[method]
------------------------------------------------------------------
-
-Cria uma nova matriz transformando os valores e as chaves da matriz original. A função `$transformer` tem a assinatura `function ($value, $key, array $array): ?array{$newValue, $newKey}`. Se `$transformer` retornar `null`, o elemento será ignorado. Para elementos retidos, o primeiro elemento da matriz retornada é usado como a nova chave e o segundo elemento como o novo valor.
-
-```php
-$array = ['a' => 1, 'b' => 2, 'c' => 3];
-$result = Arrays::mapWithKeys($array, fn($v, $k) => $v > 1 ? [$v * 2, strtoupper($k)] : null);
-// [4 => 'B']
-```
-
-Esse método é útil em situações em que você precisa alterar a estrutura de uma matriz (chaves e valores simultaneamente) ou filtrar elementos durante a transformação (retornando null para elementos indesejados).
 
 
 mergeTree(array $array1, array $array2): array .[method]
@@ -397,8 +284,8 @@ $position = Arrays::getKeyOffset($array, 'not-exists'); // returns null
 ```
 
 
-some(array $array, callable $predicate): bool .[method]
--------------------------------------------------------
+some(iterable $array, callable $callback): bool .[method]
+---------------------------------------------------------
 
 Testa se pelo menos um elemento da matriz passa no teste implementado pela callback fornecida com a assinatura `function ($value, $key, array $array): bool`.
 
@@ -434,8 +321,8 @@ Arrays::toObject($array, $obj); // it sets $obj->foo = 1; $obj->bar = 2;
 ```
 
 
-wrap(array $array, string $prefix='', string $suffix=''): array .[method]
--------------------------------------------------------------------------
+wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
+----------------------------------------------------------------------------
 
 Ele lança cada elemento da matriz para cordelar e o encerra com `$prefix` e `$suffix`.
 

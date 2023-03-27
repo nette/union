@@ -13,14 +13,13 @@ In package `nette/utils` you will find a set of useful classes for everyday use:
 | [Helpers |helpers] | Nette\Utils\Helpers
 | [HTML Elements]    | Nette\Utils\Html
 | [Images]           | Nette\Utils\Image
-| [Iterables]        | Nette\Utils\Iterables
 | [JSON]             | Nette\Utils\Json
+| [Object model |smartobject] | Nette\SmartObject & Nette\StaticClass
 | [Paginator |paginator] | Nette\Utils\Paginator
 | [PHP Reflection |reflection] | Nette\Utils\Reflection
 | [PHP Types |type]  | Nette\Utils\Type
 | [Random Strings |random] | Nette\Utils\Random
 | [Strings]          | Nette\Utils\Strings
-| [SmartObject] & [StaticClass] | Nette\SmartObject & Nette\StaticClass
 | [Validators |validators] | Nette\Utils\Validators
 
 
@@ -35,12 +34,9 @@ composer require nette/utils
 
 | version   | compatible with PHP
 |-----------|-------------------
-| Nette Utils 4.0 | PHP 8.0 – 8.4
-| Nette Utils 3.2 | PHP 7.2 – 8.3
+| Nette Utils 4.0 | PHP 8.0 – 8.2
+| Nette Utils 3.2 | PHP 7.2 – 8.2
 | Nette Utils 3.0 – 3.1 | PHP 7.1 – 8.0
 | Nette Utils 2.5 | PHP 5.6 – 8.0
 
 Applies to the latest patch versions.
-
-
-If you are upgrading to a newer version, see the [upgrading] page.

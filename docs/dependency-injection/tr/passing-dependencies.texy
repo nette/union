@@ -96,9 +96,9 @@ final class MyClass extends BaseClass
 
 Sorun, `BaseClass` sınıfının kurucusunu değiştirmek istediğimizde, örneğin yeni bir bağımlılık eklendiğinde ortaya çıkar. O zaman tüm alt sınıfların kurucularını da değiştirmemiz gerekir. Bu da böyle bir değişikliği cehenneme çevirir.
 
-Bu nasıl önlenebilir? Çözüm [**kalıtım yerine bileşime |faq#Why composition is preferred over inheritance] öncelik [vermektir** |faq#Why composition is preferred over inheritance].
+Bu nasıl önlenebilir? Çözüm **kalıtım yerine bileşime öncelik vermektir**.
 
-Öyleyse kodu farklı bir şekilde tasarlayalım. [Soyut |nette:introduction-to-object-oriented-programming#abstract-classes] `Base*` sınıflarından kaçınacağız. `MyClass` , `BaseClass`'dan miras alarak bazı işlevler elde etmek yerine, bu işlevselliği bir bağımlılık olarak geçirecektir:
+Öyleyse kodu farklı bir şekilde tasarlayalım. Soyut `Base*` sınıflarından kaçınacağız. `MyClass` , `BaseClass`'dan miras alarak bazı işlevler elde etmek yerine, bu işlevleri bir bağımlılık olarak aktaracaktır:
 
 ```php
 final class SomeFunctionality
@@ -128,7 +128,7 @@ final class MyClass
 Ayarlayıcı Enjeksiyonu .[#toc-setter-injection]
 ===============================================
 
-Bağımlılıklar, onları özel bir özellikte saklayan bir yöntem çağrılarak aktarılır. Bu yöntemler için olağan adlandırma kuralı `set*()` şeklindedir, bu nedenle ayarlayıcılar olarak adlandırılırlar, ancak elbette başka herhangi bir şekilde adlandırılabilirler.
+Bağımlılıklar, onları özel bir özellikte saklayan bir yöntem çağrılarak aktarılır. Bu yöntemler için olağan adlandırma kuralı `set*()` şeklindedir, bu nedenle ayarlayıcılar olarak adlandırılırlar.
 
 ```php
 class MyClass
@@ -168,7 +168,8 @@ Setter çağrısı, [kurulum bölümündeki |services#Setup] DI konteyner yapıl
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyClass
 		setup:
 			- setCache
 ```
@@ -195,7 +196,8 @@ Değişkenin ayarı, [kurulum bölümündeki |services#Setup] DI konteyner yapı
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyClass
 		setup:
 			- $cache = @\Cache
 ```

@@ -266,25 +266,6 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
-Używanie z PSR-16 .[#toc-using-with-psr-16]
-===========================================
-
-Aby używać Nette Cache z interfejsem PSR-16, można skorzystać z `PsrCacheAdapter`. Pozwala to na płynną integrację Nette Cache z dowolnym kodem lub biblioteką, która oczekuje pamięci podręcznej kompatybilnej z PSR-16.
-
-```php
-$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
-```
-
-Teraz można używać `$psrCache` jako pamięci podręcznej PSR-16:
-
-```php
-$psrCache->set('key', 'value', 3600); // przechowuje wartość przez 1 godzinę
-$value = $psrCache->get('key', 'default');
-```
-
-Adapter obsługuje wszystkie metody zdefiniowane w PSR-16, w tym `getMultiple()`, `setMultiple()` i `deleteMultiple()`.
-
-
 Buforowanie wyjścia .[#toc-output-caching]
 ==========================================
 
@@ -461,30 +442,6 @@ Dziennik można zmienić w konfiguracji:
 services:
 	cache.journal: MyJournal
 ```
-
-
-Usługi DI .[#toc-di-services]
-=============================
-
-Usługi te są dodawane do kontenera DI:
-
-| Nazwa | Typ | Opis
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
-| `cache.storage` | [api:Nette\Caching\Storage] | repozytorium
-
-
-Wyłączanie pamięci podręcznej .[#toc-turning-off-cache]
-=======================================================
-
-Jednym ze sposobów wyłączenia buforowania w aplikacji jest ustawienie pamięci masowej na [DevNullStorage |#DevNullStorage]:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-Ustawienie to nie wpływa na buforowanie szablonów w Latte lub kontenerze DI, ponieważ biblioteki te nie korzystają z usług nette/caching i zarządzają swoją pamięcią podręczną niezależnie. Co więcej, ich pamięć podręczna nie musi być [wyłączona |nette:troubleshooting#how-to-disable-cache-during-development] w trybie deweloperskim.
 
 
 {{leftbar: nette:@menu-topics}}

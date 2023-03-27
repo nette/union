@@ -23,9 +23,9 @@ $form->addPassword('password', 'Password:')
 	->addRule($form::MinLength, 'Password must be at least %d characters', 8);
 ```
 
-**Les règles de validation ne sont vérifiées que si l'utilisateur a rempli l'élément.
+Nette est livré avec un certain nombre de règles intégrées dont les noms sont des constantes de la classe `Nette\Forms\Form`:
 
-Nette est livré avec un certain nombre de règles prédéfinies dont les noms sont des constantes de la classe `Nette\Forms\Form`. Nous pouvons appliquer ces règles à tous les éléments :
+Nous pouvons utiliser les règles suivantes pour tous les contrôles :
 
 | constante | description | arguments
 |-------
@@ -38,11 +38,7 @@ Nette est livré avec un certain nombre de règles prédéfinies dont les noms s
 | `IsNotIn` | la valeur n'est égale à aucun élément du tableau | `array`
 | `Valid` | L'entrée passe la validation (pour les [conditions |#conditions]) | -
 
-
-Entrées de texte
-----------------
-
-Pour les éléments `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()`, `addFloat()`, certaines des règles suivantes peuvent également être appliquées :
+Pour les contrôles `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()` les règles suivantes peuvent également être utilisées :
 
 | `MinLength` | longueur minimale de la chaîne | `int`
 | `MaxLength` | longueur maximale de la chaîne de caractères | `int`
@@ -61,23 +57,9 @@ Pour les éléments `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`,
 Les règles `Integer`, `Numeric` et `Float` convertissent automatiquement la valeur en nombre entier (ou flottant respectivement). En outre, la règle `URL` accepte également une adresse sans schéma (par exemple `nette.org`) et complète le schéma (`https://nette.org`).
 Les expressions de `Pattern` et `PatternInsensitive` doivent être valables pour la valeur entière, c'est-à-dire comme si elle était enveloppée dans les caractères `^` and `$`.
 
-
-Nombre d'articles .[#toc-number-of-items]
------------------------------------------
-
-Pour les éléments `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` vous pouvez également utiliser les règles suivantes pour limiter le nombre d'éléments sélectionnés ou de fichiers téléchargés :
-
- `MinLength` | nombre minimum | | nombre maximum `int`
-| `MaxLength` | nombre maximum `int`
-| `Length` | nombre dans l'intervalle ou nombre exact | paires `[int, int]` ou `int`
-
-
-Téléchargement de fichiers
---------------------------
-
 Pour les contrôles `addUpload()`, `addMultiUpload()`, les règles suivantes peuvent également être utilisées :
 
-| `MaxFileSize` | taille maximale du fichier en octets | `int`
+| `MaxFileSize` | taille maximale du fichier | `int`
 `MimeType` | type MIME, accepte les caractères génériques (`'video/*'`) | type MIME, accepte les caractères génériques ( ) | type MIME, accepte les caractères génériques ( ) `string\|string[]`
 | `Image` | le fichier téléchargé est un JPEG, PNG, GIF, WebP | -
 | `Pattern` | le nom du fichier correspond à une expression régulière | `string`
@@ -85,9 +67,15 @@ Pour les contrôles `addUpload()`, `addMultiUpload()`, les règles suivantes peu
 
 Les sites `MimeType` et `Image` nécessitent l'extension PHP `fileinfo`. Le fait qu'un fichier ou une image soit du type requis est détecté par sa signature. L'intégrité de l'ensemble du fichier n'est pas vérifiée. Vous pouvez savoir si une image n'est pas corrompue, par exemple en essayant de [la charger |http:request#toImage].
 
+Pour les contrôles `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()`, les règles suivantes peuvent également être utilisées pour limiter le nombre d'éléments sélectionnés, respectivement de fichiers téléchargés :
+
+| `MinLength` | compte minimal | `int`
+| `MaxLength` | compte maximal | `int`
+| `Length` | compte dans l'intervalle ou compte exact | paire `[int, int]` ou `int`
+
 
 Messages d'erreur .[#toc-error-messages]
-========================================
+----------------------------------------
 
 Toutes les règles prédéfinies, à l'exception de `Pattern` et `PatternInsensitive`, ont un message d'erreur par défaut ; elles peuvent donc être omises. Toutefois, en passant et en formulant tous les messages personnalisés, vous rendrez le formulaire plus convivial.
 
@@ -293,7 +281,7 @@ Ce script est `netteForms.js`, qui est disponible à partir de plusieurs sources
 Vous pouvez intégrer le script directement dans la page HTML à partir du CDN :
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Ou le copier localement dans le dossier public du projet (par exemple à partir de `vendor/nette/forms/src/assets/netteForms.min.js`) :

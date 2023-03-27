@@ -38,7 +38,7 @@ Możliwe jest również przekazywanie nazwanych parametrów. Poniższy link prze
 <a n:href="Product:show $product->id, lang: cs">detail produktu</a>
 ```
 
-Jeśli metoda `ProductPresenter::renderShow()` nie ma w swojej sygnaturze `$lang`, może pobrać wartość parametru za pomocą `$lang = $this->getParameter('lang')` lub z [właściwości |presenters#Request Parameters].
+Jeśli metoda `ProductPresenter::renderShow()` nie ma `$lang` w swojej sygnaturze, może pobrać wartość parametru za pomocą `$lang = $this->getParameter('lang')`.
 
 Jeśli parametry są przechowywane w tablicy, można je rozwinąć za pomocą operatora `...` (w Latte 2.x operator `(expand)`):
 
@@ -140,7 +140,7 @@ Cel `this` tworzy link do bieżącej strony:
 <a n:href="this">refresh</a>
 ```
 
-W tym samym czasie, wszystkie parametry określone w sygnaturze parametru `action<Action>()` lub `render<View>()` jeśli metoda `action<Action>()` nie są zdefiniowane, są przekazywane. Jeśli więc jesteśmy na stronach `Product:show` i `id:123`, link do `this` również przekaże ten parametr.
+Wszystkie parametry określone w podpisie są również przekazywane `render<View>()` lub `action<Action>()` metody. Jeśli więc jesteśmy na `Product:show` i `id: 123`, to link do `this` również przekaże ten parametr.
 
 Oczywiście istnieje możliwość bezpośredniego podania parametrów:
 
@@ -213,7 +213,7 @@ Ponieważ [komponenty |components] są samodzielnymi, wielokrotnego użytku jedn
 Gdybyśmy chcieli odwołać się do prezenterów w szablonie komponentu, użylibyśmy do tego celu tagu `{plink}`:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Home:default}">úvod</a>
 ```
 
 lub w kodzie
@@ -221,30 +221,6 @@ lub w kodzie
 ```php
 $this->getPresenter()->link('Home:default')
 ```
-
-
-Pseudonimy .[#toc-aliases]{data-version:v3.2.2}
-===============================================
-
-Czasami przydatne jest przypisanie łatwego do zapamiętania aliasu do pary Presenter:action. Na przykład, można nazwać stronę główną `Front:Home:default` po prostu jako `home` lub `Admin:Dashboard:default` jako `admin`.
-
-Aliasy są definiowane w [konfiguracji |configuration] pod kluczem `application › aliases`:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-W linkach są one zapisywane przy użyciu symbolu at, na przykład:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-Są one obsługiwane we wszystkich metodach, które działają z linkami, takimi jak `redirect()` i podobne.
 
 
 Nieprawidłowe linki .[#toc-invalid-links]

@@ -107,7 +107,7 @@ El formulario siempre se valida en el lado del servidor, pero también se genera
 Añádelo a la página:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Si miras en el código fuente de la página con formulario, puedes notar que Nette inserta los campos requeridos en elementos con una clase CSS `required`. Pruebe a añadir el siguiente estilo a la plantilla, y la etiqueta "Nombre" será de color rojo. Elegantemente, marcamos los campos obligatorios para los usuarios:
@@ -207,7 +207,7 @@ class RegistrationFormData
 }
 ```
 
-Alternativamente, puede utilizar el constructor:
+A partir de PHP 8.0, puedes usar esta elegante notación que usa un constructor:
 
 ```php
 class RegistrationFormData
@@ -220,8 +220,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Las propiedades de la clase de datos también pueden ser enums y se asignarán automáticamente. .{data-version:3.2.4}
 
 ¿Cómo decirle a Nette que nos devuelva datos como objetos de esta clase? Más fácil de lo que piensas. Todo lo que tienes que hacer es especificar el nombre de la clase u objeto a hidratar como parámetro:
 
@@ -259,8 +257,6 @@ El mapeo entonces sabe por el tipo de propiedad `$person` que debe mapear el con
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Puede generar una propuesta para la clase de datos de un formulario utilizando el método `Nette\Forms\Blueprint::dataClass($form)`, que la imprimirá en la página del navegador. A continuación, puede simplemente hacer clic para seleccionar y copiar el código en su proyecto. .{data-version:3.1.15}
 
 
 Botones de envío múltiples .[#toc-multiple-submit-buttons]

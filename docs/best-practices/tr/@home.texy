@@ -17,8 +17,6 @@ Nette Uygulama
 - [Önceki bir sayfaya nasıl dönülür |restore-request]?
 - [Veritabanı sonuçlarını sayfalandırma |Pagination]
 - [Dinamik snippet'ler |dynamic-snippets]
-- [Requires özniteliği nasıl kullanılır |attribute-requires]?
-- [POST bağlantıları nasıl doğru kullanılır |post-links]?
 
 </div>
 <div>
@@ -38,12 +36,10 @@ Formlar
 Ortak
 -----
 - [Yapılandırma dosyası nasıl yüklenir |bootstrap:]
-- [Mikro siteler nasıl yazılır |microsites]
 - [Nette neden PascalCase sabit gösterimini kullanıyor? |https://blog.nette.org/tr/kodda-daha-az-ciglik-atmak-icin]
 - [Nette neden Interface son ekini kullanmıyor? |https://blog.nette.org/tr/oenek-ve-sonekler-arayuez-adlarina-ait-degildir]
 - [Composer kullanım ipuçları |composer]
 - [Editörler ve araçlar hakkında ipuçları |editors-and-tools]
-- [Nesne yönelimli programlamaya giriş |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

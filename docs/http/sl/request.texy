@@ -32,7 +32,7 @@ echo $url; // https://nette.org/en/documentation?action=edit
 echo $url->getHost(); // nette.org
 ```
 
-Opozorilo: Brskalniki strežniku ne pošiljajo fragmentov, zato bo `$url->getFragment()` vrnil prazen niz.
+Brskalniki strežniku ne pošljejo fragmenta, zato `$url->getFragment()` vrne prazen niz.
 
 
 getQuery(string $key=null): string|array|null .[method]
@@ -139,6 +139,11 @@ Vrne vse glave HTTP kot asociativno polje:
 $headers = $httpRequest->getHeaders();
 echo $headers['Content-Type'];
 ```
+
+
+getReferer(): ?Nette\Http\UrlImmutable .[method]
+------------------------------------------------
+S katerega naslova URL je prišel uporabnik? Pazite, ni zanesljivo.
 
 
 isSecured(): bool .[method]
@@ -351,17 +356,6 @@ Ne zaupajte vrednosti, ki jo vrne ta metoda. Odjemalec lahko pošlje zlonamerno 
 getSanitizedName(): string .[method]
 ------------------------------------
 Vrne prečiščeno ime datoteke. Vsebuje samo znake ASCII `[a-zA-Z0-9.-]`. Če ime ne vsebuje takih znakov, vrne 'unknown'. Če je datoteka slika JPEG, PNG, GIF ali WebP, vrne pravilno končnico datoteke.
-
-.[caution]
-Zahteva razširitev PHP `fileinfo`.
-
-
-getSuggestedExtension(): ?string .[method]{data-version:3.2.4}
---------------------------------------------------------------
-Vrne ustrezno razširitev datoteke (brez pike), ki ustreza zaznani vrsti MIME.
-
-.[caution]
-Zahteva razširitev PHP `fileinfo`.
 
 
 getUntrustedFullPath(): string .[method]

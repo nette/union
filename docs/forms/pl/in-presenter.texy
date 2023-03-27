@@ -30,7 +30,7 @@ Formularz w prezenterze jest obiektem klasy `Nette\Application\UI\Form`, jego po
 
 Z punktu widzenia prezentera formularz jest normalnym komponentem. Dlatego traktujemy go jako komponent i włączamy do prezentera za pomocą [metody factory |application:components#Factory-Methods]. Będzie to wyglądało tak:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
@@ -59,7 +59,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 A w szablonie renderujemy formularz z tagiem `{control}`:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Home/default.latte}
 <h1>Registrace</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ Formularz jest zawsze walidowany po stronie serwera, ale generuje również wali
 Wstaw go do szablonu układu:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Jeśli spojrzysz na kod źródłowy strony formularza, możesz zauważyć, że Nette wstawia wymagane elementy z klasą CSS `required`. Spróbuj dodać następujący arkusz stylów do szablonu, a etykieta "Nazwa" będzie czerwona. To elegancko podkreśli wymagane elementy dla użytkownika:
@@ -232,7 +232,7 @@ class RegistrationFormData
 }
 ```
 
-Alternatywnie można użyć konstruktora:
+Od PHP 8.0 możesz użyć tej eleganckiej notacji, która wykorzystuje konstruktor:
 
 ```php
 class RegistrationFormData
@@ -245,8 +245,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Właściwości klasy danych mogą być również wyliczeniami i zostaną automatycznie zmapowane. .{data-version:3.2.4}
 
 Jak powiedzieć Nette, aby zwracała dane jako obiekty tej klasy? Łatwiejsze niż myślisz. Wystarczy określić klasę jako typ parametru `$data` w metodzie handler:
 
@@ -295,8 +293,6 @@ Mapowanie wie wtedy z typu właściwości `$person`, że powinno mapować konten
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Propozycję klasy danych formularza można wygenerować za pomocą metody `Nette\Forms\Blueprint::dataClass($form)`, która wydrukuje ją na stronie przeglądarki. Następnie wystarczy kliknąć, aby wybrać i skopiować kod do swojego projektu. .{data-version:3.1.15}
 
 
 Więcej przycisków .[#toc-multiple-submit-buttons]

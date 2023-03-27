@@ -11,16 +11,14 @@ Filtrele sunt funcții care modifică sau formatează datele în forma dorită. 
 | `bytes` | [formatează dimensiunea în bytes |#bytes]
 | `clamp` | [fixează valoarea în intervalul |#clamp]
 | `dataStream` | [Conversia protocolului URI de date |#datastream]
-| `date` | [formatează data și ora |#date]
+| `date` | [formatează data |#date]
 | `explode` | [separă un șir de caractere prin delimitatorul dat |#explode]
 | `first` | [returnează primul element al unui array sau caracterul unui șir de caractere |#first]
-| `group` | [grupează datele în funcție de diverse criterii |#group]
 | `implode` | [unește un array cu un șir de caractere|#implode]
 | `indent` | [indentează textul de la stânga cu un număr de tabulări |#indent]
 | `join` | [unește un array cu un șir de caractere|#implode]
 | `last` | [returnează ultimul element al unui array sau caracter al unui șir de caractere|#last]
 | `length` | [returnează lungimea unui șir sau a unui array |#length]
-| `localDate` | [formatează data și ora în funcție de locale |#localDate]
 | `number` | [formatează numere |#number]
 | `padLeft` | [completează șirul de caractere la o lungime dată din stânga |#padLeft]
 | `padRight` | [completează șirul la lungimea dată dinspre dreapta |#padRight]
@@ -120,8 +118,8 @@ Filtre .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Filtru care simplifică listarea datelor liniare sub formă de tabel. Acesta returnează o matrice de tablouri cu numărul dat de elemente. Dacă furnizați un al doilea parametru, acesta este utilizat pentru a completa elementele lipsă de pe ultimul rând.
 
 ```latte
@@ -154,8 +152,6 @@ Se tipărește:
 </table>
 ```
 
-A se vedea, de asemenea, [grupul |#group] și eticheta [iterateWhile |tags#iterateWhile].
-
 
 breakLines .[filter]
 --------------------
@@ -169,7 +165,7 @@ Inserează întreruperi de linie HTML înainte de toate liniile noi.
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Formatează dimensiunea în octeți într-o formă lizibilă de către om. Dacă este setată [localitatea |develop#locale], sunt utilizate separatoarele corespunzătoare de zecimale și de mii.
+Formatează o dimensiune în bytes în formă lizibilă pentru oameni.
 
 ```latte
 {$size|bytes}     0 B, 1.25 GB, …
@@ -207,8 +203,8 @@ Aplică igienizarea URL-urilor. Verifică dacă variabila conține un URL web (a
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href={$link|checkUrl}>checked</a>
-<a data-href={$link}>unchecked</a>
+<a data-href="{$link|checkUrl}">checked</a>
+<a data-href="{$link}">unchecked</a>
 ```
 
 Imprimă:
@@ -221,8 +217,8 @@ Imprimă:
 A se vedea și [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Returnează valoarea fixată în intervalul inclusiv dintre min și max.
 
 ```latte
@@ -239,7 +235,7 @@ Convertește conținutul în schema URI de date. Poate fi utilizat pentru a inse
 Să avem o imagine într-o variabilă `$img = Image::fromFile('obrazek.gif')`, atunci
 
 ```latte
-<img src={$img|dataStream}>
+<img src="{$img|dataStream}">
 ```
 
 Se imprimă de exemplu:
@@ -256,13 +252,12 @@ Necesită extensia PHP `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Formatează data și ora în conformitate cu masca utilizată de funcția PHP [php:date]. Filtrul acceptă data în format UNIX timestamp, ca șir de caractere sau ca obiect `DateTimeInterface`.
+Returnează o dată în formatul dat folosind opțiunile funcțiilor PHP [php:strftime] sau [php:date]. Filtrul obține o dată sub forma unui timestamp UNIX, a unui șir de caractere sau a unui obiect de tip `DateTime`.
 
 ```latte
+{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
-
-A se vedea și [localDate |#localDate].
 
 
 escapeUrl .[filter]
@@ -276,8 +271,8 @@ Scapă o variabilă pentru a fi utilizată ca parametru în URL.
 A se vedea, de asemenea, [query |#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Împarte un șir de caractere după delimitatorul dat și returnează un tablou de șiruri de caractere. Alias pentru `split`.
 
 ```latte
@@ -299,8 +294,8 @@ Puteți utiliza și aliasul `split`:
 A se vedea și [implode |#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Returnează primul element al unui array sau caracterul unui șir de caractere:
 
 ```latte
@@ -335,25 +330,6 @@ Convertește prima literă a unei valori în majusculă. Necesită extensia PHP 
 A se vedea, de asemenea, [capitalize |#capitalize], [lower |#lower], [upper |#upper].
 
 
-group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
--------------------------------------------------------------------
-Filtrul grupează datele în funcție de diferite criterii.
-
-În acest exemplu, rândurile din tabel sunt grupate în funcție de coloana `categoryId`. Rezultatul este un tablou de tablouri în care cheia este valoarea din coloana `categoryId`. Citiți [instrucțiunile detaliate |cookbook/grouping].
-
-```latte
-{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-A se vedea, de asemenea, [batch |#batch], funcția [group |functions#group] și eticheta [iterateWhile |tags#iterateWhile].
-
-
 implode(string glue = '') .[filter]
 -----------------------------------
 Returnează un șir de caractere care este concatenarea șirurilor din matrice. Alias pentru `join`.
@@ -363,7 +339,7 @@ Returnează un șir de caractere care este concatenarea șirurilor din matrice. 
 {=[1, 2, 3]|implode:'|'}  {* iese '1|2|3' *}
 ```
 
-Puteți utiliza și un alias `join`:
+Puteți utiliza și un alias `join`: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* acest "123" *}
@@ -391,8 +367,8 @@ Imprimă:
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Returnează ultimul element al unui array sau caracterul unui șir de caractere:
 
 ```latte
@@ -420,53 +396,6 @@ Returnează lungimea unui șir de caractere sau a unei matrice.
 ```
 
 
-localDate(string format = null, string date = null, string time = null) .[filter]
----------------------------------------------------------------------------------
-Formatează data și ora în funcție de [locale |develop#locale], asigurând afișarea consecventă și localizată a datelor de timp în diferite limbi și regiuni. Filtrul acceptă data ca timestamp UNIX, șir sau obiect `DateTimeInterface`.
-
-**a) Utilizarea formatului**
-
-Parametrul `format` descrie componentele de timp care ar trebui afișate. Acesta utilizează coduri de litere, unde numărul de repetiții afectează lățimea ieșirii:
-
-| An | `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
-| Luna | `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `Jul` / `July`
-| Zi | `d` / `dd` | `1` / `01`
-| Ora | `j` | în formatul preferat al localului
-| Minute | `m` / `mm` | `5` / `05` <small>(2 cifre atunci când sunt combinate cu secundele)</small>
-| Second | `s` / `ss` | `8` / `08` <small>(2 cifre atunci când sunt combinate cu minutele)</small>
-
-Ordinea codurilor în format nu contează, deoarece ordinea componentelor va fi afișată în conformitate cu convențiile locale. Prin urmare, formatul este independent de locale.
-De exemplu, formatul `yyyyMMMMd` în localul `en_US` va afișa `April 15, 2024`, în timp ce în localul `cs_CZ` va afișa `15. dubna 2024`. În mod similar, `MMMM` singur va afișa `duben`, etc.
-
-**b) Utilizarea stilurilor prestabilite**
-
-Parametrii `date` și `time` determină nivelul de detaliu pentru afișarea datei și orei. Puteți alege din mai multe niveluri: `full`, `long`, `medium`, `short`. Puteți afișa doar data, doar ora sau ambele:
-
-```latte
-{$date|localDate: date: short}              {* 1/23/78 *}
-{$date|localDate: date: medium}             {* Jan 23, 1978 *}
-{$date|localDate: date: long}               {* January 23, 1978 *}
-{$date|localDate: date: full}               {* Monday, January 23, 1978 *}
-{$date|localDate: time: short}              {* 2:30 PM *}
-{$date|localDate: date: long, time: medium} {* January 23, 1978 at 2:30:59 PM *}
-ieșirea variază în funcție de locale
-```
-
-Pentru dată, puteți utiliza, de asemenea, prefixul `relative-` (de exemplu, `relative-short`), care pentru datele apropiate de prezent va afișa `yesterday`, `today` sau `tomorrow`; în caz contrar, se va afișa în mod standard.
-
-```latte
-{$date|localDate: date: relative-short}    {* yesterday *}
-```
-
-Dacă utilizați filtrul fără parametri, data va fi afișată la nivelul `long`:
-
-```latte
-{$date|localDate}   {* April 15, 2024 *}
-```
-
-A se vedea și [data |#date].
-
-
 lower .[filter]
 ---------------
 Convertește o valoare în minuscule. Necesită extensia PHP `mbstring`.
@@ -487,8 +416,8 @@ Dacă link-ul utilizează o schemă diferită, cum ar fi `javascript:` sau `data
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href={$link}>checked</a>
-<a href={$link|nocheck}>unchecked</a>
+<a href="{$link}">checked</a>
+<a href="{$link|nocheck}">unchecked</a>
 ```
 
 Tipărituri:
@@ -524,7 +453,7 @@ Folosirea abuzivă a filtrului `noescape` poate duce la o vulnerabilitate XSS! N
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Formatează un număr la un număr specificat de zecimale. Dacă este setată [localitatea |develop#locale], se utilizează separatoarele de zecimale și de mii corespunzătoare.
+Formatează un număr cu un anumit număr de zecimale. De asemenea, puteți specifica un caracter al punctului zecimal și al separatorului de mii.
 
 ```latte
 {1234.20 |number}              1,234
@@ -532,54 +461,6 @@ Formatează un număr la un număr specificat de zecimale. Dacă este setată [l
 {1234.20 |number:2}            1,234.20
 {1234.20 |number:2, ',', ' '}  1 234,20
 ```
-
-
-number(string format) .[filter]
--------------------------------
-Parametrul `format` vă permite să definiți aspectul numerelor exact în funcție de nevoile dumneavoastră. Acesta necesită o [localitate |develop#locale] stabilită. Formatul constă din mai multe caractere speciale, a căror descriere completă poate fi găsită în documentația "DecimalFormat":https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns:
-
-- <c id=6/> cifră obligatorie, afișată întotdeauna chiar dacă este zero
-- `#` cifră opțională, afișată numai dacă numărul are o cifră în acel loc
-- `@` cifră semnificativă, ajută la afișarea numărului cu un anumit număr de cifre semnificative
-- `.` marchează locul unde ar trebui să fie separatorul zecimal (virgulă sau punct, în funcție de localitate)
-- `,` utilizat pentru a separa grupuri de cifre, de obicei mii
-- `%` înmulțește numărul cu 100 și adaugă semnul procentului
-
-Să ne uităm la câteva exemple. În primul exemplu, două zecimale sunt obligatorii; în al doilea, ele sunt opționale. Al treilea exemplu prezintă o umplere cu zerouri pe ambele părți, iar al patrulea afișează doar cifrele existente:
-
-```latte
-{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
-{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
-{1.23  |number: '000.000'}      {* 001.230 *}
-{1.2   |number: '##.##'}        {* 1.2 *}
-```
-
-Cifrele semnificative determină câte cifre, indiferent de punctul zecimal, ar trebui afișate, rotunjind numărul dacă este necesar:
-
-```latte
-{1234|number: '@@'}             {* 1200 *}
-{1234|number: '@@@'}            {* 1230 *}
-{1234|number: '@@@#'}           {* 1234 *}
-{1.2345|number: '@@@'}          {* 1.23 *}
-{0.00123|number: '@@'}          {* 0.0012 *}
-```
-
-O modalitate ușoară de a afișa un număr ca procent. Numărul este înmulțit cu 100 și se adaugă semnul `%`:
-
-```latte
-{0.1234|number: '#.##%'}        {* 12.34% *}
-```
-
-Putem defini un format diferit pentru numerele pozitive și negative, separate de un caracter `;`. În acest fel, de exemplu, numerele pozitive pot fi afișate cu un semn `+`:
-
-```latte
-{42|number: '#.##;(#.##)'}      {* 42 *}
-{-42|number: '#.##;(#.##)'}     {* (42) *}
-{42|number: '+#.##;-#.##'}      {* +42 *}
-{-42|number: '+#.##;-#.##'}     {* -42 *}
-```
-
-Rețineți că aspectul real al numerelor poate varia în funcție de setările locale. De exemplu, în unele țări, se utilizează o virgulă în loc de un punct ca separator zecimal. Acest filtru ține cont automat de acest lucru, deci nu trebuie să vă faceți griji.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -600,8 +481,8 @@ Adaugă un șir de caractere la o anumită lungime cu un alt șir din dreapta.
 ```
 
 
-query  .[filter]
-----------------
+query  .[filter]{data-version:2.10}
+-----------------------------------
 Generează dinamic un șir de interogare în URL:
 
 ```latte
@@ -621,8 +502,8 @@ Cheile cu o valoare de `null` sunt omise.
 A se vedea, de asemenea, [escapeUrl |#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Returnează un element aleatoriu din matrice sau un caracter aleatoriu dintr-un șir de caractere:
 
 ```latte
@@ -650,7 +531,7 @@ replace(string|array search, string replace = '') .[filter]
 {='hello world'|replace: 'world', 'friend'}  {* iese 'hello friend' *}
 ```
 
-Se pot face mai multe înlocuiri deodată:
+Se pot face mai multe înlocuiri deodată: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -692,8 +573,8 @@ Rotunjește un număr la o precizie dată.
 A se vedea, de asemenea, [plafon |#ceil], [podea |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Extrage o porțiune dintr-un tablou sau un șir de caractere.
 
 ```latte
@@ -710,9 +591,9 @@ Filtrul slice funcționează ca funcția PHP `array_slice` pentru array-uri și 
 Filter reordonează și resetează implicit cheile tabloului de numere întregi. Acest comportament poate fi modificat prin setarea preserveKeys la true. Cheile șirurilor de caractere sunt întotdeauna păstrate, indiferent de acest parametru.
 
 
-sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
------------------------------------------------------------------------------------------------------------
-Filtrul sortează elementele unui array sau iterator păstrând cheile lor asociative. Atunci când este setată o [localitate |develop#locale], sortarea urmează regulile acesteia, cu excepția cazului în care este specificată o funcție de comparație personalizată.
+sort  .[filter]{data-version:2.9}
+---------------------------------
+Filtru care sortează o matrice și menține asocierea indicilor.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -728,41 +609,15 @@ Array sortat în ordine inversă.
 {/foreach}
 ```
 
-Puteți specifica o funcție de comparație personalizată pentru sortare (exemplul arată cum se inversează sortarea de la cel mai mare la cel mai mic):
+Puteți trece propria funcție de comparație ca parametru: .{data-version:2.10.2}
 
 ```latte
-{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
-Filtrul `|sort` vă permite, de asemenea, să sortați elementele după cheie:
 
-```latte
-{foreach ($names|sort: byKey: true) as $name}
-	...
-{/foreach}
-```
-
-Dacă aveți nevoie să sortați un tabel după o anumită coloană, puteți utiliza parametrul `by`. Valoarea `'name'` din exemplu specifică faptul că sortarea se va face după `$row->name` sau `$row['name']`, în funcție de faptul că `$row` este o matrice sau un obiect:
-
-```latte
-{foreach ($items|sort: by: 'name') as $item}
-	{$item->name}
-{/foreach}
-```
-
-De asemenea, puteți defini o funcție de apelare care să determine valoarea după care se va sorta:
-
-```latte
-{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
-	{$item->name}
-{/foreach}
-```
-
-Parametrul `byKey` poate fi utilizat în același mod.
-
-
-spaceless  .[filter]
---------------------
+spaceless  .[filter]{data-version:2.10.2}
+-----------------------------------------
 Îndepărtează spațiile albe inutile din rezultat. De asemenea, puteți utiliza aliasul `strip`.
 
 ```latte
@@ -800,8 +655,8 @@ Extrage o porțiune dintr-un șir de caractere. Acest filtru a fost înlocuit cu
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Traduce expresii în alte limbi. Pentru ca filtrul să fie disponibil, trebuie să configurați [translator |develop#TranslatorExtension]. De asemenea, puteți utiliza [etichetele pentru traducere |tags#Translation].
 
 ```latte

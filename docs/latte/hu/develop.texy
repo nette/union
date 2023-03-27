@@ -16,6 +16,8 @@ Támogatott PHP-verziók (a legújabb javított Latte-verziókra vonatkozik):
 | verzió | kompatibilis a PHP-vel
 |-----------------|-------------------
 | Latte 3.0 | PHP 8.0 - 8.2
+| Latte 2.11 | PHP 7.1 - 8.2
+| Latte 2.8 - 2.10 | PHP 7.1 - 8.1
 
 
 Sablonok renderelése .[#toc-how-to-render-a-template]
@@ -131,77 +133,20 @@ Hogyan adhatunk hozzá egyéni szűrőt, funkciót, címkét stb. a Latte-hoz? M
 Ha a módosításait különböző projektekben szeretné újra felhasználni, vagy ha meg akarja osztani másokkal, akkor [hozzon létre egy kiterjesztést |creating-extension].
 
 
-Bármilyen kód a sablonban `{php ...}` .{toc: RawPhpExtension}
-=============================================================
+Bármilyen kód a sablonban `{php ...}` .{data-version:3.0}{toc: RawPhpExtension}
+===============================================================================
 
 Csak PHP kifejezéseket lehet írni a [`{do}` |tags#do] taget, így például nem lehet olyan konstrukciókat beilleszteni, mint a `if ... else` vagy a pontosvesszővel végződő utasítások.
 
-Regisztrálhatja azonban a `RawPhpExtension` bővítményt, amely hozzáadja a `{php ...}` címkét. Ezzel bármilyen PHP-kódot beilleszthet. Nem vonatkoznak rá a sandbox mód szabályai, így használata a sablon szerzőjének felelőssége.
+Regisztrálhatja azonban a `RawPhpExtension` bővítményt, amely hozzáadja a `{php ...}` taget, amely a sablon szerzőjének felelősségére bármilyen PHP-kód beillesztésére használható.
 
 ```php
 $latte->addExtension(new Latte\Essential\RawPhpExtension);
 ```
 
 
-Generált kód ellenőrzése .[#toc-checking-generated-code]{data-version:3.0.7}
-============================================================================
-
-A Latte a sablonokat PHP kóddá fordítja. Természetesen biztosítja, hogy a generált kód szintaktikailag érvényes legyen. Azonban harmadik féltől származó kiterjesztések vagy a RawPhpExtension használata esetén a Latte nem tudja garantálni a generált fájl helyességét.
-Emellett a PHP-ben írhat olyan kódot is, amely szintaktikailag helyes, de tiltott (például értéket rendel a $this változóhoz), és PHP Compile Error-t okoz.
-Ha ilyen műveletet ír egy sablonba, akkor az a generált PHP-kódban is benne lesz. Mivel a PHP-ban több mint kétszáz különböző tiltott művelet létezik, a Latte nem törekszik ezek felismerésére. A PHP maga jelzi őket rendereléskor, ami általában nem jelent problémát.
-
-Vannak azonban olyan helyzetek, amikor a sablon fordítása során tudni szeretné, hogy az nem tartalmaz-e PHP Compile Errors-t (PHP fordítási hibát). Különösen akkor, ha a sablonokat a felhasználók szerkeszthetik, vagy ha [Sandboxot |Sandbox] használ. Ilyen esetben ellenőrizze a sablonokat a fordítás során.
-Ezt a funkciót az Engine::enablePhpLint() metódus segítségével aktiválhatja. Mivel az ellenőrzéshez meg kell hívnia a PHP binárisát, adja meg annak elérési útját paraméterként:
-
-```php
-$latte = new Latte\Engine;
-$latte->enablePhpLinter('/path/to/php');
-
-try {
-	$latte->compile('home.latte');
-} catch (Latte\CompileException $e) {
-	// elkapja a Latte hibákat és a Compile Error-t a PHP-ban
-	echo 'Error: ' . $e->getMessage();
-}
-```
-
-
-Helyszín .[#toc-locale]{data-version:3.0.18}
-============================================
-
-A Latte lehetővé teszi a helyi nyelv beállítását, amely befolyásolja a számok, dátumok és a rendezés formázását. A beállítás a `setLocale()` módszerrel történik. A locale azonosító követi az IETF nyelvi tag szabványát, amely a PHP `intl` kiterjesztését használja. Ez egy nyelvkódból és esetleg egy országkódból áll, például `en_US` az Egyesült Államokban az angol nyelvhez, `de_DE` a német nyelvhez Németországban, stb.
-
-```php
-$latte = new Latte\Engine;
-$latte->setLocale('cs');
-```
-
-A nyelvi beállítás befolyásolja a [localDate |filters#localDate], [sort |filters#sort], [number |filters#number] és [bytes |filters#bytes] szűrőket.
-
-.[note]
-A PHP `intl` bővítményt igényli. A Latte beállítása nem befolyásolja a PHP globális nyelvi beállítását.
-
-
-Szigorú üzemmód .[#toc-strict-mode]{data-version:3.0.8}
-=======================================================
-
-Szigorú elemzési módban a Latte ellenőrzi a hiányzó záró HTML-címkéket, és letiltja a `$this` változó használatát. Bekapcsolásához:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictParsing();
-```
-
-A `declare(strict_types=1)` fejléccel rendelkező sablonok generálásához tegye a következőket:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictTypes();
-```
-
-
-Fordítás a sablonokban .{toc: TranslatorExtension}
-==================================================
+Fordítás a sablonokban .{data-version:3.0}{toc: TranslatorExtension}
+====================================================================
 
 A `TranslatorExtension` kiterjesztés használatával [`{_...}` |tags#_], [`{translate}` |tags#translate] és szűrje [`translate` |filters#translate] a sablonhoz. Ezek a sablon értékeinek vagy részeinek más nyelvekre történő lefordítására szolgálnak. A paraméter az a metódus (PHP hívható), amely a fordítást elvégzi:
 
@@ -270,16 +215,14 @@ Ugyanakkor a jobb alsó sarokban, az úgynevezett Tracy Barban megjelenik a Latt
 Mivel a Latte a sablonokat olvasható PHP-kóddá fordítja le, kényelmesen lépkedhetsz rajtuk az IDE-ben.
 
 
-Linter: A sablon szintaxisának validálása .{toc: Linter}
-========================================================
+Linter: A sablon szintaxisának validálása .{data-version:2.11}{toc: Linter}
+===========================================================================
 
 A Linter eszköz segít átnézni az összes sablont, és ellenőrizni a szintaxis hibákat. A konzolról indítható:
 
 ```shell
 vendor/bin/latte-lint <path>
 ```
-
-A `--strict` paraméterrel aktiválhatja a [szigorú üzemmódot|#strict mode].
 
 Ha egyéni címkéket használ, hozza létre az egyéni Lintert is, például `custom-latte-lint`:
 
@@ -290,23 +233,17 @@ Ha egyéni címkéket használ, hozza létre az egyéni Lintert is, például `c
 // adja meg az autoload.php fájl tényleges elérési útvonalát
 require __DIR__ . '/vendor/autoload.php';
 
-$path = $argv[1] ?? '.';
+$linter = new Latte\Tools\Linter($engine);
+$linter->scanDirectory($path);
 
-$linter = new Latte\Tools\Linter;
-$latte = $linter->getEngine();
-// itt adja hozzá az egyéni kiterjesztéseket
-$latte->addExtension(/* ... */);
+$engine = new Latte\Engine;
+// itt regisztrálja az egyes kiterjesztéseket
+$engine->addExtension(/* ... */);
 
+$path = $argv[1];
+$linter = new Latte\Tools\Linter(engine: $engine);
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);
-```
-
-Alternatívaként átadhatja saját `Latte\Engine` objektumát is a Linter-nek:
-
-```php
-$latte = new Latte\Engine;
-// itt konfiguráljuk a $latte objektumot
-$linter = new Latte\Tools\Linter(engine: $latte);
 ```
 
 

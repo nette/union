@@ -16,6 +16,8 @@ Obsługiwane wersje PHP (dotyczy najnowszych wersji Latte z łatką):
 | wersja | kompatybilna z PHP
 |-----------------|-------------------
 | Latte 3.0 | PHP 8.0 - 8.2
+| Latte 2.11 | PHP 7.1 - 8.2
+| Latte 2.8 - 2.10| PHP 7.1 - 8.1
 
 
 Jak renderować szablon .[#toc-how-to-render-a-template]
@@ -131,77 +133,20 @@ Jak dodać niestandardowy filtr, funkcję, tag itp. do Latte? Jest to temat rozd
 Jeśli chcesz ponownie użyć swoich dostosowań w różnych projektach lub podzielić się nimi z innymi, powinieneś [utworzyć rozszerzenie |creating-extension].
 
 
-Dowolny kod w szablonie `{php ...}` .{toc: RawPhpExtension}
-===========================================================
+Dowolny kod w szablonie `{php ...}` .{data-version:3.0}{toc: RawPhpExtension}
+=============================================================================
 
 Wewnątrz tagu [`{do}` |tags#do] może zawierać tylko wyrażenia PHP, więc nie możesz wstawiać takich konstrukcji jak `if ... else` czy wyrażenia zakończone średnikiem.
 
-Można jednak zarejestrować rozszerzenie `RawPhpExtension`, które dodaje znacznik `{php ...}`. Można go użyć do wstawienia dowolnego kodu PHP. Nie podlega on żadnym zasadom trybu piaskownicy, więc odpowiedzialność za jego użycie ponosi autor szablonu.
+Można jednak zarejestrować rozszerzenie `RawPhpExtension`, które dodaje znacznik `{php ...}`, za pomocą którego można wstawić dowolny kod PHP na ryzyko autora szablonu.
 
 ```php
 $latte->addExtension(new Latte\Essential\RawPhpExtension);
 ```
 
 
-Sprawdzanie wygenerowanego kodu .[#toc-checking-generated-code]{data-version:3.0.7}
-===================================================================================
-
-Latte kompiluje szablony do kodu PHP. Oczywiście zapewnia, że wygenerowany kod jest poprawny składniowo. Jednak w przypadku korzystania z rozszerzeń innych firm lub RawPhpExtension, Latte nie może zagwarantować poprawności wygenerowanego pliku.
-Ponadto w PHP można napisać kod, który jest poprawny składniowo, ale jest zabroniony (na przykład przypisanie wartości do zmiennej $this) i powoduje błąd kompilacji PHP.
-Jeśli napiszesz taką operację w szablonie, zostanie ona również uwzględniona w wygenerowanym kodzie PHP. Ponieważ w PHP istnieje ponad dwieście różnych niedozwolonych operacji, Latte nie ma na celu ich wykrywania. Samo PHP oznaczy je podczas renderowania, co zwykle nie stanowi problemu.
-
-Istnieją jednak sytuacje, w których chcesz wiedzieć podczas kompilacji szablonu, że nie zawiera on błędów kompilacji PHP. Zwłaszcza, gdy szablony mogą być edytowane przez użytkowników lub korzystasz z [Sandbox |Sandbox]. W takim przypadku należy sprawdzić szablony podczas kompilacji.
-Możesz aktywować tę funkcjonalność za pomocą metody Engine::enablePhpLint(). Ponieważ musi ona wywołać plik binarny PHP w celu sprawdzenia, należy przekazać jego ścieżkę jako parametr:
-
-```php
-$latte = new Latte\Engine;
-$latte->enablePhpLinter('/path/to/php');
-
-try {
-	$latte->compile('home.latte');
-} catch (Latte\CompileException $e) {
-	// wyłapuje błędy Latte, a także błąd kompilacji w PHP
-	echo 'Error: ' . $e->getMessage();
-}
-```
-
-
-Lokalizacja .[#toc-locale]{data-version:3.0.18}
-===============================================
-
-Latte pozwala ustawić ustawienia regionalne, które wpływają na formatowanie liczb, dat i sortowanie. Jest on ustawiany przy użyciu metody `setLocale()`. Identyfikator ustawień regionalnych jest zgodny ze standardem znaczników językowych IETF, który wykorzystuje rozszerzenie PHP `intl`. Składa się z kodu języka i ewentualnie kodu kraju, na przykład `en_US` dla języka angielskiego w Stanach Zjednoczonych, `de_DE` dla języka niemieckiego w Niemczech itp.
-
-```php
-$latte = new Latte\Engine;
-$latte->setLocale('cs');
-```
-
-Ustawienie locale wpływa na filtry [localDate |filters#localDate], [sort |filters#sort], [number |filters#number] i [bytes |filters#bytes].
-
-.[note]
-Wymaga rozszerzenia PHP `intl`. Ustawienie w Latte nie wpływa na globalne ustawienie locale w PHP.
-
-
-Tryb ścisły .[#toc-strict-mode]{data-version:3.0.8}
-===================================================
-
-W trybie ścisłego parsowania Latte sprawdza, czy nie brakuje zamykających znaczników HTML, a także wyłącza użycie zmiennej `$this`. Aby go włączyć:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictParsing();
-```
-
-Aby wygenerować szablony z nagłówkiem `declare(strict_types=1)`, wykonaj następujące czynności:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictTypes();
-```
-
-
-Tłumaczenie w szablonach .{toc: TranslatorExtension}
-====================================================
+Tłumaczenie w szablonach .{data-version:3.0}{toc: TranslatorExtension}
+======================================================================
 
 Użyj rozszerzenia `TranslatorExtension`, aby dodać tagi do swojego szablonu [`{_...}` |tags#_], [`{translate}` |tags#translate] i filtr [`translate` |filters#translate]. Służy do tłumaczenia wartości lub części szablonu na inne języki. Jako parametr określ metodę (callable PHP) wykonującą tłumaczenie:
 
@@ -270,16 +215,14 @@ Jednocześnie w prawym dolnym rogu Tracy Bar pojawia się zakładka Latte, na kt
 Ponieważ Latte kompiluje szablony do czytelnego kodu PHP, możesz wygodnie przejść przez nie w swoim IDE.
 
 
-Linter: Sprawdzanie poprawności składni szablonu .{toc: Linter}
-===============================================================
+Linter: Sprawdzanie poprawności składni szablonu .{data-version:2.11}{toc: Linter}
+==================================================================================
 
 Narzędzie Linter pomoże Ci przejść przez wszystkie szablony i sprawdzić błędy składni. Jest ono uruchamiane z konsoli:
 
 ```shell
 vendor/bin/latte-lint <path>
 ```
-
-Użyj parametru `--strict`, aby aktywować [tryb ścisły|#strict mode].
 
 Jeśli używasz niestandardowych znaczników, utwórz również swój niestandardowy Linter, np. `custom-latte-lint`:
 
@@ -290,23 +233,17 @@ Jeśli używasz niestandardowych znaczników, utwórz również swój niestandar
 // wprowadź rzeczywistą ścieżkę do pliku autoload.php
 require __DIR__ . '/vendor/autoload.php';
 
-$path = $argv[1] ?? '.';
+$linter = new Latte\Tools\Linter($engine);
+$linter->scanDirectory($path);
 
-$linter = new Latte\Tools\Linter;
-$latte = $linter->getEngine();
-// dodaj tutaj swoje indywidualne rozszerzenia
-$latte->addExtension(/* ... */);
+$engine = new Latte\Engine;
+// rejestruje poszczególne rozszerzenia tutaj
+$engine->addExtension(/* ... */);
 
+$path = $argv[1];
+$linter = new Latte\Tools\Linter(engine: $engine);
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);
-```
-
-Alternatywnie, można przekazać własny obiekt `Latte\Engine` do aplikacji Linter:
-
-```php
-$latte = new Latte\Engine;
-// tutaj konfigurujemy obiekt $latte
-$linter = new Latte\Tools\Linter(engine: $latte);
 ```
 
 

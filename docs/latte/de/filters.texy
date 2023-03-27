@@ -11,16 +11,14 @@ Filter sind Funktionen, die die Daten in der gewünschten Form verändern oder f
 | `bytes` | [formatiert Größe in Bytes |#bytes]
 | `clamp` | [klemmt Wert auf den Bereich |#clamp]
 | `dataStream` | [Konvertierung des Daten-URI-Protokolls |#datastream]
-| `date` | [formatiert das Datum und die Uhrzeit |#date]
+| `date` | [formatiert Datum |#date]
 | `explode` | [trennt eine Zeichenkette durch das angegebene Trennzeichen auf |#explode]
 | `first` | [gibt das erste Element eines Arrays oder ein Zeichen einer Zeichenkette zurück |#first]
-| `group` | [gruppiert Daten nach verschiedenen Kriterien |#group]
 | `implode` | [fügt ein Array zu einer Zeichenkette zusammen |#implode]
 | `indent` | [rückt den Text von links mit einer Anzahl von Tabulatorenein |#indent]
 | `join` | [verbindet ein Array mit einer Zeichenkette|#implode]
 | `last` | [gibt das letzte Element eines Arrays oder ein Zeichen einer Zeichenkette zurück |#last]
 | `length` | [gibt die Länge einer Zeichenkette oder eines Arrays zurück |#length]
-| `localDate` | [formatiert das Datum und die Uhrzeit entsprechend dem Gebietsschema |#localDate]
 | `number` | [formatiert Zahlen |#number]
 | `padLeft` | [vervollständigt die Zeichenkette auf die angegebene Länge von links |#padLeft]
 | `padRight` | [vervollständigt die Zeichenkette auf die angegebene Länge von rechts |#padRight]
@@ -120,8 +118,8 @@ Filter .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Filter, der die Auflistung von linearen Daten in Form einer Tabelle vereinfacht. Er gibt ein Array von Arrays mit der angegebenen Anzahl von Elementen zurück. Wenn Sie einen zweiten Parameter angeben, wird dieser verwendet, um fehlende Elemente in der letzten Zeile aufzufüllen.
 
 ```latte
@@ -154,8 +152,6 @@ Druckt:
 </table>
 ```
 
-Siehe auch [group |#group] und [iterateWhile-Tag |tags#iterateWhile].
-
 
 breakLines .[filter]
 --------------------
@@ -169,7 +165,7 @@ Fügt HTML-Zeilenumbrüche vor allen Zeilenumbrüchen ein.
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Formatiert die Größe in Bytes in eine für Menschen lesbare Form. Wenn das [Gebietsschema |develop#locale] festgelegt ist, werden die entsprechenden Dezimal- und Tausendertrennzeichen verwendet.
+Formatiert eine Größe in Bytes in eine für Menschen lesbare Form.
 
 ```latte
 {$size|bytes}     0 B, 1.25 GB, …
@@ -207,8 +203,8 @@ Erzwingt URL-Sanitization. Sie prüft, ob die Variable eine Web-URL enthält (d.
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href={$link|checkUrl}>checked</a>
-<a data-href={$link}>unchecked</a>
+<a data-href="{$link|checkUrl}">checked</a>
+<a data-href="{$link}">unchecked</a>
 ```
 
 Druckt:
@@ -221,8 +217,8 @@ Druckt:
 Siehe auch [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Gibt einen Wert zurück, der auf den einschließenden Bereich von min und max geklemmt ist.
 
 ```latte
@@ -239,7 +235,7 @@ Konvertiert den Inhalt in ein Daten-URI-Schema. Es kann verwendet werden, um Bil
 Nehmen wir an, ein Bild befindet sich in einer Variablen `$img = Image::fromFile('obrazek.gif')`, dann
 
 ```latte
-<img src={$img|dataStream}>
+<img src="{$img|dataStream}">
 ```
 
 Druckt zum Beispiel:
@@ -256,13 +252,12 @@ Erfordert die PHP-Erweiterung `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Formatiert das Datum und die Uhrzeit entsprechend der Maske, die von der PHP-Funktion [php:date] verwendet wird. Der Filter akzeptiert das Datum im UNIX-Zeitstempelformat, als String oder als `DateTimeInterface` Objekt.
+Liefert ein Datum im angegebenen Format unter Verwendung der Optionen der PHP-Funktionen [php:strftime] oder [php:date]. Der Filter erhält ein Datum als UNIX-Zeitstempel, als String oder als Objekt vom Typ `DateTime`.
 
 ```latte
+{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
-
-Siehe auch [localDate |#localDate].
 
 
 escapeUrl .[filter]
@@ -276,8 +271,8 @@ Entfernt eine Variable, die als Parameter in einer URL verwendet werden soll.
 Siehe auch [Abfrage |#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Teilt eine Zeichenkette durch den angegebenen Begrenzer und gibt ein Array von Zeichenketten zurück. Alias für `split`.
 
 ```latte
@@ -299,8 +294,8 @@ Sie können auch den Alias `split` verwenden:
 Siehe auch [implode |#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Gibt das erste Element eines Arrays oder ein Zeichen einer Zeichenkette zurück:
 
 ```latte
@@ -335,25 +330,6 @@ Konvertiert den ersten Buchstaben eines Wertes in Großbuchstaben. Erfordert die
 Siehe auch [capitalize |#capitalize], [lower |#lower], [upper |#upper].
 
 
-group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
--------------------------------------------------------------------
-Der Filter gruppiert die Daten nach verschiedenen Kriterien.
-
-In diesem Beispiel werden die Zeilen in der Tabelle nach der Spalte `categoryId` gruppiert. Die Ausgabe ist ein Array von Arrays, wobei der Schlüssel der Wert in der Spalte `categoryId` ist. Lesen Sie die [ausführliche Anleitung |cookbook/grouping].
-
-```latte
-{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Siehe auch [Batch |#batch], die [Gruppenfunktion |functions#group] und das [iterateWhile-Tag |tags#iterateWhile].
-
-
 implode(string glue = '') .[filter]
 -----------------------------------
 Gibt eine Zeichenkette zurück, die die Verkettung der Zeichenketten im Array ist. Alias für `join`.
@@ -363,7 +339,7 @@ Gibt eine Zeichenkette zurück, die die Verkettung der Zeichenketten im Array is
 {=[1, 2, 3]|implode:'|'}  {* gibt '1|2|3' *}
 ```
 
-Sie können auch einen Alias `join` verwenden:
+Sie können auch einen Alias `join` verwenden: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* gibt '123' *}
@@ -391,8 +367,8 @@ Druckt:
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Gibt das letzte Element eines Arrays oder ein Zeichen einer Zeichenkette zurück:
 
 ```latte
@@ -420,53 +396,6 @@ Gibt die Länge einer Zeichenkette oder eines Arrays zurück.
 ```
 
 
-localDate(string format = null, string date = null, string time = null) .[filter]
----------------------------------------------------------------------------------
-Formatiert Datum und Uhrzeit entsprechend dem [Gebietsschema |develop#locale], um eine konsistente und lokalisierte Anzeige von Zeitdaten in verschiedenen Sprachen und Regionen zu gewährleisten. Der Filter akzeptiert das Datum als UNIX-Zeitstempel, String oder `DateTimeInterface` Objekt.
-
-**a) Verwendung des Formats**
-
-Der Parameter `format` beschreibt, welche Zeitkomponenten angezeigt werden sollen. Er verwendet Buchstabencodes, wobei die Anzahl der Wiederholungen die Breite der Ausgabe beeinflusst:
-
-| Jahr | `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
-| Monat | `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `Jul` / `July`
-| Tag | `d` / `dd` | `1` / `01`
-| Stunde | `j` | im bevorzugten Format des jeweiligen Gebietsschemas
-| Minute | `m` / `mm` | `5` / `05` <small>(2-stellig, wenn mit Sekunden kombiniert)</small>
-| Sekunde | `s` / `ss` | `8` / `08` <small>(2 Ziffern, wenn mit Minuten kombiniert)</small>
-
-Die Reihenfolge der Codes im Format spielt keine Rolle, da die Reihenfolge der Komponenten gemäß den Konventionen des jeweiligen Gebietsschemas angezeigt wird. Daher ist das Format ortsunabhängig.
-So wird beispielsweise das Format `yyyyMMMMd` im Gebietsschema `en_US` als `April 15, 2024` angezeigt, während es im Gebietsschema `cs_CZ` als `15. dubna 2024` angezeigt wird. In ähnlicher Weise wird `MMMM` allein `duben` anzeigen, usw.
-
-**b) Verwendung voreingestellter Stile**
-
-Die Parameter `date` und `time` bestimmen den Detaillierungsgrad der Datums- und Zeitanzeige. Sie können aus mehreren Stufen wählen: `full`, `long`, `medium`, `short`. Sie können nur das Datum, nur die Uhrzeit oder beides anzeigen lassen:
-
-```latte
-{$date|localDate: date: short}              {* 1/23/78 *}
-{$date|localDate: date: medium}             {* Jan 23, 1978 *}
-{$date|localDate: date: long}               {* January 23, 1978 *}
-{$date|localDate: date: full}               {* Monday, January 23, 1978 *}
-{$date|localDate: time: short}              {* 2:30 PM *}
-{$date|localDate: date: long, time: medium} {* January 23, 1978 at 2:30:59 PM *}
-die Ausgabe variiert je nach Gebietsschema
-```
-
-Für das Datum können Sie auch das Präfix `relative-` verwenden (z. B. `relative-short`), das für Daten, die kurz vor der Gegenwart liegen, `yesterday`, `today` oder `tomorrow` anzeigt; andernfalls erfolgt die Anzeige auf die übliche Weise.
-
-```latte
-{$date|localDate: date: relative-short}    {* yesterday *}
-```
-
-Wenn Sie den Filter ohne Parameter verwenden, wird das Datum auf der Ebene `long` angezeigt:
-
-```latte
-{$date|localDate}   {* April 15, 2024 *}
-```
-
-Siehe auch [Datum |#date].
-
-
 lower .[filter]
 ---------------
 Konvertiert einen Wert in Kleinbuchstaben. Erfordert die PHP-Erweiterung `mbstring`.
@@ -487,8 +416,8 @@ Wenn der Link ein anderes Schema verwendet, z. B. `javascript:` oder `data:`, un
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href={$link}>checked</a>
-<a href={$link|nocheck}>unchecked</a>
+<a href="{$link}">checked</a>
+<a href="{$link|nocheck}">unchecked</a>
 ```
 
 Drucke:
@@ -524,7 +453,7 @@ Die missbräuchliche Verwendung des `noescape` Filters kann zu einer XSS-Schwach
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Formatiert eine Zahl mit einer bestimmten Anzahl von Dezimalstellen. Wenn das [Gebietsschema |develop#locale] festgelegt ist, werden die entsprechenden Dezimal- und Tausendertrennzeichen verwendet.
+Formatiert eine Zahl auf eine bestimmte Anzahl von Dezimalstellen. Sie können auch ein Zeichen für den Dezimalpunkt und das Tausendertrennzeichen angeben.
 
 ```latte
 {1234.20 |number}              1,234
@@ -532,54 +461,6 @@ Formatiert eine Zahl mit einer bestimmten Anzahl von Dezimalstellen. Wenn das [G
 {1234.20 |number:2}            1,234.20
 {1234.20 |number:2, ',', ' '}  1 234,20
 ```
-
-
-number(string format) .[filter]
--------------------------------
-Mit dem Parameter `format` können Sie das Aussehen von Zahlen genau nach Ihren Bedürfnissen festlegen. Er erfordert ein festgelegtes [Gebietsschema |develop#locale]. Das Format besteht aus mehreren Sonderzeichen, deren vollständige Beschreibung in der Dokumentation "DecimalFormat":https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns zu finden ist:
-
-- <c id=6/> obligatorische Ziffer, wird immer angezeigt, auch wenn sie Null ist
-- `#` optionale Ziffer, wird nur angezeigt, wenn die Zahl eine Ziffer an dieser Stelle hat
-- `@` signifikante Ziffer, hilft bei der Anzeige der Zahl mit einer bestimmten Anzahl signifikanter Ziffern
-- `.` markiert die Stelle, an der das Dezimaltrennzeichen stehen soll (Komma oder Punkt, je nach Gebietsschema)
-- `,` wird verwendet, um Gruppen von Ziffern zu trennen, normalerweise Tausender
-- `%` multipliziert die Zahl mit 100 und fügt das Prozentzeichen hinzu
-
-Schauen wir uns einige Beispiele an. Im ersten Beispiel sind zwei Dezimalstellen obligatorisch, im zweiten sind sie optional. Das dritte Beispiel zeigt Auffüllungen mit Nullen auf beiden Seiten, und das vierte Beispiel zeigt nur die vorhandenen Ziffern an:
-
-```latte
-{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
-{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
-{1.23  |number: '000.000'}      {* 001.230 *}
-{1.2   |number: '##.##'}        {* 1.2 *}
-```
-
-Signifikante Ziffern legen fest, wie viele Ziffern, unabhängig vom Dezimalpunkt, angezeigt werden sollen, wobei die Zahl gegebenenfalls gerundet wird:
-
-```latte
-{1234|number: '@@'}             {* 1200 *}
-{1234|number: '@@@'}            {* 1230 *}
-{1234|number: '@@@#'}           {* 1234 *}
-{1.2345|number: '@@@'}          {* 1.23 *}
-{0.00123|number: '@@'}          {* 0.0012 *}
-```
-
-Eine einfache Möglichkeit, eine Zahl als Prozentsatz anzuzeigen. Die Zahl wird mit 100 multipliziert und das Zeichen `%` wird hinzugefügt:
-
-```latte
-{0.1234|number: '#.##%'}        {* 12.34% *}
-```
-
-Wir können ein unterschiedliches Format für positive und negative Zahlen definieren, die durch ein `;` Zeichen getrennt sind. Auf diese Weise können z. B. positive Zahlen mit einem `+` -Zeichen angezeigt werden:
-
-```latte
-{42|number: '#.##;(#.##)'}      {* 42 *}
-{-42|number: '#.##;(#.##)'}     {* (42) *}
-{42|number: '+#.##;-#.##'}      {* +42 *}
-{-42|number: '+#.##;-#.##'}     {* -42 *}
-```
-
-Denken Sie daran, dass das tatsächliche Aussehen von Zahlen je nach den Einstellungen des Gebietsschemas variieren kann. In einigen Ländern wird zum Beispiel ein Komma anstelle eines Punktes als Dezimaltrennzeichen verwendet. Dieser Filter berücksichtigt dies automatisch, so dass Sie sich darüber keine Gedanken machen müssen.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -600,8 +481,8 @@ Füllt eine Zeichenfolge auf eine bestimmte Länge mit einer anderen Zeichenfolg
 ```
 
 
-query  .[filter]
-----------------
+query  .[filter]{data-version:2.10}
+-----------------------------------
 Erzeugt dynamisch eine Abfragezeichenfolge in der URL:
 
 ```latte
@@ -621,8 +502,8 @@ Tasten mit einem Wert von `null` werden ausgelassen.
 Siehe auch [escapeUrl |#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Gibt ein zufälliges Element eines Arrays oder ein Zeichen einer Zeichenkette zurück:
 
 ```latte
@@ -650,7 +531,7 @@ Ersetzt alle Vorkommen der Suchzeichenfolge durch die Ersatzzeichenfolge.
 {='hello world'|replace: 'world', 'friend'}  {* gibt 'hello friend' *}
 ```
 
-Es können mehrere Ersetzungen auf einmal vorgenommen werden:
+Es können mehrere Ersetzungen auf einmal vorgenommen werden: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* gibt 'lehho worhd' *}
@@ -692,8 +573,8 @@ Rundet eine Zahl auf eine bestimmte Genauigkeit.
 Siehe auch [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Extrahiert einen Ausschnitt aus einem Array oder einer Zeichenkette.
 
 ```latte
@@ -710,9 +591,9 @@ Wenn length angegeben wird und positiv ist, wird die Sequenz bis zu dieser Anzah
 Filter ordnet die Schlüssel des Integer-Arrays standardmäßig neu an und setzt sie zurück. Dieses Verhalten kann geändert werden, indem preserveKeys auf true gesetzt wird. String-Schlüssel werden immer beibehalten, unabhängig von diesem Parameter.
 
 
-sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
------------------------------------------------------------------------------------------------------------
-Der Filter sortiert Elemente eines Arrays oder Iterators unter Beibehaltung ihrer assoziativen Schlüssel. Wenn ein [Gebietsschema |develop#locale] festgelegt ist, folgt die Sortierung dessen Regeln, es sei denn, eine benutzerdefinierte Vergleichsfunktion ist angegeben.
+sort  .[filter]{data-version:2.9}
+---------------------------------
+Filter, der ein Array sortiert und die Indexzuordnung beibehält.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -728,41 +609,15 @@ Array in umgekehrter Reihenfolge sortiert.
 {/foreach}
 ```
 
-Sie können eine benutzerdefinierte Vergleichsfunktion für die Sortierung angeben (das Beispiel zeigt, wie Sie die Sortierung von der größten zur kleinsten umkehren können):
+Sie können Ihre eigene Vergleichsfunktion als Parameter übergeben: .{data-version:2.10.2}
 
 ```latte
-{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
-Mit dem Filter `|sort` können Sie auch Elemente nach Schlüssel sortieren:
 
-```latte
-{foreach ($names|sort: byKey: true) as $name}
-	...
-{/foreach}
-```
-
-Wenn Sie eine Tabelle nach einer bestimmten Spalte sortieren müssen, können Sie den Parameter `by` verwenden. Der Wert `'name'` im Beispiel gibt an, dass die Sortierung nach `$row->name` oder `$row['name']`erfolgt, je nachdem, ob `$row` ein Array oder ein Objekt ist:
-
-```latte
-{foreach ($items|sort: by: 'name') as $item}
-	{$item->name}
-{/foreach}
-```
-
-Sie können auch eine Callback-Funktion definieren, die den Wert bestimmt, nach dem sortiert wird:
-
-```latte
-{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
-	{$item->name}
-{/foreach}
-```
-
-Der Parameter `byKey` kann auf dieselbe Weise verwendet werden.
-
-
-spaceless  .[filter]
---------------------
+spaceless  .[filter]{data-version:2.10.2}
+-----------------------------------------
 Entfernt unnötige Leerzeichen aus der Ausgabe. Sie können auch den Alias `strip` verwenden.
 
 ```latte
@@ -800,8 +655,8 @@ Extrahiert einen Ausschnitt aus einer Zeichenkette. Dieser Filter wurde durch ei
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Er übersetzt Ausdrücke in andere Sprachen. Um den Filter verfügbar zu machen, müssen Sie den [Übersetzer ein richten|develop#TranslatorExtension]. Sie können auch die [Tags für die Übersetzung |tags#Translation] verwenden.
 
 ```latte

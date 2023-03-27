@@ -107,7 +107,7 @@ Formularz jest zawsze walidowany po stronie serwera, ale generuje również wali
 Wstaw go na stronę:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Jeśli spojrzysz na kod źródłowy strony formularza, możesz zauważyć, że Nette wstawia wymagane elementy z klasą CSS `required`. Spróbuj dodać następujący arkusz stylów do szablonu, a etykieta "Nazwa" będzie czerwona. Dzięki temu w elegancki sposób zaznaczymy dla użytkowników elementy obowiązkowe:
@@ -207,7 +207,7 @@ class RegistrationFormData
 }
 ```
 
-Alternatywnie można użyć konstruktora:
+Od PHP 8.0 możesz użyć tej eleganckiej notacji, która wykorzystuje konstruktor:
 
 ```php
 class RegistrationFormData
@@ -220,8 +220,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Właściwości klasy danych mogą być również wyliczeniami i zostaną automatycznie zmapowane. .{data-version:3.2.4}
 
 Jak powiedzieć Nette, aby zwracała dane jako obiekty tej klasy? Łatwiejsze niż myślisz. Wystarczy, że jako parametr podasz nazwę klasy lub obiektu do nawodnienia:
 
@@ -259,8 +257,6 @@ Mapowanie wie wtedy z typu właściwości `$person`, że powinno mapować konten
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Propozycję klasy danych formularza można wygenerować za pomocą metody `Nette\Forms\Blueprint::dataClass($form)`, która wydrukuje ją na stronie przeglądarki. Następnie wystarczy kliknąć, aby wybrać i skopiować kod do swojego projektu. .{data-version:3.1.15}
 
 
 Więcej przycisków .[#toc-multiple-submit-buttons]

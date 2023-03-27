@@ -30,7 +30,7 @@ Obrazec v predstavitvi je objekt razreda `Nette\Application\UI\Form`, njegov pre
 
 Z vidika predstavnika je obrazec skupna komponenta. Zato ga obravnavamo kot komponento in ga vključimo v predstavitveni program z uporabo [tovarniške metode |application:components#Factory Methods]. To bo videti takole:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
@@ -59,7 +59,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Prikaz v predlogi pa se izvede z uporabo oznake `{control}`:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Home/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ Obrazec se vedno potrdi na strani strežnika, vendar se ustvari tudi potrditev J
 Vstavite jo v predlogo postavitve:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Če pogledate izvorno kodo strani z obrazcem, lahko opazite, da Nette vstavi zahtevana polja v elemente z razredom CSS `required`. Poskusite v predlogo dodati naslednji slog in oznaka "Ime" bo rdeča. Na eleganten način označimo zahtevana polja za uporabnike:
@@ -232,7 +232,7 @@ class RegistrationFormData
 }
 ```
 
-Uporabite lahko tudi konstruktor:
+Od različice PHP 8.0 lahko uporabite eleganten zapis, ki uporablja konstruktor:
 
 ```php
 class RegistrationFormData
@@ -245,8 +245,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Lastnosti podatkovnega razreda so lahko tudi enumi in bodo samodejno preslikani. .{data-version:3.2.4}
 
 Kako reči Nette, naj vrne podatke kot predmete tega razreda? Lažje, kot si mislite. Vse, kar morate storiti, je določiti razred kot tip parametra `$data` v izvajalcu:
 
@@ -295,8 +293,6 @@ Prikazovanje nato na podlagi vrste lastnosti `$person` ugotovi, da mora vsebnik 
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Predlog podatkovnega razreda obrazca lahko ustvarite z metodo `Nette\Forms\Blueprint::dataClass($form)`, ki ga izpiše na strani brskalnika. Nato lahko preprosto kliknete, da izberete in kopirate kodo v svoj projekt. .{data-version:3.1.15}
 
 
 Več gumbov za pošiljanje .[#toc-multiple-submit-buttons]

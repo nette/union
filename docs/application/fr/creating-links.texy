@@ -38,7 +38,7 @@ Il est également possible de passer des paramètres nommés. Le lien suivant pa
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Si la méthode `ProductPresenter::renderShow()` n'a pas `$lang` dans sa signature, elle peut récupérer la valeur du paramètre à l'aide de `$lang = $this->getParameter('lang')` ou de la [propriété |presenters#Request Parameters].
+Si la méthode `ProductPresenter::renderShow()` n'a pas `$lang` dans sa signature, elle peut lire la valeur du paramètre en utilisant `$lang = $this->getParameter('lang')`.
 
 Si les paramètres sont stockés dans un tableau, ils peuvent être développés avec l'opérateur `...` (ou `(expand)` dans Latte 2.x) :
 
@@ -140,7 +140,7 @@ La cible `this` créera un lien vers la page actuelle :
 <a n:href="this">refresh</a>
 ```
 
-En même temps, tous les paramètres spécifiés dans la signature de l'élément `action<Action>()` ou `render<View>()` si la méthode `action<Action>()` n'est pas défini, sont transférés. Ainsi, si nous nous trouvons sur les pages `Product:show` et `id:123`, le lien vers `this` transmettra également ce paramètre.
+En même temps, tous les paramètres spécifiés dans la signature de l'instruction `render<View>()` ou `action<Action>()` sont transférés. Ainsi, si nous sommes sur les pages `Product:show` et `id:123`, le lien vers `this` transmettra également ce paramètre.
 
 Bien sûr, il est possible de spécifier les paramètres directement :
 
@@ -213,7 +213,7 @@ Comme les [composants |components] sont des unités distinctes réutilisables qu
 Si nous voulons créer un lien vers les présentateurs dans le modèle de composant, nous utilisons la balise `{plink}`:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Home:default}">home</a>
 ```
 
 ou dans le code
@@ -221,30 +221,6 @@ ou dans le code
 ```php
 $this->getPresenter()->link('Home:default')
 ```
-
-
-Alias .[#toc-aliases]{data-version:v3.2.2}
-==========================================
-
-Il est parfois utile d'attribuer un alias facilement mémorisable à une paire Présentateur:action. Par exemple, vous pouvez nommer la page d'accueil `Front:Home:default` simplement `home` ou `Admin:Dashboard:default` `admin` .
-
-Les alias sont définis dans la [configuration |configuration] sous la clé `application › aliases`:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-Dans les liens, ils sont écrits en utilisant le symbole at, par exemple :
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-Ils sont pris en charge dans toutes les méthodes qui fonctionnent avec des liens, telles que `redirect()` et similaires.
 
 
 Liens non valides .[#toc-invalid-links]

@@ -30,7 +30,7 @@ El formulario en el presentador es un objeto de la clase `Nette\Application\UI\F
 
 Desde el punto de vista del presentador, el formulario es un componente común. Por lo tanto, se trata como un componente y se incorpora al presentador utilizando [el método factory |application:components#Factory Methods]. Tendrá el siguiente aspecto:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
@@ -59,7 +59,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Y el renderizado en la plantilla se realiza utilizando la etiqueta `{control}`:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Home/default.latte}
 <h1>Registro</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ El formulario siempre se valida en el lado del servidor, pero también se genera
 Insértelo en la plantilla de diseño:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Si mira en el código fuente de la página con formulario, puede observar que Nette inserta los campos obligatorios en elementos con una clase CSS `required`. Pruebe a añadir el siguiente estilo a la plantilla, y la etiqueta "Nombre" será de color rojo. Elegantemente, marcamos los campos obligatorios para los usuarios:
@@ -232,7 +232,7 @@ class RegistrationFormData
 }
 ```
 
-Alternativamente, puede utilizar el constructor:
+A partir de PHP 8.0, puedes usar esta elegante notación que usa un constructor:
 
 ```php
 class RegistrationFormData
@@ -245,8 +245,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Las propiedades de la clase de datos también pueden ser enums y se asignarán automáticamente. .{data-version:3.2.4}
 
 ¿Cómo decirle a Nette que devuelva datos como objetos de esta clase? Más fácil de lo que piensa. Todo lo que tiene que hacer es especificar la clase como tipo del parámetro `$data` en el manejador:
 
@@ -295,8 +293,6 @@ El mapeo entonces sabe por el tipo de propiedad `$person` que debe mapear el con
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Puede generar una propuesta para la clase de datos de un formulario utilizando el método `Nette\Forms\Blueprint::dataClass($form)`, que la imprimirá en la página del navegador. A continuación, puede simplemente hacer clic para seleccionar y copiar el código en su proyecto. .{data-version:3.1.15}
 
 
 Botones de envío múltiples .[#toc-multiple-submit-buttons]

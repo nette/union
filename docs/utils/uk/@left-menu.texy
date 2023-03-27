@@ -8,7 +8,6 @@
 - [Зображення |images]
 - [Зворотні виклики |callback]
 - [Пагінатор |paginator]
-- [Ітерабельні змінні |iterables]
 - [Поле |arrays]
 - [Випадкові рядки |random]
 - [Рядки |strings]
@@ -16,9 +15,8 @@
 - [Файлова система |filesystem]
 - [Функції-помічники |helpers]
 - [Елементи HTML |html-elements]
-- [SmartObject]
-- [StaticClass]
 - [PHP Відображення |reflection]
+- [SmartObject |smartobject]
 
 
 Інші інструменти

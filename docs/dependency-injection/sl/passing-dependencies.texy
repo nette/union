@@ -96,9 +96,9 @@ final class MyClass extends BaseClass
 
 Težava se pojavi, ko želimo spremeniti konstruktor razreda `BaseClass`, na primer ko dodamo novo odvisnost. Takrat moramo spremeniti tudi vse konstruktorje otrok. Zaradi tega je takšna sprememba pekel.
 
-Kako to preprečiti? Rešitev je, da dajete prednost [sestavi pred dedovanjem** |faq#Why composition is preferred over inheritance].
+Kako to preprečiti? Rešitev je, da **prednost dajemo kompoziciji pred dedovanjem**.
 
-Zato kodo oblikujmo drugače. Izognili se bomo [abstraktnim |nette:introduction-to-object-oriented-programming#abstract-classes] `Base*` razredom. Namesto da bi razred `MyClass` pridobil določeno funkcionalnost s podedovanjem od razreda `BaseClass`, mu bo ta funkcionalnost posredovana kot odvisnost:
+Zato kodo oblikujmo drugače. Izogibali se bomo abstraktnim `Base*` razredom. Namesto da bi razred `MyClass` pridobil neko funkcionalnost s podedovanjem od razreda `BaseClass`, mu bo ta funkcionalnost posredovana kot odvisnost:
 
 ```php
 final class SomeFunctionality
@@ -128,7 +128,7 @@ final class MyClass
 Vbrizgavanje množice .[#toc-setter-injection]
 =============================================
 
-Odvisnosti se posredujejo s klicem metode, ki jih shrani v zasebne lastnosti. Običajno so te metode poimenovane v obliki `set*()`, zato se imenujejo setterji, seveda pa se lahko imenujejo tudi kako drugače.
+Odvisnosti se posredujejo s klicem metode, ki jih shrani v zasebne lastnosti. Običajno je poimenovanje teh metod v obliki `set*()`, zato jih imenujemo setterji.
 
 ```php
 class MyClass
@@ -168,7 +168,8 @@ Klic setterja je opredeljen v konfiguraciji vsebnika DI v [razdelku setup |servi
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyClass
 		setup:
 			- setCache
 ```
@@ -195,7 +196,8 @@ Nastavitev spremenljivke je opredeljena v konfiguraciji vsebnika DI v [razdelku 
 
 ```neon
 services:
-	-	create: MyClass
+	-
+		create: MyClass
 		setup:
 			- $cache = @\Cache
 ```

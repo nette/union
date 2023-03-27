@@ -20,7 +20,7 @@ database:
 	password: ...
 ```
 
-Erstellt die Dienste `Nette\Database\Connection` und `Nette\Database\Explorer`, die in der Regel per [Autowiring |dependency-injection:autowiring] oder durch Verweis auf [ihren Namen |#DI Services] übergeben werden.
+Es werden Dienste vom Typ `Nette\Database\Connection` und auch `Nette\Database\Explorer` für die [Datenbank-Explorer-Schicht |explorer] erstellt. Die Datenbankverbindung wird in der Regel per [Autowiring |dependency-injection:autowiring] übergeben, falls dies nicht möglich ist, verwenden Sie die Dienstnamen `@database.default.connection` bzw. `@database.default.explorer`.
 
 Andere Einstellungen:
 
@@ -51,12 +51,6 @@ database:
 		# nur MySQL: setzt SET NAMES
 		charset:      # (string) Standardwert ist 'utf8mb4' ('utf8' vor v5.5.3)
 
-		# nur MySQL: wandelt TINYINT(1) in bool um
-		supportBooleans: # (bool) standardmäßig false
-
-		# Gibt Datumsspalten als unveränderliche Objekte zurück (seit Version 3.2.1)
-		newDateTime:  # (bool) standardmäßig false
-
 		# nur Oracle und SQLite: Datumsformat
 		formatDateTime: # (string) Standardwert ist 'U'
 ```
@@ -86,23 +80,9 @@ database:
 		dsn: 'sqlite::memory:'
 ```
 
-Die automatische Verdrahtung ist nur für Dienste aus dem ersten Abschnitt aktiviert. Dies kann mit `autowired: false` oder `autowired: true` geändert werden.
+Jede definierte Verbindung erzeugt Dienste, die den Namen des Abschnitts in ihrem Namen enthalten, z. B. `@database.main.connection` & `@database.main.explorer` und weiter `@database.another.connection` & `@database.another.explorer`.
 
-
-DI-Dienste .[#toc-di-services]
-------------------------------
-
-Diese Dienste werden dem DI-Container hinzugefügt, wobei `###` für den Verbindungsnamen steht:
-
-| Name | Typ | Beschreibung
-|----------------------------------------------------------
-| `database.###.connection` | [api:Nette\Database\Connection] | Datenbankverbindung
-| `database.###.explorer` | [api:Nette\Database\Explorer] | [Datenbank-Explorer |explorer]
-
-
-Wenn wir nur eine Verbindung definieren, lauten die Dienstnamen `database.default.connection` und `database.default.explorer`. Wenn wir wie im obigen Beispiel mehrere Verbindungen definieren, entsprechen die Namen den Abschnitten, d. h. `database.main.connection`, `database.main.explorer` und dann `database.another.connection` und `database.another.explorer`.
-
-Die nicht-authentifizierten Dienste werden explizit mit ihrem Namen übergeben:
+Die automatische Verdrahtung ist nur für Dienste aus dem ersten Abschnitt aktiviert. Dies kann mit `autowired: false` oder `autowired: true` geändert werden. Nicht-autoverdrahtete Dienste werden namentlich übergeben:
 
 ```neon
 services:

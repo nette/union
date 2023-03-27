@@ -1,5 +1,5 @@
-Migration from Latte 2 to 3
-***************************
+Migration from Latte v2 to v3
+*****************************
 
 .[perex]
 Latte 3 has a completely rewritten compiler and a formally well-defined grammar. This should match Latte 2 as closely as possible, but there are some constructs that need minor tweaking.
@@ -128,26 +128,6 @@ $latte->addExtension(new Nette\Bridges\CacheLatte\CacheExtension($cacheStorage))
 ```
 
 
-Tracy
------
-
-The panel for Tracy is now also activated as an extension.
-
-Old code for Latte 2:
-
-```php
-$latte = new Latte\Engine;
-Latte\Bridges\Tracy\LattePanel::initialize($latte);
-```
-
-New code for Latte 3:
-
-```php
-$latte = new Latte\Engine;
-$latte->addExtension(new Latte\Bridges\Tracy\TracyExtension);
-```
-
-
 Translations
 ------------
 
@@ -177,7 +157,7 @@ In Latte 2 it was possible to register new tags using [config file |application:
 latte:
 	extensions:
 		- App\Templating\LatteExtension
-		- Latte\Essential\TranslatorExtension(@Nette\Localization\Translator)
+		- Latte\Essential\TranslatorExtension
 ```
 
 

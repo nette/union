@@ -1,17 +1,15 @@
 Form Oluşturma
 **************
 
-Formların görünümü çok çeşitli olabilir. Uygulamada iki uç noktayla karşılaşabiliriz. Bir yandan, bir uygulamada görsel olarak birbirine benzeyen bir dizi form oluşturma ihtiyacı vardır ve `$form->render()` kullanarak şablon olmadan kolay oluşturmayı takdir ederiz. Bu durum genellikle yönetim arayüzleri için geçerlidir.
+Formların görünümleri büyük farklılıklar gösterebilir. Aslında iki uç nokta vardır. Bir tarafta, çok az veya hiç çaba sarf etmeden, çok benzer bir dizi formu baştan oluşturma ihtiyacı vardır. Genellikle yönetimler ve arka uçlar.
 
-Öte yandan, her birinin benzersiz olduğu çeşitli formlar vardır. Bunların görünümü en iyi şablonda HTML dili kullanılarak tanımlanır. Ve elbette, bahsedilen her iki aşırı uca ek olarak, arada bir yere düşen birçok formla karşılaşacağız.
+Diğer tarafta ise her biri bir sanat eseri olan minik tatlı formlar var. Bunların düzeni en iyi HTML ile yazılabilir. Elbette, bu uç noktaların yanı sıra, bu ikisinin arasında kalan pek çok form vardır.
 
 
-Latte ile Rendering .[#toc-rendering-with-latte]
-================================================
+Latte .[#toc-latte]
+===================
 
 [Latte şablonlama sistemi |latte:], formların ve öğelerinin oluşturulmasını temel olarak kolaylaştırır. İlk olarak, kod üzerinde tam kontrol elde etmek için formların öğe öğe manuel olarak nasıl oluşturulacağını göstereceğiz. Daha sonra bu işlemin nasıl [otomatikleştirileceğini |#Automatic rendering] göstereceğiz.
-
-`Nette\Forms\Blueprint::latte($form)` yöntemini kullanarak oluşturulan form için bir Latte şablonu önerisine sahip olabilirsiniz, bu da tarayıcı sayfasına çıktı verecektir. Ardından, kodu bir tıklama ile seçmeniz ve projenize kopyalamanız yeterlidir. .{data-version:3.1.15}
 
 
 `{control}`
@@ -90,6 +88,12 @@ RadioList veya CheckboxList gibi daha karmaşık form öğeleri öğe öğe işl
 ```
 
 
+Kod Önerisi `{formPrint}` .[#toc-formprint]
+-------------------------------------------
+
+`{formPrint}` etiketini kullanarak bir form için benzer bir Latte kodu oluşturabilirsiniz. Bunu bir şablona yerleştirirseniz, normal oluşturma yerine taslak kodu görürsünüz. Sonra onu seçin ve projenize kopyalayın.
+
+
 `{label}` `{input}`
 -------------------
 
@@ -146,12 +150,6 @@ Mesaj yoksa boş bir öğe oluşturmaktan kaçınmak `n:ifcontent` ile zarif bir
 	{inputError username}
 </div>
 ```
-
-
-`{form}`
---------
-
-Etiketler `{form signInForm}...{/form}` bir alternatiftir `<form n:name="signInForm">...</form>`.
 
 
 Otomatik Rendering .[#toc-automatic-rendering]
@@ -233,15 +231,15 @@ Bloğu yalnızca bir yerde, düzen şablonunun başında içe aktarmanız gereki
 Özel Durumlar .[#toc-special-cases]
 -----------------------------------
 
-Formun yalnızca iç kısmını HTML etiketleri olmadan oluşturmanız gerekiyorsa `<form>`örneğin snippet gönderirken, `n:tag-if` özniteliğini kullanarak bunları gizleyin:
+Bir formun yalnızca iç içeriğini oluşturmanız gerekiyorsa `<form>` & `</form>` HTML etiketleri, örneğin bir AJAX isteğinde, formu `{formContext} … {/formContext}` ile açıp kapatabilirsiniz. Mantıksal anlamda `{form}` ile benzer şekilde çalışır, burada form öğelerini çizmek için diğer etiketleri kullanmanıza izin verir, ancak aynı zamanda hiçbir şey çizmez.
 
 ```latte
-<form n:name=signInForm n:tag-if=false>
+{formContext signForm}
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-</form>
+{/formContext}
 ```
 
 Etiket `formContainer` bir form konteyneri içindeki girdilerin oluşturulmasına yardımcı olur.
@@ -258,8 +256,8 @@ Etiket `formContainer` bir form konteyneri içindeki girdilerin oluşturulmasın
 ```
 
 
-Latte Olmadan Rendering .[#toc-rendering-without-latte]
-=======================================================
+Latte olmadan .[#toc-without-latte]
+===================================
 
 Bir formu oluşturmanın en kolay yolu çağırmaktır:
 
@@ -323,13 +321,13 @@ Eğer özel bir renderer ayarlamazsak, varsayılan renderer [api:Nette\Forms\Ren
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
 </tr>
 
 <tr>
@@ -359,12 +357,12 @@ Sonuçlar aşağıdaki kod parçacığına dönüşür:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -430,8 +428,6 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
-Oluşturucu önce grupları, ardından da herhangi bir gruba ait olmayan öğeleri çizer.
-
 
 Bootstrap Desteği .[#toc-bootstrap-support]
 -------------------------------------------
@@ -442,7 +438,7 @@ Bootstrap Desteği .[#toc-bootstrap-support]
 HTML Nitelikleri .[#toc-html-attributes]
 ========================================
 
-Form öğeleri için rastgele HTML nitelikleri ayarlamak için `setHtmlAttribute(string $name, $value = true)` yöntemini kullanın:
+`setHtmlAttribute(string $name, $value = true)` adresini kullanarak form denetimlerine herhangi bir HTML niteliği atayabilirsiniz:
 
 ```php
 $form->addInteger('number', 'Number:')
@@ -452,11 +448,11 @@ $form->addSelect('rank', 'Order by:', ['price', 'name'])
 	->setHtmlAttribute('onchange', 'submit()'); // değişiklik üzerine JS fonksiyonu submit()'i çağırır
 
 
-// <form> 'un kendi niteliklerini ayarlamak için
+// <form> üzerinde uygulama
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Eleman türünün belirtilmesi:
+Giriş türünü ayarlama:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -464,11 +460,8 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-.[warning]
-Tür ve diğer niteliklerin ayarlanması yalnızca görsel amaçlara hizmet eder. Girdi doğruluğunun doğrulanması sunucuda gerçekleşmelidir; bunu uygun bir [form denetimi | controls] seçerek ve [doğrulama kuralları | validation] belirleyerek sağlayabilirsiniz.
-
-Radyo veya onay kutusu listelerindeki ayrı öğeler için, her biri için farklı değerlere sahip bir HTML niteliği ayarlayabiliriz.
-Değerin anahtara göre seçilmesini sağlayan `style:` adresinden sonraki iki nokta üst üste işaretine dikkat edin:
+HTML niteliğini radyo veya onay kutusu listelerindeki her bir öğe için farklı değerlerle ayarlayabiliriz.
+Değerin anahtara göre seçildiğinden emin olmak için `style:` adresinden sonra iki nokta üst üste işaretine dikkat edin:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -485,9 +478,10 @@ Render:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-`readonly` gibi boolean nitelikleri ayarlamak için soru işaretli gösterimi kullanabiliriz:
+Mantıksal bir HTML niteliği için (değeri olmayan, örneğin `readonly`), bir soru işareti kullanabilirsiniz:
 
 ```php
+$colors = ['r' => 'kırmızı', 'g' => 'yeşil', 'b' => 'mavi'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // birden fazla anahtar için dizi kullanın, örneğin ['r', 'g']
 ```
@@ -541,6 +535,9 @@ Checkbox, CheckboxList ve RadioList öğeleri için öğeyi saran öğe şablonu
 
 ```php
 $input = $form->addCheckbox('send');
+echo $input->getControl();
+// <label><input type="checkbox" name="send"></label>
+
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

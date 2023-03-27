@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,7 +34,7 @@ class ArticleRepository
 Потім у презентері ми вводимо клас моделі і в методі `render` запитуємо опубліковані статті, які передаємо в шаблон:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-Після цього шаблон `default.latte` подбає про список статей:
+У шаблоні ми подбаємо про виведення списку статей:
 
 ```latte
 {block content}
@@ -113,7 +114,7 @@ class ArticleRepository
 Ми також розширюємо метод `render` для отримання екземпляра Paginator, його налаштування та вибору потрібних статей для відображення в шаблоні. HomePresenter матиме такий вигляд:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,7 +211,7 @@ class ArticleRepository
 Нам не потрібно створювати Paginator у презентері, натомість ми використовуватимемо метод об'єкта `Selection`, який повертає сховище:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;

@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,7 +34,7 @@ class ArticleRepository
 A Presenterben ezután befecskendezzük a modell osztályt, és a render metódusban lekérdezzük a publikált cikkeket, amelyeket átadunk a sablonhoz:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-A `default.latte` sablon ezután gondoskodik a cikkek felsorolásáról:
+A sablonban gondoskodunk egy cikklista rendereléséről:
 
 ```latte
 {block content}
@@ -113,7 +114,7 @@ A következő lépés a bemutató szerkesztése. Az aktuálisan megjelenített o
 A render metódust kibővítjük a Paginator példány megszerzésével, beállításával és a sablonban megjelenítendő megfelelő cikkek kiválasztásával is. A HomePresenter így fog kinézni:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,7 +211,7 @@ class ArticleRepository
 Nem kell Paginátort létrehoznunk a Presenterben, helyette az adattár által visszaadott `Selection` objektum metódusát fogjuk használni:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;

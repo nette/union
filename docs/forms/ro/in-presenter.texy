@@ -30,7 +30,7 @@ Formularul din prezentator este un obiect din clasa `Nette\Application\UI\Form`,
 
 Din punctul de vedere al prezentatorului, formularul este o componentă comună. Prin urmare, acesta este tratat ca o componentă și încorporat în prezentator folosind [metoda factory |application:components#Factory Methods]. Acesta va arăta astfel:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
@@ -59,7 +59,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Iar redarea în șablon se face cu ajutorul etichetei `{control}`:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Home/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ Formularul este întotdeauna validat pe partea serverului, dar este generată ș
 Introduceți-l în șablonul de prezentare:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Dacă vă uitați în codul sursă al paginii cu formular, puteți observa că Nette inserează câmpurile obligatorii în elemente cu o clasă CSS `required`. Încercați să adăugați următorul stil în șablon, iar eticheta "Name" va fi roșie. În mod elegant, marcăm câmpurile obligatorii pentru utilizatori:
@@ -232,7 +232,7 @@ class RegistrationFormData
 }
 ```
 
-Alternativ, puteți utiliza constructorul:
+Începând cu PHP 8.0, puteți utiliza această notație elegantă care folosește un constructor:
 
 ```php
 class RegistrationFormData
@@ -245,8 +245,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Proprietățile clasei de date pot fi, de asemenea, enumuri, iar acestea vor fi mapate automat. .{data-version:3.2.4}
 
 Cum să îi spuneți lui Nette să returneze datele ca obiecte din această clasă? Mai ușor decât credeți. Tot ceea ce trebuie să faceți este să specificați clasa ca tip al parametrului `$data` în handler:
 
@@ -295,8 +293,6 @@ class RegistrationFormData
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Puteți genera o propunere pentru clasa de date a unui formular utilizând metoda `Nette\Forms\Blueprint::dataClass($form)`, care o va imprima în pagina browserului. Puteți apoi să dați un simplu clic pentru a selecta și a copia codul în proiectul dumneavoastră. .{data-version:3.1.15}
 
 
 Butoane de trimitere multiple .[#toc-multiple-submit-buttons]

@@ -266,25 +266,6 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
-Utilizarea cu PSR-16 .[#toc-using-with-psr-16]
-==============================================
-
-Pentru a utiliza Nette Cache cu interfața PSR-16, puteți utiliza `PsrCacheAdapter`. Aceasta permite integrarea perfectă între Nette Cache și orice cod sau bibliotecă care așteaptă o cache compatibilă cu PSR-16.
-
-```php
-$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
-```
-
-Acum puteți utiliza `$psrCache` ca o cache PSR-16:
-
-```php
-$psrCache->set('key', 'value', 3600); // stochează valoarea pentru 1 oră
-$value = $psrCache->get('key', 'default');
-```
-
-Adaptorul acceptă toate metodele definite în PSR-16, inclusiv `getMultiple()`, `setMultiple()`, și `deleteMultiple()`.
-
-
 Stocarea în memoria cache de ieșire .[#toc-output-caching]
 ==========================================================
 
@@ -461,30 +442,6 @@ Puteți schimba jurnalul în configurare:
 services:
 	cache.journal: MyJournal
 ```
-
-
-Servicii DI .[#toc-di-services]
-===============================
-
-Aceste servicii sunt adăugate la containerul DI:
-
-Nume | Tip | Descriere
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
- `cache.storage` | [api:Nette\Caching\Storage] | | repository
-
-
-Dezactivarea memoriei cache .[#toc-turning-off-cache]
-=====================================================
-
-Una dintre modalitățile de dezactivare a memoriei cache în aplicație este să setați stocarea la [DevNullStorage |#DevNullStorage]:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-Această setare nu afectează memoria cache a șabloanelor din Latte sau din containerul DI, deoarece aceste biblioteci nu utilizează serviciile nette/caching și își gestionează memoria cache în mod independent. În plus, memoria cache a acestora [nu trebuie dezactivată |nette:troubleshooting#how-to-disable-cache-during-development] în modul de dezvoltare.
 
 
 {{leftbar: nette:@menu-topics}}

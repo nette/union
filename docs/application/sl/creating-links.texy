@@ -38,7 +38,7 @@ Lahko ji posredujemo tudi poimenovane parametre. Naslednja povezava posreduje pa
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Če metoda `ProductPresenter::renderShow()` v svojem podpisu nima `$lang`, lahko vrednost parametra pridobi z uporabo `$lang = $this->getParameter('lang')` ali iz [lastnosti |presenters#Request Parameters].
+Če metoda `ProductPresenter::renderShow()` v svojem podpisu nima zapisa `$lang`, lahko vrednost parametra prebere z uporabo `$lang = $this->getParameter('lang')`.
 
 Če so parametri shranjeni v polju, jih je mogoče razširiti z operatorjem `...` (ali `(expand)` v Latte 2.x):
 
@@ -140,7 +140,7 @@ Ciljna stran `this` bo ustvarila povezavo do trenutne strani:
 <a n:href="this">refresh</a>
 ```
 
-Hkrati se vsi parametri, navedeni v podpisu `action<Action>()` ali . `render<View>()` metode, če je `action<Action>()` niso opredeljeni, se prenesejo. Če smo torej na straneh `Product:show` in `id:123`, bo povezava do strani `this` prenesla tudi ta parameter.
+Hkrati se vsi parametri, navedeni v podpisu `render<View>()` ali `action<Action>()` se prenesejo. Če smo torej na straneh `Product:show` in `id:123`, bo tudi povezava do strani `this` prenesla ta parameter.
 
 Seveda je mogoče parametre navesti tudi neposredno:
 
@@ -213,7 +213,7 @@ Ker so [komponente |components] ločene enote za večkratno uporabo, ki naj ne b
 Če se želimo v predlogi komponente povezati s predstavniki, uporabimo oznako `{plink}`:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Home:default}">home</a>
 ```
 
 ali v kodi
@@ -221,30 +221,6 @@ ali v kodi
 ```php
 $this->getPresenter()->link('Home:default')
 ```
-
-
-Vzdevki .[#toc-aliases]{data-version:v3.2.2}
-============================================
-
-Včasih je koristno, da paru predavatelj:dejanje dodelite lahko zapomljiv vzdevek. Na primer, domačo stran `Front:Home:default` lahko poimenujete preprosto kot `home` ali `Admin:Dashboard:default` kot `admin`.
-
-Vzdevki so v [konfiguraciji |configuration] opredeljeni pod ključem `application › aliases`:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-V povezavah so zapisani s simbolom at, na primer:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-Podprte so v vseh metodah, ki delajo s povezavami, na primer `redirect()` in podobno.
 
 
 Neveljavne povezave .[#toc-invalid-links]

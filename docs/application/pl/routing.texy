@@ -216,7 +216,7 @@ $router->addRoute('//www.%sld%.%tld%/%basePath%/<presenter>/<action', /* ... */)
 Wpis rozszerzony .[#toc-advanced-notation]
 ------------------------------------------
 
-Cel trasy, zwykle zapisany w postaci `Presenter:action`, może być również wyrażony za pomocą tablicy, która definiuje poszczególne parametry i ich wartości domyślne:
+Drugi parametr routy, który często zapisywany jest w formacie `Presenter:action`, jest skrótem, który można również zapisać jako tablicę, gdzie bezpośrednio wypisujemy (domyślne) wartości poszczególnych parametrów:
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
@@ -225,7 +225,7 @@ $router->addRoute('<presenter>/<action>[/<id \d+>]', [
 ]);
 ```
 
-Aby uzyskać bardziej szczegółową specyfikację, można użyć jeszcze bardziej rozszerzonej formy, w której oprócz wartości domyślnych można ustawić inne właściwości parametru, takie jak wyrażenie regularne walidacji (patrz parametr `id` ):
+Możemy też użyć tego formularza, zauważając nadpisanie wyrażenia regularnego walidacji:
 
 ```php
 use Nette\Routing\Route;
@@ -243,7 +243,7 @@ $router->addRoute('<presenter>/<action>[/<id>]', [
 ]);
 ```
 
-Ważne jest, aby pamiętać, że jeśli parametry zdefiniowane w tablicy nie są zawarte w masce ścieżki, ich wartości nie mogą zostać zmienione, nawet przy użyciu parametrów zapytania określonych po znaku zapytania w adresie URL.
+Te bardziej verbose formaty są przydatne do dodawania dodatkowych metadanych.
 
 
 Filtry i tłumaczenia .[#toc-filters-and-translations]
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 Kiedy użytkownik uzyskuje dostęp do starego adresu URL, prezenter automatycznie przekierowuje na nowy adres URL, aby wyszukiwarki nie indeksowały tych stron podwójnie (patrz [SEO i kanoniczność |#SEO-and-Canonization]).
-
-
-Routing dynamiczny z wywołaniami zwrotnymi .[#toc-dynamic-routing-with-callbacks]
----------------------------------------------------------------------------------
-
-Dynamiczny routing z wywołaniami zwrotnymi umożliwia bezpośrednie przypisywanie funkcji (wywołań zwrotnych) do tras, które zostaną wykonane po odwiedzeniu określonej ścieżki. Ta elastyczna funkcja umożliwia szybkie i wydajne tworzenie różnych punktów końcowych dla aplikacji:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-Można również zdefiniować parametry w masce, które będą automatycznie przekazywane do wywołania zwrotnego:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Moduły .[#toc-modules]
@@ -477,10 +454,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Integracja aplikacji .[#toc-integration]
 ========================================
 
-Aby zintegrować stworzony router z aplikacją, musimy powiedzieć o nim kontenerowi DI. Najprostszym sposobem na to jest przygotowanie fabryki tworzącej obiekt routera i powiedzenie konfiguracji kontenera, aby go użyć. Załóżmy, że w tym celu napiszemy metodę `App\Core\RouterFactory::createRouter()`:
+Aby zintegrować stworzony router z aplikacją, musimy powiedzieć o nim kontenerowi DI. Najprostszym sposobem na to jest przygotowanie fabryki tworzącej obiekt routera i powiedzenie konfiguracji kontenera, aby go użyć. Załóżmy, że w tym celu napiszemy metodę `App\Router\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Application\Routers\RouteList;
 
@@ -499,7 +476,7 @@ Następnie wpisujemy do [konfiguracji |dependency-injection:services]:
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 ```
 
 Wszelkie zależności, na przykład od bazy danych itp, są przekazywane do metody fabrycznej jako jej parametry przez [autowiring |dependency-injection:autowiring]:
@@ -663,7 +640,7 @@ Przez użycie samodzielne rozumiemy wykorzystanie możliwości routera w aplikac
 Czyli znowu tworzymy metodę, która buduje dla nas np. router:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Routing\RouteList;
 
@@ -694,7 +671,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Możemy też wykonać obiekty bezpośrednio:
 
 ```php
-$router = App\Core\RouterFactory::createRouter();
+$router = App\Router\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

@@ -38,7 +38,7 @@ Es ist auch möglich, benannte Parameter zu übergeben. Der folgende Link überg
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Wenn die Methode `ProductPresenter::renderShow()` nicht `$lang` in ihrer Signatur hat, kann sie den Wert des Parameters über `$lang = $this->getParameter('lang')` oder über die [Eigenschaft |presenters#Request Parameters] abrufen.
+Wenn die Methode `ProductPresenter::renderShow()` nicht `$lang` in ihrer Signatur hat, kann sie den Wert des Parameters mit `$lang = $this->getParameter('lang')` lesen.
 
 Wenn die Parameter in einem Array gespeichert sind, können sie mit dem `...` -Operator (oder `(expand)` -Operator in Latte 2.x) expandiert werden:
 
@@ -140,7 +140,7 @@ Das Ziel `this` wird einen Link zur aktuellen Seite erstellen:
 <a n:href="this">refresh</a>
 ```
 
-Gleichzeitig werden alle Parameter, die in der Signatur des Befehls `action<Action>()` oder `render<View>()` Methode angegebenen Parameter, wenn die `action<Action>()` nicht definiert ist, übertragen. Wenn wir uns also auf den Seiten `Product:show` und `id:123` befinden, wird der Link zu `this` auch diesen Parameter übergeben.
+Gleichzeitig werden alle Parameter, die in der Signatur des Befehls `render<View>()` oder `action<Action>()` Methode angegeben sind, übertragen. Wenn wir uns also auf den Seiten `Product:show` und `id:123` befinden, wird der Link zu `this` auch diesen Parameter übergeben.
 
 Natürlich ist es auch möglich, die Parameter direkt anzugeben:
 
@@ -213,7 +213,7 @@ Da [Komponenten |components] separate, wiederverwendbare Einheiten sind, die kei
 Wenn wir auf Präsentatoren in der Komponentenvorlage verlinken wollen, verwenden wir das Tag `{plink}`:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Home:default}">home</a>
 ```
 
 oder im Code
@@ -221,30 +221,6 @@ oder im Code
 ```php
 $this->getPresenter()->link('Home:default')
 ```
-
-
-Aliasnamen .[#toc-aliases]{data-version:v3.2.2}
-===============================================
-
-Manchmal ist es sinnvoll, einem Presenter:Action-Paar einen leicht zu merkenden Alias zuzuweisen. Zum Beispiel könnten Sie die Homepage `Front:Home:default` einfach als `home` oder `Admin:Dashboard:default` als `admin` benennen.
-
-Aliasnamen werden in der [Konfiguration |configuration] unter dem Schlüssel `application › aliases` definiert:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-In Links werden sie mit dem at-Symbol geschrieben, zum Beispiel:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-Sie werden in allen Methoden unterstützt, die mit Links arbeiten, wie `redirect()` und ähnliche.
 
 
 Ungültige Links .[#toc-invalid-links]

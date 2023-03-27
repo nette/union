@@ -32,7 +32,7 @@ echo $url; // https://nette.org/en/documentation?action=edit
 echo $url->getHost(); // nette.org
 ```
 
-Attenzione: I browser non inviano un frammento al server, quindi `$url->getFragment()` restituirà una stringa vuota.
+I browser non inviano un frammento al server, quindi `$url->getFragment()` restituirà una stringa vuota.
 
 
 getQuery(string $key=null): string|array|null .[method]
@@ -139,6 +139,11 @@ Restituisce tutte le intestazioni HTTP come array associativo:
 $headers = $httpRequest->getHeaders();
 echo $headers['Content-Type'];
 ```
+
+
+getReferer(): ?Nette\Http\UrlImmutable .[method]
+------------------------------------------------
+Da quale URL proviene l'utente? Attenzione, non è affatto affidabile.
 
 
 isSecured(): bool .[method]
@@ -351,17 +356,6 @@ Non fidarsi del valore restituito da questo metodo. Un client potrebbe inviare u
 getSanitizedName(): string .[method]
 ------------------------------------
 Restituisce il nome del file sanificato. Contiene solo caratteri ASCII `[a-zA-Z0-9.-]`. Se il nome non contiene tali caratteri, restituisce "unknown". Se il file è un'immagine JPEG, PNG, GIF o WebP, restituisce l'estensione corretta.
-
-.[caution]
-Richiede l'estensione PHP `fileinfo`.
-
-
-getSuggestedExtension(): ?string .[method]{data-version:3.2.4}
---------------------------------------------------------------
-Restituisce l'estensione di file appropriata (senza il punto) corrispondente al tipo MIME rilevato.
-
-.[caution]
-Richiede l'estensione PHP `fileinfo`.
 
 
 getUntrustedFullPath(): string .[method]

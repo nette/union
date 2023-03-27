@@ -142,12 +142,6 @@ Oppure direttamente nel file `composer.json`:
 ```
 
 
-Ignorare la versione di PHP .[#toc-ignoring-php-version]
-========================================================
-
-I pacchetti di solito specificano sia la versione più bassa di PHP con cui sono compatibili sia la versione più alta con cui sono stati testati. Se si prevede di usare una versione di PHP ancora più recente, magari a scopo di test, Composer si rifiuterà di installare tale pacchetto. La soluzione è usare l'opzione `--ignore-platform-req=php+`, che fa sì che Composer ignori i limiti superiori della versione PHP richiesta.
-
-
 Rapporti falsi .[#toc-false-reports]
 ====================================
 
@@ -189,7 +183,7 @@ Tuttavia, è anche possibile usare Composer per caricare altre classi al di fuor
 
 Successivamente, è necessario eseguire il comando `composer dumpautoload` a ogni modifica e lasciare che le tabelle di autocaricamento si rigenerino. Questo è estremamente scomodo ed è molto meglio affidare questo compito a [RobotLoader |robot-loader:], che svolge la stessa attività automaticamente in background e molto più velocemente.
 
-La seconda opzione consiste nel seguire [PSR-4 |https://www.php-fig.org/psr/psr-4/]. In parole povere, si tratta di un sistema in cui gli spazi dei nomi e i nomi delle classi corrispondono alla struttura delle directory e ai nomi dei file, cioè `App\Core\RouterFactory` si trova nel file `/path/to/App/Core/RouterFactory.php`. Esempio di configurazione:
+La seconda opzione consiste nel seguire [PSR-4 |https://www.php-fig.org/psr/psr-4/]. In parole povere, si tratta di un sistema in cui gli spazi dei nomi e i nomi delle classi corrispondono alla struttura delle directory e ai nomi dei file, cioè `App\Router\RouterFactory` si trova nel file `/path/to/App/Router/RouterFactory.php`. Esempio di configurazione:
 
 ```js
 {

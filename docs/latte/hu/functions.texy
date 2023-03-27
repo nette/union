@@ -5,15 +5,13 @@ Latte funkciók
 Az általános PHP-funkciók mellett ezeket is használhatod a sablonokban.
 
 .[table-latte-filters]
-| `clamp` | [az értéket a tartományba szorítja |#clamp]
+| `clamp` | [az értéket a tartományba szorítja |#clamp].
 | `divisibleBy`| [ellenőrzi, hogy egy változó osztható-e egy számmal |#divisibleBy]
 | `even` | [ellenőrzi, hogy a megadott szám páros-e |#even]
-| `first` | [visszaadja a tömb első elemét vagy a karakterlánc első karakterét |#first]
-| `group` | [adatok csoportosítása különböző kritériumok szerint|#group]
-| `hasBlock` | [érzékeli egy blokk létezését |#hasBlock]
-| `last` | [visszaadja a tömb utolsó elemét vagy a karakterlánc utolsó karakterét |#last]
-| `odd` | [ellenőrzi, hogy az adott szám páratlan-e |#odd]
-| `slice` | [kivonja egy tömb vagy egy karakterlánc egy szeletét |#slice]
+| `first` | [visszaadja a tömb első elemét vagy a karakterlánc első karakterét |#first].
+| `last` | [visszaadja a tömb utolsó elemét vagy a karakterlánc utolsó karakterét |#last].
+| `odd` | [ellenőrzi, hogy az adott szám páratlan-e |#odd].
+| `slice` | [kivonja egy tömb vagy egy karakterlánc egy szeletét |#slice].
 
 
 Használat .[#toc-usage]
@@ -46,8 +44,8 @@ Funkciók .[#toc-functions]
 ==========================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Visszaadja a min és max tartományba szorított értéket.
 
 ```latte
@@ -57,8 +55,8 @@ Visszaadja a min és max tartományba szorított értéket.
 Lásd még [szűrőbilincs |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Ellenőrzi, hogy egy változó osztható-e egy számmal.
 
 ```latte
@@ -66,8 +64,8 @@ Ellenőrzi, hogy egy változó osztható-e egy számmal.
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Ellenőrzi, hogy az adott szám páros-e.
 
 ```latte
@@ -75,8 +73,8 @@ Ellenőrzi, hogy az adott szám páros-e.
 ```
 
 
-first(string|iterable $value): mixed .[method]
-----------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Visszaadja a tömb első elemét vagy a karakterlánc első karakterét:
 
 ```latte
@@ -87,38 +85,8 @@ Visszaadja a tömb első elemét vagy a karakterlánc első karakterét:
 Lásd még [last |#last], [filter first |filters#first].
 
 
-group(iterable $data, string|int|\Closure $by): array .[method]{data-version:3.0.16}
-------------------------------------------------------------------------------------
-Ez a funkció különböző kritériumok szerint csoportosítja az adatokat.
-
-Ebben a példában a táblázat sorait a `categoryId` oszlop alapján csoportosítja. A kimenet egy mezőkből álló tömb, ahol a kulcs a `categoryId` oszlopban szereplő érték. Olvassa el a [részletes utasításokat |cookbook/grouping].
-
-```latte
-{foreach group($items, categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Lásd még [szűrőcsoport |filters#group].
-
-
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Ellenőrzi, hogy a megadott nevű blokk létezik-e:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-Lásd még a [blokk létezésének ellenőrzése |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 A tömb utolsó elemét vagy a karakterlánc utolsó karakterét adja vissza:
 
 ```latte
@@ -129,8 +97,8 @@ A tömb utolsó elemét vagy a karakterlánc utolsó karakterét adja vissza:
 Lásd még [first |#first], [filter last |filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Ellenőrzi, hogy a megadott szám páratlan-e.
 
 ```latte
@@ -138,8 +106,8 @@ Ellenőrzi, hogy a megadott szám páratlan-e.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Kivonja egy tömb vagy egy karakterlánc egy szeletét.
 
 ```latte

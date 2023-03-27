@@ -13,14 +13,13 @@ Im Paket `nette/utils` finden Sie eine Reihe von nützlichen Klassen für den t�
 | [Generieren von HTML-Code |html-elements] | Nette\Utils\Html
 | [Helferfunktionen |helpers] | Nette\Utils\Helfer
 | [JSON] | Nette\Utils\Json
-| [Iterables |iterables] | Nette\Utils\Iterables
+| [Objektmodell |smartobject] | Nette\SmartObject & Nette\StaticClass
 | [Paginator] | Nette\Utils\Paginator
 | [PHP-Reflexion |reflection] | Nette\Utils\Reflexion
 | [Rückruf |Callback] | Nette\Utils\Callback
 | [Typen |type] | Nette\Utils\Type
 | [Validatoren |Validators] | Nette\Utils\Validatoren
 | [Zeichenketten |Strings] | Nette\Utils\Strings
-| [SmartObject] & [StaticClass] | Nette\SmartObject & Nette\StaticClass
 | [Zufällige Zeichenketten generieren |random] | Nette\Utils\Random
 
 
@@ -35,8 +34,8 @@ composer require nette/utils
 
 | Version | kompatibel mit PHP
 |-----------|-------------------
-| Nette Utils 4.0 | PHP 8.0 – 8.3
-| Nette Utils 3.2 | PHP 7.2 – 8.4
+| Nette Utils 4.0 | PHP 8.0 - 8.2
+| Nette Utils 3.2 | PHP 7.2 - 8.2
 | Nette Utils 3.0 - 3.1 | PHP 7.1 - 8.0
 | Nette Utils 2.5 | PHP 5.6 - 8.0
 

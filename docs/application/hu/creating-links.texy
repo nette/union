@@ -38,7 +38,7 @@ Lehetőség van nevesített paraméterek átadására is. A következő hivatkoz
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Ha a `ProductPresenter::renderShow()` metódus aláírásában nem szerepel a `$lang`, akkor a paraméter értékét a `$lang = $this->getParameter('lang')` segítségével vagy a [tulajdonságból |presenters#Request Parameters] tudja lekérdezni.
+Ha a `ProductPresenter::renderShow()` metódus szignatúrájában nem szerepel a `$lang`, akkor a paraméter értékét a `$lang = $this->getParameter('lang')` segítségével tudja beolvasni.
 
 Ha a paraméterek egy tömbben vannak tárolva, akkor a `...` operátorral (vagy a Latte 2.x-ben a `(expand)` operátorral) bővíthetők:
 
@@ -140,7 +140,7 @@ A cél `this` létrehoz egy linket az aktuális oldalra:
 <a n:href="this">refresh</a>
 ```
 
-Ugyanakkor az összes paraméter, amelyet a `action<Action>()` vagy a `render<View>()` metódusban megadott paraméterek, ha a `action<Action>()` nincs definiálva, átadásra kerül. Tehát ha a `Product:show` és a `id:123` oldalakon vagyunk, akkor a `this` linkje is átadja ezt a paramétert.
+Ugyanakkor az összes, az aláírásában megadott paramétert a `render<View>()` vagy `action<Action>()` metódusban megadott paraméterek átadásra kerülnek. Tehát ha a `Product:show` és a `id:123` oldalakon vagyunk, akkor a `this` link is átadja ezt a paramétert.
 
 Természetesen lehetőség van a paraméterek közvetlen megadására is:
 
@@ -213,7 +213,7 @@ Mivel a [komponensek |components] különálló, újrafelhasználható egységek
 Ha a komponenssablonban előadókra akarunk hivatkozni, akkor a `{plink}` címkét használjuk:
 
 ```latte
-<a href={plink Home:default}>home</a>
+<a href="{plink Home:default}">home</a>
 ```
 
 vagy a kódban
@@ -221,30 +221,6 @@ vagy a kódban
 ```php
 $this->getPresenter()->link('Home:default')
 ```
-
-
-Álnevek .[#toc-aliases]{data-version:v3.2.2}
-============================================
-
-Néha hasznos, ha egy könnyen megjegyezhető álnevet rendelünk egy Presenter:action pároshoz. Például a `Front:Home:default` honlapot egyszerűen elnevezheti `home` -nek, vagy a `Admin:Dashboard:default` -t `admin`-nak.
-
-Az aliasok a [konfigurációban |configuration] a `application › aliases` kulcs alatt kerülnek meghatározásra:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-A hivatkozásokban az at szimbólummal íródnak, például:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-A linkekkel dolgozó összes módszer támogatja őket, például a `redirect()` és hasonlók.
 
 
 Érvénytelen hivatkozások .[#toc-invalid-links]

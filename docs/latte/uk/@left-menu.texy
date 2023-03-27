@@ -1,24 +1,23 @@
 - [Початок роботи |Guide]
-- [Навіщо використовувати шаблони? |why-use]
-- Концепції ⚗️
+- Концепції
 	- [Безпека понад усе |Safety First]
 	- Успадкування [шаблонів |Template Inheritance]
 	- [Система типів |Type System]
 	- [Пісочниця |Sandbox]
 
-- Для дизайнерів 🎨
+- Для дизайнерів
 	- [Синтаксис |Syntax]
 	- [Теги |Tags]
 	- [Фільтри |Filters]
 	- [Функції |Functions]
 	- [Поради та хитрощі |recipes]
 
-- Для розробників 🧮
+- Для розробників
 	- [Практика для розробників |develop]
 	- [Розширення Latte |Extending Latte]
 	- [Створення розширення |creating-extension]
 
-- [Куховарська книга 💡|cookbook/@home]
+- [Куховарська книга |cookbook/@home]
 	- [Міграція з Twig |cookbook/migration-from-twig]
 	- [... докладніше |cookbook/@home]
 

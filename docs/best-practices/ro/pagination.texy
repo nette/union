@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,7 +34,7 @@ class ArticleRepository
 În Presenter vom injecta apoi clasa model, iar în metoda render vom cere articolele publicate pe care le vom trece în șablon:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-Șablonul `default.latte` se va ocupa apoi de listarea articolelor:
+În șablon, ne vom ocupa de redarea unei liste de articole:
 
 ```latte
 {block content}
@@ -113,7 +114,7 @@ Următorul pas este să modificăm prezentatorul. Vom transmite numărul paginii
 De asemenea, extindem metoda de randare pentru a obține instanța Paginator, configurând-o și selectând articolele corecte pentru a fi afișate în șablon. HomePresenter va arăta astfel:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,7 +211,7 @@ class ArticleRepository
 Nu trebuie să creăm Paginator în Presenter, în schimb vom folosi metoda obiectului `Selection` returnat de depozit:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;

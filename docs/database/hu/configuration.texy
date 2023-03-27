@@ -20,7 +20,7 @@ database:
 	password: ...
 ```
 
-Létrehozza a `Nette\Database\Connection` és a `Nette\Database\Explorer` szolgáltatásokat, amelyeket általában [automatikus összekapcsolással |dependency-injection:autowiring] vagy a [nevükre |#DI Services] való hivatkozással adnak át.
+`Nette\Database\Connection` típusú szolgáltatásokat hoz létre, valamint `Nette\Database\Explorer` szolgáltatásokat az [Adatbázis-kutató |explorer] réteghez. Az adatbázis-kapcsolat átadása általában [autowiringgel |dependency-injection:autowiring] történik, ha ez nem lehetséges, használja a `@database.default.connection` illetve `@database.default.explorer` szolgáltatásneveket.
 
 Egyéb beállítások:
 
@@ -51,12 +51,6 @@ database:
 		# csak MySQL: sets SET NAMES
 		charset:      # (string) alapértelmezés szerint 'utf8mb4' ('utf8' a v5.5.3 előtt)
 
-		# csak MySQL: TINYINT(1) bool-ra konvertálja
-		supportBooleans: # (bool) alapértelmezett értéke false
-
-		# a dátum oszlopokat megváltoztathatatlan objektumként adja vissza (3.2.1 verzió óta)
-		newDateTime:  # (bool) alapértelmezett értéke false
-
 		# csak Oracle és SQLite: dátumformátum
 		formatDateTime: # (string) alapértelmezett értéke 'U'
 ```
@@ -86,23 +80,9 @@ database:
 		dsn: 'sqlite::memory:'
 ```
 
-Az automatikus bekötés csak az első szakasz szolgáltatásai esetében engedélyezett. Ez a `autowired: false` vagy a `autowired: true` segítségével módosítható.
+Minden egyes definiált kapcsolat olyan szolgáltatásokat hoz létre, amelyek nevében szerepel a szakasz neve, azaz `@database.main.connection` & `@database.main.explorer` és tovább `@database.another.connection` & `@database.another.explorer`.
 
-
-DI szolgáltatások .[#toc-di-services]
--------------------------------------
-
-Ezek a szolgáltatások a DI konténerhez kerülnek hozzáadásra, ahol a `###` a kapcsolat nevét jelenti:
-
-| Név | Típus | Leírás
-|----------------------------------------------------------
-| `database.###.connection` | [api:Nette\Database\Connection] | adatbázis-kapcsolat
-| `database.###.explorer` | [api:Nette\Database\Explorer] | [Database Explorer |explorer]
-
-
-Ha csak egy kapcsolatot definiálunk, akkor a szolgáltatások neve `database.default.connection` és `database.default.explorer` lesz. Ha több kapcsolatot definiálunk, mint a fenti példában, akkor a nevek a szakaszoknak fognak megfelelni, azaz `database.main.connection`, `database.main.explorer`, majd `database.another.connection` és `database.another.explorer`.
-
-A nem hitelesített szolgáltatásokat kifejezetten a nevükre hivatkozva adjuk át:
+Az automatikus összekapcsolás csak az első szakasz szolgáltatásai esetében engedélyezett. Ez a `autowired: false` vagy a `autowired: true` segítségével módosítható. A nem automatikusan bekötött szolgáltatások név szerint kerülnek átadásra:
 
 ```neon
 services:

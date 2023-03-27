@@ -87,7 +87,7 @@ class PollControl extends Control
 Renderização .[#toc-rendering]
 ==============================
 
-Já sabemos que a tag `{control componentName}` é usada para desenhar um componente. Na verdade, ela chama o método `render()` do componente, no qual nós cuidamos da renderização. Temos, assim como no apresentador, um [modelo Latte |templates] na variável `$this->template`, para o qual passamos os parâmetros. Ao contrário do uso em um apresentador, devemos especificar um arquivo de modelo e deixá-lo renderizar:
+Já sabemos que a tag `{control componentName}` é usada para desenhar um componente. Na verdade, ela chama o método `render()` do componente, no qual nós cuidamos da renderização. Temos, assim como no apresentador, um modelo [Latte |latte:] na variável `$this->template`, para o qual passamos os parâmetros. Ao contrário do uso em um apresentador, devemos especificar um arquivo de modelo e deixá-lo renderizar:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -347,7 +347,7 @@ services:
 Finalmente, utilizaremos esta fábrica em nosso apresentador:
 
 ```php
-class PollPresenter extends Nette\Application\UI\Presenter
+class PollPresenter extends Nette\UI\Application\Presenter
 {
 	public function __construct(
 		private PollControlFactory $pollControlFactory,
@@ -380,7 +380,7 @@ Componentes em profundidade .[#toc-components-in-depth]
 Os componentes de uma aplicação Nette são as partes reutilizáveis de uma aplicação web que incorporamos nas páginas, que é o tema deste capítulo. Quais são exatamente as capacidades de um componente desse tipo?
 
 1) é renderizável em um modelo
-2) ele sabe [qual parte de si mesmo |ajax#snippets] deve ser renderizada durante uma solicitação AJAX (snippets)
+2) ela sabe qual parte de si mesma deve prestar durante um [pedido AJAX |ajax#invalidation] (trechos)
 3) tem a capacidade de armazenar seu estado em uma URL (parâmetros persistentes)
 4) tem a capacidade de responder às ações (sinais) do usuário
 5) cria uma estrutura hierárquica (onde a raiz é o apresentador)

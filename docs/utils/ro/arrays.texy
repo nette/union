@@ -15,53 +15,12 @@ composer require nette/utils
 Array-uri .[#toc-arrays]
 ========================
 
-[api:Nette\Utils\Arrays] este o clasă statică, care conține o serie de funcții practice de matrice. Echivalentul său pentru iteratori este [Nette\Utils\Iterables |iterables].
+[api:Nette\Utils\Arrays] este o clasă statică, care conține o serie de funcții practice de matrice.
 
 Exemplele următoare presupun că este definit următorul alias de clasă:
 
 ```php
 use Nette\Utils\Arrays;
-```
-
-
-associate(array $array, mixed $path): array|\stdClass .[method]
----------------------------------------------------------------
-
-Funcția transformă în mod flexibil `$array` într-o matrice asociativă sau obiecte în funcție de calea specificată `$path`. Calea poate fi un șir de caractere sau o matrice. Aceasta constă din numele cheilor din tabloul de intrare și operatori precum "[]", "->", "=" și "|". Se aruncă `Nette\InvalidArgumentException` în cazul în care calea nu este validă.
-
-```php
-// conversia într-un tablou asociativ utilizând o cheie simplă
-$arr = [
-    ['name' => 'John', 'age' => 11],
-    ['name' => 'Mary', 'age' => null],
-    //...
-];
-$result = Arrays::associate($arr, 'name');
-// $result = ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// atribuirea de valori de la o cheie la alta cu ajutorul operatorului =.
-$result = Arrays::associate($arr, 'name=age'); // sau ['name', '=', 'age']
-// $result = ['John' => 11, 'Mary' => null, ...]
-```
-
-```php
-// crearea unui obiect cu ajutorul operatorului ->
-$result = Arrays::associate($arr, '->name'); // sau ['->', 'name']
-// $result = (object) ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// combinarea cheilor cu ajutorul operatorului |
-$result = Arrays::associate($arr, 'name|age'); // sau ['name', '|', 'age']
-// $result: ['John' => ['name' => 'John', 'age' => 11], 'Paul' => ['name' => 'Paul', 'age' => 44]]
-```
-
-```php
-// adăugarea la un array folosind []
-$result = Arrays::associate($arr, 'name[]'); // sau ['name', '[]']
-// $result: ['John' => [['name' => 'John', 'age' => 22], ['name' => 'John', 'age' => 11]]]
 ```
 
 
@@ -76,8 +35,8 @@ Arrays::contains(['1', false], 1); // false
 ```
 
 
-every(array $array, callable $predicate): bool .[method]
---------------------------------------------------------
+every(iterable $array, callable $callback): bool .[method]
+----------------------------------------------------------
 
 Testează dacă toate elementele din matrice trec testul implementat de funcția furnizată, care are semnătura `function ($value, $key, array $array): bool`.
 
@@ -90,51 +49,15 @@ $res = Arrays::every($array, $isBelowThreshold); // true
 A se vedea [some() |#some()].
 
 
-filter(array $array, callable $predicate): array .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------
+first(array $array): mixed .[method]
+------------------------------------
 
-Returnează o nouă matrice care conține toate perechile cheie-valoare care corespund cu `$predicate`. Callback-ul are semnătura `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::filter(
-	['a' => 1, 'b' => 2, 'c' => 3],
-	fn($v) => $v < 3,
-);
-// ['a' => 1, 'b' => 2]
-```
-
-
-first(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
--------------------------------------------------------------------------------------
-
-Returnează primul element (care corespunde predicatului specificat, dacă este dat). Dacă nu există un astfel de element, se returnează rezultatul invocării `$else` sau null.
- `$predicate` are semnătura `function ($value, int|string $key, array $array): bool`.
-
-Nu modifică pointerul intern, spre deosebire de `reset()`. Parametrii `$predicate` și `$else` există începând cu versiunea 4.0.4.
+Returnează primul element din tablou sau nul dacă tabloul este gol. Nu modifică pointerul intern, spre deosebire de `reset()`.
 
 ```php
-Arrays::first([1, 2, 3]);                   // 1
-Arrays::first([1, 2, 3], fn($v) => $v > 2); // 3
-Arrays::first([]);                          // null
-Arrays::first([], else: fn() => false);     // false
+Arrays::first([1, 2, 3]); // 1
+Arrays::first([]);        // null
 ```
-
-A se vedea [last() |#last()].
-
-
-firstKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------------------------
-
-Returnează cheia primului element (care corespunde predicatului specificat, dacă este dat) sau nulă dacă nu există un astfel de element. `$predicate` are semnătura `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::firstKey([1, 2, 3]);                   // 0
-Arrays::firstKey([1, 2, 3], fn($v) => $v > 2); // 2
-Arrays::firstKey(['a' => 1, 'b' => 2]);        // 'a'
-Arrays::firstKey([]);                          // null
-```
-
-A se vedea [lastKey() |#lastKey()].
 
 
 flatten(array $array, bool $preserveKeys=false): array .[method]
@@ -265,63 +188,27 @@ Arrays::isList(['a' => 1, 'b' => 2]); // false
 ```
 
 
-last(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
-------------------------------------------------------------------------------------
+last(array $array): mixed .[method]
+-----------------------------------
 
-Returnează ultimul element (care corespunde predicatului specificat, dacă este dat). Dacă nu există un astfel de element, se returnează rezultatul invocării `$else` sau null.
- `$predicate` are semnătura `function ($value, int|string $key, array $array): bool`.
-
-Nu modifică pointerul intern, spre deosebire de `end()`. Parametrii `$predicate` și `$else` există începând cu versiunea 4.0.4.
+Returnează ultimul element din tablou sau zero dacă tabloul este gol. Spre deosebire de `end()`, nu modifică pointerul intern.
 
 ```php
-Arrays::last([1, 2, 3]);                   // 3
-Arrays::last([1, 2, 3], fn($v) => $v < 3); // 2
-Arrays::last([]);                          // null
-Arrays::last([], else: fn() => false);     // false
+Arrays::last([1, 2, 3]); // 3
+Arrays::last([]);        // null
 ```
 
-A se vedea [first() |#first()].
 
-
-lastKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
------------------------------------------------------------------------------------------------
-
-Returnează cheia ultimului element (care corespunde predicatului specificat, dacă este dat) sau nulă dacă nu există un astfel de element. `$predicate` are semnătura `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::lastKey([1, 2, 3]);                    // 2
-Arrays::lastKey([1, 2, 3], fn($v) => $v < 3);  // 1
-Arrays::lastKey(['a' => 1, 'b' => 2]);         // 'b'
-Arrays::lastKey([]);                           // null
-```
-
-A se vedea [firstKey() |#firstKey()].
-
-
-map(array $array, callable $transformer): array .[method]
+map(iterable $array, callable $callback): array .[method]
 ---------------------------------------------------------
 
-Solicită `$transformer` pentru toate elementele din matrice și returnează matricea de valori de returnare. Callback-ul are semnătura `function ($value, $key, array $array): bool`.
+Solicită `$callback` pentru toate elementele din matrice și returnează matricea de valori de returnare. Callback-ul are semnătura `function ($value, $key, array $array): bool`.
 
 ```php
 $array = ['foo', 'bar', 'baz'];
 $res = Arrays::map($array, fn($value) => $value . $value);
 // $res = ['foofoo', 'barbar', 'bazbaz']
 ```
-
-
-mapWithKeys(array $array, callable $transformer): array .[method]
------------------------------------------------------------------
-
-Creează un nou array prin transformarea valorilor și a cheilor array-ului original. Funcția `$transformer` are semnătura `function ($value, $key, array $array): ?array{$newValue, $newKey}`. Dacă `$transformer` returnează `null`, elementul este ignorat. Pentru elementele păstrate, primul element al matricei returnate este utilizat ca nouă cheie, iar al doilea element ca nouă valoare.
-
-```php
-$array = ['a' => 1, 'b' => 2, 'c' => 3];
-$result = Arrays::mapWithKeys($array, fn($v, $k) => $v > 1 ? [$v * 2, strtoupper($k)] : null);
-// [4 => 'B']
-```
-
-Această metodă este utilă în situațiile în care trebuie să modificați structura unui array (atât cheile, cât și valorile simultan) sau să filtrați elementele în timpul transformării (returnând null pentru elementele nedorite).
 
 
 mergeTree(array $array1, array $array2): array .[method]
@@ -397,8 +284,8 @@ $position = Arrays::getKeyOffset($array, 'not-exists'); // returnează null
 ```
 
 
-some(array $array, callable $predicate): bool .[method]
--------------------------------------------------------
+some(iterable $array, callable $callback): bool .[method]
+---------------------------------------------------------
 
 Testează dacă cel puțin un element din matrice trece testul implementat de callback-ul furnizat cu semnătura `function ($value, $key, array $array): bool`.
 
@@ -434,8 +321,8 @@ Arrays::toObject($array, $obj); // setează $obj->foo = 1; $obj->bar = 2;
 ```
 
 
-wrap(array $array, string $prefix='', string $suffix=''): array .[method]
--------------------------------------------------------------------------
+wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
+----------------------------------------------------------------------------
 
 Transformă fiecare element al tabloului în șir de caractere și îl închide cu `$prefix` și `$suffix`.
 

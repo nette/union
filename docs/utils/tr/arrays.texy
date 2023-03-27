@@ -15,53 +15,12 @@ composer require nette/utils
 Diziler .[#toc-arrays]
 ======================
 
-[api:Nette\Utils\Arrays] bir avuç kullanışlı dizi işlevi içeren statik bir sınıftır. Yineleyiciler için karşılığı [Nette\Utils\Iterables' |iterables]dır.
+[api:Nette\Utils\Arrays] bir avuç kullanışlı dizi işlevi içeren statik bir sınıftır.
 
 Aşağıdaki örneklerde, aşağıdaki sınıf takma adının tanımlandığı varsayılmaktadır:
 
 ```php
 use Nette\Utils\Arrays;
-```
-
-
-associate(array $array, mixed $path): array|\stdClass .[method]
----------------------------------------------------------------
-
-İşlev, `$array` adresini belirtilen yola göre esnek bir şekilde ilişkisel bir diziye veya nesnelere dönüştürür `$path`. Yol bir dize veya dizi olabilir. Girdi dizisindeki anahtarların adlarından ve '[]', '->', '=' ve '|' gibi operatörlerden oluşur. Yol geçersizse `Nette\InvalidArgumentException` adresini atar.
-
-```php
-// basit bir anahtar kullanarak ilişkisel bir diziye dönüştürme
-$arr = [
-    ['name' => 'John', 'age' => 11],
-    ['name' => 'Mary', 'age' => null],
-    //...
-];
-$result = Arrays::associate($arr, 'name');
-// $result = ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// = operatörünü kullanarak bir anahtardan diğerine değer atama
-$result = Arrays::associate($arr, 'name=age'); // veya ['name', '=', 'age']
-// $result = ['John' => 11, 'Mary' => null, ...]
-```
-
-```php
-// -> operatörünü kullanarak bir nesne oluşturma
-$result = Arrays::associate($arr, '->name'); // veya ['->', 'name']
-// $result = (object) ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// | operatörünü kullanarak anahtarları birleştirme
-$result = Arrays::associate($arr, 'name|age'); // veya ['name', '|', 'age']
-// $result: ['John' => ['name' => 'John', 'age' => 11], 'Paul' => ['name' => 'Paul', 'age' => 44]]
-```
-
-```php
-// [] kullanarak bir diziye ekleme
-$result = Arrays::associate($arr, 'name[]'); // veya ['name', '[]']
-// $result: ['John' => [['name' => 'John', 'age' => 22], ['name' => 'John', 'age' => 11]]]
 ```
 
 
@@ -76,8 +35,8 @@ Arrays::contains(['1', false], 1); // false
 ```
 
 
-every(array $array, callable $predicate): bool .[method]
---------------------------------------------------------
+every(iterable $array, callable $callback): bool .[method]
+----------------------------------------------------------
 
 Dizideki tüm öğelerin, `function ($value, $key, array $array): bool` imzasına sahip olan sağlanan işlev tarafından uygulanan testi geçip geçmediğini sınar.
 
@@ -90,51 +49,15 @@ $res = Arrays::every($array, $isBelowThreshold); // true
 [some() |#some()] işlevine bakın.
 
 
-filter(array $array, callable $predicate): array .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------
+first(array $array): mixed .[method]
+------------------------------------
 
-Verilen `$predicate` ile eşleşen tüm anahtar-değer çiftlerini içeren yeni bir dizi döndürür. Geri arama `function ($value, int|string $key, array $array): bool` imzasına sahiptir.
-
-```php
-Arrays::filter(
-	['a' => 1, 'b' => 2, 'c' => 3],
-	fn($v) => $v < 3,
-);
-// ['a' => 1, 'b' => 2]
-```
-
-
-first(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
--------------------------------------------------------------------------------------
-
-İlk öğeyi döndürür (verilmişse belirtilen yüklemle eşleşen). Böyle bir öğe yoksa, `$else` çağrısının sonucunu veya null döndürür.
- `$predicate`, `function ($value, int|string $key, array $array): bool` imzasına sahiptir.
-
- `reset()` adresinden farklı olarak dahili işaretçiyi değiştirmez. `$predicate` ve `$else` parametreleri 4.0.4 sürümünden beri mevcuttur.
+Dizideki ilk öğeyi veya dizi boşsa null döndürür. `reset()` adresinden farklı olarak dahili göstericiyi değiştirmez.
 
 ```php
-Arrays::first([1, 2, 3]);                   // 1
-Arrays::first([1, 2, 3], fn($v) => $v > 2); // 3
-Arrays::first([]);                          // null
-Arrays::first([], else: fn() => false);     // false
+Arrays::first([1, 2, 3]); // 1
+Arrays::first([]);        // null
 ```
-
-Bkz. [last() |#last()].
-
-
-firstKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------------------------
-
-İlk öğenin anahtarını (verilmişse belirtilen yüklemle eşleşen) veya böyle bir öğe yoksa null döndürür. `$predicate` , `function ($value, int|string $key, array $array): bool` imzasına sahiptir.
-
-```php
-Arrays::firstKey([1, 2, 3]);                   // 0
-Arrays::firstKey([1, 2, 3], fn($v) => $v > 2); // 2
-Arrays::firstKey(['a' => 1, 'b' => 2]);        // 'a'
-Arrays::firstKey([]);                          // null
-```
-
- [lastKey() |#lastKey()] işlevine bakın.
 
 
 flatten(array $array, bool $preserveKeys=false): array .[method]
@@ -265,63 +188,27 @@ Arrays::isList(['a' => 1, 'b' => 2]); // false
 ```
 
 
-last(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
-------------------------------------------------------------------------------------
+last(array $array): mixed .[method]
+-----------------------------------
 
-Son öğeyi döndürür (verilmişse belirtilen yüklemle eşleşen). Böyle bir öğe yoksa, `$else` çağrısının sonucunu veya null döndürür.
- `$predicate`, `function ($value, int|string $key, array $array): bool` imzasına sahiptir.
-
- `end()` adresinden farklı olarak dahili işaretçiyi değiştirmez. `$predicate` ve `$else` parametreleri 4.0.4 sürümünden beri mevcuttur.
+Dizideki son öğeyi veya dizi boşsa null döndürür. `end()` adresinden farklı olarak dahili göstericiyi değiştirmez.
 
 ```php
-Arrays::last([1, 2, 3]);                   // 3
-Arrays::last([1, 2, 3], fn($v) => $v < 3); // 2
-Arrays::last([]);                          // null
-Arrays::last([], else: fn() => false);     // false
+Arrays::last([1, 2, 3]); // 3
+Arrays::last([]);        // null
 ```
 
-[First() |#first()] işlevine bakın.
 
-
-lastKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
------------------------------------------------------------------------------------------------
-
-Son öğenin anahtarını (verilmişse belirtilen yüklemle eşleşen) veya böyle bir öğe yoksa null döndürür. `$predicate` , `function ($value, int|string $key, array $array): bool` imzasına sahiptir.
-
-```php
-Arrays::lastKey([1, 2, 3]);                    // 2
-Arrays::lastKey([1, 2, 3], fn($v) => $v < 3);  // 1
-Arrays::lastKey(['a' => 1, 'b' => 2]);         // 'b'
-Arrays::lastKey([]);                           // null
-```
-
- [firstKey() |#firstKey()] işlevine bakın.
-
-
-map(array $array, callable $transformer): array .[method]
+map(iterable $array, callable $callback): array .[method]
 ---------------------------------------------------------
 
-Dizideki tüm öğeler üzerinde `$transformer` adresini çağırır ve dönüş değerleri dizisini döndürür. Geri arama `function ($value, $key, array $array): bool` imzasına sahiptir.
+Dizideki tüm öğeler üzerinde `$callback` adresini çağırır ve dönüş değerleri dizisini döndürür. Geri arama `function ($value, $key, array $array): bool` imzasına sahiptir.
 
 ```php
 $array = ['foo', 'bar', 'baz'];
 $res = Arrays::map($array, fn($value) => $value . $value);
 // $res = ['foofoo', 'barbar', 'bazbaz']
 ```
-
-
-mapWithKeys(array $array, callable $transformer): array .[method]
------------------------------------------------------------------
-
-Orijinal dizinin değerlerini ve anahtarlarını dönüştürerek yeni bir dizi oluşturur. `$transformer` işlevi `function ($value, $key, array $array): ?array{$newValue, $newKey}` imzasına sahiptir. `$transformer` işlevi `null` döndürürse, eleman atlanır. Tutulan elemanlar için, döndürülen dizinin ilk elemanı yeni anahtar ve ikinci elemanı yeni değer olarak kullanılır.
-
-```php
-$array = ['a' => 1, 'b' => 2, 'c' => 3];
-$result = Arrays::mapWithKeys($array, fn($v, $k) => $v > 1 ? [$v * 2, strtoupper($k)] : null);
-// [4 => 'B']
-```
-
-Bu yöntem, bir dizinin yapısını (hem anahtarları hem de değerleri aynı anda) değiştirmeniz veya dönüştürme sırasında öğeleri filtrelemeniz (istenmeyen öğeler için null döndürerek) gereken durumlarda kullanışlıdır.
 
 
 mergeTree(array $array1, array $array2): array .[method]
@@ -397,8 +284,8 @@ $position = Arrays::getKeyOffset($array, 'not-exists'); // returns null
 ```
 
 
-some(array $array, callable $predicate): bool .[method]
--------------------------------------------------------
+some(iterable $array, callable $callback): bool .[method]
+---------------------------------------------------------
 
 Dizideki en az bir öğenin `function ($value, $key, array $array): bool` imzasıyla sağlanan geri arama tarafından uygulanan testi geçip geçmediğini sınar.
 
@@ -434,8 +321,8 @@ Arrays::toObject($array, $obj); // it sets $obj->foo = 1; $obj->bar = 2;
 ```
 
 
-wrap(array $array, string $prefix='', string $suffix=''): array .[method]
--------------------------------------------------------------------------
+wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
+----------------------------------------------------------------------------
 
 Dizinin her bir elemanını dizeye dönüştürür ve `$prefix` ve `$suffix` ile çevreler.
 

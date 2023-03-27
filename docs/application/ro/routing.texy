@@ -216,7 +216,7 @@ $router->addRoute('//www.%sld%.%tld%/%basePath%/<presenter>/<action', /* ... */)
 Notație avansată .[#toc-advanced-notation]
 ------------------------------------------
 
-Ținta unei rute, scrisă de obicei sub forma `Presenter:action`, poate fi exprimată, de asemenea, cu ajutorul unei matrice care definește parametrii individuali și valorile lor implicite:
+Al doilea parametru al traseului, pe care îl scriem adesea în formatul `Presenter:action`, este o abreviere, pe care o putem scrie și sub forma unui câmp, în care indicăm direct valorile (implicite) ale parametrilor individuali:
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
@@ -225,7 +225,7 @@ $router->addRoute('<presenter>/<action>[/<id \d+>]', [
 ]);
 ```
 
-Pentru o specificație mai detaliată, se poate utiliza o formă și mai extinsă, în care, pe lângă valorile implicite, pot fi stabilite și alte proprietăți ale parametrilor, cum ar fi o expresie regulată de validare (a se vedea parametrul `id` ):
+Sau putem folosi această formă, observați rescrierea expresiei regulate de validare:
 
 ```php
 use Nette\Routing\Route;
@@ -243,7 +243,7 @@ $router->addRoute('<presenter>/<action>[/<id>]', [
 ]);
 ```
 
-Este important de reținut faptul că, dacă parametrii definiți în matrice nu sunt incluși în masca de cale, valorile lor nu pot fi modificate, nici măcar folosind parametrii de interogare specificați după un semn de întrebare în URL.
+Aceste formate mai vorbărețe sunt utile pentru adăugarea altor metadate.
 
 
 Filtre și traduceri .[#toc-filters-and-translations]
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 La accesarea vechiului URL, prezentatorul redirecționează automat către noul URL, astfel încât motoarele de căutare să nu indexeze aceste pagini de două ori (a se vedea [SEO și canonizarea |#SEO and canonization]).
-
-
-Rutarea dinamică cu callback-uri .[#toc-dynamic-routing-with-callbacks]
------------------------------------------------------------------------
-
-Rutarea dinamică cu callback-uri vă permite să atribuiți direct funcții (callback-uri) la rute, care vor fi executate atunci când este vizitată calea specificată. Această funcție flexibilă vă permite să creați rapid și eficient diverse puncte finale pentru aplicația dumneavoastră:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-De asemenea, puteți defini parametri în mască, care vor fi trecuți automat către callback-ul dumneavoastră:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Module .[#toc-modules]
@@ -477,10 +454,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Integrare .[#toc-integration]
 =============================
 
-Pentru a conecta routerul nostru la aplicație, trebuie să informăm containerul DI despre acesta. Cel mai simplu este să pregătim fabrica care va construi obiectul router și să spunem configurației containerului să o folosească. Să spunem că scriem o metodă în acest scop `App\Core\RouterFactory::createRouter()`:
+Pentru a conecta routerul nostru la aplicație, trebuie să informăm containerul DI despre acesta. Cel mai simplu este să pregătim fabrica care va construi obiectul router și să spunem configurației containerului să o folosească. Să spunem că scriem o metodă în acest scop `App\Router\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Application\Routers\RouteList;
 
@@ -499,7 +476,7 @@ Apoi scriem în [configurație |dependency-injection:services]:
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 ```
 
 Orice dependență, cum ar fi o conexiune la o bază de date etc., este transmisă metodei factory ca parametru al acesteia folosind [autowiring |dependency-injection:autowiring]:
@@ -663,7 +640,7 @@ Prin utilizare separată se înțelege utilizarea capacităților routerului în
 Deci, din nou, vom crea o metodă care va construi un router, de exemplu:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Routing\RouteList;
 
@@ -694,7 +671,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Sau vom crea obiecte direct:
 
 ```php
-$router = App\Core\RouterFactory::createRouter();
+$router = App\Router\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

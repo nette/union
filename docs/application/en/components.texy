@@ -87,7 +87,7 @@ class PollControl extends Control
 Rendering
 =========
 
-We already know that the `{control componentName}` tag is used to draw a component. It actually calls the method `render()` of the component, in which we take care of the rendering. We have, just like in the presenter, a [Latte template|templates] in the variable `$this->template`, to which we pass the parameters. Unlike use in a presenter, we must specify a template file and let it render:
+We already know that the `{control componentName}` tag is used to draw a component. It actually calls the method `render()` of the component, in which we take care of the rendering. We have, just like in the presenter, a [Latte |latte:] template in the variable `$this->template`, to which we pass the parameters. Unlike use in a presenter, we must specify a template file and let it render:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -347,7 +347,7 @@ services:
 Finally, we will use this factory in our presenter:
 
 ```php
-class PollPresenter extends Nette\Application\UI\Presenter
+class PollPresenter extends Nette\UI\Application\Presenter
 {
 	public function __construct(
 		private PollControlFactory $pollControlFactory,
@@ -380,7 +380,7 @@ Components in Depth
 Components in a Nette Application are the reusable parts of a web application that we embed in pages, which is the subject of this chapter. What exactly are the capabilities of such a component?
 
 1) it is renderable in a template
-2) it knows [which part of itself |ajax#snippets] to render during an AJAX request (snippets)
+2) it knows which part of itself to render during an [AJAX request |ajax#invalidation] (snippets)
 3) it has the ability to store its state in a URL (persistent parameters)
 4) has the ability to respond to user actions (signals)
 5) creates a hierarchical structure (where the root is the presenter)

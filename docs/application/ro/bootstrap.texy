@@ -22,15 +22,15 @@ class Bootstrap
 {
 	public static function boot(): Configurator
 	{
-		$rootDir = dirname(__DIR__);
+		$appDir = dirname(__DIR__);
 		$configurator = new Configurator;
 		//$configurator->setDebugMode('secret@23.75.345.200');
-		$configurator->enableTracy($rootDir . '/log');
-		$configurator->setTempDirectory($rootDir . '/temp');
+		$configurator->enableTracy($appDir . '/log');
+		$configurator->setTempDirectory($appDir . '/temp');
 		$configurator->createRobotLoader()
 			->addDirectory(__DIR__)
 			->register();
-		$configurator->addConfig($rootDir . '/config/common.neon');
+		$configurator->addConfig($appDir . '/config/common.neon');
 		return $configurator;
 	}
 }
@@ -90,7 +90,7 @@ Instrumentul de depanare Tracy .[#toc-debugging-tool-tracy]
 Pentru o depanare mai ușoară, vom porni minunata unealtă [Tracy |tracy:]. În modul dezvoltator, acesta vizualizează erorile, iar în modul de producție înregistrează erorile în directorul specificat:
 
 ```php
-$configurator->enableTracy($rootDir . '/log');
+$configurator->enableTracy($appDir . '/log');
 ```
 
 
@@ -100,7 +100,7 @@ Temporary Files .[#toc-temporary-files]
 Nette utilizează memoria cache pentru DI container, RobotLoader, șabloane etc. Prin urmare, este necesar să setați calea către directorul în care va fi stocată memoria cache:
 
 ```php
-$configurator->setTempDirectory($rootDir . '/temp');
+$configurator->setTempDirectory($appDir . '/temp');
 ```
 
 Pe Linux sau macOS, setați [permisiunile de scriere |nette:troubleshooting#Setting directory permissions] pentru directoarele `log/` și `temp/`.
@@ -143,16 +143,16 @@ Fișierele de configurare sunt de obicei scrise în [formatul NEON |neon:format]
 Fișierele de configurare sunt încărcate utilizând `addConfig()`:
 
 ```php
-$configurator->addConfig($rootDir . '/config/common.neon');
+$configurator->addConfig($appDir . '/config/common.neon');
 ```
 
 Metoda `addConfig()` poate fi apelată de mai multe ori pentru a adăuga mai multe fișiere.
 
 ```php
-$configurator->addConfig($rootDir . '/config/common.neon');
-$configurator->addConfig($rootDir . '/config/services.neon');
+$configurator->addConfig($appDir . '/config/common.neon');
+$configurator->addConfig($appDir . '/config/local.neon');
 if (PHP_SAPI === 'cli') {
-	$configurator->addConfig($rootDir . '/config/cli.php');
+	$configurator->addConfig($appDir . '/config/cli.php');
 }
 ```
 
@@ -174,7 +174,7 @@ $configurator->addStaticParameters([
 ]);
 ```
 
-În fișierele de configurare, putem scrie notația obișnuită `%projectId%` pentru a accesa parametrul numit `projectId`.
+În fișierele de configurare, putem scrie notația obișnuită `%projectId%` pentru a accesa parametrul numit `projectId`. În mod implicit, configuratorul completează următorii parametri: `appDir`, `wwwDir`, `tempDir`, , `vendorDir`, `debugMode` și `consoleMode`.
 
 
 Parametrii dinamici .[#toc-dynamic-parameters]
@@ -195,20 +195,6 @@ $configurator->addDynamicParameters([
 	'env' => getenv(),
 ]);
 ```
-
-
-Parametrii impliciți .[#toc-default-parameters]
------------------------------------------------
-
-Puteți utiliza următorii parametri statici în fișierele de configurare:
-
-- `%appDir%` este calea absolută către directorul fișierului `Bootstrap.php`
-- `%wwwDir%` este calea absolută către directorul care conține fișierul de intrare `index.php`
-- `%tempDir%` este calea absolută către directorul pentru fișierele temporare
-- `%vendorDir%` este calea absolută către directorul în care Composer instalează bibliotecile
-- `%rootDir%` este calea absolută către directorul rădăcină al proiectului
-- `%debugMode%` indică dacă aplicația se află în modul de depanare
-- `%consoleMode%` indică dacă cererea a venit prin linia de comandă
 
 
 Servicii importate .[#toc-imported-services]

@@ -9,8 +9,6 @@ Além das funções comuns do PHP, você também pode usá-las em modelos.
 | `divisibleBy`| [verifica se uma variável é divisível por um número |#divisibleBy]
 | `even` | [verifica se o número dado é igual |#even]
 | `first` | [devolve o primeiro elemento de matriz ou caráter de cadeia |#first]
-| `group` | [agrupa dados de acordo com vários critérios |#group]
-| `hasBlock` | [detecta a existência de um bloco |#hasBlock]
 | `last` | [retorna o último elemento de matriz ou caráter de cadeia |#last]
 | `odd` | [verifica se o número dado é ímpar |#odd]
 | `slice` | [extrai uma fatia de uma matriz ou um fio |#slice]
@@ -46,8 +44,8 @@ Funções .[#toc-functions]
 =========================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
-----------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
+----------------------------------------------------------------------------------------------
 Retorna o valor fixado para a faixa inclusiva de min e max.
 
 ```latte
@@ -57,8 +55,8 @@ Retorna o valor fixado para a faixa inclusiva de min e max.
 Veja também a [braçadeira do filtro |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]
-------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
+---------------------------------------------------------------------
 Verifica se uma variável é divisível por um número.
 
 ```latte
@@ -66,8 +64,8 @@ Verifica se uma variável é divisível por um número.
 ```
 
 
-even(int $value): bool .[method]
---------------------------------
+even(int $value): bool .[method]{data-version:2.10.2}
+-----------------------------------------------------
 Verifica se o número dado é igual.
 
 ```latte
@@ -75,8 +73,8 @@ Verifica se o número dado é igual.
 ```
 
 
-first(string|iterable $value): mixed .[method]
-----------------------------------------------
+first(string|array $value): mixed .[method]{data-version:2.10.2}
+----------------------------------------------------------------
 Devolve o primeiro elemento de matriz ou caráter de corda:
 
 ```latte
@@ -87,38 +85,8 @@ Devolve o primeiro elemento de matriz ou caráter de corda:
 Ver também [por último |#last], [filtrar primeiro |filters#first].
 
 
-group(iterable $data, string|int|\Closure $by): array .[method]{data-version:3.0.16}
-------------------------------------------------------------------------------------
-Essa função agrupa dados de acordo com diferentes critérios.
-
-Neste exemplo, as linhas da tabela são agrupadas pela coluna `categoryId`. O resultado é uma matriz de campos em que a chave é o valor da coluna `categoryId`. Leia as [instruções detalhadas |cookbook/grouping].
-
-```latte
-{foreach group($items, categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Consulte também [grupo de |filters#group] filtros.
-
-
-hasBlock(string $name): bool .[method]{data-version:3.0.10}
------------------------------------------------------------
-Verifica se o bloco com o nome especificado existe:
-
-```latte
-{if hasBlock(header)} ... {/if}
-```
-
-Consulte também [verificação de existência de bloco |template-inheritance#Checking Block Existence].
-
-
-last(string|array $value): mixed .[method]
-------------------------------------------
+last(string|array $value): mixed .[method]{data-version:2.10.2}
+---------------------------------------------------------------
 Retorna o último elemento de matriz ou caráter de corda:
 
 ```latte
@@ -129,8 +97,8 @@ Retorna o último elemento de matriz ou caráter de corda:
 Ver também [primeiro |#first], [filtrar por último |filters#last].
 
 
-odd(int $value): bool .[method]
--------------------------------
+odd(int $value): bool .[method]{data-version:2.10.2}
+----------------------------------------------------
 Verifica se o número dado é estranho.
 
 ```latte
@@ -138,8 +106,8 @@ Verifica se o número dado é estranho.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
-----------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
+-------------------------------------------------------------------------------------------------------------------------------
 Extrai uma fatia de uma matriz ou um fio.
 
 ```latte

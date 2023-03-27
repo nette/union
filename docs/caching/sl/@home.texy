@@ -266,25 +266,6 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
-Uporaba s PSR-16 .[#toc-using-with-psr-16]
-==========================================
-
-Za uporabo predpomnilnika Nette Cache z vmesnikom PSR-16 lahko uporabite `PsrCacheAdapter`. Ta omogoča nemoteno integracijo med predpomnilnikom Nette Cache in katero koli kodo ali knjižnico, ki pričakuje predpomnilnik, združljiv s PSR-16.
-
-```php
-$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
-```
-
-Zdaj lahko `$psrCache` uporabljate kot predpomnilnik PSR-16:
-
-```php
-$psrCache->set('key', 'value', 3600); // shrani vrednost za 1 uro
-$value = $psrCache->get('key', 'default');
-```
-
-Adapter podpira vse metode, opredeljene v PSR-16, vključno s `getMultiple()`, `setMultiple()` in `deleteMultiple()`.
-
-
 Izhodno predpomnjenje .[#toc-output-caching]
 ============================================
 
@@ -461,30 +442,6 @@ Dnevnik lahko spremenite v konfiguraciji:
 services:
 	cache.journal: MyJournal
 ```
-
-
-Storitve DI .[#toc-di-services]
-===============================
-
-Te storitve so dodane vsebniku DI:
-
-| Ime | Vrsta | Opis
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
-| `cache.storage` | [api:Nette\Caching\Storage] | repozitorij
-
-
-Izklop predpomnilnika .[#toc-turning-off-cache]
-===============================================
-
-Eden od načinov za izklop predpomnilnika v aplikaciji je nastavitev shrambe na [DevNullStorage |#DevNullStorage]:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-Ta nastavitev ne vpliva na predpomnjenje predlog v Latte ali vsebniku DI, saj ti knjižnici ne uporabljata storitev nette/caching in upravljata svoj predpomnilnik neodvisno. Poleg tega njihovega predpomnilnika v razvojnem načinu [ni treba izklopiti |nette:troubleshooting#how-to-disable-cache-during-development].
 
 
 {{leftbar: nette:@menu-topics}}

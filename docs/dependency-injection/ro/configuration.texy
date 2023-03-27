@@ -67,7 +67,7 @@ Cum se pot edita în bloc toate serviciile de un anumit tip? Aveți nevoie să a
 ```neon
 decorator:
 	# pentru toate serviciile care sunt instanțe ale acestei clase sau interfețe
-	App\UI\BasePresenter:
+	App\Presenters\BasePresenter:
 		setup:
 			- setProjectId(10)       # apelează această metodă
 			- $absoluteUrls = true   # și setează variabila
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Dacă nu utilizați matricea `$container->getParameters()`, puteți dezactiva exportul de parametri. În plus, puteți exporta numai acele etichete prin care obțineți servicii utilizând metoda `$container->findByTag(...)`.
+Dacă nu utilizați matricea `$container->parameters`, puteți dezactiva exportul de parametri. În plus, puteți exporta numai acele etichete prin care obțineți servicii utilizând metoda `$container->findByTag(...)`.
 Dacă nu apelați deloc metoda, puteți dezactiva complet exportul de etichete cu `false`.
 
 Puteți reduce în mod semnificativ metadatele pentru [cablarea |autowiring] automată prin specificarea claselor pe care le utilizați ca parametru pentru metoda `$container->getByType()`.
@@ -191,15 +191,20 @@ Trebuie doar să specificați în ce directoare (și subdirectoare) trebuie cău
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# alegeți singuri denumirile secțiunilor
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 De obicei, însă, nu dorim să adăugăm toate clasele și interfețele, așa că le putem filtra:
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# filtrarea după numele fișierului (string|string[])
 		files:
@@ -215,7 +220,7 @@ Sau putem selecta clasele care moștenesc sau implementează cel puțin una dint
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,9 +231,8 @@ De asemenea, se pot defini reguli negative, adică măști de nume de clasă sau
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
-fișiere: ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -238,7 +242,7 @@ Se pot stabili etichete pentru serviciile adăugate:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

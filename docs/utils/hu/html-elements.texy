@@ -219,9 +219,9 @@ $el = Html::el('span')
 Egy másik módja egy új `Html` csomópont létrehozásának és beszúrásának:
 
 ```php
-$ul = Html::el('ul');
-$ul->create('li', ['class' => 'first'])
-	->setText('hello');
+$el = Html::el('ul')
+	->create('li', ['class' => 'first'])
+		->setText('hello');
 // <ul><li class="first">hello</li></ul>
 ```
 

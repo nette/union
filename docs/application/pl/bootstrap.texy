@@ -22,15 +22,15 @@ class Bootstrap
 {
 	public static function boot(): Configurator
 	{
-		$rootDir = dirname(__DIR__);
+		$appDir = dirname(__DIR__);
 		$configurator = new Configurator;
 		//$configurator->setDebugMode('secret@23.75.345.200');
-		$configurator->enableTracy($rootDir . '/log');
-		$configurator->setTempDirectory($rootDir . '/temp');
+		$configurator->enableTracy($appDir . '/log');
+		$configurator->setTempDirectory($appDir . '/temp');
 		$configurator->createRobotLoader()
 			->addDirectory(__DIR__)
 			->register();
-		$configurator->addConfig($rootDir . '/config/common.neon');
+		$configurator->addConfig($appDir . '/config/common.neon');
 		return $configurator;
 	}
 }
@@ -90,7 +90,7 @@ Narzędzie do debugowania Tracy .[#toc-debugging-tool-tracy]
 Aby ułatwić debugowanie, włączmy wspaniałe narzędzie [Tracy |tracy:]. Wizualizuje błędy w trybie deweloperskim i loguje błędy w trybie produkcyjnym do podanego katalogu:
 
 ```php
-$configurator->enableTracy($rootDir . '/log');
+$configurator->enableTracy($appDir . '/log');
 ```
 
 
@@ -100,7 +100,7 @@ Pliki tymczasowe .[#toc-temporary-files]
 Nette używa buforowania dla kontenera DI, RobotLoader, szablonów itp. Dlatego musisz ustawić ścieżkę do katalogu, w którym będzie przechowywany cache:
 
 ```php
-$configurator->setTempDirectory($rootDir . '/temp');
+$configurator->setTempDirectory($appDir . '/temp');
 ```
 
 W systemach Linux lub macOS ustaw katalogi `log/` i `temp/` na uprawnienia do [zapisu |nette:troubleshooting#Setting-Directory-Permissions].
@@ -143,16 +143,16 @@ W trybie deweloperskim kontener jest automatycznie aktualizowany przy każdej zm
 Pliki konfiguracyjne są ładowane za pomocą `addConfig()`:
 
 ```php
-$configurator->addConfig($rootDir . '/config/common.neon');
+$configurator->addConfig($appDir . '/config/common.neon');
 ```
 
 Jeśli chcemy dodać więcej plików konfiguracyjnych, możemy wywołać funkcję `addConfig()` wielokrotnie.
 
 ```php
-$configurator->addConfig($rootDir . '/config/common.neon');
-$configurator->addConfig($rootDir . '/config/services.neon');
+$configurator->addConfig($appDir . '/config/common.neon');
+$configurator->addConfig($appDir . '/config/local.neon');
 if (PHP_SAPI === 'cli') {
-	$configurator->addConfig($rootDir . '/config/cli.php');
+	$configurator->addConfig($appDir . '/config/cli.php');
 }
 ```
 
@@ -174,7 +174,7 @@ $configurator->addStaticParameters([
 ]);
 ```
 
-W plikach konfiguracyjnych możemy zapisać zwykłą notację `%projectId%` aby uzyskać dostęp do parametru o nazwie `projectId`.
+Do parametru `projectId` można się odwołać w konfiguracji za pomocą zwykłej notacji `%projectId%`. Klasa Configurator automatycznie dodaje parametry `appDir`, `wwwDir`, `tempDir`, `vendorDir`, `debugMode` oraz `consoleMode`.
 
 
 Parametry dynamiczne .[#toc-dynamic-parameters]
@@ -195,20 +195,6 @@ $configurator->addDynamicParameters([
 	'env' => getenv(),
 ]);
 ```
-
-
-Parametry domyślne .[#toc-default-parameters]
----------------------------------------------
-
-W plikach konfiguracyjnych można używać następujących parametrów statycznych:
-
-- `%appDir%` jest bezwzględną ścieżką do katalogu zawierającego plik `Bootstrap.php`
-- `%wwwDir%` jest bezwzględną ścieżką do katalogu zawierającego plik wejściowy `index.php`
-- `%tempDir%` jest bezwzględną ścieżką do katalogu plików tymczasowych
-- `%vendorDir%` to bezwzględna ścieżka do katalogu, w którym Composer instaluje biblioteki
-- `%rootDir%` to bezwzględna ścieżka do katalogu głównego projektu
-- `%debugMode%` wskazuje, czy aplikacja jest w trybie debugowania
-- `%consoleMode%` wskazuje, czy żądanie przyszło z linii poleceń
 
 
 Usługi importowane .[#toc-imported-services]

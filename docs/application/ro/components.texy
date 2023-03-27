@@ -87,7 +87,7 @@ class PollControl extends Control
 Redarea .[#toc-rendering]
 =========================
 
-Știm deja că eticheta `{control componentName}` este utilizată pentru a desena o componentă. Aceasta apelează de fapt metoda `render()` a componentei, în care ne ocupăm de redare. Avem, la fel ca în prezentator, un [șablon Latte |templates] în variabila `$this->template`, căruia îi transmitem parametrii. Spre deosebire de utilizarea într-un prezentator, trebuie să specificăm un fișier șablon și să-l lăsăm să facă randarea:
+Știm deja că eticheta `{control componentName}` este utilizată pentru a desena o componentă. Aceasta apelează de fapt metoda `render()` a componentei, în care ne ocupăm de redare. Avem, la fel ca în prezentator, un șablon [Latte |latte:] în variabila `$this->template`, căruia îi transmitem parametrii. Spre deosebire de utilizarea într-un prezentator, trebuie să specificăm un fișier șablon și să-l lăsăm să facă randarea:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -347,7 +347,7 @@ services:
 În cele din urmă, vom utiliza această fabrică în prezentatorul nostru:
 
 ```php
-class PollPresenter extends Nette\Application\UI\Presenter
+class PollPresenter extends Nette\UI\Application\Presenter
 {
 	public function __construct(
 		private PollControlFactory $pollControlFactory,
@@ -380,7 +380,7 @@ Componente în profunzime .[#toc-components-in-depth]
 Componentele într-o aplicație Nette sunt părțile reutilizabile ale unei aplicații web pe care le încorporăm în pagini, care reprezintă subiectul acestui capitol. Care sunt mai exact capacitățile unei astfel de componente?
 
 1) este redabilă într-un șablon
-2) știe [ce parte din el însuși |ajax#snippets] să redea în timpul unei cereri AJAX (fragmente)
+2) știe ce parte din ea însăși trebuie să redea în timpul unei [cereri AJAX |ajax#invalidation] (fragmente)
 3) are capacitatea de a stoca starea sa într-un URL (parametri persistenți)
 4) are capacitatea de a răspunde la acțiunile utilizatorului (semnale)
 5) creează o structură ierarhică (în care rădăcina este prezentatorul)

@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,7 +34,7 @@ class ArticleRepository
 In den Presenter injizieren wir dann die Modellklasse, und in der Rendering-Methode fragen wir nach den veröffentlichten Artikeln, die wir an die Vorlage übergeben:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-Die Vorlage `default.latte` kümmert sich dann um die Auflistung der Artikel:
+In der Vorlage kümmern wir uns um das Rendern einer Artikelliste:
 
 ```latte
 {block content}
@@ -113,7 +114,7 @@ Der nächste Schritt besteht darin, den Präsentator zu bearbeiten. Wir werden d
 Wir erweitern die Render-Methode auch, um die Paginator-Instanz zu erhalten, sie einzurichten und die richtigen Artikel für die Anzeige in der Vorlage auszuwählen. Der HomePresenter wird wie folgt aussehen:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,7 +211,7 @@ class ArticleRepository
 Wir müssen keinen Paginator im Presenter erstellen, sondern verwenden die Methode des `Selection` -Objekts, das vom Repository zurückgegeben wird:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;

@@ -13,15 +13,11 @@ application:
 	# відображає вкладку "Nette Application" на синьому екрані Tracy?
 	debugger: ...           # (bool) за замовчуванням true
 
-	# чи буде викликано error-presenter при помилці?
-	# має ефект тільки в режимі розробника
-	catchExceptions: ...    # (bool) за замовчуванням дорівнює true
+	# чи буде викликатися презентер помилок у разі помилки?
+	catchExceptions: ...    # (bool) за замовчуванням true на "бойовому" сервері
 
 	# ім'я презентера помилок
-	errorPresenter: Error   # (string|array) за замовчуванням 'Nette:Error'
-
-	# визначає псевдоніми для доповідачів та подій
-	aliases: ...
+	errorPresenter: Error   # (string) за замовчуванням 'Nette:Error'
 
 	# визначає правила для перетворення імені ведучого в клас
 	mapping: ...
@@ -31,18 +27,9 @@ application:
 	silentLinks: ...        # (bool) за замовчуванням false
 ```
 
-Починаючи з версії 3.2 `nette/application` можна визначити пару презентувальників помилок:
-
-```neon
-application:
-	errorPresenter:
-		4xx: Error4xx   # для виключення Nette\Application\BadRequestException
-		5xx: Error5xx   # для інших винятків
-```
+Оскільки в режимі розробки презентери помилок за замовчуванням не викликаються, а помилки відображаються Tracy, зміна значення `catchExceptions` на `true` допомагає перевірити коректність роботи презентерів помилок під час розробки.
 
 Опція `silentLinks` визначає, як Nette поводиться в режимі розробника, коли генерація посилань не вдається (наприклад, через відсутність презентера тощо). Значення за замовчуванням `false` означає, що Nette запускає `E_USER_WARNING`. Встановлення значення `true` пригнічує це повідомлення про помилку. У виробничому середовищі завжди викликається `E_USER_WARNING`. Ми також можемо вплинути на цю поведінку, встановивши змінну презентера [$invalidLinkMode |creating-links#Invalid-Links].
-
-[Псевдоніми спрощують посилання |creating-links#aliases] на часто використовуваних доповідачів.
 
 Карта [mapping визначає правила |modules#Mapping], за якими ім'я класу виводиться з імені ведучого.
 
@@ -89,12 +76,6 @@ latte:
 	# генерує шаблони з declare(strict_types=1)
 	strictTypes: ...     # (bool) за замовчуванням false
 
-	# вмикає [режим строгого |latte:develop#strict mode]синтаксичного аналізу
-	strictParsing: ...   # (bool) за замовчуванням false
-
-	# включає [перевірку згенерованого коду |latte:develop#Checking Generated Code]
-	phpLinter: ...       # (string) за замовчуванням null
-
 	# клас $this->template
 	templateClass: App\MyTemplateClass # за замовчуванням Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -104,7 +85,7 @@ latte:
 ```neon
 latte:
 	расширения:
-		- Latte\Essential\TranslatorExtension(@Nette\Localization\Translator)
+		- Latte\Essential\TranslatorExtension
 ```
 
 /--comment
@@ -171,18 +152,3 @@ PHP
 php:
 	date.timezone: Europe/Prague
 ```
-
-
-Послуги з проведення розслідувань .[#toc-di-services]
-=====================================================
-
-Ці сервіси додаються до контейнера DI:
-
-| Назва | Тип | Опис
-|----------------------------------------------------------
-| `application.application` | [api:Nette\Application\Application] | [повний запуск програми |how-it-works#Nette Application]
-| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
-| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | фабрика ведучих
-| `application.###` | [api:Nette\Application\UI\Presenter] | індивідуальні ведучі
-| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | фабрика для `Latte\Engine`
-| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | фабрика для [`$this->template` |templates]

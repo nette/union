@@ -107,7 +107,7 @@ Form her zaman sunucu tarafında doğrulanır, ancak JavaScript doğrulaması da
 Bunu sayfaya ekleyin:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Formun bulunduğu sayfanın kaynak koduna bakarsanız, Nette'in gerekli alanları `required` CSS sınıfına sahip öğelere eklediğini fark edebilirsiniz. Aşağıdaki stili şablona eklemeyi deneyin, "Ad" etiketi kırmızı olacaktır. Kullanıcılar için gerekli alanları zarif bir şekilde işaretliyoruz:
@@ -207,7 +207,7 @@ class RegistrationFormData
 }
 ```
 
-Alternatif olarak, kurucuyu kullanabilirsiniz:
+PHP 8.0'dan itibaren, bir kurucu kullanan bu zarif gösterimi kullanabilirsiniz:
 
 ```php
 class RegistrationFormData
@@ -220,8 +220,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Veri sınıfının özellikleri de enum olabilir ve otomatik olarak eşleştirilirler. .{data-version:3.2.4}
 
 Nette'e verileri bize bu sınıfın nesneleri olarak döndürmesini nasıl söyleyebiliriz? Düşündüğünüzden daha kolay. Tek yapmanız gereken parametre olarak hidrate edilecek sınıf adını veya nesneyi belirtmek:
 
@@ -259,8 +257,6 @@ Eşleme daha sonra `$person` özellik türünden konteyneri `PersonFormData` sı
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Tarayıcı sayfasına yazdıracak olan `Nette\Forms\Blueprint::dataClass($form)` yöntemini kullanarak bir formun veri sınıfı için bir öneri oluşturabilirsiniz. Daha sonra kodu seçmek ve projenize kopyalamak için tıklamanız yeterlidir. .{data-version:3.1.15}
 
 
 Çoklu Gönder Düğmeleri .[#toc-multiple-submit-buttons]

@@ -67,7 +67,7 @@ parameters:
 ```neon
 decorator:
 	# for all services that are instances of this class or interface
-	App\UI\BasePresenter:
+	App\Presenters\BasePresenter:
 		setup:
 			- setProjectId(10)       # call this method
 			- $absoluteUrls = true   # and set the variable
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-`$container->getParameters()` 配列を使用しない場合は、パラメータのエクスポートを無効にすることができます。さらに、`$container->findByTag(...)` メソッドを使って、サービスを取得するタグだけをエクスポートすることができます。
+`$container->parameters` 配列を使用しない場合は、パラメータのエクスポートを無効にすることができます。さらに、`$container->findByTag(...)` メソッドを使って、サービスを取得するタグだけをエクスポートすることができます。
 このメソッドを全く呼び出さない場合は、`false` を使ってタグのエクスポートを完全に無効にすることができます。
 
 `$container->getByType()` メソッドのパラメータとして使用するクラスを指定すれば、[自動配線の |autowiring]ためのメタデータを大幅に減らすことができます。
@@ -191,15 +191,20 @@ DIコンテナにサービスを自動追加することで、非常に快適に
 
 ```neon
 search:
-	-	in: %appDir%/Forms
-	-	in: %appDir%/Model
+	# you choose the section names yourself
+	myForms:
+		in: %appDir%/Forms
+
+	model:
+		in: %appDir%/Model
 ```
 
 しかし、通常は、すべてのクラスとインターフェイスを追加したくないので、フィルタリングすることができます。
 
 ```neon
 search:
-	-	in: %appDir%/Forms
+	myForms:
+		in: %appDir%/Forms
 
 		# filtering by file name (string|string[])
 		files:
@@ -215,7 +220,7 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		extends:
 			- App\*Form
 		implements:
@@ -226,9 +231,8 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		exclude:
-ファイル: ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -238,7 +242,7 @@ search:
 
 ```neon
 search:
-	-	in: %appDir%
+	myForms:
 		tags: ...
 ```
 

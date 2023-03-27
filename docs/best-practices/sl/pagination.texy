@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,7 +34,7 @@ class ArticleRepository
 V Presenter nato injiciramo razred model in v metodi render bomo zahtevali objavljene članke, ki jih posredujemo predlogi:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-Predloga `default.latte` bo nato poskrbela za seznam člankov:
+V predlogi bomo poskrbeli za upodobitev seznama člankov:
 
 ```latte
 {block content}
@@ -113,7 +114,7 @@ Naslednji korak je urejanje predstavnika. Številko trenutno prikazane strani bo
 Metodo upodabljanja razširimo tudi na pridobitev primerka Paginatorja, njegovo nastavitev in izbiro pravilnih člankov za prikaz v predlogi. HomePresenter bo videti takole:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,7 +211,7 @@ class ArticleRepository
 Namesto tega bomo uporabili metodo predmeta `Selection`, ki ga je vrnil repozitorij:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;

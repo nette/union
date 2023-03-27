@@ -30,7 +30,7 @@ $form->onSuccess[] = [$this, 'formSucceeded'];
 
 Από τη σκοπιά του παρουσιαστή, η φόρμα είναι ένα κοινό συστατικό. Ως εκ τούτου, αντιμετωπίζεται ως συστατικό και ενσωματώνεται στον παρουσιαστή χρησιμοποιώντας τη [μέθοδο factory |application:components#Factory Methods]. Αυτό θα έχει την εξής μορφή:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
@@ -59,7 +59,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Και η απόδοση στο πρότυπο γίνεται με τη χρήση της ετικέτας `{control}`:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Home/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ $form->addText('name', 'Name:')
 Εισάγεται στο πρότυπο διάταξης:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Αν κοιτάξετε στον πηγαίο κώδικα της σελίδας με τη φόρμα, μπορεί να παρατηρήσετε ότι η Nette εισάγει τα απαιτούμενα πεδία σε στοιχεία με κλάση CSS `required`. Δοκιμάστε να προσθέσετε το ακόλουθο στυλ στο πρότυπο, και η ετικέτα "Όνομα" θα είναι κόκκινη. Κομψά, επισημαίνουμε τα υποχρεωτικά πεδία για τους χρήστες:
@@ -232,7 +232,7 @@ class RegistrationFormData
 }
 ```
 
-Εναλλακτικά, μπορείτε να χρησιμοποιήσετε τον κατασκευαστή:
+Από την PHP 8.0, μπορείτε να χρησιμοποιήσετε αυτόν τον κομψό συμβολισμό που χρησιμοποιεί έναν κατασκευαστή:
 
 ```php
 class RegistrationFormData
@@ -245,8 +245,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Οι ιδιότητες της κλάσης δεδομένων μπορούν επίσης να είναι enums και θα αντιστοιχιστούν αυτόματα. .{data-version:3.2.4}
 
 Πώς μπορείτε να πείτε στη Nette να επιστρέφει δεδομένα ως αντικείμενα αυτής της κλάσης; Πιο εύκολα απ' ό,τι νομίζετε. Το μόνο που έχετε να κάνετε είναι να καθορίσετε την κλάση ως τύπο της παραμέτρου `$data` στον χειριστή:
 
@@ -295,8 +293,6 @@ class RegistrationFormData
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Μπορείτε να δημιουργήσετε μια πρόταση για την κλάση δεδομένων μιας φόρμας χρησιμοποιώντας τη μέθοδο `Nette\Forms\Blueprint::dataClass($form)`, η οποία θα την εκτυπώσει στη σελίδα του προγράμματος περιήγησης. Στη συνέχεια, μπορείτε απλά να κάνετε κλικ για να επιλέξετε και να αντιγράψετε τον κώδικα στο έργο σας. .{data-version:3.1.15}
 
 
 Πολλαπλά κουμπιά υποβολής .[#toc-multiple-submit-buttons]

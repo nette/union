@@ -266,25 +266,6 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
-Использование с PSR-16 .[#toc-using-with-psr-16]
-================================================
-
-Чтобы использовать Nette Cache с интерфейсом PSR-16, вы можете воспользоваться сайтом `PsrCacheAdapter`. Он позволяет легко интегрировать Nette Cache с любым кодом или библиотекой, которая ожидает наличия кэша, совместимого с PSR-16.
-
-```php
-$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
-```
-
-Теперь вы можете использовать `$psrCache` в качестве кэша PSR-16:
-
-```php
-$psrCache->set('key', 'value', 3600); // сохраняет значение в течение 1 часа
-$value = $psrCache->get('key', 'default');
-```
-
-Адаптер поддерживает все методы, определенные в PSR-16, включая `getMultiple()`, `setMultiple()` и `deleteMultiple()`.
-
-
 Кэширование вывода .[#toc-output-caching]
 =========================================
 
@@ -461,30 +442,6 @@ Nette хранит теги и приоритеты в так называемо
 services:
 	cache.journal: MyJournal
 ```
-
-
-Услуги DI .[#toc-di-services]
-=============================
-
-Эти сервисы добавляются в контейнер DI:
-
-| Имя | Тип | Описание
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
-| `cache.storage` | [api:Nette\Caching\Storage] | репозиторий
-
-
-Отключение кэша .[#toc-turning-off-cache]
-=========================================
-
-Одним из способов отключения кэширования в приложении является установка для хранилища значения [DevNullStorage |#DevNullStorage]:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-Данная настройка не влияет на кэширование шаблонов в Latte или контейнере DI, так как эти библиотеки не используют сервисы nette/caching и управляют своим кэшем самостоятельно. Более того, их кэш [не нужно отключать |nette:troubleshooting#how-to-disable-cache-during-development] в режиме разработки.
 
 
 {{leftbar: nette:@menu-topics}}

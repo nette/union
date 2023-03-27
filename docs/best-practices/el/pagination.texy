@@ -11,6 +11,7 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
@@ -33,7 +34,7 @@ class ArticleRepository
 Στον Presenter στη συνέχεια εισάγουμε την κλάση model και στη μέθοδο render θα ζητήσουμε τα δημοσιευμένα άρθρα που θα περάσουμε στο template:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -52,7 +53,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-Το πρότυπο `default.latte` θα αναλάβει στη συνέχεια την καταχώριση των άρθρων:
+Στο πρότυπο, θα φροντίσουμε για την απόδοση μιας λίστας άρθρων:
 
 ```latte
 {block content}
@@ -113,7 +114,7 @@ class ArticleRepository
 Επεκτείνουμε επίσης τη μέθοδο render για να λάβουμε την περίπτωση Paginator, να τη ρυθμίσουμε και να επιλέξουμε τα σωστά άρθρα που θα εμφανίζονται στο πρότυπο. Το HomePresenter θα μοιάζει με αυτό:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;
@@ -189,12 +190,14 @@ namespace App\Model;
 
 use Nette;
 
+
 class ArticleRepository
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
 	) {
 	}
+
 
 	public function findPublishedArticles(): Nette\Database\Table\Selection
 	{
@@ -208,7 +211,7 @@ class ArticleRepository
 Δεν χρειάζεται να δημιουργήσουμε Paginator στο Presenter, αντίθετα θα χρησιμοποιήσουμε τη μέθοδο του αντικειμένου `Selection` που επιστρέφεται από το αποθετήριο:
 
 ```php
-namespace App\UI\Home;
+namespace App\Presenters;
 
 use Nette;
 use App\Model\ArticleRepository;

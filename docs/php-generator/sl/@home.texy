@@ -2,12 +2,11 @@ Generator kode PHP
 ******************
 
 <div class=perex>
-Iščete orodje za ustvarjanje kode PHP za razrede, funkcije ali celotne datoteke?
-
-- Podpira vse najnovejše funkcije PHP (kot so enumi itd.)
+- Potrebujete kodo PHP za razrede, funkcije, datoteke PHP itd.?
+- Podpira vse najnovejše funkcije PHP, kot so enumi, atributi itd.
 - Omogoča enostavno spreminjanje obstoječih razredov
-- Izhod je skladen s slogom kodiranja PSR-12 / PER
-- Zrela, stabilna in široko uporabljena knjižnica
+- Izpis v skladu s standardom PSR-12
+- Zelo zrela, stabilna in pogosto uporabljena knjižnica
 </div>
 
 
@@ -277,7 +276,7 @@ $function->addParameter('a');
 $function->addParameter('b');
 echo $function;
 
-// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12 / PER
+// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFunction($function);
 ```
 
@@ -305,7 +304,7 @@ $closure->addUse('c')
 	->setReference();
 echo $closure;
 
-// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12 / PER
+// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printClosure($closure);
 ```
 
@@ -472,56 +471,30 @@ function foo($a)
 Tiskalniki in skladnost s predpisi PSR .[#toc-printers-and-psr-compliance]
 --------------------------------------------------------------------------
 
-Razred [Printer |api:Nette\PhpGenerator\Printer] se uporablja za ustvarjanje kode PHP:
+Koda PHP se ustvari s pomočjo predmetov `Printer`. Obstaja `PsrPrinter`, katerega izpis je skladen s PSR-2 in PSR-12 ter uporablja presledke za alineje, in `Printer`, ki za alineje uporablja tabulatorje.
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
 // ...
 
-$printer = new Nette\PhpGenerator\Printer;
-echo $printer->printClass($class); // enako kot: echo $class
-```
-
-Ustvarja lahko kodo za vse druge elemente in ponuja metode, kot so `printFunction()`, `printNamespace()` itd.
-
-Poleg tega je na voljo razred `PsrPrinter`, katerega izpis je v skladu s slogom kodiranja PSR-2 / PSR-12 / PER:
-
-```php
 $printer = new Nette\PhpGenerator\PsrPrinter;
-echo $printer->printClass($class);
+echo $printer->printClass($class); // Odmik 4 presledki
 ```
 
-Potrebujete natančno prilagoditi obnašanje svojim potrebam? Ustvarite svoj tiskalnik tako, da podedujete razred `Printer`. Te spremenljivke lahko ponovno konfigurirate:
+Potrebujete prilagoditi obnašanje tiskalnika? Ustvarite svojega tako, da podedujete razred `Printer`. Te spremenljivke lahko ponovno konfigurirate:
 
 ```php
 class MyPrinter extends Nette\PhpGenerator\Printer
 {
-	// dolžina vrstice, po kateri se bo plastica prekinila
 	public int $wrapLength = 120;
-	// znak za odmik, lahko se nadomesti z zaporedjem presledkov
 	public string $indentation = "\t";
-	// število praznih vrstic med zadnjimi
 	public int $linesBetweenProperties = 0;
-	// število praznih vrstic med metodami
 	public int $linesBetweenMethods = 2;
-	// število praznih vrstic med skupinami izjav o uporabi za razrede, funkcije in konstante
 	public int $linesBetweenUseTypes = 0;
-	// položaj začetnega oklepaja za funkcije in metode
 	public bool $bracesOnNextLine = true;
-	// postavi en parameter v eno vrstico, tudi če ima atribut ali je povišan
-	public bool $singleParameterOnOneLine = false;
-	// omits namespaces that do not contain any class or function
-	public bool $omitEmptyNamespaces = true;
-	// ločilo med desnim oklepajem in tipom vrnitve funkcij in metod
 	public string $returnTypeColon = ': ';
 }
 ```
-
-Kako in zakaj natančno se razlikujeta standardna `Printer` in `PsrPrinter`? Zakaj v paketu ni samo enega tiskalnika, `PsrPrinter`, ki bi se razlikoval?
-
-Standardni `Printer` oblikuje kodo tako, kot jo oblikujemo v celotnem sistemu Nette. Ker je Nette nastal veliko prej kot PSR in tudi zato, ker PSR dolga leta ni pravočasno dostavljal standardov, temveč včasih celo z večletno zamudo od uvedbe nove funkcije v PHP, je to povzročilo nekaj manjših razlik v [standardu kodiranja |contributing:coding-standard].
-Večja razlika je le uporaba tabulatorjev namesto presledkov. Vemo, da z uporabo tabulatorjev v naših projektih omogočamo prilagajanje širine, kar je [bistvenega pomena za ljudi z okvarami vida |contributing:coding-standard#Tabs Instead of Spaces].
-Primer manjše razlike je postavitev oglatega oklepaja v ločeno vrstico za funkcije in metode ter vedno. Priporočilo PSR se nam zdi nelogično in [vodi k zmanjšanju jasnosti kode |contributing:coding-standard#Wrapping and Braces].
 
 
 Tipi .[#toc-types]
@@ -533,8 +506,7 @@ Vsak tip ali tip zveze/intersekcije je mogoče posredovati kot niz, uporabite la
 use Nette\PhpGenerator\Type;
 
 $member->setType('array'); // ali Type::Array;
-$member->setType('?array'); // or Type::nullable(Type::Array);
-$member->setType('array|string'); // or Type::union(Type::Array, Type::String)
+$member->setType('array|string'); // ali Type::union('array', 'string')
 $member->setType('Foo&Bar'); // ali Type::intersection(Foo::class, Bar::class)
 $member->setType(null); // odstrani tip
 ```
@@ -580,13 +552,6 @@ new Literal('substr(?, ?)', [$a, $b]);
 // generira, na primer: substr('hello', 5);
 ```
 
-Literal, ki predstavlja ustvarjanje novega predmeta, se enostavno ustvari z metodo `new`:
-
-```php
-Literal::new(Demo::class, [$a, 'foo' => $b]);
-// generira, na primer: new Demo(10, foo: 20)
-```
-
 
 Atributi .[#toc-attributes]
 ---------------------------
@@ -595,15 +560,10 @@ Vsem razredom, metodam, lastnostim, konstantam, imenskim primerom, funkcijam, za
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
-$class->addAttribute('Table', [
-	'name' => 'user',
-	'constraints' => [
-		Literal::new('UniqueConstraint', ['name' => 'ean', 'columns' => ['ean']]),
-	],
-]);
+$class->addAttribute('Deprecated');
 
 $class->addProperty('list')
-	->addAttribute('Deprecated');
+	->addAttribute('WithArguments', [1, 2]);
 
 $method = $class->addMethod('count')
 	->addAttribute('Foo\Cached', ['mode' => true]);
@@ -617,18 +577,16 @@ echo $class;
 Rezultat:
 
 ```php
-#[Table(name: 'user', constraints: [new UniqueConstraint(name: 'ean', columns: ['ean'])])]
+#[Deprecated]
 class Demo
 {
-	#[Deprecated]
+	#[WithArguments(1, 2)]
 	public $list;
 
 
 	#[Foo\Cached(mode: true)]
-	public function count(
-		#[Bar]
-		$items,
-	) {
+	public function count(#[Bar] $items)
+	{
 	}
 }
 ```
@@ -683,8 +641,9 @@ echo $namespace->resolveName('range', $namespace::NameFunction); // 'iter\range'
 Razreševanje imen razredov .[#toc-class-names-resolving]
 --------------------------------------------------------
 
-**Ko je razred del imenskega prostora, se prikaže nekoliko drugače:** vsi tipi (npr. namigi na tip, tipi vrnitve, ime nadrejenega razreda, implementirani vmesniki, uporabljene lastnosti in atributi) se samodejno *razrešijo* (razen če to izklopite, glejte spodaj).
-To pomeni, da morate v definicijah uporabljati **polno kvalificirana imena razredov**, ki bodo v dobljeni kodi nadomeščena s približki (na podlagi klavzul use) ali polno kvalificiranimi imeni:
+**Ko je razred del imenskega prostora, se prikaže nekoliko drugače**: vse vrste (tj. namigi na vrsto, vrnitvene vrste, ime nadrejenega razreda,
+implementirani vmesniki, uporabljene lastnosti in atributi) se samodejno *razrešijo* (razen če to izklopite, glejte spodaj).
+To pomeni, da morate v definicijah **uporabiti polna imena razredov**, ki bodo v dobljeni kodi nadomeščena s približki (glede na izjave o uporabi) ali polno kvalificiranimi imeni:
 
 ```php
 $namespace = new Nette\PhpGenerator\PhpNamespace('Foo');
@@ -701,7 +660,7 @@ $method->addParameter('arg')
 
 echo $namespace;
 
-// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12 / PER
+// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printNamespace($namespace);
 ```
 
@@ -754,7 +713,7 @@ $function = $file->addFunction('Foo\foo');
 
 echo $file;
 
-// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12 / PER
+// ali uporabite PsrPrinter za izpis v skladu s PSR-2 / PSR-12
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFile($file);
 ```
 
@@ -779,8 +738,6 @@ function foo()
 {
 }
 ```
-
-**Upoštevajte:** V datoteke ni mogoče dodajati dodatne kode zunaj funkcij in razredov.
 
 
 Ustvarjanje glede na obstoječe .[#toc-generating-according-to-existing-ones]
@@ -860,6 +817,6 @@ echo $dumper->dump($var); // natisne ['a', 'b', 123]
 Preglednica združljivosti .[#toc-compatibility-table]
 -----------------------------------------------------
 
-PhpGenerator 4.0 in 4.1 sta združljiva s PHP 8.0 do 8.3
+PhpGenerator 4.0 je združljiv s PHP 8.0 do 8.2
 
 {{leftbar: nette:@menu-topics}}

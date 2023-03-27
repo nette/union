@@ -216,7 +216,7 @@ $router->addRoute('//www.%sld%.%tld%/%basePath%/<presenter>/<action', /* ... */)
 Gelişmiş Notasyon .[#toc-advanced-notation]
 -------------------------------------------
 
-Genellikle `Presenter:action` şeklinde yazılan bir rotanın hedefi, tek tek parametreleri ve bunların varsayılan değerlerini tanımlayan bir dizi kullanılarak da ifade edilebilir:
+Genellikle `Presenter:action` biçiminde yazdığımız rotanın ikinci parametresi, tek tek parametrelerin (varsayılan) değerlerini doğrudan belirttiğimiz bir alan biçiminde de yazabileceğimiz bir kısaltmadır:
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
@@ -225,7 +225,7 @@ $router->addRoute('<presenter>/<action>[/<id \d+>]', [
 ]);
 ```
 
-Daha ayrıntılı bir belirtim için, varsayılan değerlere ek olarak, doğrulama düzenli ifadesi gibi diğer parametre özelliklerinin de ayarlanabildiği daha da genişletilmiş bir form kullanılabilir (bkz. `id` parametresi):
+Ya da bu formu kullanabiliriz, doğrulama düzenli ifadesinin yeniden yazıldığına dikkat edin:
 
 ```php
 use Nette\Routing\Route;
@@ -243,7 +243,7 @@ $router->addRoute('<presenter>/<action>[/<id>]', [
 ]);
 ```
 
-Dizide tanımlanan parametreler yol maskesine dahil edilmemişse, URL'de bir soru işaretinden sonra belirtilen sorgu parametreleri kullanılsa bile değerlerinin değiştirilemeyeceğine dikkat etmek önemlidir.
+Bu daha konuşkan formatlar diğer meta verileri eklemek için kullanışlıdır.
 
 
 Filtreler ve Çeviriler .[#toc-filters-and-translations]
@@ -340,29 +340,6 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 Eski URL'ye erişildiğinde, sunucu otomatik olarak yeni URL'ye yönlendirir, böylece arama motorları bu sayfaları iki kez dizine eklemez (bkz. [SEO ve kanonizasyon |#SEO and canonization]).
-
-
-Geri Çağırmalarla Dinamik Yönlendirme .[#toc-dynamic-routing-with-callbacks]
-----------------------------------------------------------------------------
-
-Geri aramalarla dinamik yönlendirme, belirtilen yol ziyaret edildiğinde yürütülecek olan işlevleri (geri aramalar) doğrudan yollara atamanıza olanak tanır. Bu esnek özellik, uygulamanız için hızlı ve verimli bir şekilde çeşitli uç noktalar oluşturmanızı sağlar:
-
-```php
-$router->addRoute('test', function () {
-	echo 'You are at the /test address';
-});
-```
-
-Maskede, geri aramanıza otomatik olarak aktarılacak parametreler de tanımlayabilirsiniz:
-
-```php
-$router->addRoute('<lang cs|en>', function (string $lang) {
-	echo match ($lang) {
-		'cs' => 'Welcome to the Czech version of our website!',
-		'en' => 'Welcome to the English version of our website!',
-	};
-});
-```
 
 
 Modüller .[#toc-modules]
@@ -477,10 +454,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Entegrasyon .[#toc-integration]
 ===============================
 
-Yönlendiricimizi uygulamaya bağlamak için DI konteynerine bunu söylemeliyiz. Bunun en kolay yolu router nesnesini oluşturacak fabrikayı hazırlamak ve container konfigürasyonuna bunu kullanmasını söylemektir. Diyelim ki bu amaçla bir metot yazdık `App\Core\RouterFactory::createRouter()`:
+Yönlendiricimizi uygulamaya bağlamak için DI konteynerine bunu söylemeliyiz. Bunun en kolay yolu router nesnesini oluşturacak fabrikayı hazırlamak ve container konfigürasyonuna bunu kullanmasını söylemektir. Diyelim ki bu amaçla bir metot yazdık `App\Router\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Application\Routers\RouteList;
 
@@ -499,7 +476,7 @@ Daha sonra [yapılandırmaya |dependency-injection:services] yazıyoruz:
 
 ```neon
 services:
-	- App\Core\RouterFactory::createRouter
+	- App\Router\RouterFactory::createRouter
 ```
 
 Veritabanı bağlantısı vb. gibi tüm bağımlılıklar, [otomatik |dependency-injection:autowiring] bağlantı kullanılarak fabrika yöntemine parametreleri olarak aktarılır:
@@ -663,7 +640,7 @@ Ayrı kullanımla, yönlendiricinin yeteneklerinin Nette Uygulaması ve sunucula
 Bu yüzden yine örneğin bir yönlendirici oluşturacak bir yöntem oluşturacağız:
 
 ```php
-namespace App\Core;
+namespace App\Router;
 
 use Nette\Routing\RouteList;
 
@@ -694,7 +671,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Ya da doğrudan nesneler oluşturacağız:
 
 ```php
-$router = App\Core\RouterFactory::createRouter();
+$router = App\Router\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

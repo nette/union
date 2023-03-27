@@ -266,25 +266,6 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
-Verwendung mit PSR-16 .[#toc-using-with-psr-16]
-===============================================
-
-Um Nette Cache mit der PSR-16-Schnittstelle zu verwenden, können Sie die `PsrCacheAdapter` verwenden. Sie ermöglicht eine nahtlose Integration zwischen Nette Cache und jedem Code oder jeder Bibliothek, die einen PSR-16-kompatiblen Cache erwartet.
-
-```php
-$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
-```
-
-Jetzt können Sie `$psrCache` als PSR-16-Cache verwenden:
-
-```php
-$psrCache->set('key', 'value', 3600); // speichert den Wert für 1 Stunde
-$value = $psrCache->get('key', 'default');
-```
-
-Der Adapter unterstützt alle in PSR-16 definierten Methoden, einschließlich `getMultiple()`, `setMultiple()` und `deleteMultiple()`.
-
-
 Zwischenspeicherung der Ausgabe .[#toc-output-caching]
 ======================================================
 
@@ -461,30 +442,6 @@ Sie können das Journal in der Konfiguration ändern:
 services:
 	cache.journal: MyJournal
 ```
-
-
-DI-Dienste .[#toc-di-services]
-==============================
-
-Diese Dienste werden dem DI-Container hinzugefügt:
-
-| Name | Typ | Beschreibung
-|----------------------------------------------------------
-| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
-| `cache.storage` | [api:Nette\Caching\Storage] | repository
-
-
-Cache ausschalten .[#toc-turning-off-cache]
-===========================================
-
-Eine Möglichkeit, die Zwischenspeicherung in der Anwendung zu deaktivieren, besteht darin, den Speicher auf [DevNullStorage |#DevNullStorage] zu setzen:
-
-```neon
-services:
-	cache.storage: Nette\Caching\Storages\DevNullStorage
-```
-
-Diese Einstellung wirkt sich nicht auf die Zwischenspeicherung von Vorlagen in Latte oder dem DI-Container aus, da diese Bibliotheken nicht die Dienste von nette/caching nutzen und ihren Cache unabhängig verwalten. Außerdem [muss |nette:troubleshooting#how-to-disable-cache-during-development] ihr Cache im Entwicklungsmodus [nicht abgeschaltet werden |nette:troubleshooting#how-to-disable-cache-during-development].
 
 
 {{leftbar: nette:@menu-topics}}

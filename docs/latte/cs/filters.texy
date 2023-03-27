@@ -11,16 +11,14 @@ V šablonách můžeme používat funkce, které pomáhají upravit nebo přefor
 | `bytes`      | [formátuje velikost v bajtech |#bytes]
 | `clamp`      | [ohraničí hodnotu do daného rozsahu |#clamp]
 | `dataStream` | [konverze pro Data URI protokol |#datastream]
-| `date`       | [formátuje datum a čas|#date]
+| `date`       | [formátuje datum |#date]
 | `explode`    | [rozdělí řetězec na pole podle oddělovače |#explode]
 | `first`      | [vrací první prvek pole nebo znak řetězce |#first]
-| `group`      | [seskupí data podle různých kritérií |#group]
 | `implode`    | [spojí pole do řetězce |#implode]
 | `indent`     | [odsadí text zleva o daný počet tabulátorů |#indent]
 | `join`       | [spojí pole do řetězce |#implode]
 | `last`       | [vrací poslední prvek pole nebo znak řetězce |#last]
 | `length`     | [vrací délku řetězce ve znacích nebo pole |#length]
-| `localDate`  | [formátuje datum a čas podle národního prostředí|#localDate]
 | `number`     | [formátuje číslo |#number]
 | `padLeft`    | [doplní řetězec zleva na požadovanou délku |#padLeft]
 | `padRight`   | [doplní řetězec zprava na požadovanou délku |#padRight]
@@ -120,8 +118,8 @@ Filtry
 ======
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Filtr, který zjednodušuje výpis lineárních dat do podoby tabulky. Vrací pole polí se zadaným počtem položek. Pokud zadáte druhý parametr, použije se k doplnění chybějících položek na posledním řádku.
 
 ```latte
@@ -154,8 +152,6 @@ Vypíše:
 </table>
 ```
 
-Viz také [#group] a značka [iterateWhile|tags#iterateWhile].
-
 
 breakLines .[filter]
 --------------------
@@ -169,7 +165,7 @@ Přidává před každý znak nového řádku HTML značku `<br>`
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Formátuje velikost v bajtech do lidsky čitelné podoby. Pokud je nastavené [národní prostředí |develop#locale], použijí se odpovídající oddělovače desetinných míst a tisíců.
+Formátuje velikost v bajtech do lidsky čitelné podoby.
 
 ```latte
 {$size|bytes}     0 B, 10 B, …
@@ -207,8 +203,8 @@ Vynutí ošetření URL adresy. Kontroluje, zda proměnná obsahuje webovou URL 
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href={$link|checkUrl}>kontrolované</a>
-<a data-href={$link}>nekontrolované</a>
+<a data-href="{$link|checkUrl}">kontrolované</a>
+<a data-href="{$link}">nekontrolované</a>
 ```
 
 Vypíše:
@@ -221,8 +217,8 @@ Vypíše:
 Viz také [#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Ohraničí hodnotu do daného inkluzivního rozsahu min a max.
 
 ```latte
@@ -239,7 +235,7 @@ Konvertuje obsah do data URI scheme. Pomocí něj lze do HTML nebo CSS vkládat 
 Mějme v proměnné obrázek `$img = Image::fromFile('obrazek.gif')`, poté
 
 ```latte
-<img src={$img|dataStream}>
+<img src="{$img|dataStream}">
 ```
 
 Vypíše například:
@@ -256,13 +252,12 @@ Vyžaduje PHP rozšíření `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Formátuje datum a čas podle masky používané PHP funkcí [php:date]. Filtr přijímá datum ve formátu UNIX timestamp, jako řetězec nebo objekt typu `DateTimeInterface`.
+Formátuje datum podle masky buď ve tvaru používaném PHP funkcí [php:strftime] nebo [php:date]. Filtr přijímá datum buď ve formátu UNIX timestamp, v podobě řetězce nebo jako objekt `DateTime`.
 
 ```latte
+{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
-
-Viz také [#localDate].
 
 
 escapeUrl .[filter]
@@ -276,8 +271,8 @@ Escapuje proměnnou pro použití jakožto parametru v URL.
 Viz také [#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Rozdělí řetězec na pole podle oddělovače. Alias pro `split`.
 
 ```latte
@@ -299,8 +294,8 @@ Můžete také použít alias `split`:
 Viz také [#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Vrací první prvek pole nebo znak řetězce:
 
 ```latte
@@ -335,25 +330,6 @@ Převede první písmeno na velká. Vyžaduje PHP rozšíření `mbstring`.
 Viz také [#capitalize], [#lower], [#upper].
 
 
-group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
--------------------------------------------------------------------
-Filtr seskupí data podle různých kritérií.
-
-V tomto příkladu se řádky v tabulce seskupují podle sloupce `categoryId`. Výstupem je pole polí, kde klíčem je hodnota ve sloupci `categoryId`. [Přečtěte si podrobný návod|cookbook/grouping].
-
-```latte
-{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Viz také [#batch], funkce [group|functions#group] a značka [iterateWhile|tags#iterateWhile].
-
-
 implode(string glue = '') .[filter]
 -----------------------------------
 Vrátí řetězec, který je zřetězením položek sekvence. Alias pro `join`.
@@ -363,7 +339,7 @@ Vrátí řetězec, který je zřetězením položek sekvence. Alias pro `join`.
 {=[1, 2, 3]|implode:'|'}  {* vypíše '1|2|3' *}
 ```
 
-Můžete také použít alias `join`:
+Můžete také použít alias `join`: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* vypíše '123' *}
@@ -391,8 +367,8 @@ Vypíše:
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Vrací poslední prvek pole nebo znak řetězce:
 
 ```latte
@@ -420,53 +396,6 @@ Vrátí délku řetězce nebo pole.
 ```
 
 
-localDate(string format = null, string date = null, string time = null) .[filter]
----------------------------------------------------------------------------------
-Formátuje datum a čas podle [národního prostředí |develop#locale], což zajišťuje konzistentní a lokalizované zobrazení časových údajů napříč různými jazyky a regiony. Filtr přijímá datum jako UNIX timestamp, řetězec nebo objekt typu `DateTimeInterface`.
-
-**a) použití formátu**
-
-Parametr `format` popisuje, které časové složky se mají zobrazit. Používá pro ně písmenné kódy, jejichž počet opakování ovlivňuje šířku výstupu:
-
-| rok | `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
-| měsíc | `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `čvc` / `červenec`
-| den | `d` / `dd` | `1` / `01`
-| hodina | `j` | v preferovaném formátu prostředí
-| minuta | `m` / `mm` | `5` / `05` <small>(2 číslice v kombinaci se sekundami)</small>
-| sekunda | `s` / `ss` | `8` / `08` <small>(2 číslice v kombinaci s minutami)</small>
-
-Na pořadí kódů ve formátu nezáleží, protože pořadí složek se vypíše podle zvyklostí národního prostředí. Formát je tedy na něm nezávislý.
-Například formát `yyyyMMMMd` v postředí `en_US` vypíše `April 15, 2024`, zatímco v prostředí `cs_CZ` vypíše `15. dubna 2024`. Nebo samotné `MMMM` se vypíše jako `duben`, atd.
-
-**b) použití přednastavených stylů**
-
-Parametry `date` a `time` určují, jak podrobně se má datum a čas vypsat. Můžete si vybrat z několika úrovní: `full`, `long`, `medium`, `short`. Lze nechat vypsat jen datum, jen čas, nebo obojí:
-
-```latte
-{$date|localDate: date: short}              {* 23.01.1978 *}
-{$date|localDate: date: medium}             {* 23. 1. 1978 *}
-{$date|localDate: date: long}               {* 23. ledna 1978 *}
-{$date|localDate: date: full}               {* pondělí 23. ledna 1978 *}
-{$date|localDate: time: short}              {* 14:30 *}
-{$date|localDate: date: long, time: medium} {* 23. ledna 1978 v 14:30:59 *}
-výstup se liší v závislosti na prostředí
-```
-
-U data lze navíc použít prefix `relative-` (např. `relative-short`), který pro data blízká současnosti zobrazí `včera`, `dnes` nebo `zítra`, jinak se vypíše standardním způsobem.
-
-```latte
-{$date|localDate: date: relative-short}    {* včera *}
-```
-
-Pokud použijete filtr bez parametrů, vypíše se datum v úrovni `long`:
-
-```latte
-{$date|localDate}   {* 15. dubna 2024 *}
-```
-
-Viz také [#date].
-
-
 lower .[filter]
 ---------------
 Převede řetězec na malá písmena. Vyžaduje PHP rozšíření `mbstring`.
@@ -487,8 +416,8 @@ Pokud odkaz používá jiné schéma, např. `javascript:` nebo `data:`, a jste 
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href={$link}>kontrolované</a>
-<a href={$link|nocheck}>nekontrolované</a>
+<a href="{$link}">kontrolované</a>
+<a href="{$link|nocheck}">nekontrolované</a>
 ```
 
 Vypíše:
@@ -524,62 +453,14 @@ Neescapovaný: <b>hello</b>
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Formátuje číslo na určitý počet desetinných míst. Pokud je nastavené [národní prostředí |develop#locale], použijí se odpovídající oddělovače desetinných míst a tisíců.
+Formátuje číslo na určitý počet desetinných míst. Lze určit znak pro desetinnou čárku a oddělovač tisíců.
 
 ```latte
-{1234.20|number}              1,234
-{1234.20|number:1}            1,234.2
-{1234.20|number:2}            1,234.20
-{1234.20|number:2, ',', ' '}  1 234,20
+{1234.20 |number}              1,234
+{1234.20 |number:1}            1,234.2
+{1234.20 |number:2}            1,234.20
+{1234.20 |number:2, ',', ' '}  1 234,20
 ```
-
-
-number(string format) .[filter]
--------------------------------
-Parametr `format` umožňuje definovat vzhled čísel přesně podle vašich potřeb. K tomu je potřeba mít nastavené [národní prostředí |develop#locale]. Formát se skládá z několika speciálních znaků, jejichž kompletní popis najdete v dokumentaci "DecimalFormat":https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns:
-
-- `0` povinná číslice, vždy se zobrazí, i kdyby to byla nula
-- `#` volitelná číslice, zobrazí se jen tehdy, pokud na tomto místě číslo skutečně je
-- `@` významná číslice, pomáhá zobrazit číslo s určitým počtem platných číslic
-- `.` označuje, kde má být desetinná čárka (nebo tečka, podle země)
-- `,` slouží k oddělení skupin číslic, nejčastěji tisíců
-- `%` číslo vynásobí 100× a přidá znak procenta
-
-Pojďme se podívat na příklady. V prvním příkladu jsou dvě desetinná místa povinná, ve druhém volitelná. Třetí příklad ukazuje doplnění nulami zleva i zprava, čtvrtý zobrazuje jen existující číslice:
-
-```latte
-{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
-{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
-{1.23  |number: '000.000'}      {* 001.230 *}
-{1.2   |number: '##.##'}        {* 1.2 *}
-```
-
-Významné číslice určují, kolik číslic bez ohledu na desetinou čárku má být zobrazeno, přičemž se zaokrouhluje:
-
-```latte
-{1234|number: '@@'}             {* 1200 *}
-{1234|number: '@@@'}            {* 1230 *}
-{1234|number: '@@@#'}           {* 1234 *}
-{1.2345|number: '@@@'}          {* 1.23 *}
-{0.00123|number: '@@'}          {* 0.0012 *}
-```
-
-Snadný způsob, jak zobrazit číslo jako procenta. Číslo se vynásobí 100× a přidá se znak `%`:
-
-```latte
-{0.1234|number: '#.##%'}        {* 12.34% *}
-```
-
-Můžeme definovat odlišný formát pro kladná a záporná čísla, odděluje je znak `;`. Tímto způsobem lze například nastavit, že kladná čísla se mají zobrazovat se znaménkem `+`:
-
-```latte
-{42|number: '#.##;(#.##)'}      {* 42 *}
-{-42|number: '#.##;(#.##)'}     {* (42) *}
-{42|number: '+#.##;-#.##'}      {* +42 *}
-{-42|number: '+#.##;-#.##'}     {* -42 *}
-```
-
-Pamatujte, že skutečný vzhled čísel se může lišit podle nastavení země. Například v některých zemích se používá čárka místo tečky jako oddělovač desetinných míst. Tento filtr to automaticky zohlední a nemusíte se o nic starat.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -600,8 +481,8 @@ Doplní řetězec do určité délky jiným řetězcem zprava.
 ```
 
 
-query .[filter]
----------------
+query .[filter]{data-version:2.10}
+----------------------------------
 Dynamicky generuje query string v URL:
 
 ```latte
@@ -621,8 +502,8 @@ Klíče s hodnotou `null` se vynechají.
 Viz také [#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Vrací náhodný prvek pole nebo znak řetězce:
 
 ```latte
@@ -650,7 +531,7 @@ Nahradí všechny výskyty vyhledávacího řetězce náhradním řetězcem.
 {='hello world'|replace: 'world', 'friend'}  {* vypíše 'hello friend' *}
 ```
 
-Lze provést i více záměn najednou:
+Lze provést i více záměn najednou: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* vypíše 'lehho worhd' *}
@@ -692,8 +573,8 @@ Zaokrouhlí číslo na danou přesnost.
 Viz také [#ceil], [#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Extrahuje část pole nebo řetězce.
 
 ```latte
@@ -710,9 +591,9 @@ Pokud je zadaný parametr length a je kladný, posloupnost bude obsahovat tolik 
 Ve výchozím nastavení filtr změní pořadí a resetuje celočíselného klíče pole. Toto chování lze změnit nastavením preserveKeys na true. Řetězcové klíče jsou vždy zachovány, bez ohledu na tento parametr.
 
 
-sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
------------------------------------------------------------------------------------------------------------
-Filtr seřadí prvky pole nebo iterátoru a zachová jejich asociační klíče. Při nastaveném [národním prostředí |develop#locale] se řazení řídí jeho pravidly, pokud není specifikována vlastní porovnávací funkce.
+sort .[filter]{data-version:2.9}
+--------------------------------
+Filtr, který seřadí pole. Zachovává asociaci s klíčí.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -728,41 +609,15 @@ Filtr seřadí prvky pole nebo iterátoru a zachová jejich asociační klíče.
 {/foreach}
 ```
 
-Můžete specifikovat vlastní porovnávací funkci pro řazení (příklad ukazuje, jak obrátit řazení od největší po nejmenší):
+Jako parametr lze předat vlastní porovnávací funkci: .{data-version:2.10.2}
 
 ```latte
-{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
-Filtr `|sort` také umožňuje řadit prvky podle klíčů:
 
-```latte
-{foreach ($names|sort: byKey: true) as $name}
-	...
-{/foreach}
-```
-
-Pokud potřebujete seřadit tabulku podle konkrétního sloupce, můžete použít parametr `by`. Hodnota `'name'` v ukázce určuje, že se bude řadit podle `$item->name` nebo `$item['name']`, v závislosti na tom, zda je `$item` pole nebo objekt:
-
-```latte
-{foreach ($items|sort: by: 'name') as $item}
-	{$item->name}
-{/foreach}
-```
-
-Můžete také definovat callback funkci, která určí hodnotu, podle které se má řadit:
-
-```latte
-{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
-	{$item->name}
-{/foreach}
-```
-
-Stejným způsobem lze využít i parametr `byKey`.
-
-
-spaceless .[filter]
--------------------
+spaceless .[filter]{data-version:2.10.2}
+----------------------------------------
 Odstraní zbytečné bílé místo (mezery) z výstupu. Můžete také použít alias `strip`.
 
 ```latte
@@ -800,8 +655,8 @@ Extrahuje část řetězce. Tento filtr byl nahrazen filtrem [#slice].
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Překládá výrazy do jiných jazyků. Aby byl filtr k dispozici, je potřeba [nastavit překladač|develop#TranslatorExtension]. Můžete také použít [tagy pro překlad|tags#Překlady].
 
 ```latte

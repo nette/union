@@ -15,53 +15,12 @@ composer require nette/utils
 Matrices .[#toc-arrays]
 =======================
 
-[api:Nette\Utils\Arrays] est une classe statique qui contient une poignée de fonctions pratiques pour les tableaux. Son équivalent pour les itérateurs est [Nette\Utils\Iterables |iterables].
+[api:Nette\Utils\Arrays] est une classe statique, qui contient une poignée de fonctions pratiques pour les tableaux.
 
 Les exemples suivants supposent que l'alias de classe suivant est défini :
 
 ```php
 use Nette\Utils\Arrays;
-```
-
-
-associate(array $array, mixed $path): array|\stdClass .[method]
----------------------------------------------------------------
-
-La fonction transforme de manière flexible le fichier `$array` en un tableau associatif ou en objets selon le chemin spécifié `$path`. Le chemin peut être une chaîne ou un tableau. Il se compose des noms des clés du tableau d'entrée et d'opérateurs tels que "[]", "->", "=" et "|". Lance `Nette\InvalidArgumentException` si le chemin n'est pas valide.
-
-```php
-// conversion en tableau associatif à l'aide d'une simple clé
-$arr = [
-    ['name' => 'John', 'age' => 11],
-    ['name' => 'Mary', 'age' => null],
-    //...
-];
-$result = Arrays::associate($arr, 'name');
-// $result = ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// l'affectation de valeurs d'une clé à une autre à l'aide de l'opérateur =.
-$result = Arrays::associate($arr, 'name=age'); // ou ['name', '=', 'age']
-// $result = ['John' => 11, 'Mary' => null, ...]
-```
-
-```php
-// création d'un objet à l'aide de l'opérateur ->
-$result = Arrays::associate($arr, '->name'); // ou ['->', 'name']
-// $result = (object) ['John' => ['name' => 'John', 'age' => 11], 'Mary' => ['name' => 'Mary', 'age' => null]]
-```
-
-```php
-// combiner des clés à l'aide de l'opérateur |
-$result = Arrays::associate($arr, 'name|age'); // ou ['name', '|', 'age']
-// $result: ['John' => ['name' => 'John', 'age' => 11], 'Paul' => ['name' => 'Paul', 'age' => 44]]
-```
-
-```php
-// ajouter à un tableau en utilisant []
-$result = Arrays::associate($arr, 'name[]'); // ou ['name', '[]']
-// $result: ['John' => [['name' => 'John', 'age' => 22], ['name' => 'John', 'age' => 11]]]
 ```
 
 
@@ -76,8 +35,8 @@ Arrays::contains(['1', false], 1); // false
 ```
 
 
-every(array $array, callable $predicate): bool .[method]
---------------------------------------------------------
+every(iterable $array, callable $callback): bool .[method]
+----------------------------------------------------------
 
 Teste si tous les éléments du tableau passent le test implémenté par la fonction fournie, qui a la signature `function ($value, $key, array $array): bool`.
 
@@ -90,51 +49,15 @@ $res = Arrays::every($array, $isBelowThreshold); // true
 Voir [some() |#some()].
 
 
-filter(array $array, callable $predicate): array .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------
+first(array $array): mixed .[method]
+------------------------------------
 
-Renvoie un nouveau tableau contenant toutes les paires clé-valeur correspondant à l'adresse `$predicate`. Le rappel a la signature `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::filter(
-	['a' => 1, 'b' => 2, 'c' => 3],
-	fn($v) => $v < 3,
-);
-// ['a' => 1, 'b' => 2]
-```
-
-
-first(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
--------------------------------------------------------------------------------------
-
-Renvoie le premier élément (correspondant au prédicat spécifié s'il est donné). S'il n'y a pas d'élément de ce type, il renvoie le résultat de l'invocation de `$else` ou null.
-Le site `$predicate` a la signature `function ($value, int|string $key, array $array): bool`.
-
-Il ne modifie pas le pointeur interne, contrairement à `reset()`. Les paramètres `$predicate` et `$else` existent depuis la version 4.0.4.
+Retourne le premier élément du tableau ou null si le tableau est vide. Elle ne modifie pas le pointeur interne contrairement à `reset()`.
 
 ```php
-Arrays::first([1, 2, 3]);                   // 1
-Arrays::first([1, 2, 3], fn($v) => $v > 2); // 3
-Arrays::first([]);                          // null
-Arrays::first([], else: fn() => false);     // false
+Arrays::first([1, 2, 3]); // 1
+Arrays::first([]);        // null
 ```
-
-Voir [last() |#last()].
-
-
-firstKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
-------------------------------------------------------------------------------------------------
-
-Renvoie la clé du premier élément (correspondant au prédicat spécifié s'il est donné) ou null s'il n'y a pas d'élément de ce type. La signature de `$predicate` est `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::firstKey([1, 2, 3]);                   // 0
-Arrays::firstKey([1, 2, 3], fn($v) => $v > 2); // 2
-Arrays::firstKey(['a' => 1, 'b' => 2]);        // 'a'
-Arrays::firstKey([]);                          // null
-```
-
-Voir [lastKey() |#lastKey()].
 
 
 flatten(array $array, bool $preserveKeys=false): array .[method]
@@ -265,63 +188,27 @@ Arrays::isList(['a' => 1, 'b' => 2]); // false
 ```
 
 
-last(array $array, ?callable $predicate=null, ?callable $else=null): mixed .[method]
-------------------------------------------------------------------------------------
+last(array $array): mixed .[method]
+-----------------------------------
 
-Renvoie le dernier élément (correspondant au prédicat spécifié, le cas échéant). S'il n'existe pas d'élément de ce type, il renvoie le résultat de l'invocation de `$else` ou null.
-Le site `$predicate` a la signature `function ($value, int|string $key, array $array): bool`.
-
-Il ne modifie pas le pointeur interne, contrairement à `end()`. Les paramètres `$predicate` et `$else` existent depuis la version 4.0.4.
+Retourne le dernier élément du tableau ou null si le tableau est vide. Elle ne modifie pas le pointeur interne contrairement à `end()`.
 
 ```php
-Arrays::last([1, 2, 3]);                   // 3
-Arrays::last([1, 2, 3], fn($v) => $v < 3); // 2
-Arrays::last([]);                          // null
-Arrays::last([], else: fn() => false);     // false
+Arrays::last([1, 2, 3]); // 3
+Arrays::last([]);        // null
 ```
 
-Voir [first() |#first()].
 
-
-lastKey(array $array, ?callable $predicate=null): int|string|null .[method]{data-version:4.0.4}
------------------------------------------------------------------------------------------------
-
-Renvoie la clé du dernier élément (correspondant au prédicat spécifié s'il est donné) ou null s'il n'y a pas d'élément de ce type. La signature de `$predicate` est `function ($value, int|string $key, array $array): bool`.
-
-```php
-Arrays::lastKey([1, 2, 3]);                    // 2
-Arrays::lastKey([1, 2, 3], fn($v) => $v < 3);  // 1
-Arrays::lastKey(['a' => 1, 'b' => 2]);         // 'b'
-Arrays::lastKey([]);                           // null
-```
-
-Voir [firstKey() |#firstKey()].
-
-
-map(array $array, callable $transformer): array .[method]
+map(iterable $array, callable $callback): array .[method]
 ---------------------------------------------------------
 
-Appelle `$transformer` sur tous les éléments du tableau et renvoie le tableau des valeurs de retour. Le callback a la signature `function ($value, $key, array $array): bool`.
+Appelle `$callback` sur tous les éléments du tableau et renvoie le tableau des valeurs de retour. Le callback a la signature `function ($value, $key, array $array): bool`.
 
 ```php
 $array = ['foo', 'bar', 'baz'];
 $res = Arrays::map($array, fn($value) => $value . $value);
 // $res = ['foofoo', 'barbar', 'bazbaz']
 ```
-
-
-mapWithKeys(array $array, callable $transformer): array .[method]
------------------------------------------------------------------
-
-Crée un nouveau tableau en transformant les valeurs et les clés du tableau original. La fonction `$transformer` a pour signature `function ($value, $key, array $array): ?array{$newValue, $newKey}`. Si `$transformer` renvoie `null`, l'élément est ignoré. Pour les éléments conservés, le premier élément du tableau retourné est utilisé comme nouvelle clé et le deuxième élément comme nouvelle valeur.
-
-```php
-$array = ['a' => 1, 'b' => 2, 'c' => 3];
-$result = Arrays::mapWithKeys($array, fn($v, $k) => $v > 1 ? [$v * 2, strtoupper($k)] : null);
-// [4 => 'B']
-```
-
-Cette méthode est utile dans les situations où vous devez modifier la structure d'un tableau (à la fois les clés et les valeurs) ou filtrer les éléments au cours de la transformation (en renvoyant null pour les éléments non souhaités).
 
 
 mergeTree(array $array1, array $array2): array .[method]
@@ -397,8 +284,8 @@ $position = Arrays::getKeyOffset($array, 'not-exists'); // returns null
 ```
 
 
-some(array $array, callable $predicate): bool .[method]
--------------------------------------------------------
+some(iterable $array, callable $callback): bool .[method]
+---------------------------------------------------------
 
 Teste si au moins un élément du tableau passe le test implémenté par la callback fournie avec la signature `function ($value, $key, array $array): bool`.
 
@@ -434,8 +321,8 @@ Arrays::toObject($array, $obj); // it sets $obj->foo = 1; $obj->bar = 2;
 ```
 
 
-wrap(array $array, string $prefix='', string $suffix=''): array .[method]
--------------------------------------------------------------------------
+wrap(iterable $array, string $prefix='', string $suffix=''): array .[method]
+----------------------------------------------------------------------------
 
 Il transforme chaque élément du tableau en chaîne de caractères et l'entoure de `$prefix` et `$suffix`.
 

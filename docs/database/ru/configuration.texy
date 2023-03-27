@@ -20,7 +20,7 @@ database:
 	password: ...
 ```
 
-Создает сервисы `Nette\Database\Connection` и `Nette\Database\Explorer`, которые обычно передаются [автоподключением |dependency-injection:autowiring] или ссылкой на [их имя |#DI Services].
+Он создает службы типа `Nette\Database\Connection`, а также `Nette\Database\Explorer` для уровня [Database Explorer|explorer]. Подключение к базе данных обычно передается автоподключением, если это невозможно, используйте имена сервисов `@database.default.connection` и `@database.default.context`.
 
 Другие настройки:
 
@@ -51,12 +51,6 @@ database:
 		# только для MySQL: устанавливает SET NAMES
 		charset:      # (string) по умолчанию 'utf8mb4' ('utf8' до v5.5.3)
 
-		# Только для MySQL: преобразует TINYINT(1) в bool
-		supportBooleans: # (bool) по умолчанию false
-
-		# возвращает столбцы даты как неизменяемые объекты (с версии 3.2.1)
-		newDateTime:  # (bool) по умолчанию false
-
 		# только для Oracle и SQLite: формат даті
 		formatDateTime: # (string) по умолчанию 'U'
 ```
@@ -86,23 +80,9 @@ database:
 		dsn: 'sqlite::memory:'
 ```
 
-Автоподключение включено только для сервисов из первой секции. Это можно изменить с помощью `autowired: false` или `autowired: true`.
+Каждое определенное соединение создает сервисы, включающие имя секции в свое имя, т. е. `@database.main.connection` & `@database.main.context` и далее `@database.another.connection` & `@database.another.context`.
 
-
-Услуги DI .[#toc-di-services]
------------------------------
-
-Эти сервисы добавляются в контейнер DI, где `###` представляет собой имя соединения:
-
-| Имя | Тип | Описание
-|----------------------------------------------------------
-| `database.###.connection` | [api:Nette\Database\Connection] | database connection
-| `database.###.explorer` | [api:Nette\Database\Explorer] | [Database Explorer |explorer]
-
-
-Если задать только одно соединение, то имена сервисов будут `database.default.connection` и `database.default.explorer`. Если задать несколько соединений, как в приведенном примере, то имена будут соответствовать разделам, т.е. `database.main.connection`, `database.main.explorer`, а затем `database.another.connection` и `database.another.explorer`.
-
-Неаутентифицированные сервисы мы передаем в явном виде, ссылаясь на их имя:
+Автосвязывание включено только для сервисов из первой секции. Это можно изменить с помощью `autowired: false` или `autowired: true`. Неавтоматизированные сервисы передаются по имени:
 
 ```neon
 services:

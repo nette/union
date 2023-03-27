@@ -7,9 +7,9 @@ Conheça o Nette Framework enquanto cria um blog simples com comentários. Vamos
 Após os dois primeiros capítulos, você terá seu próprio blog de trabalho e estará pronto para publicar seus incríveis posts, embora as características sejam bastante limitadas após completar estes dois capítulos. Para tornar as coisas mais agradáveis para seus usuários, você também deve ler os capítulos seguintes e continuar melhorando sua aplicação.
 
 .[tip]
-Este tutorial pressupõe que você tenha concluído o documento [de instalação |nette:installation] e configurado com êxito suas ferramentas. Ele também pressupõe que você entenda de [programação orientada a objetos em PHP |nette:introduction-to-object-oriented-programming].
+Este tutorial pressupõe que você completou o documento de [instalação |nette:installation] e configurou com sucesso suas ferramentas.
 
-Por favor, use PHP 8.1 ou posterior. Você pode encontrar a aplicação completa [no GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
+Por favor, use PHP 8.0 ou posterior. Você pode encontrar a aplicação completa [no GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
 
 
 A página de boas-vindas .[#toc-the-welcome-page]
@@ -45,9 +45,9 @@ O Projeto Web tem a seguinte estrutura:
 /--pre
 <b>nette-blog/</b>
 ├── <b>app/</b>              ← application directory
-│   ├── <b>Core/</b>         ← classes básicas necessárias
-│   ├── <b>UI/</b>           ← apresentadores, modelos e outros.
-│   │   └── <b>Home/</b>     ← Home presenter directory
+│   ├── <b>Presenters/</b>   ← presenter classes
+│   │   └── <b>templates/</b>← templates
+│   ├── <b>Router/</b>       ← configuration of URL addresses
 │   └── <b>Bootstrap.php</b> ← booting class Bootstrap
 ├── <b>bin/</b>              ← scripts for the command line
 ├── <b>config/</b>           ← configuration files
@@ -67,7 +67,7 @@ O diretório mais importante para você é `app/`. Lá você pode encontrar o ar
 Limpeza .[#toc-cleanup]
 =======================
 
-O Projeto Web contém uma página de boas-vindas, que podemos remover - sinta-se à vontade para excluir o arquivo `app/UI/Home/default.latte` e substituí-lo pelo texto "Olá mundo!
+O Projeto Web contém uma página de boas-vindas, que podemos remover - sinta-se à vontade para excluir o arquivo `app/Presenters/templates/Home/default.latte` e substituí-lo pelo texto "Olá mundo!
 
 
 [* qs-hello.webp .{url:-} *]
@@ -76,9 +76,9 @@ O Projeto Web contém uma página de boas-vindas, que podemos remover - sinta-se
 Tracy (Depurador) .[#toc-tracy-debugger]
 ========================================
 
-Uma ferramenta extremamente importante para o desenvolvimento é [uma depuradora chamada Tracy |tracy:]. Tente cometer alguns erros em seu arquivo `app/UI/Home/HomePresenter.php` (por exemplo, remova um colchete da definição da classe HomePresenter) e veja o que acontece. Uma página na tela vermelha irá aparecer com uma descrição compreensível do erro.
+Uma ferramenta extremamente importante para o desenvolvimento é [uma depuradora chamada Tracy |tracy:]. Tente cometer alguns erros em seu arquivo `app/Presenters/HomePresenter.php` (por exemplo, remova um colchete da definição da classe HomePresenter) e veja o que acontece. Uma página na tela vermelha irá aparecer com uma descrição compreensível do erro.
 
-[* qs-tracy.avif .{url:-}(debugger screen) *]
+[* qs-tracy.webp .{url:-}(debugger screen) *]
 
 Tracy o ajudará significativamente durante a caça aos erros. Observe também a barra flutuante Tracy no canto inferior direito, que o informa sobre dados importantes de tempo de execução.
 
@@ -89,7 +89,7 @@ No modo de produção, Tracy está, naturalmente, desativada e não revela nenhu
 ```php .{file:app/Bootstrap.php}
 ...
 $configurator->setDebugMode(false);
-$configurator->enableTracy($rootDir . '/log');
+$configurator->enableTracy(__DIR__ . '/../log');
 ...
 ```
 

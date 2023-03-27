@@ -30,7 +30,7 @@ Sunucudaki form `Nette\Application\UI\Form` sınıfının bir nesnesidir, selefi
 
 Sunucunun bakış açısından, form ortak bir bileşendir. Bu nedenle, bir bileşen olarak ele alınır ve [fabrika yöntemi |application:components#Factory Methods] kullanılarak sunucuya dahil edilir. Bu şekilde görünecektir:
 
-```php .{file:app/UI/Home/HomePresenter.php}
+```php .{file:app/Presenters/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
@@ -59,7 +59,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Ve şablonda render işlemi `{control}` etiketi kullanılarak yapılır:
 
-```latte .{file:app/UI/Home/default.latte}
+```latte .{file:app/Presenters/templates/Home/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ Form her zaman sunucu tarafında doğrulanır, ancak JavaScript doğrulaması da
 Bunu düzen şablonuna ekleyin:
 
 ```latte
-<script src="https://unpkg.com/nette-forms@3"></script>
+<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
 ```
 
 Formun bulunduğu sayfanın kaynak koduna bakarsanız, Nette'in gerekli alanları `required` CSS sınıfına sahip öğelere eklediğini fark edebilirsiniz. Aşağıdaki stili şablona eklemeyi deneyin, "Ad" etiketi kırmızı olacaktır. Kullanıcılar için gerekli alanları zarif bir şekilde işaretliyoruz:
@@ -232,7 +232,7 @@ class RegistrationFormData
 }
 ```
 
-Alternatif olarak, kurucuyu kullanabilirsiniz:
+PHP 8.0'dan itibaren, bir kurucu kullanan bu zarif gösterimi kullanabilirsiniz:
 
 ```php
 class RegistrationFormData
@@ -245,8 +245,6 @@ class RegistrationFormData
 	}
 }
 ```
-
-Veri sınıfının özellikleri de enum olabilir ve otomatik olarak eşleştirilirler. .{data-version:3.2.4}
 
 Nette'e verileri bu sınıfın nesneleri olarak döndürmesini nasıl söyleyebilirim? Düşündüğünüzden daha kolay. Tek yapmanız gereken, işleyicideki `$data` parametresinin türü olarak sınıfı belirtmektir:
 
@@ -295,8 +293,6 @@ Eşleme daha sonra `$person` özellik türünden konteyneri `PersonFormData` sı
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
-
-Tarayıcı sayfasına yazdıracak olan `Nette\Forms\Blueprint::dataClass($form)` yöntemini kullanarak bir formun veri sınıfı için bir öneri oluşturabilirsiniz. Daha sonra kodu seçmek ve projenize kopyalamak için tıklamanız yeterlidir. .{data-version:3.1.15}
 
 
 Çoklu Gönder Düğmeleri .[#toc-multiple-submit-buttons]

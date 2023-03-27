@@ -5,7 +5,6 @@ Balíček nette/utils
 - [Finder]
 - [Floats]
 - [HTML elementy |html-elements]
-- [Iterátory |iterables]
 - [JSON]
 - [Náhodné řetězce |random]
 - [Obrázky |images]
@@ -15,8 +14,7 @@ Balíček nette/utils
 - [Pole |arrays]
 - [Pomocné funkce |helpers]
 - [Řetězce |strings]
-- [SmartObject]
-- [StaticClass]
+- [SmartObject |smartobject]
 - [Souborový systém |filesystem]
 - [Validátor |validators]
 

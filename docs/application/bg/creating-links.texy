@@ -38,7 +38,7 @@
 <a n:href="Product:show $product->id, lang: en">подробнее</a>
 ```
 
-Ако методът `ProductPresenter::renderShow()` няма `$lang` в сигнатурата си, той може да извлече стойността на параметъра, като използва `$lang = $this->getParameter('lang')` или от [свойството |presenters#Request Parameters].
+Ако методът `ProductPresenter::renderShow()` няма `$lang` в сигнатурата си, той може да прочете стойността на параметъра, като използва `$lang = $this->getParameter('lang')`.
 
 Ако параметрите се съхраняват в масив, те могат да бъдат разширени с помощта на оператора `(expand)` (нещо като `...` в PHP, но работи с асоциативни масиви):
 
@@ -140,7 +140,7 @@ $url = $this->link('Product:show', [$product->id, 'lang' => 'cs']);
 <a n:href="this">обновить</a>
 ```
 
-В същото време всички параметри, посочени в сигнатурата на `action<Action>()` или `render<View>()` ако методът `action<Action>()` не са дефинирани, се прехвърлят. Така че, ако се намираме на страниците `Product:show` и `id:123`, връзката към `this` също ще предаде този параметър.
+Това ще предаде всички параметри, посочени в сигнатурата на метода. `render<View>()` или `action<Action>()`. Така че, ако сме на `Product:show` и `id:123`, връзката към `this` също ще предаде този параметър.
 
 Разбира се, можете да зададете параметрите и директно:
 
@@ -213,7 +213,7 @@ $url = $this->link('Product:show', [$product->id, 'lang' => 'cs']);
 Ако искаме да направим препратка към презентаторите в шаблона на компонента, използваме тага `{plink}`:
 
 ```latte
-<a href={plink Home:default}>главная страница</a>
+<a href="{plink Home:default}">главная страница</a>
 ```
 
 или в кода
@@ -221,30 +221,6 @@ $url = $this->link('Product:show', [$product->id, 'lang' => 'cs']);
 ```php
 $this->getPresenter()->link('Home:default')
 ```
-
-
-Псевдоними .[#toc-aliases]{data-version:v3.2.2}
-===============================================
-
-Понякога е полезно да зададете лесно запомнящ се псевдоним на двойка презентатор:действие. Например, можете да наречете началната страница `Front:Home:default` просто `home` или `Admin:Dashboard:default` - `admin`.
-
-Псевдонимите се дефинират в [конфигурацията |configuration] под ключа `application › aliases`:
-
-```neon
-application:
-    aliases:
-        home: Front:Home:default
-        admin: Admin:Dashboard:default
-        sign: Front:Sign:in
-```
-
-Във връзките те се записват с помощта на символа at, например:
-
-```latte
-<a n:href="@admin">administration</a>
-```
-
-Те се поддържат във всички методи, които работят с връзки, като например `redirect()` и други подобни.
 
 
 Невалидни връзки .[#toc-invalid-links]

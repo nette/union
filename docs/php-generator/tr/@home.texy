@@ -2,12 +2,11 @@ PHP Kod Oluşturucu
 ******************
 
 <div class=perex>
-Sınıflar, fonksiyonlar veya tüm dosyalar için PHP kodu üretecek bir araç mı arıyorsunuz?
-
-- En son PHP özelliklerini destekler (enumlar vb. gibi)
+- Sınıflar, fonksiyonlar, PHP dosyaları vb. için PHP kodu oluşturmanız mı gerekiyor?
+- Enumlar, nitelikler vb. gibi en son PHP özelliklerini destekler.
 - Mevcut sınıfları kolayca değiştirmenizi sağlar
-- PSR-12 / PER kodlama stili ile uyumlu çıkış
-- Olgun, kararlı ve yaygın olarak kullanılan kütüphane
+- PSR-12 uyumlu çıkış
+- Son derece olgun, istikrarlı ve yaygın olarak kullanılan kütüphane
 </div>
 
 
@@ -277,7 +276,7 @@ $function->addParameter('a');
 $function->addParameter('b');
 echo $function;
 
-// veya PSR-2 / PSR-12 / PER'ye uygun çıktı için PsrPrinter kullanın
+// veya PSR-2 / PSR-12'ye uygun çıktı için PsrPrinter kullanın
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFunction($function);
 ```
 
@@ -305,7 +304,7 @@ $closure->addUse('c')
 	->setReference();
 echo $closure;
 
-// veya PSR-2 / PSR-12 / PER'ye uygun çıktı için PsrPrinter kullanın
+// veya PSR-2 / PSR-12'ye uygun çıktı için PsrPrinter kullanın
 // echo (new Nette\PhpGenerator\PsrPrinter)->printClosure($closure);
 ```
 
@@ -472,56 +471,30 @@ function foo($a)
 Yazıcılar ve PSR Uyumluluğu .[#toc-printers-and-psr-compliance]
 ---------------------------------------------------------------
 
- [Printer |api:Nette\PhpGenerator\Printer] sınıfı PHP kodu üretmek için kullanılır:
+PHP kodu `Printer` nesneleri tarafından üretilir. Çıktısı PSR-2 ve PSR-12'ye uygun olan ve girinti için boşluk kullanan bir `PsrPrinter` ve girinti için sekme kullanan bir `Printer` vardır.
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
 // ...
 
-$printer = new Nette\PhpGenerator\Printer;
-echo $printer->printClass($class); // aynısı: echo $class
-```
-
-`printFunction()`, `printNamespace()` gibi yöntemler sunarak diğer tüm öğeler için kod oluşturabilir.
-
-Ayrıca, çıkışı PSR-2 / PSR-12 / PER kodlama stiline uygun olan `PsrPrinter` sınıfı da mevcuttur:
-
-```php
 $printer = new Nette\PhpGenerator\PsrPrinter;
-echo $printer->printClass($class);
+echo $printer->printClass($class); // 4 boşluk girinti
 ```
 
-Davranışı ihtiyaçlarınıza göre ayarlamanız mı gerekiyor? `Printer` sınıfından miras alarak kendi yazıcınızı oluşturun. Bu değişkenleri yeniden yapılandırabilirsiniz:
+Yazıcı davranışını özelleştirmeniz mi gerekiyor? `Printer` sınıfını miras alarak kendi sınıfınızı oluşturun. Bu değişkenleri yeniden yapılandırabilirsiniz:
 
 ```php
 class MyPrinter extends Nette\PhpGenerator\Printer
 {
-	// satırın kesileceği satır uzunluğu
 	public int $wrapLength = 120;
-	// girinti karakteri, bir dizi boşluk ile değiştirilebilir
 	public string $indentation = "\t";
-	// özellikler arasındaki boş satır sayısı
 	public int $linesBetweenProperties = 0;
-	// yöntemler arasındaki boş satır sayısı
 	public int $linesBetweenMethods = 2;
-	// sınıflar, fonksiyonlar ve sabitler için kullanım deyimleri grupları arasındaki boş satır sayısı
 	public int $linesBetweenUseTypes = 0;
-	// fonksiyonlar ve metotlar için açılış parantezinin konumu
 	public bool $bracesOnNextLine = true;
-	// bir özniteliğe sahip olsa veya terfi ettirilse bile bir parametreyi tek bir satıra yerleştirir
-	public bool $singleParameterOnOneLine = false;
-	// omits namespaces that do not contain any class or function
-	public bool $omitEmptyNamespaces = true;
-	// sağ parantez ile fonksiyon ve metotların dönüş tipi arasında ayırıcı
 	public string $returnTypeColon = ': ';
 }
 ```
-
-Standart `Printer` ve `PsrPrinter` tam olarak nasıl ve neden farklıdır? Pakette neden sadece tek bir yazıcı, `PsrPrinter` yok?
-
-Standart `Printer` kodu tüm Nette'de yaptığımız gibi biçimlendirir. Nette, PSR'den çok daha önce oluşturulduğundan ve ayrıca PSR uzun yıllar boyunca standartları zamanında teslim etmediğinden, hatta bazen PHP'de yeni bir özelliğin tanıtılmasından birkaç yıl gecikmeyle bile olsa, bu [kodlama standardında |contributing:coding-standard] birkaç küçük farklılığa neden oldu.
-En büyük fark ise boşluk yerine sekme kullanılmasıdır. Projelerimizde sekme kullanarak, [görme engelli insanlar için |contributing:coding-standard#Tabs Instead of Spaces] çok önemli olan genişlik ayarlamasına izin verdiğimizi biliyoruz.
-Küçük bir farka örnek olarak, küme parantezinin işlevler ve yöntemler için ve her zaman ayrı bir satıra yerleştirilmesi verilebilir. PSR tavsiyesinin mantıksız olduğunu ve [kod netliğinde azalmaya yol aç |contributing:coding-standard#Wrapping and Braces]tığını düşünüyoruz.
 
 
 Türleri .[#toc-types]
@@ -533,8 +506,7 @@ Her tür veya birlik/kesişim türü bir dize olarak geçirilebilir, ayrıca yer
 use Nette\PhpGenerator\Type;
 
 $member->setType('array'); // veya Type::Array;
-$member->setType('?array'); // or Type::nullable(Type::Array);
-$member->setType('array|string'); // or Type::union(Type::Array, Type::String)
+$member->setType('array|string'); // veya Type::union('array', 'string')
 $member->setType('Foo&Bar'); // veya Type::intersection(Foo::class, Bar::class)
 $member->setType(null); // türü kaldırır
 ```
@@ -580,13 +552,6 @@ new Literal('substr(?, ?)', [$a, $b]);
 // oluşturur, örneğin: substr('hello', 5);
 ```
 
-Yeni bir nesnenin oluşturulmasını temsil eden değişmez, `new` yöntemi tarafından kolayca oluşturulur:
-
-```php
-Literal::new(Demo::class, [$a, 'foo' => $b]);
-// oluşturur, örneğin: new Demo(10, foo: 20)
-```
-
 
 Nitelikler .[#toc-attributes]
 -----------------------------
@@ -595,15 +560,10 @@ PHP 8 özniteliklerini tüm sınıflara, yöntemlere, özelliklere, sabitlere, e
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
-$class->addAttribute('Table', [
-	'name' => 'user',
-	'constraints' => [
-		Literal::new('UniqueConstraint', ['name' => 'ean', 'columns' => ['ean']]),
-	],
-]);
+$class->addAttribute('Deprecated');
 
 $class->addProperty('list')
-	->addAttribute('Deprecated');
+	->addAttribute('WithArguments', [1, 2]);
 
 $method = $class->addMethod('count')
 	->addAttribute('Foo\Cached', ['mode' => true]);
@@ -617,18 +577,16 @@ echo $class;
 Sonuç:
 
 ```php
-#[Table(name: 'user', constraints: [new UniqueConstraint(name: 'ean', columns: ['ean'])])]
+#[Deprecated]
 class Demo
 {
-	#[Deprecated]
+	#[WithArguments(1, 2)]
 	public $list;
 
 
 	#[Foo\Cached(mode: true)]
-	public function count(
-		#[Bar]
-		$items,
-	) {
+	public function count(#[Bar] $items)
+	{
 	}
 }
 ```
@@ -683,8 +641,9 @@ echo $namespace->resolveName('range', $namespace::NameFunction); // 'iter\range'
 Sınıf Adları Çözülüyor .[#toc-class-names-resolving]
 ----------------------------------------------------
 
-**Bir sınıf bir isim alanının parçası olduğunda, biraz farklı şekilde işlenir:** tüm tipler (örneğin, tip ipuçları, dönüş tipleri, ana sınıf adı, uygulanan arayüzler, kullanılan özellikler ve nitelikler) otomatik olarak *çözülür* (kapatmadığınız sürece, aşağıya bakın).
-Bu, tanımlarda **tam nitelikli sınıf adları** kullanmanız gerektiği anlamına gelir ve bunlar sonuçta ortaya çıkan kodda takma adlarla (use cümlelerine dayalı olarak) veya tam nitelikli adlarla değiştirilecektir:
+**Sınıf isim alanının bir parçası olduğunda, biraz farklı şekilde işlenir**: tüm tipler (yani tip ipuçları, dönüş tipleri, ana sınıf adı,
+uygulanan arayüzler, kullanılan özellikler ve nitelikler) otomatik olarak *çözülür* (kapatmadığınız sürece, aşağıya bakın).
+Bu, tanımlarda **tam sınıf adlarını** kullanmanız gerektiği ve sonuçta ortaya çıkan kodda bunların takma adlarla (kullanım ifadelerine göre) veya tam nitelikli adlarla değiştirileceği anlamına gelir:
 
 ```php
 $namespace = new Nette\PhpGenerator\PhpNamespace('Foo');
@@ -701,7 +660,7 @@ $method->addParameter('arg')
 
 echo $namespace;
 
-// veya PSR-2 / PSR-12 / PER'ye uygun çıktı için PsrPrinter kullanın
+// veya PSR-2 / PSR-12'ye uygun çıktı için PsrPrinter kullanın
 // echo (new Nette\PhpGenerator\PsrPrinter)->printNamespace($namespace);
 ```
 
@@ -754,7 +713,7 @@ $function = $file->addFunction('Foo\foo');
 
 echo $file;
 
-// veya PSR-2 / PSR-12 / PER'ye uygun çıktı için PsrPrinter kullanın
+// veya PSR-2 / PSR-12'ye uygun çıktı için PsrPrinter kullanın
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFile($file);
 ```
 
@@ -779,8 +738,6 @@ function foo()
 {
 }
 ```
-
-**Lütfen dikkat:** Dosyalara fonksiyonlar ve sınıflar dışında hiçbir ek kod eklenemez.
 
 
 Mevcut Olanlara Göre Üretme .[#toc-generating-according-to-existing-ones]
@@ -860,6 +817,6 @@ echo $dumper->dump($var); // prints ['a', 'b', 123]
 Uyumluluk Tablosu .[#toc-compatibility-table]
 ---------------------------------------------
 
-PhpGenerator 4.0 ve 4.1 PHP 8.0 ila 8.3 ile uyumludur
+PhpGenerator 4.0 PHP 8.0 ila 8.2 ile uyumludur
 
 {{leftbar: nette:@menu-topics}}

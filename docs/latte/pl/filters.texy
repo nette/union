@@ -11,16 +11,14 @@ Możemy używać funkcji w szablonach, aby pomóc w edycji lub przeformatowaniu 
 | `bytes` | [rozmiar formatu w bajtach |#bytes]
 | `clamp` | [ogranicza wartość do podanego zakresu |#clamp]
 | `dataStream` | [konwersja dla protokołu Data URI |#dataStream]
-| `date` | [formatuje datę i godzinę |#date]
+| `date` | [formatuje datę |#date]
 | `explode` | [dzieli łańcuch na pola zgodnie z delimiterem |#explode]
 | `first` | [zwraca pierwszy element tablicy lub znak łańcucha|#first]
-| `group` | [grupuje dane według różnych kryteriów |#group]
 | `implode` | [łączy pola w ciąg znaków|#implode]
 | `indent` | [przesuwa tekst od lewej strony o podaną liczbę tabulatorów |#indent]
 | `join` | [konkatenuje tablicę w ciąg znaków|#implode]
 | `last` | [zwraca ostatni element tablicy lub znak łańcucha|#last]
 | `length` | [zwraca długość łańcucha w znakach lub tablicy |#length]
-| `localDate` | [formatuje datę i godzinę zgodnie z ustawieniami regionalnymi |#localDate]
 | `number` | [formatuje liczbę |#number]
 | `padLeft` | [uzupełnia ciąg od lewej do pożądanej długości |#padLeft]
 | `padRight` | [uzupełnia ciąg od prawej do pożądanej długości |#padRight]
@@ -120,8 +118,8 @@ Filtry .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]
-----------------------------------------------
+batch(int length, mixed item): array .[filter]{data-version:2.7}
+----------------------------------------------------------------
 Filtr, który upraszcza wyprowadzenie danych liniowych do tabeli. Zwraca tablicę pól o określonej liczbie elementów. Jeśli określisz drugi parametr, jest on używany do wypełnienia brakujących elementów w ostatnim wierszu.
 
 ```latte
@@ -154,8 +152,6 @@ Wydruki:
 </table>
 ```
 
-Zobacz także tag [group |#group] i [iterateWhile |tags#iterateWhile].
-
 
 breakLines .[filter]
 --------------------
@@ -169,7 +165,7 @@ Wstawia podziały linii HTML przed wszystkimi liniami nowymi.
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Formatuje rozmiar w bajtach do postaci czytelnej dla człowieka. Jeśli ustawione są [ustawienia regionalne |develop#locale], używane są odpowiednie separatory dziesiętne i tysięczne.
+Formatuje rozmiar w bajtach do postaci czytelnej dla człowieka.
 
 ```latte
 {$size|bytes}     0 B, 1.25 GB, …
@@ -207,8 +203,8 @@ Wymusza sanityzację adresów URL. Sprawdza czy zmienna zawiera adres URL strony
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href={$link|checkUrl}>checked</a>
-<a data-href={$link}>unchecked</a>
+<a data-href="{$link|checkUrl}">checked</a>
+<a data-href="{$link}">unchecked</a>
 ```
 
 Wydruki:
@@ -221,8 +217,8 @@ Wydruki:
 Zobacz również [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]
----------------------------------------------
+clamp(int|float min, int|float max) .[filter]{data-version:2.9}
+---------------------------------------------------------------
 Zwraca wartość zaciśniętą na inkluzywnym zakresie min i max.
 
 ```latte
@@ -239,7 +235,7 @@ Konwertuje zawartość na schemat URI danych. Może być używany do wstawiania 
 Załóżmy, że mamy obrazek w zmiennej `$img = Image::fromFile('obrazek.gif')`, to
 
 ```latte
-<img src={$img|dataStream}>
+<img src="{$img|dataStream}">
 ```
 
 Drukuje na przykład:
@@ -256,13 +252,12 @@ Wymaga rozszerzenia PHP `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Formatuje datę i godzinę zgodnie z maską używaną przez funkcję PHP [php:date]. Filtr akceptuje datę w formacie znacznika czasu UNIX, jako ciąg znaków lub jako obiekt `DateTimeInterface`.
+Zwraca datę w podanym formacie przy użyciu opcji funkcji PHP [php:strftime] lub [php:date]. Filtr pobiera datę jako timestamp UNIX, łańcuch znaków lub obiekt typu `DateTime`.
 
 ```latte
+{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
-
-Zobacz także [localDate |#localDate].
 
 
 escapeUrl .[filter]
@@ -276,8 +271,8 @@ Ucieka od zmiennej, która ma być użyta jako parametr w URL.
 Zobacz również [zapytanie |#query].
 
 
-explode(string separator = '') .[filter]
-----------------------------------------
+explode(string separator = '') .[filter]{data-version:2.10.2}
+-------------------------------------------------------------
 Rozdziela łańcuch przez podany delimiter i zwraca tablicę łańcuchów. Alias dla `split`.
 
 ```latte
@@ -299,8 +294,8 @@ Możesz użyć także aliasu `split`:
 Zobacz również [implode |#implode].
 
 
-first .[filter]
----------------
+first .[filter]{data-version:2.10.2}
+------------------------------------
 Zwraca pierwszy element tablicy lub znak łańcucha:
 
 ```latte
@@ -335,25 +330,6 @@ Konwertuje pierwszą literę wartości na duże. Wymaga rozszerzenia PHP `mbstri
 Zobacz także [capitalize |#capitalize], [lower |#lower], [upper |#upper].
 
 
-group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
--------------------------------------------------------------------
-Filtr grupuje dane według różnych kryteriów.
-
-W tym przykładzie wiersze w tabeli są pogrupowane według kolumny `categoryId`. Wynikiem jest tablica tablic, w której kluczem jest wartość w kolumnie `categoryId`. Przeczytaj [szczegółowe instrukcje |cookbook/grouping].
-
-```latte
-{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
-    <ul>
-        {foreach $categoryItems as $item}
-            <li>{$item->name}</li>
-        {/foreach}
-    </ul>
-{/foreach}
-```
-
-Zobacz także [batch |#batch], funkcję [group |functions#group] i znacznik [iterateWhile |tags#iterateWhile].
-
-
 implode(string glue = '') .[filter]
 -----------------------------------
 Zwraca łańcuch będący konkatenacją łańcuchów w tablicy. Alias dla `join`.
@@ -363,7 +339,7 @@ Zwraca łańcuch będący konkatenacją łańcuchów w tablicy. Alias dla `join`
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-Możesz również użyć aliasu `join`:
+Możesz również użyć aliasu `join`: .{data-version:2.10.2}
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -391,8 +367,8 @@ Drukuje:
 ```
 
 
-last .[filter]
---------------
+last .[filter]{data-version:2.10.2}
+-----------------------------------
 Zwraca ostatni element tablicy lub znak łańcucha:
 
 ```latte
@@ -420,53 +396,6 @@ Zwraca długość łańcucha lub tablicy.
 ```
 
 
-localDate(string format = null, string date = null, string time = null) .[filter]
----------------------------------------------------------------------------------
-Formatuje datę i godzinę zgodnie z [ustawieniami regionalnymi |develop#locale], zapewniając spójne i zlokalizowane wyświetlanie danych czasu w różnych językach i regionach. Filtr akceptuje datę jako znacznik czasu UNIX, ciąg znaków lub obiekt `DateTimeInterface`.
-
-**a) Użycie formatu**
-
-Parametr `format` opisuje, które składniki czasu powinny być wyświetlane. Używa kodów literowych, gdzie liczba powtórzeń wpływa na szerokość wyjścia:
-
-| Rok | `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
-| Miesiąc | `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `Jul` / `July`
-| Dzień | `d` / `dd` | `1` / `01`
-| Godzina | `j` | w preferowanym formacie lokalnym
-| Minuta | `m` / `mm` | `5` / `05` <small>(2 cyfry w połączeniu z sekundami)</small>
-| Sekunda | `s` / `ss` | `8` / `08` <small>(2 cyfry w połączeniu z minutami)</small>
-
-Kolejność kodów w formacie nie ma znaczenia, ponieważ kolejność składników będzie wyświetlana zgodnie z konwencjami regionalnymi. Dlatego format jest niezależny od lokalizacji.
-Na przykład format `yyyyMMMMd` w ustawieniach regionalnych `en_US` wyświetli `April 15, 2024`, podczas gdy w ustawieniach regionalnych `cs_CZ` wyświetli `15. dubna 2024`. Podobnie, sam `MMMM` wyświetli `duben` itd.
-
-**b) Korzystanie z gotowych stylów**
-
-Parametry `date` i `time` określają poziom szczegółowości wyświetlania daty i godziny. Można wybrać jeden z kilku poziomów: `full`, `long`, `medium`, `short`. Można wyświetlać tylko datę, tylko godzinę lub obie te wartości:
-
-```latte
-{$date|localDate: date: short}              {* 1/23/78 *}
-{$date|localDate: date: medium}             {* Jan 23, 1978 *}
-{$date|localDate: date: long}               {* January 23, 1978 *}
-{$date|localDate: date: full}               {* Monday, January 23, 1978 *}
-{$date|localDate: time: short}              {* 2:30 PM *}
-{$date|localDate: date: long, time: medium} {* January 23, 1978 at 2:30:59 PM *}
-wyjście różni się w zależności od ustawień regionalnych
-```
-
-W przypadku daty można również użyć prefiksu `relative-` (np. `relative-short`), co w przypadku dat bliskich teraźniejszości spowoduje wyświetlenie `yesterday`, `today` lub `tomorrow`; w przeciwnym razie zostanie wyświetlony w standardowy sposób.
-
-```latte
-{$date|localDate: date: relative-short}    {* yesterday *}
-```
-
-Jeśli użyjesz filtra bez parametrów, data zostanie wyświetlona na poziomie `long`:
-
-```latte
-{$date|localDate}   {* April 15, 2024 *}
-```
-
-Zobacz też [data |#date].
-
-
 lower .[filter]
 ---------------
 Konwertuje wartość na małe litery. Wymaga rozszerzenia PHP `mbstring`.
@@ -487,8 +416,8 @@ Jeśli link używa innego schematu, takiego jak `javascript:` lub `data:`, i jes
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href={$link}>checked</a>
-<a href={$link|nocheck}>unchecked</a>
+<a href="{$link}">checked</a>
+<a href="{$link|nocheck}">unchecked</a>
 ```
 
 Wydruki:
@@ -524,7 +453,7 @@ Niewłaściwe użycie filtra `noescape` może prowadzić do luki XSS! Nigdy nie 
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Formatuje liczbę do określonej liczby miejsc dziesiętnych. Jeśli ustawione są [ustawienia regionalne |develop#locale], używane są odpowiednie separatory dziesiętne i tysięczne.
+Formatuje liczbę do podanej liczby miejsc dziesiętnych. Można również określić znak kropki dziesiętnej i separatora tysięcy.
 
 ```latte
 {1234.20 |number}              1,234
@@ -532,54 +461,6 @@ Formatuje liczbę do określonej liczby miejsc dziesiętnych. Jeśli ustawione s
 {1234.20 |number:2}            1,234.20
 {1234.20 |number:2, ',', ' '}  1 234,20
 ```
-
-
-number(string format) .[filter]
--------------------------------
-Parametr `format` pozwala zdefiniować wygląd liczb dokładnie według własnych potrzeb. Wymaga ustawionych [ustawień regionalnych |develop#locale]. Format składa się z kilku znaków specjalnych, których pełny opis można znaleźć w dokumentacji "DecimalFormat":https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns:
-
-- <c id=6/> cyfra obowiązkowa, wyświetlana zawsze, nawet jeśli jest zerem
-- `#` cyfra opcjonalna, wyświetlana tylko wtedy, gdy liczba ma cyfrę w tym miejscu
-- `@` cyfra znacząca, pomaga wyświetlić liczbę z określoną liczbą cyfr znaczących
-- `.` oznacza miejsce, w którym powinien znajdować się separator dziesiętny (przecinek lub kropka, w zależności od ustawień regionalnych)
-- `,` używany do oddzielania grup cyfr, zwykle tysięcy
-- `%` mnoży liczbę przez 100 i dodaje znak procentu
-
-Przyjrzyjmy się kilku przykładom. W pierwszym przykładzie dwa miejsca po przecinku są obowiązkowe; w drugim są opcjonalne. Trzeci przykład pokazuje wypełnianie zerami po obu stronach, a czwarty wyświetla tylko istniejące cyfry:
-
-```latte
-{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
-{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
-{1.23  |number: '000.000'}      {* 001.230 *}
-{1.2   |number: '##.##'}        {* 1.2 *}
-```
-
-Znaczące cyfry określają, ile cyfr, niezależnie od przecinka dziesiętnego, powinno być wyświetlanych, zaokrąglając liczbę w razie potrzeby:
-
-```latte
-{1234|number: '@@'}             {* 1200 *}
-{1234|number: '@@@'}            {* 1230 *}
-{1234|number: '@@@#'}           {* 1234 *}
-{1.2345|number: '@@@'}          {* 1.23 *}
-{0.00123|number: '@@'}          {* 0.0012 *}
-```
-
-Prosty sposób wyświetlania liczby jako procentu. Liczba jest mnożona przez 100 i dodawany jest znak `%`:
-
-```latte
-{0.1234|number: '#.##%'}        {* 12.34% *}
-```
-
-Możemy zdefiniować inny format dla liczb dodatnich i ujemnych, oddzielonych znakiem `;`. W ten sposób, na przykład, liczby dodatnie mogą być wyświetlane ze znakiem `+`:
-
-```latte
-{42|number: '#.##;(#.##)'}      {* 42 *}
-{-42|number: '#.##;(#.##)'}     {* (42) *}
-{42|number: '+#.##;-#.##'}      {* +42 *}
-{-42|number: '+#.##;-#.##'}     {* -42 *}
-```
-
-Należy pamiętać, że rzeczywisty wygląd liczb może się różnić w zależności od ustawień regionalnych. Na przykład w niektórych krajach przecinek jest używany zamiast kropki jako separator dziesiętny. Ten filtr automatycznie to uwzględnia, więc nie musisz się tym martwić.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -600,8 +481,8 @@ Wyrównuje ciąg do pewnej długości z innym ciągiem od prawej.
 ```
 
 
-query  .[filter]
-----------------
+query  .[filter]{data-version:2.10}
+-----------------------------------
 Dynamicznie generuje ciąg zapytania w adresie URL:
 
 ```latte
@@ -621,8 +502,8 @@ Klucze o wartości `null` są pomijane.
 Zobacz również [escapeUrl |#escapeUrl].
 
 
-random .[filter]
-----------------
+random .[filter]{data-version:2.10.2}
+-------------------------------------
 Zwraca losowy element tablicy lub znak łańcucha:
 
 ```latte
@@ -650,7 +531,7 @@ Zastępuje wszystkie wystąpienia szukanego łańcucha łańcuchem zastępczym.
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Można dokonać wielu zamian jednocześnie:
+Można dokonać wielu zamian jednocześnie: .{data-version:2.10.2}
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -692,8 +573,8 @@ Zaokrągla liczbę do określonej precyzji.
 Zobacz także [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]
-------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
+---------------------------------------------------------------------------------------------
 Wyodrębnia fragment tablicy lub ciągu znaków.
 
 ```latte
@@ -710,9 +591,9 @@ Jeśli podana jest długość i jest ona dodatnia, to sekwencja będzie miała d
 Filtr domyślnie zmieni kolejność i wyzeruje klucze tablicy liczb całkowitych. To zachowanie można zmienić ustawiając preserveKeys na true. Klucze łańcuchowe są zawsze zachowywane, niezależnie od tego parametru.
 
 
-sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
------------------------------------------------------------------------------------------------------------
-Filtr sortuje elementy tablicy lub iteratora, zachowując ich klucze asocjacyjne. Gdy ustawione są [ustawienia regionalne |develop#locale], sortowanie odbywa się zgodnie z ich regułami, chyba że określono niestandardową funkcję porównania.
+sort  .[filter]{data-version:2.9}
+---------------------------------
+Filtr, który sortuje tablicę i zachowuje asocjację indeksów.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -728,41 +609,15 @@ Tablica posortowana w odwrotnej kolejności.
 {/foreach}
 ```
 
-Można określić niestandardową funkcję porównania do sortowania (przykład pokazuje, jak odwrócić sortowanie od największego do najmniejszego):
+Możesz przekazać własną funkcję porównania jako parametr: .{data-version:2.10.2}
 
 ```latte
-{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
-Filtr `|sort` umożliwia również sortowanie elementów według klucza:
 
-```latte
-{foreach ($names|sort: byKey: true) as $name}
-	...
-{/foreach}
-```
-
-Jeśli chcesz posortować tabelę według określonej kolumny, możesz użyć parametru `by`. Wartość `'name'` w przykładzie określa, że sortowanie zostanie wykonane według `$row->name` lub `$row['name']`w zależności od tego, czy `$row` jest tablicą czy obiektem:
-
-```latte
-{foreach ($items|sort: by: 'name') as $item}
-	{$item->name}
-{/foreach}
-```
-
-Można również zdefiniować funkcję zwrotną, która określa wartość do sortowania:
-
-```latte
-{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
-	{$item->name}
-{/foreach}
-```
-
-Parametr `byKey` może być używany w ten sam sposób.
-
-
-spaceless  .[filter]
---------------------
+spaceless  .[filter]{data-version:2.10.2}
+-----------------------------------------
 Usuwa niepotrzebne białe przestrzenie z wyjścia. Możesz również użyć aliasu `strip`.
 
 ```latte
@@ -800,8 +655,8 @@ Wyodrębnia fragment łańcucha. Ten filtr został zastąpiony przez filtr [slic
 ```
 
 
-translate(string message, ...args) .[filter]
---------------------------------------------
+translate(string message, ...args) .[filter]{data-version:3.0}
+--------------------------------------------------------------
 Tłumaczy wyrażenia na inne języki. Aby udostępnić ten filtr, musisz skonfigurować [translator |develop#TranslatorExtension]. Możesz również użyć [tagów do tłumaczenia |tags#Translation].
 
 ```latte

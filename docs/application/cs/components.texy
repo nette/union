@@ -87,7 +87,7 @@ class PollControl extends Control
 Vykreslení
 ==========
 
-Už víme, že k vykreslení komponenty se používá značka `{control componentName}`. Ta vlastně zavolá metodu `render()` komponenty, ve které se postáráme o vykreslení. K dispozici máme, úplně stejně jako v presenteru, [Latte šablonu|templates] v proměnné `$this->template`, do které předáme parametry. Na rozdíl od presenteru musíme uvést soubor se šablonou a nechat ji vykreslit:
+Už víme, že k vykreslení komponenty se používá značka `{control componentName}`. Ta vlastně zavolá metodu `render()` komponenty, ve které se postáráme o vykreslení. K dispozici máme, úplně stejně jako v presenteru, [Latte|latte:] šablonu v proměnné `$this->template`, do které předáme parametry. Na rozdíl od presenteru musíme uvést soubor se šablonou a nechat ji vykreslit:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -347,7 +347,7 @@ services:
 a nakonec ji použijeme v našem presenteru:
 
 ```php
-class PollPresenter extends Nette\Application\UI\Presenter
+class PollPresenter extends Nette\UI\Application\Presenter
 {
 	public function __construct(
 		private PollControlFactory $pollControlFactory,
@@ -380,7 +380,7 @@ Komponenty do hloubky
 Komponenty v Nette Application představují znovupoužitelné součásti webové aplikace, které vkládáme do stránek a kterým se ostatně věnuje celá tato kapitola. Jaké přesně schopnosti taková komponenta má?
 
 1) je vykreslitelná v šabloně
-2) ví, [kterou svou část|ajax#snippety] má vykreslit při AJAXovém požadavku (snippety)
+2) ví, kterou svou část má vykreslit při [AJAXovém požadavku |ajax#invalidace] (snippety)
 3) má schopnost ukládat svůj stav do URL (persistentní parametry)
 4) má schopnost reagovat na uživatelské akce (signály)
 5) vytváří hierarchickou strukturu (kde kořenem je presenter)

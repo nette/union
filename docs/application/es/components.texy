@@ -87,7 +87,7 @@ class PollControl extends Control
 Presentación de .[#toc-rendering]
 =================================
 
-Ya sabemos que la etiqueta `{control componentName}` se utiliza para dibujar un componente. En realidad llama al método `render()` del componente, en el que nos encargamos de la renderización. Tenemos, al igual que en el presentador, una [plantilla Latte |templates] en la variable `$this->template`, a la que pasamos los parámetros. A diferencia del uso en un presentador, debemos especificar un archivo de plantilla y dejar que se renderice:
+Ya sabemos que la etiqueta `{control componentName}` se utiliza para dibujar un componente. En realidad llama al método `render()` del componente, en el que nos encargamos de la renderización. Tenemos, al igual que en el presentador, una plantilla [Latte |latte:] en la variable `$this->template`, a la que pasamos los parámetros. A diferencia del uso en un presentador, debemos especificar un archivo de plantilla y dejar que se renderice:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -347,7 +347,7 @@ services:
 Por último, vamos a utilizar esta fábrica en nuestro presentador:
 
 ```php
-class PollPresenter extends Nette\Application\UI\Presenter
+class PollPresenter extends Nette\UI\Application\Presenter
 {
 	public function __construct(
 		private PollControlFactory $pollControlFactory,
@@ -380,7 +380,7 @@ Componentes en profundidad .[#toc-components-in-depth]
 Los componentes en una aplicación Nette son las partes reutilizables de una aplicación web que incrustamos en las páginas, que es el tema de este capítulo. ¿Cuáles son exactamente las capacidades de un componente?
 
 1) es renderizable en una plantilla
-2) sabe [qué parte de sí mismo |ajax#snippets] debe representar durante una petición AJAX (fragmentos)
+2) sabe qué parte de sí mismo renderizar durante una [petición AJAX |ajax#invalidation] (fragmentos)
 3) tiene la capacidad de almacenar su estado en una URL (parámetros persistentes)
 4) tiene la capacidad de responder a las acciones del usuario (señales)
 5) crea una estructura jerárquica (donde la raíz es el presentador)

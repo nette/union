@@ -87,7 +87,7 @@ class PollControl extends Control
 Rendering .[#toc-rendering]
 ===========================
 
-Wiemy już, że znacznik `{control componentName}` służy do renderowania komponentu. W rzeczywistości wywołuje to metodę `render()` komponentu, w której wykonamy renderowanie. Mamy, podobnie jak w Presenterze, [szablon Latte |templates] w zmiennej `$this->template`, do którego przekazujemy parametry. W przeciwieństwie do prezentera, musimy podać plik szablonu i zlecić jego renderowanie:
+Wiemy już, że znacznik `{control componentName}` służy do renderowania komponentu. W rzeczywistości wywołuje to metodę `render()` komponentu, w której wykonamy renderowanie. Mamy, podobnie jak w Presenterze, szablon [Latte |latte:] w zmiennej `$this->template`, do którego przekazujemy parametry. W przeciwieństwie do prezentera, musimy podać plik szablonu i zlecić jego renderowanie:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -347,7 +347,7 @@ services:
 i w końcu użyć go w naszym prezenterze:
 
 ```php
-class PollPresenter extends Nette\Application\UI\Presenter
+class PollPresenter extends Nette\UI\Application\Presenter
 {
 	public function __construct(
 		private PollControlFactory $pollControlFactory,
@@ -380,7 +380,7 @@ Komponenty w głębi .[#toc-advanced-use-of-components]
 Komponenty w aplikacji Nette to części aplikacji internetowej wielokrotnego użytku, które osadzamy w stronach, co jest tematem tego rozdziału. Jakie dokładnie są możliwości takiego komponentu?
 
 1) Jest renderowalny w szablonie
-2) wie [, którą część siebie |ajax#snippets] renderować podczas żądania AJAX (snippets)
+2) wie, która część siebie ma być renderowana podczas [żądania AJAX |ajax#Invalidation] (snippety)
 3) ma możliwość przechowywania swojego stanu w URL (trwałe parametry)
 4) posiada zdolność do reagowania na działania (sygnały) użytkownika
 5) tworzy strukturę hierarchiczną (gdzie korzeniem jest prezenter)

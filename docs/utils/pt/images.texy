@@ -17,8 +17,6 @@ Os exemplos a seguir assumem que a seguinte classe está definida:
 
 ```php
 use Nette\Utils\Image;
-use Nette\Utils\ImageColor;
-use Nette\Utils\ImageType;
 ```
 
 
@@ -34,7 +32,7 @@ $image = Image::fromBlank(100, 200);
 Opcionalmente, você pode especificar uma cor de fundo (o padrão é preto):
 
 ```php
-$image = Image::fromBlank(100, 200, ImageColor::rgb(125, 0, 0));
+$image = Image::fromBlank(100, 200, Image::rgb(125, 0, 0));
 ```
 
 Ou carregamos a imagem de um arquivo:
@@ -42,6 +40,17 @@ Ou carregamos a imagem de um arquivo:
 ```php
 $image = Image::fromFile('nette.jpg');
 ```
+
+Os formatos suportados são JPEG, PNG, GIF, WebP, AVIF e BMP, mas sua versão do PHP também deve apoiá-los (verifique a `phpinfo()`, seção GD). As animações não são suportadas.
+
+Necessidade de detectar o formato da imagem ao carregar? O formato de retorno do método no segundo parâmetro:
+
+```php
+$image = Image::fromFile('nette.jpg', $type);
+// $type é Image::JPEG, Image::PNG, Image::GIF, Image::WEBP, Image::AVIF ou Image::BMP
+```
+
+Somente a detecção sem carregar a imagem é feita por `Image::detectTypeFromFile()`.
 
 
 Salvar a imagem .[#toc-save-the-image]
@@ -59,44 +68,24 @@ Podemos especificar a qualidade de compressão na faixa 0..100 para JPEG (padrã
 $image->save('resampled.jpg', 80); // JPEG, qualidade 80%
 ```
 
-Se o formato não for óbvio a partir da extensão do arquivo, ele poderá ser especificado por uma [constante |#Formats]:
+Se o formato não for óbvio pela extensão do arquivo, ele pode ser especificado por uma das constantes `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF`, e `Image::BMP`:
 
 ```php
-$image->save('resampled.tmp', null, ImageType::JPEG);
+$image->save('resampled.tmp', null, Image::JPEG);
 ```
 
 A imagem pode ser escrita em uma variável ao invés de em disco:
 
 ```php
-$data = $image->toString(ImageType::JPEG, 80); // JPEG, qualidade 80%.
+$data = $image->toString(Image::JPEG, 80); // JPEG, qualidade 80%.
 ```
 
 ou enviar diretamente para o navegador com o cabeçalho HTTP apropriado `Content-Type`:
 
 ```php
 // envia cabeçalho Content-Type: imagem/png
-$image->send(ImageType::PNG);
+$image->send(Image::PNG);
 ```
-
-
-Formatos .[#toc-formats]
-========================
-
-Os formatos suportados são JPEG, PNG, GIF, WebP, AVIF e BMP. No entanto, eles também devem ser compatíveis com sua versão do PHP, o que pode ser verificado usando a função [isTypeSupported() |#isTypeSupported()]. Não há suporte para animações.
-
-Os formatos são representados pelas constantes `ImageType::JPEG`, `ImageType::PNG`, `ImageType::GIF`, `ImageType::WEBP`, `ImageType::AVIF`, e `ImageType::BMP`.
-
-```php
-$supported = Image::isTypeSupported(ImageType::JPEG);
-```
-
-Precisa detectar o formato de uma imagem ao ser carregada? O método o retorna no segundo parâmetro:
-
-```php
-$image = Image::fromFile('nette.jpg', $type);
-```
-
-A detecção real sem carregar a imagem é realizada por `Image::detectTypeFromFile()`.
 
 
 Redimensionamento de imagem .[#toc-image-resize]
@@ -192,36 +181,16 @@ $image->cropAuto(IMG_CROP_BLACK);
 O método `cropAuto()` é um encapsulamento de objeto da função `imagecropauto()`, veja [sua documentação |https://www.php.net/manual/en/function.imagecropauto] para mais informações.
 
 
-Cores .[#toc-colors]
-====================
-
-O método `ImageColor::rgb()` permite que você defina uma cor usando valores de vermelho, verde e azul (RGB). Opcionalmente, você também pode especificar um valor de transparência que varia de 0 (totalmente transparente) a 1 (totalmente opaco), assim como no CSS.
-
-```php
-$color = ImageColor::rgb(255, 0, 0); // Red
-$transparentBlue = ImageColor::rgb(0, 0, 255, 0.5); // Semi-transparent blue
-```
-
-O método `ImageColor::hex()` permite que você defina uma cor usando o formato hexadecimal, semelhante ao CSS. Ele é compatível com os formatos `#rgb`, `#rrggbb`, `#rgba` e `#rrggbbaa`:
-
-```php
-$color = ImageColor::hex("#F00"); // Red
-$transparentGreen = ImageColor::hex("#00FF0080"); // Semi-transparent green
-```
-
-As cores podem ser usadas em outros métodos, como `ellipse()`, `fill()`, etc.
-
-
 Desenho e Edição .[#toc-drawing-and-editing]
 ============================================
 
-Você pode desenhar, escrever e usar todas as funções do PHP para manipulação de imagens, consulte [Visão geral dos métodos |#Overview of methods], mas em um invólucro orientado a objetos:
+Você pode desenhar, você pode escrever, você pode usar todas as funções PHP para trabalhar com imagens, tais como [imagefilledellipse() |https://www.php.net/manual/en/function.imagefilledellipse.php], mas usando o estilo de objeto:
 
 ```php
-$image->filledEllipse($centerX, $centerY, $width, $height, ImageColor::rgb(255, 0, 0));
+$image->filledEllipse($cx, $cy, $width, $height, Image::rgb(255, 0, 0, 63));
 ```
 
-Como as funções PHP para desenhar retângulos são impraticáveis devido à especificação de coordenadas, a classe `Image` oferece seus substitutos na forma das funções [rectangleWH() |#rectangleWH()] e [filledRectangleWH() |#filledRectangleWH()].
+Veja [Visão geral dos métodos |#Overview of Methods].
 
 
 Fundir várias imagens .[#toc-merge-multiple-images]
@@ -231,7 +200,7 @@ Você pode facilmente colocar outra imagem dentro da imagem:
 
 ```php
 $logo = Image::fromFile('logo.png');
-$blank = Image::fromBlank(320, 240, ImageColor::rgb(52, 132, 210));
+$blank = Image::fromBlank(320, 240, Image::rgb(52, 132, 210));
 
 // as coordenadas também podem ser definidas em porcentagem
 $blank->place($logo, '80%', '80%'); // perto do canto inferior direito
@@ -250,64 +219,49 @@ Visão geral dos métodos .[#toc-overview-of-methods]
 ===================================================
 
 
-static fromBlank(int $width, int $height, ImageColor $color=null): Image .[method]
-----------------------------------------------------------------------------------
+static fromBlank(int $width, int $height, array $color=null): Image .[method]
+-----------------------------------------------------------------------------
 Cria uma nova imagem colorida verdadeira das dimensões dadas. A cor padrão é o preto.
 
 
 static fromFile(string $file, int &$detectedFormat=null): Image .[method]
 -------------------------------------------------------------------------
-Lê uma imagem de um arquivo e retorna seu [tipo |#Formats] em `$detectedFormat`.
+Lê uma imagem de um arquivo e retorna seu tipo em `$detectedFormat`. Os tipos suportados são `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF` e `Image::BMP`.
 
 
 static fromString(string $s, int &$detectedFormat=null): Image .[method]
 ------------------------------------------------------------------------
-Lê uma imagem de uma string e retorna seu [tipo |#Formats] em `$detectedFormat`.
+Lê uma imagem de um fio e retorna seu tipo em `$detectedFormat`. Os tipos suportados são `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::AVIF`, `Image::WEBP`, , e `Image::BMP`.
 
 
-static rgb(int $red, int $green, int $blue, int $transparency=0): array .[method][deprecated]
----------------------------------------------------------------------------------------------
-Esse recurso foi substituído pela classe `ImageColor`, consulte [cores |#Colors].
+static rgb(int $red, int $green, int $blue, int $transparency=0): array .[method]
+---------------------------------------------------------------------------------
+Cria uma cor que pode ser usada em outros métodos, tais como `ellipse()`, `fill()` e assim por diante.
 
 
 static typeToExtension(int $type): string .[method]
 ---------------------------------------------------
-Retorna a extensão do arquivo para o [tipo |#Formats] fornecido.
+Devolve a extensão do arquivo para a constante `Image::XXX` dada.
 
 
 static typeToMimeType(int $type): string .[method]
 --------------------------------------------------
-Retorna o tipo de mime para o [tipo |#Formats] fornecido.
+Devolve o tipo de mímica para a constante `Image::XXX` dada.
 
 
 static extensionToType(string $extension): int .[method]
 --------------------------------------------------------
-Retorna o [tipo |#Formats] de imagem de acordo com a extensão do arquivo.
+Retorna o tipo de imagem como uma constante `Image::XXX` de acordo com a extensão do arquivo.
 
 
 static detectTypeFromFile(string $file, int &$width=null, int &$height=null): ?int .[method]
 --------------------------------------------------------------------------------------------
-Retorna o [tipo |#Formats] de arquivo de imagem e, nos parâmetros `$width` e `$height`, também suas dimensões.
+Retorna o tipo de arquivo de imagem como constante `Image::XXX` e nos parâmetros `$width` e `$height` também suas dimensões.
 
 
 static detectTypeFromString(string $s, int &$width=null, int &$height=null): ?int .[method]
 -------------------------------------------------------------------------------------------
-Retorna o [tipo |#Formats] de imagem da string e, nos parâmetros `$width` e `$height`, também suas dimensões.
-
-
-static isTypeSupported(int $type): bool .[method]
--------------------------------------------------
-Determina se o [tipo |#Formats] de imagem fornecido é compatível.
-
-
-static getSupportedTypes(): array .[method]{data-version:4.0.4}
----------------------------------------------------------------
-Retorna uma matriz de tipos de imagens compatíveis (constantes `ImageType::XXX`).
-
-
-static calculateTextBox(string $text, string $fontFile, float $size, float $angle=0, array $options=[]): array .[method]
-------------------------------------------------------------------------------------------------------------------------
-Calcula as dimensões do retângulo que envolve o texto em uma fonte e tamanho especificados. Retorna uma matriz associativa contendo as chaves `left`, `top`, `width`, `height`. A margem esquerda pode ser negativa se o texto começar com uma saliência à esquerda.
+Retorna o tipo de imagem de corda como constante `Image::XXX` e nos parâmetros `$width` e `$height` também suas dimensões.
 
 
 affine(array $affine, array $clip=null): Image .[method]
@@ -337,9 +291,19 @@ Ativar os métodos de desenho rápido antialiased para linhas e polígonos com f
 O uso de primitivos antialiased com cor de fundo transparente pode terminar com alguns resultados inesperados. O método de mistura utiliza a cor de fundo como qualquer outra cor. A falta de suporte de componentes alfa não permite um método antialiasing baseado em alfa. ([mais |https://www.php.net/manual/en/function.imageantialias])
 
 
-arc(int $centerX, int $centerY, int $width, int $height, int $startAngle, int $endAngle, ImageColor $color): void .[method]
----------------------------------------------------------------------------------------------------------------------------
+arc(int $x, int $y, int $w, int $h, int $start, int $end, int $color): void .[method]
+-------------------------------------------------------------------------------------
 Desenha um arco de círculo centrado nas coordenadas dadas. ([mais |https://www.php.net/manual/en/function.imagearc])
+
+
+char(int $font, int $x, int $y, string $char, int $color): void .[method]
+-------------------------------------------------------------------------
+Traça o primeiro caractere de `$char` na imagem com sua parte superior esquerda em `$x`,`$y` (parte superior esquerda é 0, 0) com a cor `$color`. ([mais |https://www.php.net/manual/en/function.imagechar])
+
+
+charUp(int $font, int $x, int $y, string $char, int $color): void .[method]
+---------------------------------------------------------------------------
+Traça o caracter `$char` verticalmente na coordenada especificada na imagem dada. ([mais |https://www.php.net/manual/en/function.imagecharup])
 
 
 colorAllocate(int $red, int $green, int $blue): int .[method]
@@ -468,48 +432,43 @@ crop(int|string $left, int|string $top, int|string $width, int|string $height): 
 Cortar uma imagem para a área retangular dada. As dimensões podem ser passadas como números inteiros em pixels ou cadeias em porcentagem (ou seja, `'50%'`).
 
 
-cropAuto(int $mode=-1, float $threshold=.5, ?ImageColor $color=null): Image .[method]
--------------------------------------------------------------------------------------
+cropAuto(int $mode=-1, float $threshold=.5, int $color=-1): Image .[method]
+---------------------------------------------------------------------------
 Automaticamente cultiva uma imagem de acordo com o dado `$mode`. ([mais |https://www.php.net/manual/en/function.imagecropauto])
 
 
-ellipse(int $centerX, int $centerY, int $width, int $height, ImageColor $color): void .[method]
------------------------------------------------------------------------------------------------
+ellipse(int $cx, int $cy, int $w, int $h, int $color): void .[method]
+---------------------------------------------------------------------
 Desenha uma elipse centrada nas coordenadas especificadas. ([mais |https://www.php.net/manual/en/function.imageellipse])
 
 
-fill(int $x, int $y, ImageColor $color): void .[method]
--------------------------------------------------------
+fill(int $x, int $y, int $color): void .[method]
+------------------------------------------------
 Realiza um enchimento de inundação a partir da coordenada dada (no canto superior esquerdo é 0, 0) com o dado `$color` na imagem. ([mais |https://www.php.net/manual/en/function.imagefill])
 
 
-filledArc(int $centerX, int $centerY, int $width, int $height, int $startAngle, int $endAngle, ImageColor $color, int $style): void .[method]
----------------------------------------------------------------------------------------------------------------------------------------------
+filledArc(int $cx, int $cy, int $w, int $h, int $s, int $e, int $color, int $style): void .[method]
+---------------------------------------------------------------------------------------------------
 Desenha um arco parcial centrado na coordenada especificada na imagem. ([mais |https://www.php.net/manual/en/function.imagefilledarc])
 
 
-filledEllipse(int $centerX, int $centerY, int $width, int $height, ImageColor $color): void .[method]
------------------------------------------------------------------------------------------------------
+filledEllipse(int $cx, int $cy, int $w, int $h, int $color): void .[method]
+---------------------------------------------------------------------------
 Desenha uma elipse centrada na coordenada especificada na imagem. ([mais |https://www.php.net/manual/en/function.imagefilledellipse])
 
 
-filledPolygon(array $points, ImageColor $color): void .[method]
----------------------------------------------------------------
+filledPolygon(array $points, int $numPoints, int $color): void .[method]
+------------------------------------------------------------------------
 Cria um polígono cheio na imagem de $. ([mais |https://www.php.net/manual/en/function.imagefilledpolygon])
 
 
-filledRectangle(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------
-Cria um retângulo preenchido com `$color` na imagem, começando em `$x1` e `$y1` e terminando em `$x2` e `$y2`. O ponto 0, 0 é o canto superior esquerdo da imagem. ([Mais |https://www.php.net/manual/en/function.imagefilledrectangle])
+filledRectangle(int $x1, int $y1, int $x2, int $y2, int $color): void .[method]
+-------------------------------------------------------------------------------
+Cria um retângulo preenchido com `$color` na imagem começando no ponto 1 e terminando no ponto 2. 0, 0 é o canto superior esquerdo da imagem. ([mais |https://www.php.net/manual/en/function.imagefilledrectangle])
 
 
-filledRectangleWH(int $left, int $top, int $width, int $height, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------------------
-Cria um retângulo preenchido com `$color` na imagem a partir dos pontos `$left` e `$top` com largura `$width` e altura `$height`. O ponto 0, 0 é o canto superior esquerdo da imagem.
-
-
-fillToBorder(int $x, int $y, int $border, ImageColor $color): void .[method]
-----------------------------------------------------------------------------
+fillToBorder(int $x, int $y, int $border, int $color): void .[method]
+---------------------------------------------------------------------
 Realiza um enchimento de inundação cuja cor da borda é definida por `$border`. O ponto de partida para o preenchimento é `$x`, `$y` (canto superior esquerdo é 0, 0) e a região é preenchida com a cor `$color`. ([mais |https://www.php.net/manual/en/function.imagefilltoborder])
 
 
@@ -523,9 +482,9 @@ flip(int $mode): void .[method]
 Vira a imagem usando o dado `$mode`. ([mais |https://www.php.net/manual/en/function.imageflip])
 
 
-ftText(float $size, float $angle, int $x, int $y, ImageColor $color, string $fontFile, string $text, array $options=[]): array .[method]
-----------------------------------------------------------------------------------------------------------------------------------------
-Escreva o texto na figura. ([mais |https://www.php.net/manual/en/function.imagefttext])
+ftText(int $size, int $angle, int $x, int $y, int $col, string $fontFile, string $text, array $extrainfo=null): array .[method]
+-------------------------------------------------------------------------------------------------------------------------------
+Escrever texto na imagem usando fontes usando FreeType 2. ([mais |https://www.php.net/manual/en/function.imagefttext])
 
 
 gammaCorrect(float $inputgamma, float $outputgamma): void .[method]
@@ -568,13 +527,13 @@ layerEffect(int $effect): void .[method]
 Coloque a bandeira de mistura alfa para usar efeitos de camadas. ([mais |https://www.php.net/manual/en/function.imagelayereffect])
 
 
-line(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
----------------------------------------------------------------------------
+line(int $x1, int $y1, int $x2, int $y2, int $color): void .[method]
+--------------------------------------------------------------------
 Traça uma linha entre os dois pontos dados. ([mais |https://www.php.net/manual/en/function.imageline])
 
 
-openPolygon(array $points, ImageColor $color): void .[method]
--------------------------------------------------------------
+openPolygon(array $points, int $numPoints, int $color): void .[method]
+----------------------------------------------------------------------
 Desenha um polígono aberto sobre a imagem. Ao contrário de `polygon()`, nenhuma linha é traçada entre o último e o primeiro ponto. ([mais |https://www.php.net/manual/en/function.imageopenpolygon])
 
 
@@ -593,19 +552,14 @@ place(Image $image, int|string $left=0, int|string $top=0, int $opacity=100): Im
 Copia `$image` para a imagem nas coordenadas `$left` e `$top`. As coordenadas podem ser passadas como números inteiros em pixels ou cadeias em porcentagem (ou seja, `'50%'`).
 
 
-polygon(array $points, ImageColor $color): void .[method]
----------------------------------------------------------
+polygon(array $points, int $numPoints, int $color): void .[method]
+------------------------------------------------------------------
 Cria um polígono na imagem. ([mais |https://www.php.net/manual/en/function.imagepolygon])
 
 
-rectangle(int $x1, int $y1, int $x2, int $y2, ImageColor $color): void .[method]
---------------------------------------------------------------------------------
+rectangle(int $x1, int $y1, int $x2, int $y2, int $col): void .[method]
+-----------------------------------------------------------------------
 Cria um retângulo começando nas coordenadas especificadas. ([mais |https://www.php.net/manual/en/function.imagerectangle])
-
-
-rectangleWH(int $left, int $top, int $width, int $height, ImageColor $color): void .[method]
---------------------------------------------------------------------------------------------
-Cria um retângulo nas coordenadas fornecidas.
 
 
 resize(int|string $width, int|string $height, int $flags=Image::OrSmaller): Image .[method]
@@ -632,7 +586,7 @@ save(string $file, int $quality=null, int $type=null): void .[method]
 ---------------------------------------------------------------------
 Salva uma imagem em um arquivo.
 
-A qualidade da compactação está no intervalo de 0 a 100 para JPEG (padrão 85), WEBP (padrão 80) e AVIF (padrão 30) e 0 a 9 para PNG (padrão 9). Se o tipo não for óbvio a partir da extensão do arquivo, você poderá especificá-lo usando uma das constantes do site `ImageType`.
+A qualidade da compressão está na faixa 0..100 para JPEG (padrão 85), WEBP (padrão 80) e AVIF (padrão 30) e 0..9 para PNG (padrão 9). Se o tipo não for óbvio a partir da extensão do arquivo, você pode especificá-lo usando uma das constantes `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::WEBP`, `Image::AVIF`, e `Image::BMP`.
 
 
 saveAlpha(bool $saveflag): void .[method]
@@ -647,11 +601,11 @@ scale(int $newWidth, int $newHeight=-1, int $mode=IMG_BILINEAR_FIXED): Image .[m
 Escala uma imagem usando o algoritmo de interpolação dado. ([mais |https://www.php.net/manual/en/function.imagescale])
 
 
-send(int $type=ImageType::JPEG, int $quality=null): void .[method]
-------------------------------------------------------------------
+send(int $type=Image::JPEG, int $quality=null): void .[method]
+--------------------------------------------------------------
 Produz uma imagem para o navegador.
 
-A qualidade da compactação está no intervalo de 0 a 100 para JPEG (padrão 85), WEBP (padrão 80) e AVIF (padrão 30) e 0 a 9 para PNG (padrão 9).
+A qualidade da compressão está na faixa 0..100 para JPEG (padrão 85), WEBP (padrão 80) e AVIF (padrão 30) e 0..9 para PNG (padrão 9). O tipo é uma das constantes `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::AVIF`, `Image::WEBP`, e `Image::BMP`.
 
 
 setBrush(Image $brush): void .[method]
@@ -669,8 +623,8 @@ setInterpolation(int $method=IMG_BILINEAR_FIXED): void .[method]
 Define o método de interpolação que afeta os métodos `rotate()` e `affine()`. ([mais |https://www.php.net/manual/en/function.imagesetinterpolation])
 
 
-setPixel(int $x, int $y, ImageColor $color): void .[method]
------------------------------------------------------------
+setPixel(int $x, int $y, int $color): void .[method]
+----------------------------------------------------
 Traça um pixel na coordenada especificada. ([mais |https://www.php.net/manual/en/function.imagesetpixel])
 
 
@@ -699,11 +653,21 @@ Aguça um pouco a imagem.
 Requer uma extensão GD *Bundled GD, por isso não é certo que funcione em todos os lugares.
 
 
-toString(int $type=ImageType::JPEG, int $quality=null): string .[method]
+string(int $font, int $x, int $y, string $str, int $col): void .[method]
 ------------------------------------------------------------------------
+Traça um fio nas coordenadas dadas. ([mais |https://www.php.net/manual/en/function.imagestring])
+
+
+stringUp(int $font, int $x, int $y, string $s, int $col): void .[method]
+------------------------------------------------------------------------
+Traça um cordel verticalmente nas coordenadas dadas. ([mais |https://www.php.net/manual/en/function.imagestringup])
+
+
+toString(int $type=Image::JPEG, int $quality=null): string .[method]
+--------------------------------------------------------------------
 Produz uma imagem a fio.
 
-A qualidade da compactação está no intervalo de 0 a 100 para JPEG (padrão 85), WEBP (padrão 80) e AVIF (padrão 30) e 0 a 9 para PNG (padrão 9).
+A qualidade da compressão está na faixa 0..100 para JPEG (padrão 85), WEBP (padrão 80) e AVIF (padrão 30) e 0..9 para PNG (padrão 9). O tipo é uma das constantes `Image::JPEG`, `Image::PNG`, `Image::GIF`, `Image::AVIF`, `Image::WEBP`, e `Image::BMP`.
 
 
 trueColorToPalette(bool $dither, int $ncolors): void .[method]
@@ -711,6 +675,6 @@ trueColorToPalette(bool $dither, int $ncolors): void .[method]
 Converte uma imagem truecolor em uma imagem de paleta. ([mais |https://www.php.net/manual/en/function.imagetruecolortopalette])
 
 
-ttfText(float $size, float $angle, int $x, int $y, ImageColor $color, string $fontFile, string $text, array $options=[]): array .[method]
------------------------------------------------------------------------------------------------------------------------------------------
-Grava o texto fornecido na imagem. ([mais |https://www.php.net/manual/en/function.imagettftext])
+ttfText(int $size, int $angle, int $x, int $y, int $color, string $fontfile, string $text): array .[method]
+-----------------------------------------------------------------------------------------------------------
+Escreve o texto dado na imagem usando fontes TrueType. ([mais |https://www.php.net/manual/en/function.imagettftext])

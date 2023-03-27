@@ -16,6 +16,8 @@ Podprte različice PHP (velja za najnovejše različice popravkov Latte):
 | različica | združljiva s PHP
 |-----------------|-------------------
 | Latte 3.0 | PHP 8.0 - 8.2
+| Latte 2.11 | PHP 7.1 - 8.2
+| Latte 2.8 - 2.10| PHP 7.1 - 8.1
 
 
 Kako izrisati predlogo .[#toc-how-to-render-a-template]
@@ -131,77 +133,20 @@ Kako v Latte dodati filter, funkcijo, oznako itd. po meri? To izveste v poglavju
 Če želite svoje spremembe ponovno uporabiti v različnih projektih ali če jih želite deliti z drugimi, morate nato [ustvariti razširitev |creating-extension].
 
 
-Katera koli koda v predlogi `{php ...}` .{toc: RawPhpExtension}
-===============================================================
+Katera koli koda v predlogi `{php ...}` .{data-version:3.0}{toc: RawPhpExtension}
+=================================================================================
 
 Znotraj okenca lahko zapišete samo izraze PHP [`{do}` |tags#do] značko, zato ne morete na primer vstaviti konstrukcij, kot so `if ... else` ali izjave, zaključene s podpičjem.
 
-Lahko pa registrirate razširitev `RawPhpExtension`, ki doda oznako `{php ...}`. Z njo lahko vstavite katero koli kodo PHP. Zanjo ne veljajo nobena pravila za način peskovnika, zato je za uporabo odgovoren avtor predloge.
+Lahko pa registrirate razširitev `RawPhpExtension`, ki doda oznako `{php ...}`, s katero lahko avtor predloge na lastno odgovornost vstavi poljubno kodo PHP.
 
 ```php
 $latte->addExtension(new Latte\Essential\RawPhpExtension);
 ```
 
 
-Preverjanje generirane kode .[#toc-checking-generated-code]{data-version:3.0.7}
-===============================================================================
-
-Latte pripravi predloge v kodo PHP. Seveda poskrbi, da je generirana koda sintaktično pravilna. Vendar pri uporabi razširitev tretjih oseb ali RawPhpExtension Latte ne more zagotoviti pravilnosti generirane datoteke.
-Prav tako lahko v PHP napišete kodo, ki je sintaktično pravilna, vendar je prepovedana (na primer dodelitev vrednosti spremenljivki $this) in povzroči napako pri sestavljanju PHP.
-Če takšno operacijo zapišete v predlogi, bo vključena tudi v ustvarjeno kodo PHP. Ker je v PHP več kot dvesto različnih prepovedanih operacij, jih Latte ne poskuša zaznati. PHP jih bo sam označil ob izrisu, kar običajno ni težava.
-
-Vendar pa obstajajo situacije, ko želite med sestavljanjem predloge vedeti, da ta ne vsebuje napak pri sestavljanju PHP. Zlasti kadar lahko predloge urejajo uporabniki ali kadar uporabljate [peskovnik |Sandbox]. V takem primeru preverite predloge med sestavljanjem.
-To funkcionalnost lahko aktivirate z metodo Engine::enablePhpLint(). Ker mora za preverjanje poklicati binarni strežnik PHP, mu kot parameter posredujte pot do njega:
-
-```php
-$latte = new Latte\Engine;
-$latte->enablePhpLinter('/path/to/php');
-
-try {
-	$latte->compile('home.latte');
-} catch (Latte\CompileException $e) {
-	// lovi napake Latte in tudi Compile Error v PHP
-	echo 'Error: ' . $e->getMessage();
-}
-```
-
-
-Lokacija .[#toc-locale]{data-version:3.0.18}
-============================================
-
-Latte omogoča nastavitev lokalnega okolja, ki vpliva na oblikovanje številk, datumov in razvrščanje. Nastavlja se z metodo `setLocale()`. Identifikator locale sledi standardu jezikovnih oznak IETF, ki uporablja razširitev PHP `intl`. Sestavljen je iz kode jezika in po možnosti kode države, na primer `en_US` za angleščino v ZDA, `de_DE` za nemščino v Nemčiji itd.
-
-```php
-$latte = new Latte\Engine;
-$latte->setLocale('cs');
-```
-
-Nastavitev locale vpliva na filtre [localDate |filters#localDate], [sort |filters#sort], [number |filters#number] in [bytes |filters#bytes].
-
-.[note]
-Zahteva razširitev PHP `intl`. Nastavitev v Latte ne vpliva na globalno nastavitev locale v PHP.
-
-
-Strogi način .[#toc-strict-mode]{data-version:3.0.8}
-====================================================
-
-V strogem načinu razčlenjevanja Latte preverja manjkajoče zaključne oznake HTML in onemogoči uporabo spremenljivke `$this`. Če želite vklopiti to funkcijo:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictParsing();
-```
-
-Če želite ustvariti predloge z glavo `declare(strict_types=1)`, naredite naslednje:
-
-```php
-$latte = new Latte\Engine;
-$latte->setStrictTypes();
-```
-
-
-Prevajanje v predlogah .{toc: TranslatorExtension}
-==================================================
+Prevajanje v predlogah .{data-version:3.0}{toc: TranslatorExtension}
+====================================================================
 
 Uporabite razširitev `TranslatorExtension` za dodajanje [`{_...}` |tags#_], [`{translate}` |tags#translate] in filtrirajte [`translate` |filters#translate] v predlogo. Uporabljata se za prevajanje vrednosti ali delov predloge v druge jezike. Parameter je metoda (klic PHP), ki izvede prevod:
 
@@ -270,16 +215,14 @@ Hkrati se v spodnjem desnem kotu v tako imenovani Tracyjevi vrstici prikaže zav
 Ker Latte predloge sestavi v berljivo kodo PHP, jih lahko priročno pregledujete v svojem IDE.
 
 
-Linter: Preverjanje sintakse predloge: Linter: preverjanje sintakse predloge .{toc: Linter}
-===========================================================================================
+Linter: Preverjanje sintakse predloge: Linter: preverjanje sintakse predloge .{data-version:2.11}{toc: Linter}
+==============================================================================================================
 
 Orodje Linter vam bo pomagalo pregledati vse predloge in preveriti napake v sintaksi. Začne se iz konzole:
 
 ```shell
 vendor/bin/latte-lint <path>
 ```
-
-S parametrom `--strict` lahko aktivirate [strogi način|#strict mode].
 
 Če uporabljate oznake po meri, ustvarite tudi svoj prilagojeni Linter, npr. `custom-latte-lint`:
 
@@ -290,23 +233,17 @@ S parametrom `--strict` lahko aktivirate [strogi način|#strict mode].
 // vnesite dejansko pot do datoteke autoload.php
 require __DIR__ . '/vendor/autoload.php';
 
-$path = $argv[1] ?? '.';
+$linter = new Latte\Tools\Linter($engine);
+$linter->scanDirectory($path);
 
-$linter = new Latte\Tools\Linter;
-$latte = $linter->getEngine();
-// tukaj dodajte svoje posamezne razširitve
-$latte->addExtension(/* ... */);
+$engine = new Latte\Engine;
+// registrira posamezne razširitve tukaj
+$engine->addExtension(/* ... */);
 
+$path = $argv[1];
+$linter = new Latte\Tools\Linter(engine: $engine);
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);
-```
-
-Druga možnost je, da programu Linter posredujete svoj predmet `Latte\Engine`:
-
-```php
-$latte = new Latte\Engine;
-// tukaj konfiguriramo predmet $latte
-$linter = new Latte\Tools\Linter(engine: $latte);
 ```
 
 
