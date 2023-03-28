@@ -17,7 +17,7 @@ use ErrorException;
  */
 class Debugger
 {
-	public const Version = '3.0-dev';
+	public const VERSION = '2.10.0';
 
 	/** server modes for Debugger::enable() */
 	public const
@@ -25,25 +25,16 @@ class Debugger
 		Production = true,
 		Detect = null;
 
+	public const
+		DEVELOPMENT = self::Development,
+		PRODUCTION = self::Production,
+		DETECT = self::Detect;
+
 	public const CookieSecret = 'tracy-debug';
-
-	/** @deprecated use Debugger::Version */
-	public const VERSION = self::Version;
-
-	/** @deprecated use Debugger::Development */
-	public const DEVELOPMENT = self::Development;
-
-	/** @deprecated use Debugger::Production */
-	public const PRODUCTION = self::Production;
-
-	/** @deprecated use Debugger::Detect */
-	public const DETECT = self::Detect;
-
-	/** @deprecated use Debugger::CookieSecret */
 	public const COOKIE_SECRET = self::CookieSecret;
 
 	/** in production mode is suppressed any debugging output */
-	public static ?bool $productionMode = self::Detect;
+	public static ?bool $productionMode = self::DETECT;
 
 	/** whether to display debug bar in development mode */
 	public static bool $showBar = true;
@@ -235,7 +226,6 @@ class Debugger
 			'Bar/Bar',
 			'Bar/DefaultBarPanel',
 			'BlueScreen/BlueScreen',
-			'BlueScreen/CodeHighlighter',
 			'Dumper/Describer',
 			'Dumper/Dumper',
 			'Dumper/Exposer',
@@ -401,7 +391,7 @@ class Debugger
 			self::$blueScreen->info = [
 				'PHP ' . PHP_VERSION,
 				$_SERVER['SERVER_SOFTWARE'] ?? null,
-				'Tracy ' . self::Version,
+				'Tracy ' . self::VERSION,
 			];
 		}
 
@@ -548,7 +538,6 @@ class Debugger
 
 			$panel->data[] = ['title' => $title, 'dump' => Dumper::toHtml($var, $options + [
 				Dumper::DEPTH => self::$maxDepth,
-				Dumper::ITEMS => self::$maxItems,
 				Dumper::TRUNCATE => self::$maxLength,
 				Dumper::LOCATION => self::$showLocation ?: Dumper::LOCATION_CLASS | Dumper::LOCATION_SOURCE,
 				Dumper::LAZY => true,

@@ -19,12 +19,8 @@ final class Exposer
 {
 	public static function exposeObject(object $obj, Value $value, Describer $describer): void
 	{
-		$values = get_mangled_object_vars($obj);
+		$values = (array) $obj;
 		$props = self::getProperties($obj::class);
-
-		foreach (array_diff_key((array) $obj, $values) as $k => $v) {
-			$describer->addPropertyTo($value, (string) $k, $v);
-		}
 
 		foreach (array_diff_key($values, $props) as $k => $v) {
 			$describer->addPropertyTo(
@@ -142,7 +138,7 @@ final class Exposer
 
 	public static function exposeDOMNode(\DOMNode $obj, Value $value, Describer $describer): void
 	{
-		$props = preg_match_all('#^\s*\[([^\]]+)\] =>#m', print_r($obj, return: true), $tmp) ? $tmp[1] : [];
+		$props = preg_match_all('#^\s*\[([^\]]+)\] =>#m', print_r($obj, true), $tmp) ? $tmp[1] : [];
 		sort($props);
 		foreach ($props as $p) {
 			$describer->addPropertyTo($value, $p, $obj->$p, Value::PropertyPublic);
@@ -239,7 +235,7 @@ final class Exposer
 		Describer $describer,
 	): void
 	{
-		foreach (clone $obj as $k => $v) {
+		foreach ($obj as $k => $v) {
 			$describer->addPropertyTo($value, (string) $k, $v);
 		}
 	}

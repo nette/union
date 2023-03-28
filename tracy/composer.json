@@ -15,14 +15,13 @@
 		}
 	],
 	"require": {
-		"php": ">=8.0 <8.4",
+		"php": ">=8.0 <8.3",
 		"ext-session": "*",
 		"ext-json": "*"
 	},
 	"require-dev": {
 		"nette/utils": "^3.0",
 		"nette/di": "^3.0",
-		"nette/http": "^3.0",
 		"nette/mail": "^3.0",
 		"nette/tester": "^2.2",
 		"latte/latte": "^2.5",
@@ -43,7 +42,7 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "3.0-dev"
+			"dev-master": "2.10-dev"
 		}
 	}
 }

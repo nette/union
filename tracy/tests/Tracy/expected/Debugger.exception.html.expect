@@ -33,22 +33,7 @@
 
 	<div class="tracy-section-panel">
 		<p><b>File:</b> %a%</p>
-		<pre title="Ctrl-Click to open in editor" data-tracy-href="%a%" class='tracy-code'><div><code><span class='tracy-code-keyword'><span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>second<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>, </span><span class='tracy-code-var'>$arg2</span><span class='tracy-code-keyword'>)
-<span class='tracy-line'>%d%:</span>    {
-<span class='tracy-line'>%d%:</span>        </span>third<span class='tracy-code-keyword'>([</span><span class='tracy-dump-number'>1</span><span class='tracy-code-keyword'>, </span><span class='tracy-dump-number'>2</span><span class='tracy-code-keyword'>, </span><span class='tracy-dump-number'>3</span><span class='tracy-code-keyword'>]);
-<span class='tracy-line'>%d%:</span>    }
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>third<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>)
-<span class='tracy-line'>%d%:</span>    {
-</span><span class='tracy-line-highlight'>%d%:        throw new Exception('The my exception', 123);</span>
-<span class='tracy-code-keyword'><span class='tracy-line'>%d%:</span>    }
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    </span>define<span class='tracy-code-keyword'>(</span><span class='tracy-dump-string'>'MY_CONST'</span><span class='tracy-code-keyword'>, </span><span class='tracy-dump-number'>123</span><span class='tracy-code-keyword'>);
-</span></code></div></pre>
+		<pre title="Ctrl-Click to open in editor" data-tracy-href="%a%" class='tracy-code'>%A%</pre>
 	</div>
 </section>
 
@@ -67,22 +52,7 @@
 		</div>
 
 		<div class="tracy-callstack-additional tracy-collapsed">
-			<pre title="Ctrl-Click to open in editor" data-tracy-href="%a%" class='tracy-code'><div><code><span class='tracy-code-keyword'><span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>first<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>, </span><span class='tracy-code-var'>$arg2</span><span class='tracy-code-keyword'>)
-<span class='tracy-line'>%d%:</span>    {
-<span class='tracy-line'>%d%:</span>        </span>second<span class='tracy-code-keyword'>(</span>true<span class='tracy-code-keyword'>, </span>false<span class='tracy-code-keyword'>);
-<span class='tracy-line'>%d%:</span>    }
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>second<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>, </span><span class='tracy-code-var'>$arg2</span><span class='tracy-code-keyword'>)
-<span class='tracy-line'>%d%:</span>    {
-</span><span class='tracy-line-highlight'>%d%:        third([1, 2, 3]);</span>
-<span class='tracy-code-keyword'><span class='tracy-line'>%d%:</span>    }
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>third<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>)
-</span></code></div></pre>
+			<pre title="Ctrl-Click to open in editor" %A%</pre>
 
 			<table class="tracy-callstack-args">
 <tr><th>$arg1</th><td><pre class="tracy-dump tracy-light" data-tracy-dump='[[0,1],[1,2],[2,3]]'></pre>
@@ -99,22 +69,7 @@
 		</div>
 
 		<div class="tracy-callstack-additional tracy-collapsed">
-			<pre title="Ctrl-Click to open in editor" data-tracy-href="%a%" class='tracy-code'><div><code><span class='tracy-code-keyword'><span class='tracy-line'>19:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    </span>Debugger<span class='tracy-code-keyword'>::</span><span class='tracy-code-var'>$productionMode </span><span class='tracy-code-keyword'>= </span>false<span class='tracy-code-keyword'>;
-<span class='tracy-line'>%d%:</span>    </span>setHtmlMode<span class='tracy-code-keyword'>();
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    </span>Debugger<span class='tracy-code-keyword'>::</span>enable<span class='tracy-code-keyword'>();
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>first<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>, </span><span class='tracy-code-var'>$arg2</span><span class='tracy-code-keyword'>)
-<span class='tracy-line'>%d%:</span>    {
-</span><span class='tracy-line-highlight'>%d%:        second(true, false);</span>
-<span class='tracy-code-keyword'><span class='tracy-line'>%d%:</span>    }
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>second<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>, </span><span class='tracy-code-var'>$arg2</span><span class='tracy-code-keyword'>)
-</span></code></div></pre>
+			<pre title="Ctrl-Click to open in editor" %A%</pre>
 
 			<table class="tracy-callstack-args">
 <tr><th>$arg1</th><td><pre class="tracy-dump tracy-light"><span class="tracy-dump-bool">true</span></pre>
@@ -133,18 +88,7 @@
 		</div>
 
 		<div class="tracy-callstack-additional tracy-collapsed">
-			<pre title="Ctrl-Click to open in editor" data-tracy-href="%a%" class='tracy-code'><div><code><span class='tracy-code-keyword'><span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    function </span>third<span class='tracy-code-keyword'>(</span><span class='tracy-code-var'>$arg1</span><span class='tracy-code-keyword'>)
-<span class='tracy-line'>%d%:</span>    {
-<span class='tracy-line'>%d%:</span>        throw new </span>Exception<span class='tracy-code-keyword'>(</span><span class='tracy-dump-string'>'The my exception'</span><span class='tracy-code-keyword'>, </span><span class='tracy-dump-number'>123</span><span class='tracy-code-keyword'>);
-<span class='tracy-line'>%d%:</span>    }
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>
-<span class='tracy-line'>%d%:</span>    </span>define<span class='tracy-code-keyword'>(</span><span class='tracy-dump-string'>'MY_CONST'</span><span class='tracy-code-keyword'>, </span><span class='tracy-dump-number'>123</span><span class='tracy-code-keyword'>);
-<span class='tracy-line'>%d%:</span>    @</span>hex2bin<span class='tracy-code-keyword'>(</span><span class='tracy-dump-string'>'a'</span><span class='tracy-code-keyword'>); </span><span class='tracy-code-comment'>// E_WARNING
-</span><span class='tracy-line-highlight'>%d%:    first(10, 'any string');</span>
-</code></div></pre>
+			<pre title="Ctrl-Click to open in editor" %A%</pre>
 
 			<table class="tracy-callstack-args">
 <tr><th>$arg1</th><td><pre class="tracy-dump tracy-light"><span class="tracy-dump-number">10</span></pre>

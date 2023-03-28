@@ -107,25 +107,12 @@ Assert::match(<<<'XX'
 
 
 // ArrayIterator
-$obj = new ArrayIterator(['a', 'b']);
+$obj = new ArrayIterator(['a' => 1, 'b' => 2]);
 Assert::match(
 	<<<'XX'
 		ArrayIterator #%d%
-		   0: 'a'
-		   1: 'b'
-		XX,
-	Dumper::toText($obj),
-);
-
-
-// DateTime
-$obj = new DateTime('1978-01-23');
-Assert::match(
-	<<<'XX'
-		DateTime #%d%
-		   date: '1978-01-23 00:00:00.000000'
-		   timezone_type: %d%
-		   timezone: '%a%'
+		   a: 1
+		   b: 2
 		XX,
 	Dumper::toText($obj),
 );

@@ -34,6 +34,25 @@ Assert::match(
 		   |  childNodes: %a%
 		   |  entities: DOMNamedNodeMap #%d% ...
 		   |  firstChild: null
+		   |  internalSubset: null
+		   |  lastChild: null
+		   |  localName: null
+		   |  name: 'html'
+		   |  namespaceURI: null
+		   |  nextSibling: DOMElement #%d% see below
+		   |  nodeName: 'html'
+		   |  nodeType: 10
+		   |  nodeValue: null
+		   |  notations: DOMNamedNodeMap #%d% ...
+		   |  ownerDocument: DOMDocument #%d% RECURSION
+		   |  parentNode: DOMDocument #%d% RECURSION
+		   |  prefix: ''
+		   |  previousSibling: null
+		   |  publicId: ''
+		   |  systemId: ''
+		   |  textContent: ''
+		   documentElement: DOMElement #%d%
+		   |  attributes: DOMNamedNodeMap #%d% ...
 		%A%
 		   localName: null
 		   namespaceURI: null
@@ -42,7 +61,21 @@ Assert::match(
 		   nodeType: 13
 		   nodeValue: null
 		   ownerDocument: null
-		%A%
+		   parentNode: null
+		   prefix: ''
+		   preserveWhiteSpace: true
+		   previousSibling: null
+		   recover: false
+		   resolveExternals: false
+		   standalone: true
+		   strictErrorChecking: true
+		   substituteEntities: false
+		   textContent: 'Ahoj'
+		   validateOnParse: false
+		   version: null
+		   xmlEncoding: null
+		   xmlStandalone: true
+		   xmlVersion: null
 		XX,
 	Dumper::toText($dom, [Dumper::DEPTH => 2]),
 );
@@ -66,7 +99,26 @@ Assert::match(
 		   items: array (1)
 		   |  'class' => DOMAttr #%d%
 		   |  |  attributes: null
-		%A%
+		   |  |  baseURI: null
+		   |  |  childNodes: DOMNodeList #%d% ...
+		   |  |  firstChild: DOMText #%d% ...
+		   |  |  lastChild: DOMText #%d% ...
+		   |  |  localName: 'class'
+		   |  |  name: 'class'
+		   |  |  namespaceURI: null
+		   |  |  nextSibling: null
+		   |  |  nodeName: 'class'
+		   |  |  nodeType: 2
+		   |  |  nodeValue: 'a'
+		   |  |  ownerDocument: DOMDocument #%d% ...
+		   |  |  ownerElement: DOMElement #%d% ...
+		   |  |  parentNode: DOMElement #%d% ...
+		   |  |  prefix: ''
+		   |  |  previousSibling: null
+		   |  |  schemaTypeInfo: null
+		   |  |  specified: true
+		   |  |  textContent: 'a'
+		   |  |  value: 'a'
 		XX,
 	Dumper::toText($namedNodeMap, [Dumper::DEPTH => 3]),
 );

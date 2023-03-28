@@ -132,7 +132,7 @@ final class Describer
 				return $res;
 			} elseif ($depth && $this->maxItems && count($arr) > $this->maxItems) {
 				$value->length = count($arr);
-				$arr = array_slice($arr, 0, $this->maxItems, preserve_keys: true);
+				$arr = array_slice($arr, 0, $this->maxItems, true);
 			}
 
 			$items = &$value->items;
@@ -144,7 +144,7 @@ final class Describer
 			$res = new Value(Value::TypeArray, null, count($arr));
 			$res->depth = $depth;
 			$items = &$res->items;
-			$arr = array_slice($arr, 0, $this->maxItems, preserve_keys: true);
+			$arr = array_slice($arr, 0, $this->maxItems, true);
 		}
 
 		$items = [];
@@ -345,7 +345,7 @@ final class Describer
 			break;
 		}
 
-		if (isset($location['file'], $location['line']) && @is_file($location['file'])) { // @ - may trigger error
+		if (isset($location['file'], $location['line']) && is_file($location['file'])) {
 			$lines = file($location['file']);
 			$line = $lines[$location['line'] - 1];
 			return [
