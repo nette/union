@@ -20,7 +20,7 @@ test('absolute path', function () {
 		->collect();
 
 	Assert::equal(
-		[new FileInfo(__FILE__)],
+		[__FILE__ => new FileInfo(__FILE__)],
 		$files,
 	);
 
@@ -36,6 +36,7 @@ test('relative path', function () {
 		->from('fixtures.finder')
 		->collect();
 
+	$files = array_values($files);
 	$ds = DIRECTORY_SEPARATOR;
 	Assert::same('subdir', $files[0]->getRelativePath());
 	Assert::same("subdir{$ds}readme", $files[0]->getRelativePathname());

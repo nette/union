@@ -28,7 +28,7 @@ function export($iterator, bool $sort = true)
 }
 
 
-test('empty search', function () {
+test('expty search', function () {
 	$finder = (new Finder)->in('fixtures.finder');
 	Assert::same([], export($finder));
 
@@ -39,24 +39,6 @@ test('empty search', function () {
 		fn() => Finder::findFiles(''),
 		Nette\InvalidArgumentException::class,
 	);
-});
-
-
-test('default mask', function () {
-	$finder = Finder::find()->in('fixtures.finder');
-	Assert::same(['fixtures.finder/file.txt', 'fixtures.finder/images', 'fixtures.finder/subdir'], export($finder));
-
-	$finder = Finder::findFiles()->in('fixtures.finder');
-	Assert::same(['fixtures.finder/file.txt'], export($finder));
-
-	$finder = Finder::findDirectories()->in('fixtures.finder');
-	Assert::same(['fixtures.finder/images', 'fixtures.finder/subdir'], export($finder));
-
-	$finder = (new Finder)->files()->in('fixtures.finder');
-	Assert::same(['fixtures.finder/file.txt'], export($finder));
-
-	$finder = (new Finder)->directories()->in('fixtures.finder');
-	Assert::same(['fixtures.finder/images', 'fixtures.finder/subdir'], export($finder));
 });
 
 
@@ -120,7 +102,7 @@ test('recursive file & directory search in child-first order', function () {
 	Assert::same([
 		'fixtures.finder/subdir/subdir2',
 		'fixtures.finder/subdir',
-	], export($finder, sort: false));
+	], export($finder, false));
 });
 
 
@@ -170,29 +152,5 @@ test('absolute path in mask', function () { // will not work if there are charac
 	$finder = Finder::findDirectories(__DIR__);
 	Assert::same([
 		FileSystem::unixSlashes(__DIR__),
-	], export($finder));
-});
-
-
-test('symlink to file', function () {
-	$finder = Finder::find('subdir/*.txt')->in('fixtures.finder3');
-	Assert::same([
-		'fixtures.finder3/subdir/file.txt',
-	], export($finder));
-});
-
-
-test('symlink to directory', function () {
-	$finder = Finder::findDirectories()->in('fixtures.finder3/another_subdir');
-	Assert::same([
-		'fixtures.finder3/another_subdir/subdir',
-	], export($finder));
-});
-
-
-test('symlink to file in symlinked directory', function () {
-	$finder = Finder::find('subdir/*.txt')->in('fixtures.finder3/another_subdir');
-	Assert::same([
-		'fixtures.finder3/another_subdir/subdir/file.txt',
 	], export($finder));
 });

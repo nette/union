@@ -32,7 +32,7 @@ test('', function () use ($main) {
 
 
 test('', function () use ($main) {
-	if (!Image::isTypeSupported(Image::WEBP)) {
+	if (!function_exists('imagewebp')) {
 		return;
 	}
 
@@ -47,7 +47,7 @@ test('', function () use ($main) {
 
 
 test('', function () use ($main) {
-	if (!Image::isTypeSupported(Image::AVIF)) {
+	if (!function_exists('imageavif')) {
 		return;
 	}
 

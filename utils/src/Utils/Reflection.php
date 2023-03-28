@@ -221,8 +221,7 @@ final class Reflection
 			$tokens = [];
 		}
 
-		$namespace = $class = null;
-		$classLevel = $level = 0;
+		$namespace = $class = $classLevel = $level = null;
 		$res = $uses = [];
 
 		$nameTokens = [T_STRING, T_NS_SEPARATOR, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED];
@@ -291,7 +290,7 @@ final class Reflection
 
 				case ord('}'):
 					if ($level === $classLevel) {
-						$class = $classLevel = 0;
+						$class = $classLevel = null;
 					}
 
 					$level--;

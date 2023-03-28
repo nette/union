@@ -27,7 +27,7 @@ test('', function () {
 
 
 test('', function () {
-	if (!Image::isTypeSupported(Image::WEBP)) {
+	if (!function_exists('imagecreatefromwebp')) {
 		return;
 	}
 
@@ -39,7 +39,7 @@ test('', function () {
 
 
 test('', function () {
-	if (!Image::isTypeSupported(Image::AVIF)) {
+	if (!function_exists('imagecreatefromavif')) {
 		return;
 	}
 

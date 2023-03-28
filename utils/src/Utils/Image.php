@@ -133,16 +133,16 @@ class Image
 
 	/** image types */
 	public const
-		JPEG = ImageType::JPEG,
-		PNG = ImageType::PNG,
-		GIF = ImageType::GIF,
-		WEBP = ImageType::WEBP,
-		AVIF = ImageType::AVIF,
-		BMP = ImageType::BMP;
+		JPEG = IMAGETYPE_JPEG,
+		PNG = IMAGETYPE_PNG,
+		GIF = IMAGETYPE_GIF,
+		WEBP = IMAGETYPE_WEBP,
+		AVIF = 19, // IMAGETYPE_AVIF,
+		BMP = IMAGETYPE_BMP;
 
 	public const EmptyGIF = "GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;";
 
-	private const Formats = [ImageType::JPEG => 'jpeg', ImageType::PNG => 'png', ImageType::GIF => 'gif', ImageType::WEBP => 'webp', ImageType::AVIF => 'avif', ImageType::BMP => 'bmp'];
+	private const Formats = [self::JPEG => 'jpeg', self::PNG => 'png', self::GIF => 'gif', self::WEBP => 'webp', self::AVIF => 'avif', self::BMP => 'bmp'];
 
 	private \GdImage $image;
 
@@ -249,7 +249,6 @@ class Image
 
 	/**
 	 * Returns the type of image from file.
-	 * @return ImageType::*|null
 	 */
 	public static function detectTypeFromFile(string $file, &$width = null, &$height = null): ?int
 	{
@@ -260,7 +259,6 @@ class Image
 
 	/**
 	 * Returns the type of image from string.
-	 * @return ImageType::*|null
 	 */
 	public static function detectTypeFromString(string $s, &$width = null, &$height = null): ?int
 	{
@@ -270,8 +268,7 @@ class Image
 
 
 	/**
-	 * Returns the file extension for the given image type.
-	 * @param  ImageType::*  $type
+	 * Returns the file extension for the given `Image::XXX` constant.
 	 * @return value-of<self::Formats>
 	 */
 	public static function typeToExtension(int $type): string
@@ -285,12 +282,11 @@ class Image
 
 
 	/**
-	 * Returns the image type for given file extension.
-	 * @return ImageType::*
+	 * Returns the `Image::XXX` constant for given file extension.
 	 */
 	public static function extensionToType(string $extension): int
 	{
-		$extensions = array_flip(self::Formats) + ['jpg' => ImageType::JPEG];
+		$extensions = array_flip(self::Formats) + ['jpg' => self::JPEG];
 		$extension = strtolower($extension);
 		if (!isset($extensions[$extension])) {
 			throw new Nette\InvalidArgumentException("Unsupported file extension '$extension'.");
@@ -301,29 +297,11 @@ class Image
 
 
 	/**
-	 * Returns the mime type for the given image type.
-	 * @param  ImageType::*  $type
+	 * Returns the mime type for the given `Image::XXX` constant.
 	 */
 	public static function typeToMimeType(int $type): string
 	{
 		return 'image/' . self::typeToExtension($type);
-	}
-
-
-	/**
-	 * @param  ImageType::*  $type
-	 */
-	public static function isTypeSupported(int $type): bool
-	{
-		return (bool) (imagetypes() & match ($type) {
-			ImageType::JPEG => IMG_JPG,
-			ImageType::PNG => IMG_PNG,
-			ImageType::GIF => IMG_GIF,
-			ImageType::WEBP => IMG_WEBP,
-			ImageType::AVIF => 256, // IMG_AVIF,
-			ImageType::BMP => IMG_BMP,
-			default => 0,
-		});
 	}
 
 
@@ -623,7 +601,6 @@ class Image
 
 	/**
 	 * Saves image to the file. Quality is in the range 0..100 for JPEG (default 85), WEBP (default 80) and AVIF (default 30) and 0..9 for PNG (default 9).
-	 * @param  ImageType::*|null  $type
 	 * @throws ImageException
 	 */
 	public function save(string $file, ?int $quality = null, ?int $type = null): void
@@ -635,9 +612,8 @@ class Image
 
 	/**
 	 * Outputs image to string. Quality is in the range 0..100 for JPEG (default 85), WEBP (default 80) and AVIF (default 30) and 0..9 for PNG (default 9).
-	 * @param  ImageType::*  $type
 	 */
-	public function toString(int $type = ImageType::JPEG, ?int $quality = null): string
+	public function toString(int $type = self::JPEG, ?int $quality = null): string
 	{
 		return Helpers::capture(function () use ($type, $quality): void {
 			$this->output($type, $quality);
@@ -656,10 +632,9 @@ class Image
 
 	/**
 	 * Outputs image to browser. Quality is in the range 0..100 for JPEG (default 85), WEBP (default 80) and AVIF (default 30) and 0..9 for PNG (default 9).
-	 * @param  ImageType::*  $type
 	 * @throws ImageException
 	 */
-	public function send(int $type = ImageType::JPEG, ?int $quality = null): void
+	public function send(int $type = self::JPEG, ?int $quality = null): void
 	{
 		header('Content-Type: ' . self::typeToMimeType($type));
 		$this->output($type, $quality);
@@ -668,37 +643,36 @@ class Image
 
 	/**
 	 * Outputs image to browser or file.
-	 * @param  ImageType::*  $type
 	 * @throws ImageException
 	 */
 	private function output(int $type, ?int $quality, ?string $file = null): void
 	{
 		switch ($type) {
-			case ImageType::JPEG:
+			case self::JPEG:
 				$quality = $quality === null ? 85 : max(0, min(100, $quality));
 				$success = @imagejpeg($this->image, $file, $quality); // @ is escalated to exception
 				break;
 
-			case ImageType::PNG:
+			case self::PNG:
 				$quality = $quality === null ? 9 : max(0, min(9, $quality));
 				$success = @imagepng($this->image, $file, $quality); // @ is escalated to exception
 				break;
 
-			case ImageType::GIF:
+			case self::GIF:
 				$success = @imagegif($this->image, $file); // @ is escalated to exception
 				break;
 
-			case ImageType::WEBP:
+			case self::WEBP:
 				$quality = $quality === null ? 80 : max(0, min(100, $quality));
 				$success = @imagewebp($this->image, $file, $quality); // @ is escalated to exception
 				break;
 
-			case ImageType::AVIF:
+			case self::AVIF:
 				$quality = $quality === null ? 30 : max(0, min(100, $quality));
 				$success = @imageavif($this->image, $file, $quality); // @ is escalated to exception
 				break;
 
-			case ImageType::BMP:
+			case self::BMP:
 				$success = @imagebmp($this->image, $file); // @ is escalated to exception
 				break;
 
