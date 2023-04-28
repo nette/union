@@ -313,11 +313,9 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 	$app->catchExceptions = true;
 	$app->errorPresenter = 'Error';
 
-	Assert::exception(
-		fn() => $app->run(),
-		RuntimeException::class,
-		'Error at shutdown',
-	);
+	Assert::exception(function () use ($app) {
+		$app->run();
+	}, RuntimeException::class, 'Error at shutdown');
 
 	Assert::count(2, $errors);
 	Assert::equal('Error at startup', $errors[0]->getMessage());
@@ -340,8 +338,8 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 
 	$errors = [];
 
-	$presenter->injectPrimary($httpRequest, $httpResponse, $presenterFactory, $router);
-	$errorPresenter->injectPrimary($httpRequest, $httpResponse, $presenterFactory, $router);
+	$presenter->injectPrimary(null, $presenterFactory, $router, $httpRequest, $httpResponse);
+	$errorPresenter->injectPrimary(null, $presenterFactory, $router, $httpRequest, $httpResponse);
 
 	$app = new Application($presenterFactory, $router, $httpRequest, $httpResponse);
 	$app->catchExceptions = true;
@@ -357,7 +355,9 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 		$errors[] = $e;
 	};
 
-	Assert::noError(fn() => $app->run());
+	Assert::noError(function () use ($app) {
+		$app->run();
+	});
 
 	Assert::count(1, $errors);
 	Assert::same('Error on presenter', $errors[0]->getMessage());
@@ -391,22 +391,18 @@ Assert::noError(function () use ($httpRequest, $httpResponse) {
 
 	// Use default maxLoop
 	$app1 = clone $app;
-	Assert::exception(
-		fn() => $app1->run(),
-		ApplicationException::class,
-		'Too many loops detected in application life cycle.',
-	);
+	Assert::exception(function () use ($app1) {
+		$app1->run();
+	}, ApplicationException::class, 'Too many loops detected in application life cycle.');
 
 	Assert::count(21, $app1->getRequests());
 
 	// Redefine maxLoop
 	$app2 = clone $app;
 	$app2->maxLoop = 2;
-	Assert::exception(
-		fn() => $app2->run(),
-		ApplicationException::class,
-		'Too many loops detected in application life cycle.',
-	);
+	Assert::exception(function () use ($app2) {
+		$app2->run();
+	}, ApplicationException::class, 'Too many loops detected in application life cycle.');
 
 	Assert::count(3, $app2->getRequests());
 });

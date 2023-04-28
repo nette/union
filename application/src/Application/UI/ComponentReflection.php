@@ -14,20 +14,22 @@ use Nette;
 
 /**
  * Helpers for Presenter & Component.
- * @property-deprecated string $name
- * @property-deprecated string $fileName
+ * @property-read string $name
+ * @property-read string $fileName
  * @internal
  */
 final class ComponentReflection extends \ReflectionClass
 {
-	/** getPersistentParams cache */
-	private static array $ppCache = [];
+	use Nette\SmartObject;
 
-	/** getPersistentComponents cache */
-	private static array $pcCache = [];
+	/** @var array getPersistentParams cache */
+	private static $ppCache = [];
 
-	/** isMethodCallable cache */
-	private static array $mcCache = [];
+	/** @var array getPersistentComponents cache */
+	private static $pcCache = [];
+
+	/** @var array isMethodCallable cache */
+	private static $mcCache = [];
 
 
 	/**
@@ -36,7 +38,7 @@ final class ComponentReflection extends \ReflectionClass
 	 */
 	public function getPersistentParams(?string $class = null): array
 	{
-		$class ??= $this->getName();
+		$class = $class ?? $this->getName();
 		$params = &self::$ppCache[$class];
 		if ($params !== null) {
 			return $params;
@@ -49,7 +51,7 @@ final class ComponentReflection extends \ReflectionClass
 			foreach ($defaults as $name => $default) {
 				$rp = new \ReflectionProperty($class, $name);
 				if (!$rp->isStatic()
-					&& ($rp->getAttributes(Nette\Application\Attributes\Persistent::class)
+					&& ((PHP_VERSION_ID >= 80000 && $rp->getAttributes(Nette\Application\Attributes\Persistent::class))
 						|| self::parseAnnotation($rp, 'persistent'))
 				) {
 					$params[$name] = [
@@ -75,7 +77,7 @@ final class ComponentReflection extends \ReflectionClass
 
 	public function getPersistentComponents(?string $class = null): array
 	{
-		$class ??= $this->getName();
+		$class = $class ?? $this->getName();
 		$components = &self::$pcCache[$class];
 		if ($components !== null) {
 			return $components;
@@ -103,7 +105,7 @@ final class ComponentReflection extends \ReflectionClass
 	 */
 	public function saveState(Component $component, array &$params): void
 	{
-		$tree = self::getClassesAndTraits($component::class);
+		$tree = self::getClassesAndTraits(get_class($component));
 
 		foreach ($this->getPersistentParams() as $name => $meta) {
 			if (isset($params[$name])) {
@@ -126,7 +128,7 @@ final class ComponentReflection extends \ReflectionClass
 					$name,
 					$component instanceof Presenter ? 'presenter ' . $component->getName() : "component '{$component->getUniqueId()}'",
 					$meta['type'],
-					get_debug_type($params[$name]),
+					is_object($params[$name]) ? get_class($params[$name]) : gettype($params[$name])
 				));
 			}
 
@@ -172,7 +174,7 @@ final class ComponentReflection extends \ReflectionClass
 						$name,
 						($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName(),
 						$type,
-						get_debug_type($args[$name]),
+						is_object($args[$name]) ? get_class($args[$name]) : gettype($args[$name])
 					));
 				}
 			} elseif ($param->isDefaultValueAvailable()) {
@@ -185,7 +187,7 @@ final class ComponentReflection extends \ReflectionClass
 				throw new Nette\InvalidArgumentException(sprintf(
 					'Missing parameter $%s required by %s()',
 					$name,
-					($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName(),
+					($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName()
 				));
 			}
 		}
@@ -262,6 +264,7 @@ final class ComponentReflection extends \ReflectionClass
 
 	/**
 	 * Returns an annotation value.
+	 * @param  \ReflectionClass|\ReflectionMethod  $ref
 	 */
 	public static function parseAnnotation(\Reflector $ref, string $name): ?array
 	{
@@ -289,16 +292,16 @@ final class ComponentReflection extends \ReflectionClass
 		$type = $param->getType();
 		return $type
 			? ($type instanceof \ReflectionNamedType ? $type->getName() : (string) $type)
-			: ($default === null ? 'scalar' : get_debug_type($default));
+			: ($default === null ? 'scalar' : gettype($default));
 	}
 
 
 	public static function getPropertyType(\ReflectionProperty $prop, $default): string
 	{
-		$type = $prop->getType();
+		$type = PHP_VERSION_ID < 70400 ? null : $prop->getType();
 		return $type
 			? ($type instanceof \ReflectionNamedType ? $type->getName() : (string) $type)
-			: ($default === null ? 'scalar' : get_debug_type($default));
+			: ($default === null ? 'scalar' : gettype($default));
 	}
 
 
@@ -313,8 +316,9 @@ final class ComponentReflection extends \ReflectionClass
 
 	/**
 	 * Returns an annotation value.
+	 * @return mixed
 	 */
-	public function getAnnotation(string $name): mixed
+	public function getAnnotation(string $name)
 	{
 		$res = self::parseAnnotation($this, $name);
 		return $res ? end($res) : null;
@@ -359,3 +363,6 @@ final class ComponentReflection extends \ReflectionClass
 		return $res;
 	}
 }
+
+
+class_exists(PresenterComponentReflection::class);

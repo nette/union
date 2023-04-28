@@ -2,6 +2,7 @@
 
 /**
  * Test: TemplateFactory custom template
+ * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -14,12 +15,16 @@ use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
+}
+
 Tester\Environment::bypassFinals();
 
 
 class TemplateMock extends Template
 {
-	private string $file = 'ko';
+	private $file = 'ko';
 
 
 	public function render(?string $file = null, array $params = []): void
@@ -28,10 +33,9 @@ class TemplateMock extends Template
 	}
 
 
-	public function setFile(string $file): static
+	public function setFile(string $file)
 	{
 		$this->file = $file;
-		return $this;
 	}
 
 
@@ -50,7 +54,7 @@ test('', function () {
 });
 
 Assert::exception(
-	fn() => new TemplateFactory(Mockery::mock(LatteFactory::class), templateClass: stdClass::class),
+	fn() => new TemplateFactory(Mockery::mock(LatteFactory::class), null, null, null, stdClass::class),
 	Nette\InvalidArgumentException::class,
 	'Class stdClass does not implement Nette\Bridges\ApplicationLatte\Template or it does not exist.',
 );
@@ -59,7 +63,7 @@ Assert::exception(
 test('', function () {
 	$latteFactory = Mockery::mock(LatteFactory::class);
 	$latteFactory->shouldReceive('create')->andReturn(new Latte\Engine);
-	$factory = new TemplateFactory($latteFactory, templateClass: TemplateMock::class);
+	$factory = new TemplateFactory($latteFactory, null, null, null, TemplateMock::class);
 	$template = $factory->createTemplate();
 	Assert::type(TemplateMock::class, $template);
 	Assert::type(UI\Template::class, $template);

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace NetteModule;
 
+use Nette;
 use Nette\Application;
 use Nette\Http;
 use Tracy\ILogger;
@@ -19,9 +20,15 @@ use Tracy\ILogger;
  */
 final class ErrorPresenter implements Application\IPresenter
 {
-	public function __construct(
-		private ?ILogger $logger = null,
-	) {
+	use Nette\SmartObject;
+
+	/** @var ILogger|null */
+	private $logger;
+
+
+	public function __construct(?ILogger $logger = null)
+	{
+		$this->logger = $logger;
 	}
 
 

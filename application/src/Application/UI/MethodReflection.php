@@ -9,12 +9,16 @@ declare(strict_types=1);
 
 namespace Nette\Application\UI;
 
+use Nette;
+
 
 /**
  * @internal
  */
 final class MethodReflection extends \ReflectionMethod
 {
+	use Nette\SmartObject;
+
 	/**
 	 * Has method specified annotation?
 	 */
@@ -26,8 +30,9 @@ final class MethodReflection extends \ReflectionMethod
 
 	/**
 	 * Returns an annotation value.
+	 * @return mixed
 	 */
-	public function getAnnotation(string $name): mixed
+	public function getAnnotation(string $name)
 	{
 		$res = ComponentReflection::parseAnnotation($this, $name);
 		return $res ? end($res) : null;

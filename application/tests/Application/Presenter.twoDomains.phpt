@@ -28,13 +28,14 @@ function testLink($domain)
 
 	$presenter = new TestPresenter;
 	$presenter->injectPrimary(
-		new Http\Request($url),
-		new Http\Response,
+		null,
 		Mockery::mock(Nette\Application\IPresenterFactory::class),
 		new Application\Routers\SimpleRouter,
+		new Http\Request($url),
+		new Http\Response
 	);
 
-	$request = new Application\Request('Test', Http\Request::Get, []);
+	$request = new Application\Request('Test', Http\Request::GET, []);
 	$presenter->run($request);
 
 	Assert::same('http://' . $domain . '/index.php?action=default&presenter=Test', $presenter->link('//this'));

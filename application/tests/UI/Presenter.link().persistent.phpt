@@ -54,7 +54,7 @@ class TestPresenter extends BasePresenter
 	public $p2;
 
 
-	protected function startup(): void
+	protected function startup()
 	{
 		parent::startup();
 
@@ -115,7 +115,7 @@ Assert::same([
 ], TestPresenter::getReflection()->getPersistentParams());
 
 Assert::same([
-	'p1' => ['def' => 20, 'type' => 'int', 'since' => 'BasePresenter'],
+	'p1' => ['def' => 20, 'type' => 'integer', 'since' => 'BasePresenter'],
 	'p3' => ['def' => null, 'type' => 'scalar', 'since' => 'SecondPresenter'],
 	't1' => ['def' => null, 'type' => 'scalar', 'since' => 'PersistentParam1'],
 	't3' => ['def' => null, 'type' => 'scalar', 'since' => 'PersistentParam3'],
@@ -138,18 +138,21 @@ $url = new Http\UrlScript('http://localhost/index.php', '/index.php');
 
 $presenterFactory = Mockery::mock(Nette\Application\IPresenterFactory::class);
 $presenterFactory->shouldReceive('getPresenterClass')
-	->andReturnUsing(fn($presenter) => $presenter . 'Presenter');
+	->andReturnUsing(function ($presenter) {
+		return $presenter . 'Presenter';
+	});
 
 $presenter = new TestPresenter;
 $presenter->injectPrimary(
-	new Http\Request($url),
-	new Http\Response,
+	null,
 	$presenterFactory,
 	new Application\Routers\SimpleRouter,
+	new Http\Request($url),
+	new Http\Response
 );
 
-$presenter->invalidLinkMode = TestPresenter::InvalidLinkWarning;
+$presenter->invalidLinkMode = TestPresenter::INVALID_LINK_WARNING;
 $presenter->autoCanonicalize = false;
 
-$request = new Application\Request('Test', Http\Request::Get, []);
+$request = new Application\Request('Test', Http\Request::GET, []);
 $presenter->run($request);

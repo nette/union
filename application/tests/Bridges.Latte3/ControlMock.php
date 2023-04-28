@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 class ControlMock extends Nette\Application\UI\Control
 {
-	public bool $snippetMode = true;
+	public $snippetMode = true;
 
 	public $payload = [];
 

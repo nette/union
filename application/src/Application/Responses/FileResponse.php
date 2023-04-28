@@ -17,22 +17,29 @@ use Nette;
  */
 final class FileResponse implements Nette\Application\Response
 {
-	public bool $resuming = true;
+	use Nette\SmartObject;
 
-	private string $file;
+	/** @var bool */
+	public $resuming = true;
 
-	private string $contentType;
+	/** @var string */
+	private $file;
 
-	private string $name;
+	/** @var string */
+	private $contentType;
 
-	private bool $forceDownload;
+	/** @var string */
+	private $name;
+
+	/** @var bool */
+	private $forceDownload;
 
 
 	public function __construct(
 		string $file,
 		?string $name = null,
 		?string $contentType = null,
-		bool $forceDownload = true,
+		bool $forceDownload = true
 	) {
 		if (!is_file($file) || !is_readable($file)) {
 			throw new Nette\Application\BadRequestException("File '$file' doesn't exist or is not readable.");
@@ -82,7 +89,7 @@ final class FileResponse implements Nette\Application\Response
 			'Content-Disposition',
 			($this->forceDownload ? 'attachment' : 'inline')
 				. '; filename="' . $this->name . '"'
-				. '; filename*=utf-8\'\'' . rawurlencode($this->name),
+				. '; filename*=utf-8\'\'' . rawurlencode($this->name)
 		);
 
 		$filesize = $length = filesize($this->file);
@@ -120,7 +127,7 @@ final class FileResponse implements Nette\Application\Response
 
 		$httpResponse->setHeader('Content-Length', (string) $length);
 		while (!feof($handle) && $length > 0) {
-			echo $s = fread($handle, min(4_000_000, $length));
+			echo $s = fread($handle, min(4000000, $length));
 			$length -= strlen($s);
 		}
 
