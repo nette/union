@@ -53,7 +53,7 @@ class PhpParser
 	 */
 	public function parse(string $code): \stdClass
 	{
-		$tokens = \PhpToken::tokenize($code, TOKEN_PARSE);
+		$tokens = token_get_all($code, TOKEN_PARSE);
 
 		$level = $classLevel = $functionLevel = null;
 		$namespace = '';
@@ -70,9 +70,11 @@ class PhpParser
 
 		while ($token = current($tokens)) {
 			next($tokens);
-			$line = $token->line;
+			if (is_array($token)) {
+				$line = $token[2];
+			}
 
-			switch ($token->id) {
+			switch (is_array($token) ? $token[0] : $token) {
 				case T_NAMESPACE:
 					$namespace = self::fetch($tokens, [T_STRING, T_NAME_QUALIFIED]);
 					$namespace = ltrim($namespace . '\\', '\\');
@@ -82,9 +84,9 @@ class PhpParser
 				case T_INTERFACE:
 				case T_TRAIT:
 					if ($name = self::fetch($tokens, T_STRING)) {
-						if ($token->id === T_CLASS) {
+						if ($token[0] === T_CLASS) {
 							$class = &$result->classes[$namespace . $name];
-						} elseif ($token->id === T_INTERFACE) {
+						} elseif ($token[0] === T_INTERFACE) {
 							$class = &$result->interfaces[$namespace . $name];
 						} else {
 							$class = &$result->traits[$namespace . $name];
@@ -103,7 +105,7 @@ class PhpParser
 				case T_PUBLIC:
 				case T_PROTECTED:
 				case T_PRIVATE:
-					$visibility = $token->text;
+					$visibility = $token[1];
 					break;
 
 				case T_ABSTRACT:
@@ -136,11 +138,11 @@ class PhpParser
 
 				case T_CURLY_OPEN:
 				case T_DOLLAR_OPEN_CURLY_BRACES:
-				case ord('{'):
+				case '{':
 					$level++;
 					break;
 
-				case ord('}'):
+				case '}':
 					if (isset($function) && $level === $functionLevel) {
 						$function->end = $line;
 						unset($function);
@@ -155,12 +157,12 @@ class PhpParser
 
 				case T_COMMENT:
 				case T_DOC_COMMENT:
-					$result->linesOfComments += substr_count(trim($token->text), "\n") + 1;
+					$result->linesOfComments += substr_count(trim($token[1]), "\n") + 1;
 					// break omitted
 
 				case T_WHITESPACE:
 				case T_CONSTANT_ENCAPSED_STRING:
-					$line += substr_count($token->text, "\n");
+					$line += substr_count($token[1], "\n");
 					break;
 			}
 		}
@@ -173,9 +175,10 @@ class PhpParser
 	{
 		$res = null;
 		while ($token = current($tokens)) {
-			if ($token->is($take)) {
-				$res .= $token->text;
-			} elseif (!$token->is([T_DOC_COMMENT, T_WHITESPACE, T_COMMENT])) {
+			[$token, $s] = is_array($token) ? $token : [$token, $token];
+			if (in_array($token, (array) $take, true)) {
+				$res .= $s;
+			} elseif (!in_array($token, [T_DOC_COMMENT, T_WHITESPACE, T_COMMENT], true)) {
 				break;
 			}
 

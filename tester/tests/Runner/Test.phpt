@@ -44,11 +44,9 @@ test('', function () {
 	Assert::same(Test::Passed, $test->getResult());
 	Assert::same('It is done', $test->message);
 
-	Assert::exception(
-		fn() => $test->withResult(Test::Failed, 'Foo'),
-		LogicException::class,
-		'Result of test is already set to ' . Test::Passed . " with message 'It is done'.",
-	);
+	Assert::exception(function () use ($test) {
+		$test->withResult(Test::Failed, 'Foo');
+	}, LogicException::class, 'Result of test is already set to ' . Test::Passed . " with message 'It is done'.");
 });
 
 
@@ -69,9 +67,7 @@ test('', function () {
 		'three',
 	], $test->getArguments());
 
-	Assert::exception(
-		fn() => $test->withResult(Test::Passed, '')->withArguments([]),
-		LogicException::class,
-		'Cannot change arguments of test which already has a result.',
-	);
+	Assert::exception(function () use ($test) {
+		$test->withResult(Test::Passed, '')->withArguments([]);
+	}, LogicException::class, 'Cannot change arguments of test which already has a result.');
 });

@@ -58,11 +58,9 @@ test('alias', function () {
 	Assert::same(['--param' => true], $cmd->parse(['-p']));
 	Assert::same(['--param' => true], $cmd->parse(['--param']));
 	Assert::same(['--param' => true], $cmd->parse(explode(' ', '-p --param')));
-	Assert::exception(
-		fn() => $cmd->parse(['-p=val']),
-		Exception::class,
-		'Option --param has not argument.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['-p=val']);
+	}, Exception::class, 'Option --param has not argument.');
 
 	$cmd = new Cmd('
 		-p --param
@@ -88,17 +86,13 @@ test('argument', function () {
 	Assert::same(['-p' => 'val'], $cmd->parse(explode(' ', '-p=val')));
 	Assert::same(['-p' => 'val2'], $cmd->parse(explode(' ', '-p val1 -p val2')));
 
-	Assert::exception(
-		fn() => $cmd->parse(['-p']),
-		Exception::class,
-		'Option -p requires argument.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['-p']);
+	}, Exception::class, 'Option -p requires argument.');
 
-	Assert::exception(
-		fn() => $cmd->parse(['-p', '-a']),
-		Exception::class,
-		'Option -p requires argument.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['-p', '-a']);
+	}, Exception::class, 'Option -p requires argument.');
 
 
 	$cmd = new Cmd('
@@ -160,17 +154,13 @@ test('enumerates', function () {
 	');
 
 	Assert::same(['-p' => null], $cmd->parse([]));
-	Assert::exception(
-		fn() => $cmd->parse(['-p']),
-		Exception::class,
-		'Option -p requires argument.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['-p']);
+	}, Exception::class, 'Option -p requires argument.');
 	Assert::same(['-p' => 'a'], $cmd->parse(explode(' ', '-p a')));
-	Assert::exception(
-		fn() => $cmd->parse(explode(' ', '-p foo')),
-		Exception::class,
-		'Value of option -p must be a, or b, or c.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(explode(' ', '-p foo'));
+	}, Exception::class, 'Value of option -p must be a, or b, or c.');
 
 
 	$cmd = new Cmd('
@@ -180,11 +170,9 @@ test('enumerates', function () {
 	Assert::same(['-p' => null], $cmd->parse([]));
 	Assert::same(['-p' => true], $cmd->parse(['-p']));
 	Assert::same(['-p' => 'a'], $cmd->parse(explode(' ', '-p a')));
-	Assert::exception(
-		fn() => $cmd->parse(explode(' ', '-p foo')),
-		Exception::class,
-		'Value of option -p must be a, or b, or c.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(explode(' ', '-p foo'));
+	}, Exception::class, 'Value of option -p must be a, or b, or c.');
 });
 
 
@@ -195,11 +183,9 @@ test('realpath', function () {
 		'-p' => [Cmd::RealPath => true],
 	]);
 
-	Assert::exception(
-		fn() => $cmd->parse(['-p', 'xyz']),
-		Exception::class,
-		"File path 'xyz' not found.",
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['-p', 'xyz']);
+	}, Exception::class, "File path 'xyz' not found.");
 	Assert::same(['-p' => __FILE__], $cmd->parse(['-p', __FILE__]));
 });
 
@@ -240,17 +226,13 @@ test('positional arguments', function () {
 
 	Assert::same(['pos' => 'val'], $cmd->parse(['val']));
 
-	Assert::exception(
-		fn() => $cmd->parse([]),
-		Exception::class,
-		'Missing required argument <pos>.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse([]);
+	}, Exception::class, 'Missing required argument <pos>.');
 
-	Assert::exception(
-		fn() => $cmd->parse(['val1', 'val2']),
-		Exception::class,
-		'Unexpected parameter val2.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['val1', 'val2']);
+	}, Exception::class, 'Unexpected parameter val2.');
 
 	$cmd = new Cmd('', [
 		'pos' => [Cmd::Repeatable => true],
@@ -279,15 +261,11 @@ test('errors', function () {
 		-p
 	');
 
-	Assert::exception(
-		fn() => $cmd->parse(['-x']),
-		Exception::class,
-		'Unknown option -x.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['-x']);
+	}, Exception::class, 'Unknown option -x.');
 
-	Assert::exception(
-		fn() => $cmd->parse(['val']),
-		Exception::class,
-		'Unexpected parameter val.',
-	);
+	Assert::exception(function () use ($cmd) {
+		$cmd->parse(['val']);
+	}, Exception::class, 'Unexpected parameter val.');
 });

@@ -34,11 +34,9 @@ $cases = [
 foreach ($cases as $case) {
 	@[$type, $value, $message] = $case;
 	if ($message) {
-		Assert::exception(
-			fn() => Assert::type($type, $value),
-			Tester\AssertException::class,
-			$message,
-		);
+		Assert::exception(function () use ($type, $value) {
+			Assert::type($type, $value);
+		}, Tester\AssertException::class, $message);
 	} else {
 		Assert::type($type, $value);
 	}
@@ -49,8 +47,6 @@ $arr = [];
 $arr[] = &$arr;
 Assert::type('list', $arr);
 
-Assert::exception(
-	fn() => Assert::type('int', 'string', 'Custom description'),
-	Tester\AssertException::class,
-	'Custom description: string should be int',
-);
+Assert::exception(function () {
+	Assert::type('int', 'string', 'Custom description');
+}, Tester\AssertException::class, 'Custom description: string should be int');

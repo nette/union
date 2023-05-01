@@ -16,15 +16,11 @@ Assert::count(2, SplFixedArray::fromArray([1, 2]));
 Assert::equal(4, Assert::$counter);
 
 // test wrong count
-Assert::exception(
-	fn() => Assert::count(1, [1, 2, 3]),
-	Tester\AssertException::class,
-	'Count 3 should be 1',
-);
+Assert::exception(function () {
+	Assert::count(1, [1, 2, 3]);
+}, Tester\AssertException::class, 'Count 3 should be 1');
 
 // test custom description
-Assert::exception(
-	fn() => Assert::count(1, [1, 2, 3], 'Custom description'),
-	Tester\AssertException::class,
-	'Custom description: Count 3 should be 1',
-);
+Assert::exception(function () {
+	Assert::count(1, [1, 2, 3], 'Custom description');
+}, Tester\AssertException::class, 'Custom description: Count 3 should be 1');
