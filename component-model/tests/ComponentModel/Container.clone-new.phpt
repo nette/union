@@ -21,20 +21,20 @@ class TestClass extends Container implements ArrayAccess
 
 	public function attached(IComponent $obj): void
 	{
-		Notes::add(static::class . '::ATTACHED(' . $obj::class . ')');
+		Notes::add(static::class . '::ATTACHED(' . get_class($obj) . ')');
 	}
 
 
 	public function detached(IComponent $obj): void
 	{
-		Notes::add(static::class . '::detached(' . $obj::class . ')');
+		Notes::add(static::class . '::detached(' . get_class($obj) . ')');
 	}
 }
 
 
 function export($obj)
 {
-	$res = ['(' . $obj::class . ')' => $obj->getName()];
+	$res = ['(' . get_class($obj) . ')' => $obj->getName()];
 	if ($obj instanceof IContainer) {
 		foreach ($obj->getComponents() as $name => $child) {
 			$res['children'][$name] = export($child);
@@ -65,7 +65,7 @@ class E extends TestClass
 function createAttached(IComponent $sender)
 {
 	return function (IComponent $obj) use ($sender) {
-		Notes::add('ATTACHED(' . $obj::class . ', ' . $sender::class . ')');
+		Notes::add('ATTACHED(' . get_class($obj) . ', ' . get_class($sender) . ')');
 	};
 }
 
@@ -73,7 +73,7 @@ function createAttached(IComponent $sender)
 function createDetached(IComponent $sender)
 {
 	return function (IComponent $obj) use ($sender) {
-		Notes::add('detached(' . $obj::class . ', ' . $sender::class . ')');
+		Notes::add('detached(' . get_class($obj) . ', ' . get_class($sender) . ')');
 	};
 }
 
@@ -102,7 +102,7 @@ Assert::same([
 	'detached(A, C)',
 ], Notes::fetch());
 
-Assert::null($dolly['d']['e']->lookupPath('A', throw: false));
+Assert::null($dolly['d']['e']->lookupPath('A', false));
 
 Assert::same('d-e', $dolly['d']['e']->lookupPath(C::class));
 

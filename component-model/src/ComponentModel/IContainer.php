@@ -19,8 +19,9 @@ interface IContainer extends IComponent
 {
 	/**
 	 * Adds the component to the container.
+	 * @return static
 	 */
-	function addComponent(IComponent $component, ?string $name): static;
+	function addComponent(IComponent $component, ?string $name);
 
 	/**
 	 * Removes the component from the container.
