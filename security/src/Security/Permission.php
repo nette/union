@@ -21,14 +21,14 @@ class Permission implements Authorizator
 {
 	use Nette\SmartObject;
 
-	/** Role storage */
-	private array $roles = [];
+	/** @var array  Role storage */
+	private $roles = [];
 
-	/** Resource storage */
-	private array $resources = [];
+	/** @var array  Resource storage */
+	private $resources = [];
 
-	/** Access Control List rules; whitelist (deny everything to all) by default */
-	private array $rules = [
+	/** @var array  Access Control List rules; whitelist (deny everything to all) by default */
+	private $rules = [
 		'allResources' => [
 			'allRoles' => [
 				'allPrivileges' => [
@@ -42,7 +42,9 @@ class Permission implements Authorizator
 		'byResource' => [],
 	];
 
-	private mixed $queriedRole;
+	/** @var mixed */
+	private $queriedRole;
+
 	private $queriedResource;
 
 
@@ -389,7 +391,7 @@ class Permission implements Authorizator
 		$roles = self::All,
 		$resources = self::All,
 		$privileges = self::All,
-		?callable $assertion = null,
+		?callable $assertion = null
 	) {
 		$this->setRule(true, self::Allow, $roles, $resources, $privileges, $assertion);
 		return $this;
@@ -409,7 +411,7 @@ class Permission implements Authorizator
 		$roles = self::All,
 		$resources = self::All,
 		$privileges = self::All,
-		?callable $assertion = null,
+		?callable $assertion = null
 	) {
 		$this->setRule(true, self::Deny, $roles, $resources, $privileges, $assertion);
 		return $this;
@@ -424,7 +426,7 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function removeAllow($roles = self::All, $resources = self::All, $privileges = self::All): static
+	public function removeAllow($roles = self::All, $resources = self::All, $privileges = self::All)
 	{
 		$this->setRule(false, self::Allow, $roles, $resources, $privileges);
 		return $this;
@@ -439,7 +441,7 @@ class Permission implements Authorizator
 	 * @param  string|string[]|null  $privileges
 	 * @return static
 	 */
-	public function removeDeny($roles = self::All, $resources = self::All, $privileges = self::All): static
+	public function removeDeny($roles = self::All, $resources = self::All, $privileges = self::All)
 	{
 		$this->setRule(false, self::Deny, $roles, $resources, $privileges);
 		return $this;

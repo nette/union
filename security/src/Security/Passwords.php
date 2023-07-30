@@ -19,14 +19,21 @@ class Passwords
 {
 	use Nette\SmartObject;
 
+	/** @var int|string  string since PHP 7.4 */
+	private $algo;
+
+	/** @var array */
+	private $options;
+
+
 	/**
 	 * Chooses which secure algorithm is used for hashing and how to configure it.
 	 * @see https://php.net/manual/en/password.constants.php
 	 */
-	public function __construct(
-		private string $algo = PASSWORD_DEFAULT,
-		private array $options = [],
-	) {
+	public function __construct($algo = PASSWORD_DEFAULT, array $options = [])
+	{
+		$this->algo = $algo;
+		$this->options = $options;
 	}
 
 

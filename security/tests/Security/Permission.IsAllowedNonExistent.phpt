@@ -13,16 +13,12 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$acl = new Permission;
-Assert::exception(
-	fn() => $acl->isAllowed('nonexistent'),
-	Nette\InvalidStateException::class,
-	"Role 'nonexistent' does not exist.",
-);
+Assert::exception(function () {
+	$acl = new Permission;
+	$acl->isAllowed('nonexistent');
+}, Nette\InvalidStateException::class, "Role 'nonexistent' does not exist.");
 
-$acl = new Permission;
-Assert::exception(
-	fn() => $acl->isAllowed(null, 'nonexistent'),
-	Nette\InvalidStateException::class,
-	"Resource 'nonexistent' does not exist.",
-);
+Assert::exception(function () {
+	$acl = new Permission;
+	$acl->isAllowed(null, 'nonexistent');
+}, Nette\InvalidStateException::class, "Resource 'nonexistent' does not exist.");
