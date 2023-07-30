@@ -27,6 +27,8 @@ use SplFileInfo;
  */
 class RobotLoader
 {
+	use Nette\SmartObject;
+
 	private const RetryLimit = 3;
 
 	/** @var string[] */
@@ -78,7 +80,7 @@ class RobotLoader
 	 */
 	public function register(bool $prepend = false): static
 	{
-		spl_autoload_register([$this, 'tryLoad'], prepend: $prepend);
+		spl_autoload_register([$this, 'tryLoad'], true, $prepend);
 		return $this;
 	}
 
@@ -253,19 +255,20 @@ class RobotLoader
 	private function createFileIterator(string $dir): Nette\Utils\Finder
 	{
 		if (!is_dir($dir)) {
-			throw new Nette\IOException(sprintf("Directory '%s' not found.", $dir));
+			throw new Nette\IOException(sprintf("File or directory '%s' not found.", $dir));
 		}
 
 		$dir = realpath($dir) ?: $dir; // realpath does not work in phar
 		$disallow = [];
 		foreach (array_merge($this->ignoreDirs, $this->excludeDirs) as $item) {
 			if ($item = realpath($item)) {
-				$disallow[$item] = true;
+				$disallow[FileSystem::unixSlashes($item)] = true;
 			}
 		}
 
 		return Nette\Utils\Finder::findFiles($this->acceptFiles)
-			->filter($filter = fn(SplFileInfo $file) => $file->getRealPath() === false || !isset($disallow[$file->getRealPath()]))
+			->filter($filter = fn(SplFileInfo $file) => $file->getRealPath() === false
+				|| !isset($disallow[FileSystem::unixSlashes($file->getRealPath())]))
 			->descentFilter($filter)
 			->from($dir)
 			->exclude($this->ignoreDirs);
@@ -285,7 +288,7 @@ class RobotLoader
 		foreach ($foundClasses as $class) {
 			[$prevFile, $prevMtime] = $this->classes[$class] ?? null;
 
-			if (isset($prevFile) && @filemtime($prevFile) !== $prevMtime) { // @ file may not exist
+			if (isset($prevFile) && @filemtime($prevFile) !== $prevMtime) { // @ file may not exists
 				$this->updateFile($prevFile);
 				[$prevFile] = $this->classes[$class] ?? null;
 			}
@@ -354,6 +357,10 @@ class RobotLoader
 					$expected = $token->id;
 					$name = '';
 					continue 2;
+
+				case T_CURLY_OPEN:
+				case T_DOLLAR_OPEN_CURLY_BRACES:
+					$level++;
 			}
 
 			if ($expected) {
@@ -470,7 +477,7 @@ class RobotLoader
 		}
 
 		if (function_exists('opcache_invalidate')) {
-			@opcache_invalidate($file, force: true); // @ can be restricted
+			@opcache_invalidate($file, true); // @ can be restricted
 		}
 	}
 
