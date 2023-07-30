@@ -18,7 +18,6 @@ use Latte\Compiler\Nodes\FragmentNode;
 use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
-use Latte\ContentType;
 
 
 /**
@@ -26,7 +25,7 @@ use Latte\ContentType;
  */
 class ElementNode extends AreaNode
 {
-	public ?Nodes\Php\ExpressionNode $variableName = null;
+	public ?Node $customName = null;
 	public ?FragmentNode $attributes = null;
 	public bool $selfClosing = false;
 	public ?AreaNode $content = null;
@@ -45,7 +44,6 @@ class ElementNode extends AreaNode
 		public ?Position $position = null,
 		public /*readonly*/ ?self $parent = null,
 		public ?\stdClass $data = null,
-		public string $contentType = ContentType::Html,
 	) {
 		$this->data ??= new \stdClass;
 		$this->tagNode = new AuxiliaryNode(\Closure::fromCallable([$this, 'printStartTag']));
@@ -67,25 +65,10 @@ class ElementNode extends AreaNode
 	}
 
 
-	public function is(string $name): bool
-	{
-		return $this->contentType === ContentType::Html
-			? strcasecmp($this->name, $name) === 0
-			: $this->name === $name;
-	}
-
-
-	public function isRawText(): bool
-	{
-		return $this->contentType === ContentType::Html
-			&& ($this->is('script') || $this->is('style'));
-	}
-
-
 	public function print(PrintContext $context): string
 	{
 		$res = $this->endTagVar = null;
-		if ($this->captureTagName || $this->variableName) {
+		if ($this->captureTagName || $this->customName) {
 			$endTag = $this->endTagVar = '$ʟ_tag[' . $context->generateId() . ']';
 			$res = "$this->endTagVar = '';";
 		} else {
@@ -110,17 +93,14 @@ class ElementNode extends AreaNode
 		$context->beginEscape()->enterHtmlTag($this->name);
 		$res = "echo '<';";
 
+		$namePhp = var_export($this->name, true);
 		if ($this->endTagVar) {
-			$expr = $this->variableName
-				? 'LR\Filters::safeTag('
-					. $this->variableName->print($context)
-					. ($this->contentType === ContentType::Xml ? ', true' : '')
-					. ')'
-				: var_export($this->name, true);
-			$res .= "echo \$ʟ_tmp = $expr /* line {$this->position->line} */;"
-				. "{$this->endTagVar} = '</' . \$ʟ_tmp . '>' . {$this->endTagVar};";
+			$res .= 'echo $ʟ_tmp = (' . ($this->customName ? $this->customName->print($context) : $namePhp) . ');';
+			$res .= $this->endTagVar . ' = '
+				. "'</' . \$ʟ_tmp . '>'"
+				. ' . ' . $this->endTagVar . ';';
 		} else {
-			$res .= 'echo ' . var_export($this->name, true) . ';';
+			$res .= 'echo ' . $namePhp . ';';
 		}
 
 		foreach ($this->attributes?->children ?? [] as $attr) {
@@ -136,8 +116,8 @@ class ElementNode extends AreaNode
 	public function &getIterator(): \Generator
 	{
 		yield $this->tagNode;
-		if ($this->variableName) {
-			yield $this->variableName;
+		if ($this->customName) {
+			yield $this->customName;
 		}
 		if ($this->attributes) {
 			yield $this->attributes;

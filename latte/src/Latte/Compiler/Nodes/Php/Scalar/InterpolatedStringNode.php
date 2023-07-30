@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Latte\Compiler\Nodes\Php\Scalar;
 
+use Latte\Compiler\Nodes\Php\Expression;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\Php\InterpolatedStringPartNode;
 use Latte\Compiler\Nodes\Php\ScalarNode;
@@ -51,8 +52,14 @@ class InterpolatedStringNode extends ScalarNode
 			}
 
 			$partStr = $part->print($context);
-			if ($partStr[0] === '$' && $part->isVariable()) {
+			if ($partStr[0] === '$' &&
+				($part instanceof Expression\VariableNode
+				|| $part instanceof Expression\PropertyFetchNode
+				|| $part instanceof Expression\MethodCallNode
+				|| $part instanceof Expression\ArrayAccessNode
+				)) {
 				$s .= '{' . $partStr . '}';
+
 			} else {
 				$s .= '" . (' . $partStr . ') . "';
 				$expr = true;

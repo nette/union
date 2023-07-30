@@ -10,9 +10,10 @@ require __DIR__ . '/../bootstrap.php';
 
 function parse($s, $tag)
 {
+	$lexer = new Latte\Compiler\TemplateLexer;
 	$parser = new Latte\Compiler\TemplateParser;
 	$parser->addTags(['foo' => $tag]);
-	$parser->parse($s);
+	$node = $parser->parse($s, $lexer);
 }
 
 

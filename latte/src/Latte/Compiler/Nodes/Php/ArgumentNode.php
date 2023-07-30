@@ -35,12 +35,6 @@ class ArgumentNode extends Node
 	}
 
 
-	public function toArrayItem(): ArrayItemNode
-	{
-		return new ArrayItemNode($this->value, $this->name, $this->byRef, $this->unpack, $this->position);
-	}
-
-
 	public function &getIterator(): \Generator
 	{
 		if ($this->name) {

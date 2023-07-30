@@ -25,7 +25,6 @@ class FunctionCallNode extends Expression\FunctionCallNode
 	{
 		return '$this->global->sandbox->call('
 			. $context->memberAsString($this->name) . ', '
-			. $context->argumentsAsArray($this->args) . ')';
-
+			. Expression\ArrayNode::fromArguments($this->args)->print($context) . ')';
 	}
 }

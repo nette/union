@@ -19,17 +19,11 @@ $template = <<<'EOD'
 
 	<span title={$x} {$x}></span>
 
-	<span title={if true}{$x}{else}item{/if}></span>
+	<span title={if true}{$x}{else}"item"{/if}></span>
 
 	<span {='title'}={$x}></span>
 
-	<span attr=c{$x}d></span>
-
-	<span onclick={$x} {$x}></span>
-
-	<span onclick=c{$x}d></span>
-
-	<span attr{$x}b=c{$x}d></span>
+	<span attr{$x}b=c{$x}d></span> {* not supported *}
 
 	EOD;
 

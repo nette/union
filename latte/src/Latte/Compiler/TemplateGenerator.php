@@ -36,7 +36,7 @@ final class TemplateGenerator
 	public function generate(
 		Nodes\TemplateNode $node,
 		string $className,
-		?string $sourceName = null,
+		?string $comment = null,
 		bool $strictMode = false,
 	): string
 	{
@@ -55,10 +55,6 @@ final class TemplateGenerator
 
 		if ($node->contentType !== ContentType::Html) {
 			$this->addConstant('ContentType', $node->contentType);
-		}
-
-		if ($sourceName !== null) {
-			$this->addConstant('Source', $sourceName);
 		}
 
 		$this->generateBlocks($context->blocks, $context);
@@ -83,7 +79,7 @@ final class TemplateGenerator
 		$code = "<?php\n\n"
 			. ($strictMode ? "declare(strict_types=1);\n\n" : '')
 			. "use Latte\\Runtime as LR;\n\n"
-			. ($sourceName === null ? '' : '/** source: ' . str_replace('*/', '* /', $sourceName) . " */\n")
+			. ($comment === null ? '' : '/** ' . str_replace('*/', '* /', $comment) . " */\n")
 			. "final class $className extends Latte\\Runtime\\Template\n{\n"
 			. implode("\n\n", $members)
 			. "\n}\n";

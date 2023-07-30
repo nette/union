@@ -9,36 +9,25 @@ declare(strict_types=1);
 
 namespace Latte\Compiler\Nodes;
 
-use Latte\Compiler\Node;
 use Latte\Compiler\PrintContext;
 
 
 class AuxiliaryNode extends AreaNode
 {
-	/** @var (?Node)[] */
-	public array $nodes;
-
-
 	public function __construct(
-		public /*readonly*/ \Closure $print,
-		?Node ...$nodes,
+		public /*readonly*/ \Closure $callable,
 	) {
-		$this->nodes = $nodes;
 	}
 
 
 	public function print(PrintContext $context): string
 	{
-		return ($this->print)($context, ...$this->nodes);
+		return ($this->callable)($context);
 	}
 
 
 	public function &getIterator(): \Generator
 	{
-		foreach ($this->nodes as &$node) {
-			if ($node) {
-				yield $node;
-			}
-		}
+		false && yield;
 	}
 }

@@ -11,24 +11,13 @@ namespace Latte\Compiler;
 
 use Latte;
 use Latte\CompileException;
+use Latte\ContentType;
 use Latte\RegexpException;
 
 
 final class TemplateLexer
 {
 	use Latte\Strict;
-
-	public const
-		StatePlain = 'Plain',
-		StateLatteTag = 'LatteTag',
-		StateLatteComment = 'LatteComment',
-		StateHtmlText = 'HtmlText',
-		StateHtmlTag = 'HtmlTag',
-		StateHtmlQuotedValue = 'HtmlQuotedValue',
-		StateHtmlQuotedNAttrValue = 'HtmlQuotedNAttrValue',
-		StateHtmlRawText = 'HtmlRawText',
-		StateHtmlComment = 'HtmlComment',
-		StateHtmlBogus = 'HtmlBogus';
 
 	/** HTML tag name for Latte needs (actually is [a-zA-Z][^\s/>]*) */
 	public const ReTagName = '[a-zA-Z][a-zA-Z0-9:_.-]*';
@@ -38,50 +27,45 @@ final class TemplateLexer
 
 	/** HTML attribute name/value (\p{C} means \x00-\x1F except space) */
 	private const ReAttrName = '[^\p{C} "\'<>=`/]';
+	private const StateEnd = 'end';
 
 	public string $openDelimiter;
 	public string $closeDelimiter;
 	private TagLexer $tagLexer;
 
 	/** @var array<array{name: string, args: mixed[]}> */
-	private array $states = [];
+	private array $states;
 	private string $input;
 	private Position $position;
-
-
-	public function __construct()
-	{
-		$this->position = new Position;
-		$this->setState(self::StatePlain);
-		$this->setSyntax(null);
-		$this->tagLexer = new TagLexer;
-	}
+	private bool $xmlMode;
 
 
 	/** @return \Generator<Token> */
-	public function tokenize(string $template): \Generator
+	public function tokenize(string $template, string $contentType = ContentType::Html): \Generator
 	{
+		$this->position = new Position(1, 1, 0);
 		$this->input = $this->normalize($template);
+		$this->states = [];
+		$this->setContentType($contentType);
+		$this->setSyntax(null);
+		$this->tagLexer = new TagLexer;
 
 		do {
-			$offset = $this->position->offset;
 			$state = $this->states[0];
-			$tokens = $this->{"state$state[name]"}(...$state['args']);
-			yield from $tokens;
+			yield from $this->{$state['name']}(...$state['args']);
+		} while ($this->states[0]['name'] !== self::StateEnd);
 
-		} while ($offset !== $this->position->offset);
-
-		if ($offset < strlen($this->input)) {
-			throw new CompileException("Unexpected '" . substr($this->input, $offset, 10) . "'", $this->position);
+		if ($this->position->offset < strlen($this->input)) {
+			throw new CompileException("Unexpected '" . substr($this->input, $this->position->offset, 10) . "'", $this->position);
 		}
 
 		yield new Token(Token::End, '', $this->position);
 	}
 
 
-	private function statePlain(): array
+	private function statePlain(): \Generator
 	{
-		return $this->match('~
+		$m = yield from $this->match('~
 			(?<Text>.+?)??
 			(?<Indentation>(?<=\n|^)[ \t]+)?
 			(
@@ -90,102 +74,163 @@ final class TemplateLexer
 				$
 			)
 		~xsiAuD');
+
+		if (isset($m['Latte_TagOpen'])) {
+			$this->pushState('stateLatteTag');
+		} elseif (isset($m['Latte_CommentOpen'])) {
+			$this->pushState('stateLatteComment');
+		} else {
+			$this->setState(self::StateEnd);
+		}
 	}
 
 
-	private function stateLatteTag(): array
+	private function stateLatteTag(): \Generator
 	{
-		$tokens[] = $this->match('~
+		$pos = $this->states[0]['pos'];
+		$this->popState();
+
+		yield from $this->match('~
 			(?<Slash>/)?
 			(?<Latte_Name> = | _(?!_) | [a-z]\w*+(?:[.:-]\w+)*+(?!::|\(|\\\\))?   # name, /name, but not function( or class:: or namespace\
 		~xsiAu');
 
-		$tokens[] = $this->tagLexer->tokenizePartially($this->input, $this->position);
+		yield from $this->tagLexer->tokenizePartially($this->input, $this->position);
 
-		$tokens[] = $this->match('~
+		yield from $this->match('~
 			(?<Slash>/)?
 			(?<Latte_TagClose>' . $this->closeDelimiter . ')
 			(?<Newline>[ \t]*\R)?
-		~xsiAu');
-
-		return array_merge(...$tokens);
+		~xsiAu')
+		or throw new CompileException('Unterminated Latte tag', $pos);
 	}
 
 
-	private function stateLatteComment(): array
+	private function stateLatteComment(): \Generator
 	{
-		return $this->match('~
+		yield from $this->match('~
 			(?<Text>.+?)??
-			(
-				(?<Latte_CommentClose>\*' . $this->closeDelimiter . ')(?<Newline>[ \t]*\R{1,2})?|
-				$
-			)
-		~xsiAu');
+			(?<Latte_CommentClose>\*' . $this->closeDelimiter . ')
+			(?<Newline>[ \t]*\R{1,2})?
+		~xsiAu')
+		or throw new CompileException('Unterminated Latte comment', $this->states[0]['pos']);
+		$this->popState();
 	}
 
 
-	private function stateHtmlText(): array
+	private function stateHtmlText(): \Generator
 	{
-		return $this->match('~(?J)
+		$m = yield from $this->match('~(?J)
 			(?<Text>.+?)??
 			(
-				(?<Indentation>(?<=\n|^)[ \t]+)?(?<Html_TagOpen><)(?<Slash>/)?(?=[a-z]|' . $this->openDelimiter . ')|  # < </ tag
+				(?<Indentation>(?<=\n|^)[ \t]+)?(?<Html_TagOpen><)(?<Slash>/)?(?<Html_Name>' . self::ReTagName . ')|  # <tag </tag
 				(?<Html_CommentOpen><!--(?!>|->))|                                                      # <!-- comment
-				(?<Html_BogusOpen><[?!])|                                                               # <!doctype <?xml or error
+				(?<Html_BogusOpen><[/?!])|                                                              # <!doctype <?xml or error
 				(?<Indentation>(?<=\n|^)[ \t]+)?(?<Latte_TagOpen>' . $this->openDelimiter . '(?!\*))|   # {tag
 				(?<Indentation>(?<=\n|^)[ \t]+)?(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)|   # {* comment
 				$
 			)
 		~xsiAuD');
+
+		if (isset($m['Html_TagOpen'])) {
+			$tagName = isset($m['Slash']) ? null : strtolower($m['Html_Name']);
+			$this->setState('stateHtmlTag', $tagName);
+		} elseif (isset($m['Html_CommentOpen'])) {
+			$this->setState('stateHtmlComment');
+		} elseif (isset($m['Html_BogusOpen'])) {
+			$this->setState('stateHtmlBogus');
+		} elseif (isset($m['Latte_TagOpen'])) {
+			$this->pushState('stateLatteTag');
+		} elseif (isset($m['Latte_CommentOpen'])) {
+			$this->pushState('stateLatteComment');
+		} else {
+			$this->setState(self::StateEnd);
+		}
 	}
 
 
-	private function stateHtmlTag(): array
+	private function stateHtmlTag(?string $tagName = null, ?string $attrName = null): \Generator
 	{
-		return $this->match('~(?J)
-			(?<Equals>=)
-				(?<Whitespace>\s+)?
-				(?<Html_Name>(?:(?!' . $this->openDelimiter . ')' . self::ReAttrName . '|/)+)?  # HTML attribute value can contain /
-			|
+		$m = yield from $this->match('~
 			(?<Whitespace>\s+)|                                        # whitespace
+			(?<Equals>=)|
 			(?<Quote>["\'])|
 			(?<Slash>/)?(?<Html_TagClose>>)(?<Newline>[ \t]*\R)?|      # > />
 			(?<Html_Name>(?:(?!' . $this->openDelimiter . ')' . self::ReAttrName . ')+)|  # HTML attribute name/value
 			(?<Latte_TagOpen>' . $this->openDelimiter . '(?!\*))|      # {tag
 			(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)       # {* comment
 		~xsiAu');
+
+		if (isset($m['Html_Name'])) {
+			$this->states[0]['args'][1] = $m['Html_Name']; // sets $attrName
+		} elseif (isset($m['Equals'])) {
+			yield from $this->match('~
+				(?<Whitespace>\s+)?                                    # whitespace
+				(?<Html_Name>(?:(?!' . $this->openDelimiter . ')' . self::ReAttrName . '|/)+)  # HTML attribute value can contain /
+			~xsiAu');
+		} elseif (isset($m['Whitespace'])) {
+		} elseif (isset($m['Quote'])) {
+			$this->pushState(str_starts_with($attrName ?? '', self::NPrefix)
+				? 'stateHtmlQuotedNAttrValue'
+				: 'stateHtmlQuotedValue', $m['Quote']);
+		} elseif (
+			isset($m['Html_TagClose'])
+			&& !$this->xmlMode
+			&& !isset($m['Slash'])
+			&& in_array($tagName, ['script', 'style'], true)
+		) {
+			$this->setState('stateHtmlRawText', $tagName);
+		} elseif (isset($m['Html_TagClose'])) {
+			$this->setState('stateHtmlText');
+		} elseif (isset($m['Latte_TagOpen'])) {
+			$this->pushState('stateLatteTag');
+		} elseif (isset($m['Latte_CommentOpen'])) {
+			$this->pushState('stateLatteComment');
+		} else {
+			$this->setState(self::StateEnd);
+		}
 	}
 
 
-	private function stateHtmlQuotedValue(string $quote): array
+	private function stateHtmlQuotedValue(string $quote): \Generator
 	{
-		return $this->match('~
-			(?<Text>.+?)??
-			(
+		$m = yield from $this->match('~
+			(?<Text>.+?)??(
 				(?<Quote>' . $quote . ')|
 				(?<Latte_TagOpen>' . $this->openDelimiter . '(?!\*))|      # {tag
-				(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)|      # {* comment
-				$
+				(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)       # {* comment
 			)
 		~xsiAu');
+
+		if (isset($m['Quote'])) {
+			$this->popState();
+		} elseif (isset($m['Latte_TagOpen'])) {
+			$this->pushState('stateLatteTag');
+		} elseif (isset($m['Latte_CommentOpen'])) {
+			$this->pushState('stateLatteComment');
+		} else {
+			throw new CompileException('Unterminated HTML attribute value', $this->states[0]['pos']);
+		}
 	}
 
 
-	private function stateHtmlQuotedNAttrValue(string $quote): array
+	private function stateHtmlQuotedNAttrValue(string $quote): \Generator
 	{
-		return $this->match('~
-			(?<Text>.+?)??
-			(
-				(?<Quote>' . $quote . ')|
-				$
-			)
+		$m = yield from $this->match('~
+			(?<Text>.+?)??(?<Quote>' . $quote . ')|
 		~xsiAu');
+
+		if (isset($m['Quote'])) {
+			$this->popState();
+		} else {
+			throw new CompileException('Unterminated n:attribute value', $this->states[0]['pos']);
+		}
 	}
 
 
-	private function stateHtmlRawText(string $tagName): array
+	private function stateHtmlRawText(string $tagName): \Generator
 	{
-		return $this->match('~
+		$m = yield from $this->match('~
 			(?<Text>.+?)??
 			(?<Indentation>(?<=\n|^)[ \t]+)?
 			(
@@ -195,82 +240,114 @@ final class TemplateLexer
 				$
 			)
 		~xsiAu');
+
+		if (isset($m['Html_TagOpen'])) {
+			$this->setState('stateHtmlTag');
+		} elseif (isset($m['Latte_TagOpen'])) {
+			$this->pushState('stateLatteTag');
+		} elseif (isset($m['Latte_CommentOpen'])) {
+			$this->pushState('stateLatteComment');
+		} else {
+			$this->setState(self::StateEnd);
+		}
 	}
 
 
-	private function stateHtmlComment(): array
+	private function stateHtmlComment(): \Generator
 	{
-		return $this->match('~(?J)
+		$m = yield from $this->match('~(?J)
 			(?<Text>.+?)??
 			(
 				(?<Html_CommentClose>-->)|                                                              # -->
 				(?<Indentation>(?<=\n|^)[ \t]+)?(?<Latte_TagOpen>' . $this->openDelimiter . '(?!\*))|   # {tag
-				(?<Indentation>(?<=\n|^)[ \t]+)?(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)|   # {* comment
-				$
+				(?<Indentation>(?<=\n|^)[ \t]+)?(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)    # {* comment
 			)
 		~xsiAu');
+
+		if (isset($m['Html_CommentClose'])) {
+			$this->setState('stateHtmlText');
+		} elseif (isset($m['Latte_TagOpen'])) {
+			$this->pushState('stateLatteTag');
+		} elseif (isset($m['Latte_CommentOpen'])) {
+			$this->pushState('stateLatteComment');
+		} else {
+			throw new CompileException('Unterminated HTML comment', $this->states[0]['pos']);
+		}
 	}
 
 
-	private function stateHtmlBogus(): array
+	private function stateHtmlBogus(): \Generator
 	{
-		return $this->match('~
-			(?<Text>.+?)??
-			(
+		$m = yield from $this->match('~
+			(?<Text>.+?)??(
 				(?<Html_TagClose>>)|                                       # >
 				(?<Latte_TagOpen>' . $this->openDelimiter . '(?!\*))|      # {tag
-				(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)|      # {* comment
-				$
+				(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)       # {* comment
 			)
 		~xsiAu');
+
+		if (isset($m['Html_TagClose'])) {
+			$this->setState('stateHtmlText');
+		} elseif (isset($m['Latte_TagOpen'])) {
+			$this->pushState('stateLatteTag');
+		} elseif (isset($m['Latte_CommentOpen'])) {
+			$this->pushState('stateLatteComment');
+		} else {
+			throw new CompileException('Unterminated HTML tag', $this->states[0]['pos']);
+		}
 	}
 
 
 	/**
 	 * Matches next token.
-	 * @return Token[]
 	 */
-	private function match(string $re): array
+	private function match(string $re): \Generator
 	{
 		preg_match($re, $this->input, $matches, PREG_UNMATCHED_AS_NULL, $this->position->offset);
 		if (preg_last_error()) {
 			throw new RegexpException;
 		}
 
-		$tokens = [];
 		foreach ($matches as $k => $v) {
 			if ($v !== null && !\is_int($k)) {
-				$tokens[] = new Token(\constant(Token::class . '::' . $k), $v, $this->position);
+				yield new Token(\constant(Token::class . '::' . $k), $v, $this->position);
 				$this->position = $this->position->advance($v);
 			}
 		}
 
-		return $tokens;
+		return $matches;
 	}
 
 
-	public function setState(string $state, ...$args): void
+	public function setContentType(string $type): static
 	{
-		$this->states[0] = ['name' => $state, 'args' => $args];
+		if ($type === ContentType::Html || $type === ContentType::Xml) {
+			$this->setState('stateHtmlText');
+			$this->xmlMode = $type === ContentType::Xml;
+		} else {
+			$this->setState('statePlain');
+		}
+
+		return $this;
 	}
 
 
-	public function pushState(string $state, ...$args): void
+	private function setState(string $state, ...$args): void
+	{
+		$this->states[0] = ['name' => $state, 'args' => $args, 'pos' => $this->position];
+	}
+
+
+	private function pushState(string $state, ...$args): void
 	{
 		array_unshift($this->states, null);
 		$this->setState($state, ...$args);
 	}
 
 
-	public function popState(): void
+	private function popState(): void
 	{
 		array_shift($this->states);
-	}
-
-
-	public function getState(): string
-	{
-		return $this->states[0]['name'];
 	}
 
 

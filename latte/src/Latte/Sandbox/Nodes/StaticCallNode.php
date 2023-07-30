@@ -26,6 +26,6 @@ class StaticCallNode extends Expression\StaticCallNode
 		return '$this->global->sandbox->call(['
 			. $context->memberAsString($this->class) . ', '
 			. $context->memberAsString($this->name) . '], '
-			. $context->argumentsAsArray($this->args) . ')';
+			. Expression\ArrayNode::fromArguments($this->args)->print($context) . ')';
 	}
 }

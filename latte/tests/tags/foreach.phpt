@@ -27,10 +27,6 @@ $template = <<<'EOD'
 	{/foreach}
 	{$iterator === null ? 'is null'}
 
-	---
-
-	{foreach [a, b] as list($a, , [$b, list($c)])}{/foreach}
-
 	EOD;
 
 Assert::matchFile(
@@ -50,7 +46,6 @@ Assert::match(
 			2
 		is null
 
-		---
 		XX,
 	$latte->renderToString($template),
 );

@@ -20,7 +20,7 @@ class ClassConstantFetchNode extends ExpressionNode
 {
 	public function __construct(
 		public NameNode|ExpressionNode $class,
-		public IdentifierNode|ExpressionNode $name,
+		public IdentifierNode $name,
 		public ?Position $position = null,
 	) {
 	}
@@ -30,7 +30,7 @@ class ClassConstantFetchNode extends ExpressionNode
 	{
 		return $context->dereferenceExpr($this->class)
 			. '::'
-			. $context->objectProperty($this->name);
+			. $this->name->print($context);
 	}
 
 

@@ -57,12 +57,6 @@ Assert::match(
 );
 
 
-Assert::match(
-	'<script/>',
-	$latte->renderToString('{contentType xml}<img n:tag="script"/>'),
-);
-
-
 // no change
 Assert::match(
 	'<img/>',
@@ -75,7 +69,7 @@ Assert::match(
 		%A%
 				$ʟ_tag[0] = '';
 				echo '<';
-				echo $ʟ_tmp = LR\Filters::safeTag(Latte\Essential\Nodes\NTagNode::check('div', 'h' . 1, false)) /* line 1 */;
+				echo $ʟ_tmp = (Latte\Essential\Nodes\NTagNode::check('div', 'h' . 1));
 				$ʟ_tag[0] = '</' . $ʟ_tmp . '>' . $ʟ_tag[0];
 				echo ' class="bar" ';
 				if (isset($id)) /* line 1 */ {
@@ -106,7 +100,7 @@ Assert::exception(
 Assert::exception(
 	fn() => $latte->renderToString('<div n:tag="1"></div>'),
 	Latte\RuntimeException::class,
-	'Tag name must be string, int given',
+	'Invalid tag name 1',
 );
 
 
@@ -127,19 +121,19 @@ Assert::exception(
 Assert::exception(
 	fn() => $latte->renderToString('<div n:tag="\'SCRIPT\'"></div>'),
 	Latte\RuntimeException::class,
-	'Forbidden variable tag name <SCRIPT>',
+	'Forbidden tag <div> change to <SCRIPT>.',
 );
 
 
 Assert::exception(
 	fn() => $latte->renderToString('<div n:tag="style"></div>'),
 	Latte\RuntimeException::class,
-	'Forbidden variable tag name <style>',
+	'Forbidden tag <div> change to <style>.',
 );
 
 
 Assert::exception(
 	fn() => $latte->renderToString('<span n:tag="br"></span>'),
 	Latte\RuntimeException::class,
-	'Forbidden tag <span> change to <br>',
+	'Forbidden tag <span> change to <br>.',
 );

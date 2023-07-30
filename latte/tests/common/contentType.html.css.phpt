@@ -45,18 +45,12 @@ Assert::match(
 	$latte->renderToString('<style type="TEXT/CSS">{="<>"}</style>'),
 );
 
-Assert::match( // type is ignored
-	'<style type="text/html">\<\></style>',
+Assert::match(
+	'<style type="text/html">&lt;&gt;</style>',
 	$latte->renderToString('<style type="text/html">{="<>"}</style>'),
 );
 
 Assert::match(
 	'<style> a { background: url("\"") } </style>',
 	$latte->renderToString('<style> a { background: url("{=\'"\'}") } </style>'),
-);
-
-// no escape
-Assert::match(
-	'<style><\/style></style>',
-	$latte->renderToString('<style>{="</style>"|noescape}</style>'),
 );

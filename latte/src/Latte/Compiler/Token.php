@@ -124,7 +124,7 @@ final class Token
 		Php_True = 336,
 		Php_False = 337;
 
-	public const Names = [
+	public const NAMES = [
 		self::End => '[EOF]',
 		self::Text => 'text',
 		self::Whitespace => 'whitespace',
@@ -134,11 +134,11 @@ final class Token
 		self::Equals => "'='",
 		self::Quote => 'quote',
 
-		self::Latte_TagOpen => 'Latte tag',
-		self::Latte_TagClose => 'end of Latte tag',
+		self::Latte_TagOpen => "'{'",
+		self::Latte_TagClose => "'}'",
 		self::Latte_Name => 'tag name',
-		self::Latte_CommentOpen => 'Latte comment',
-		self::Latte_CommentClose => 'end of Latte comment',
+		self::Latte_CommentOpen => "'{*'",
+		self::Latte_CommentClose => "'*}'",
 
 		self::Html_TagOpen => 'HTML tag',
 		self::Html_TagClose => 'end of HTML tag',
