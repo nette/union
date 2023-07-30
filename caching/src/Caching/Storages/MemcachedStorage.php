@@ -18,6 +18,8 @@ use Nette\Caching\Cache;
  */
 class MemcachedStorage implements Nette\Caching\Storage, Nette\Caching\BulkReader
 {
+	use Nette\SmartObject;
+
 	/** @internal cache structure */
 	private const
 		MetaCallbacks = 'callbacks',

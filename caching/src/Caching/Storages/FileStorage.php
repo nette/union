@@ -18,6 +18,8 @@ use Nette\Caching\Cache;
  */
 class FileStorage implements Nette\Caching\Storage
 {
+	use Nette\SmartObject;
+
 	/**
 	 * Atomic thread safe logic:
 	 *

@@ -18,6 +18,8 @@ use Nette\Caching\Cache;
  */
 class SQLiteStorage implements Nette\Caching\Storage, Nette\Caching\BulkReader
 {
+	use Nette\SmartObject;
+
 	private \PDO $pdo;
 
 

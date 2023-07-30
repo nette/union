@@ -17,6 +17,8 @@ use Nette;
  */
 class MemoryStorage implements Nette\Caching\Storage
 {
+	use Nette\SmartObject;
+
 	private array $data = [];
 
 

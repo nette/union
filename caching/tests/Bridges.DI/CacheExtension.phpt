@@ -28,4 +28,8 @@ test('', function () {
 
 	$storage = $container->getService('cache.storage');
 	Assert::type(Nette\Caching\Storages\FileStorage::class, $storage);
+
+	// aliases
+	Assert::same($journal, $container->getService('nette.cacheJournal'));
+	Assert::same($storage, $container->getService('cacheStorage'));
 });
