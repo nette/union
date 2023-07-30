@@ -30,7 +30,6 @@ $container = $configurator->createContainer();
 
 Assert::type(Foo::class, $container->getByType('Foo'));
 
-Assert::exception(
-	fn() => $container->getByType('stdClass'),
-	Nette\DI\MissingServiceException::class,
-);
+Assert::exception(function () use ($container) {
+	$container->getByType('stdClass');
+}, Nette\DI\MissingServiceException::class);
