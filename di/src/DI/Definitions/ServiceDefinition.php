@@ -16,18 +16,17 @@ use Nette\DI\ServiceCreationException;
 /**
  * Definition of standard service.
  *
- * @property-deprecated string|null $class
- * @property-deprecated Statement $factory
- * @property-deprecated Statement[] $setup
+ * @property string|null $class
+ * @property Statement $factory
+ * @property Statement[] $setup
  */
 final class ServiceDefinition extends Definition
 {
-	use Nette\SmartObject;
-
-	private Statement $creator;
+	/** @var Statement */
+	private $creator;
 
 	/** @var Statement[] */
-	private array $setup = [];
+	private $setup = [];
 
 
 	public function __construct()
@@ -36,18 +35,8 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	public function getDescriptor(): string
-	{
-		$entity = $this->getEntity();
-		if ($entity && $this->isAnonymous()) {
-			return 'Service ' . (is_string($entity) ? "of type $entity" : Nette\DI\Helpers::entityToString($entity));
-		}
-
-		return parent::getDescriptor();
-	}
-
-
-	public function setType(?string $type): static
+	/** @return static */
+	public function setType(?string $type)
 	{
 		return parent::setType($type);
 	}
@@ -55,8 +44,10 @@ final class ServiceDefinition extends Definition
 
 	/**
 	 * Alias for setCreator()
+	 * @param  string|array|Definition|Reference|Statement  $factory
+	 * @return static
 	 */
-	public function setFactory(string|array|Definition|Reference|Statement $factory, array $args = []): static
+	public function setFactory($factory, array $args = [])
 	{
 		return $this->setCreator($factory, $args);
 	}
@@ -71,7 +62,11 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	public function setCreator(string|array|Definition|Reference|Statement $creator, array $args = []): static
+	/**
+	 * @param  string|array|Definition|Reference|Statement  $creator
+	 * @return static
+	 */
+	public function setCreator($creator, array $args = [])
 	{
 		$this->creator = $creator instanceof Statement
 			? $creator
@@ -86,20 +81,23 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	public function getEntity(): string|array|Definition|Reference|null
+	/** @return string|array|Definition|Reference|null */
+	public function getEntity()
 	{
 		return $this->creator->getEntity();
 	}
 
 
-	public function setArguments(array $args = []): static
+	/** @return static */
+	public function setArguments(array $args = [])
 	{
 		$this->creator->arguments = $args;
 		return $this;
 	}
 
 
-	public function setArgument($key, $value): static
+	/** @return static */
+	public function setArgument($key, $value)
 	{
 		$this->creator->arguments[$key] = $value;
 		return $this;
@@ -108,8 +106,9 @@ final class ServiceDefinition extends Definition
 
 	/**
 	 * @param  Statement[]  $setup
+	 * @return static
 	 */
-	public function setSetup(array $setup): static
+	public function setSetup(array $setup)
 	{
 		foreach ($setup as $v) {
 			if (!$v instanceof Statement) {
@@ -129,7 +128,11 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	public function addSetup(string|array|Definition|Reference|Statement $entity, array $args = []): static
+	/**
+	 * @param  string|array|Definition|Reference|Statement  $entity
+	 * @return static
+	 */
+	public function addSetup($entity, array $args = [])
 	{
 		$this->setup[] = $entity instanceof Statement
 			? $entity
@@ -182,7 +185,7 @@ final class ServiceDefinition extends Definition
 				$setup = new Statement([new Reference(Reference::Self), $setup->getEntity()], $setup->arguments);
 			}
 
-			$setup = $resolver->completeStatement($setup, currentServiceAllowed: true);
+			$setup = $resolver->completeStatement($setup, true);
 		}
 	}
 
@@ -213,3 +216,6 @@ final class ServiceDefinition extends Definition
 		$this->setup = unserialize(serialize($this->setup));
 	}
 }
+
+
+class_exists(Nette\DI\ServiceDefinition::class);

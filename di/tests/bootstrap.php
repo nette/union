@@ -13,7 +13,7 @@ if (@!include __DIR__ . '/../vendor/autoload.php') {
 
 // configure environment
 Tester\Environment::setup();
-Tester\Environment::setupFunctions();
+date_default_timezone_set('Europe/Prague');
 
 
 function getTempDir(): string
@@ -37,9 +37,15 @@ function getTempDir(): string
 }
 
 
+function test(string $title, Closure $function): void
+{
+	$function();
+}
+
+
 class Notes
 {
-	public static array $notes = [];
+	public static $notes = [];
 
 
 	public static function add($message): void
@@ -57,7 +63,7 @@ class Notes
 }
 
 
-function createContainer($source, $config = null, array $params = []): ?Nette\DI\Container
+function createContainer($source, $config = null, $params = []): ?Nette\DI\Container
 {
 	$class = 'Container' . md5((string) lcg_value());
 	if ($source instanceof Nette\DI\ContainerBuilder) {
