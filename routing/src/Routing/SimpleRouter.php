@@ -17,7 +17,10 @@ use Nette;
  */
 class SimpleRouter implements Router
 {
-	private array $defaults;
+	use Nette\SmartObject;
+
+	/** @var array */
+	private $defaults;
 
 
 	public function __construct(array $defaults = [])
@@ -44,7 +47,9 @@ class SimpleRouter implements Router
 	{
 		// remove default values; null values are retain
 		foreach ($this->defaults as $key => $value) {
-			if (isset($params[$key]) && $params[$key] == $value) { // default value may be object, intentionally ==
+			if (isset($params[$key])
+				&& (is_scalar($params[$key]) ? (string) $params[$key] : $params[$key]) === (is_scalar($value) ? (string) $value : $value)
+			) {
 				unset($params[$key]);
 			}
 		}
