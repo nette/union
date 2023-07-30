@@ -24,13 +24,15 @@ class Test
 
 
 // intersection
-Assert::exception(function () {
-	Resolver::autowireArguments(
+Assert::exception(
+	fn() => Resolver::autowireArguments(
 		new ReflectionFunction(function (Foo&Test $x) {}),
 		[],
-		function () {}
-	);
-}, Nette\InvalidStateException::class, 'Parameter $x in {closure}() has complex type and no default value, so its value must be specified.');
+		function () {},
+	),
+	Nette\InvalidStateException::class,
+	'Parameter $x in {closure}() has complex type and no default value, so its value must be specified.',
+);
 
 // object as default
 Assert::same(
@@ -38,6 +40,6 @@ Assert::same(
 	Resolver::autowireArguments(
 		new ReflectionFunction(function ($a = new stdClass, $b = null) {}),
 		[1 => 10],
-		function () {}
+		function () {},
 	),
 );

@@ -23,9 +23,9 @@ $form->addPassword('password', 'Password:')
 	->addRule($form::MinLength, 'Password must be at least %d characters', 8);
 ```
 
-Nette vem com uma série de regras embutidas cujos nomes são constantes da classe `Nette\Forms\Form`:
+**As regras de validação são verificadas somente se o usuário tiver preenchido o elemento.
 
-Podemos utilizar as seguintes regras para todos os controles:
+O Nette vem com várias regras predefinidas cujos nomes são constantes da classe `Nette\Forms\Form`. Podemos aplicar essas regras a todos os elementos:
 
 | constante | descrição | argumentos
 |-------
@@ -38,7 +38,11 @@ Podemos utilizar as seguintes regras para todos os controles:
 | `IsNotIn` | valor não é igual a nenhum elemento da matriz | `array`
 | `Valid` | validação dos passes de entrada (para [condições |#conditions]) | -
 
-Para os controles `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()` também podem ser usadas as seguintes regras:
+
+Entradas de texto
+-----------------
+
+Para os elementos `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()`, `addFloat()`, algumas das regras a seguir também podem ser aplicadas:
 
 | `MinLength` | comprimento mínimo das cordas | `int`
 | `MaxLength` | comprimento máximo das cordas | `int`
@@ -57,6 +61,20 @@ Para os controles `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `
 As regras `Integer`, `Numeric` a `Float` convertem automaticamente o valor em inteiro (ou float, respectivamente). Além disso, a regra `URL` também aceita um endereço sem esquema (por exemplo `nette.org`) e completa o esquema (`https://nette.org`).
 As expressões em `Pattern` e `PatternInsensitive` devem ser válidas para todo o valor, ou seja, como se estivesse embrulhado nos caracteres `^` and `$`.
 
+
+Número de itens .[#toc-number-of-items]
+---------------------------------------
+
+Para os elementos `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` você também pode usar as seguintes regras para limitar o número de itens selecionados ou arquivos carregados:
+
+| `MinLength` | número mínimo | `int`
+| `MaxLength` | número máximo | `int`
+| `Length` | número no intervalo ou número exato | pares `[int, int]` ou `int`
+
+
+Upload de arquivos
+------------------
+
 Para controles `addUpload()`, `addMultiUpload()` as seguintes regras também podem ser usadas:
 
 | `MaxFileSize` | tamanho máximo do arquivo | `int`
@@ -67,15 +85,9 @@ Para controles `addUpload()`, `addMultiUpload()` as seguintes regras também pod
 
 Os sites `MimeType` e `Image` requerem extensão PHP `fileinfo`. Se um arquivo ou imagem é do tipo requerido é detectado por sua assinatura. A integridade do arquivo inteiro não é verificada. Você pode descobrir se uma imagem não está corrompida, por exemplo, ao tentar [carregá-la |http:request#toImage].
 
-Para os controles `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` as seguintes regras também podem ser usadas para limitar o número de itens selecionados, respectivamente arquivos carregados:
-
-| `MinLength` | contagem mínima | `int`
-| `MaxLength` | contagem máxima | `int`
-| `Length` | contagem no intervalo ou contagem exata | par `[int, int]` ou `int`
-
 
 Mensagens de erro .[#toc-error-messages]
-----------------------------------------
+========================================
 
 Todas as regras predefinidas, exceto `Pattern` e `PatternInsensitive`, têm uma mensagem de erro padrão, portanto, ela é omitida. Entretanto, ao passar e formular todas as mensagens personalizadas, você tornará o formulário mais fácil de usar.
 
@@ -234,7 +246,7 @@ Em muitos casos, descobrimos um erro quando estamos processando um formulário v
 try {
 	$data = $form->getValues();
 	$this->user->login($data->username, $data->password);
-	$this->redirect('Homepage:');
+	$this->redirect('Home:');
 
 } catch (Nette\Security\AuthenticationException $e) {
 	if ($e->getCode() === Nette\Security\Authenticator::InvalidCredential) {
@@ -281,7 +293,7 @@ Este roteiro é `netteForms.js`, que está disponível em várias fontes possív
 Você pode incorporar o script diretamente na página HTML a partir do CDN:
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
 ```
 
 Ou copiar localmente para a pasta pública do projeto (por exemplo, de `vendor/nette/forms/src/assets/netteForms.min.js`):
@@ -292,7 +304,7 @@ Ou copiar localmente para a pasta pública do projeto (por exemplo, de `vendor/n
 
 Ou instalar via [npm |https://www.npmjs.com/package/nette-forms]:
 
-```bash
+```shell
 npm install nette-forms
 ```
 

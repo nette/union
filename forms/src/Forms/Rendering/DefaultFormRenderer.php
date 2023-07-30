@@ -19,8 +19,6 @@ use Nette\Utils\Html;
  */
 class DefaultFormRenderer implements Nette\Forms\FormRenderer
 {
-	use Nette\SmartObject;
-
 	/**
 	 *  /--- form.container
 	 *
@@ -140,7 +138,7 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 			$s .= $this->renderErrors();
 
 		} elseif ($mode === 'errors') {
-			$s .= $this->renderErrors(null, false);
+			$s .= $this->renderErrors(own: false);
 		}
 
 		if (!$mode || $mode === 'body') {
@@ -199,10 +197,6 @@ class DefaultFormRenderer implements Nette\Forms\FormRenderer
 			if ($control->getOption('type') === 'hidden' && !$control->getOption('rendered')) {
 				$s .= $control->getControl();
 			}
-		}
-
-		if (iterator_count($this->form->getComponents(true, Nette\Forms\Controls\TextInput::class)) < 2) {
-			$s .= '<!--[if IE]><input type=IEbug disabled style="display:none"><![endif]-->';
 		}
 
 		if ($s) {

@@ -124,9 +124,7 @@ class FilterExecutor
 	private function isInfoAware(callable $filter): bool
 	{
 		$params = Helpers::toReflection($filter)->getParameters();
-		return $params
-			&& $params[0]->getType() instanceof \ReflectionNamedType
-			&& $params[0]->getType()->getName() === FilterInfo::class;
+		return $params && (string) $params[0]->getType() === FilterInfo::class;
 	}
 
 

@@ -26,6 +26,7 @@ Forms
 -----
 - [Reuse of forms |form-reuse]
 - [Form for creating and editing record |creating-editing-form]
+- [Let's Create a Contact Form |lets-create-contact-form]
 - [Dependent selectboxes |https://blog.nette.org/en/dependent-selectboxes-elegantly-in-nette-and-pure-js]
 
 </div>
@@ -35,6 +36,7 @@ Forms
 Common
 ------
 - [How to load configuration file |bootstrap:]
+- [How to write microsites |microsites]
 - [Why Nette uses PascalCase constant notation? |https://blog.nette.org/en/for-less-screaming-in-the-code]
 - [Why Nette doesn't use the Interface suffix? |https://blog.nette.org/en/prefixes-and-suffixes-do-not-belong-in-interface-names]
 - [Composer usage tips |composer]

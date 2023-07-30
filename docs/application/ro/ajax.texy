@@ -10,9 +10,25 @@ AJAX & Snippets
 
 </div>
 
-O cerere AJAX poate fi detectată prin intermediul unei metode a unui serviciu care [încapsulează o cerere HTTP |http:request] `$httpRequest->isAjax()` (detectează pe baza antetului HTTP `X-Requested-With` ). Există, de asemenea, o metodă prescurtată în presenter: `$this->isAjax()`.
 
-O solicitare AJAX nu diferă cu nimic de una normală - un prezentator este apelat cu o anumită vizualizare și parametri. Depinde, de asemenea, de prezentator cum va reacționa: acesta își poate folosi rutinele pentru a returna fie un fragment de cod HTML (un snippet), fie un document XML, un obiect JSON sau o bucată de cod Javascript.
+Cerere AJAX .[#toc-ajax-request]
+================================
+
+O cerere AJAX nu diferă de o cerere clasică - prezentatorul este apelat cu o vizualizare și parametri specifici. De asemenea, este la latitudinea prezentatorului cum să răspundă la aceasta: poate utiliza propria rutină, care returnează un fragment de cod HTML (fragment HTML), un document XML, un obiect JSON sau cod JavaScript.
+
+În partea browserului, pornim cererea AJAX folosind funcția `fetch()`:
+
+```js
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+.then(response => response.json())
+.then(payload => {
+	// procesarea răspunsurilor
+});
+```
+
+Pe partea serverului, cererea AJAX poate fi detectată prin metoda `$httpRequest->isAjax()` a serviciului de [încapsulare a cererilor HTTP |http:request], care detectează cererea prin antetul HTTP `X-Requested-With`. În interiorul dispozitivului de prezentare, este disponibilă o "scurtătură" sub forma metodei `$this->isAjax()`.
 
 Există un obiect preprocesat numit `payload` dedicat trimiterii de date către browser în JSON.
 
@@ -26,13 +42,13 @@ public function actionDelete(int $id): void
 }
 ```
 
-Pentru un control complet asupra ieșirii JSON, utilizați metoda `sendJson` în prezentator. Aceasta termină imediat presenterul și vă veți descurca fără șablon:
+Dacă aveți nevoie de control total asupra JSON-ului trimis, utilizați metoda de prezentare `sendJson()`, care trimite datele și iese din prezentator. Astfel, nu va avea loc nicio redare a șablonului:
 
 ```php
 $this->sendJson(['key' => 'value', /* ... */]);
 ```
 
-Dacă dorim să trimitem HTML, putem fie să setăm un șablon special pentru cererile AJAX:
+Alternativ, puteți răspunde prin redarea unui șablon special pentru AJAX:
 
 ```php
 public function handleClick($param): void
@@ -60,6 +76,21 @@ npm install naja
 <script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
 ```
 
+Pentru a crea o solicitare AJAX dintr-un link obișnuit (semnal) sau un formular de trimitere, trebuie doar să marcați link-ul, formularul sau butonul respectiv cu clasa `ajax`:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+or
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
 
 Snippets .[#toc-snippets]
 =========================
@@ -71,8 +102,8 @@ Modul în care funcționează snippet-urile este că întreaga pagină este tran
 Snippets vă poate aminti de Hotwire pentru Ruby on Rails sau de Symfony UX Turbo, dar Nette a venit cu ele cu paisprezece ani mai devreme.
 
 
-Invalidarea Snippets .[#toc-invalidation-of-snippets]
-=====================================================
+Redesenarea fragmentelor
+------------------------
 
 Fiecare descendent al clasei [Control |components] (care este, de asemenea, un prezentator) este capabil să își amintească dacă au existat modificări în timpul unei solicitări care să necesite o nouă redare. Există o pereche de metode pentru a gestiona acest lucru: `redrawControl()` și `isControlInvalid()`. Un exemplu:
 
@@ -103,14 +134,10 @@ O componentă care primește un semnal este marcată automat pentru redesenare.
 Mulțumită redimensionării fragmentelor, știm exact ce părți din ce elemente trebuie redimensionate.
 
 
-Etichetă `{snippet} … {/snippet}` .{toc: Tag snippet}
-=====================================================
+Fragmente în Latte
+------------------
 
 Redarea paginii se desfășoară în mod similar cu o cerere obișnuită: sunt încărcate aceleași șabloane etc. Partea vitală este, totuși, să se lase deoparte părțile care nu trebuie să ajungă la ieșire; celelalte părți trebuie asociate cu un identificator și trimise utilizatorului într-un format inteligibil pentru un manipulator JavaScript.
-
-
-Sintaxa .[#toc-syntax]
-----------------------
 
 Dacă există un control sau un fragment în șablon, trebuie să îl înfășurăm cu ajutorul etichetei `{snippet} ... {/snippet}` - aceasta se va asigura că fragmentul redat va fi "tăiat" și trimis către browser. De asemenea, acesta va fi inclus într-un helper `<div>` (este posibil să se folosească o altă etichetă). În exemplul următor este definit un fragment numit `header`. Acesta poate reprezenta la fel de bine șablonul unei componente:
 
@@ -130,14 +157,14 @@ Un fragment de alt tip decât `<div>` sau un fragment cu atribute HTML supliment
 
 
 Snippets dinamice .[#toc-dynamic-snippets]
-==========================================
+------------------------------------------
 
 În Nette puteți defini, de asemenea, fragmente cu un nume dinamic bazat pe un parametru de execuție. Acest lucru este cel mai potrivit pentru diverse liste în cazul în care trebuie să modificăm doar un singur rând, dar nu dorim să transferăm întreaga listă odată cu el. Un exemplu în acest sens ar fi:
 
 ```latte
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-		<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+		<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 ```
@@ -149,7 +176,7 @@ Nu puteți redesena direct un fragment dinamic (redesenarea lui `item-1` nu are 
 În exemplul de mai sus, trebuie să vă asigurați că, pentru o cerere AJAX, doar un singur element va fi adăugat la matricea `$list`, prin urmare, bucla `foreach` va imprima doar un singur fragment dinamic.
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	/**
 	 * This method returns data for the list.
@@ -185,7 +212,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 
 Fragmente într-un șablon inclus .[#toc-snippets-in-an-included-template]
-========================================================================
+------------------------------------------------------------------------
 
 Se poate întâmpla ca fragmentul să se afle într-un șablon care este inclus dintr-un alt șablon. În acest caz, trebuie să înfășurăm codul de includere în cel de-al doilea șablon cu eticheta `snippetArea`, apoi redesenăm atât snippetArea, cât și fragmentul propriu-zis.
 
@@ -212,7 +239,7 @@ De asemenea, îl puteți combina cu snippet-uri dinamice.
 
 
 Adăugarea și ștergerea .[#toc-adding-and-deleting]
-==================================================
+--------------------------------------------------
 
 Dacă adăugați un nou element în listă și invalidați `itemsContainer`, cererea AJAX returnează fragmente, inclusiv pe cel nou, dar gestionarul javascript nu va putea să îl redea. Acest lucru se datorează faptului că nu există un element HTML cu ID-ul nou creat.
 
@@ -222,7 +249,7 @@ Dacă adăugați un nou element în listă și invalidați `itemsContainer`, cer
 {snippet wholeList}
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+	<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 {/snippet}
@@ -246,21 +273,21 @@ Trimiterea parametrilor către componentă .[#toc-sending-parameters-to-componen
 
 Atunci când trimitem parametrii către componentă prin intermediul unei cereri AJAX, fie că este vorba de parametri de semnal sau de parametri persistenți, trebuie să furnizăm numele global al acestora, care conține și numele componentei. Numele complet al parametrului returnează metoda `getParameterId()`.
 
-```js
-$.getJSON(
-	{link changeCountBasket!},
-	{
-		{$control->getParameterId('id')}: id,
-		{$control->getParameterId('count')}: count
-	}
-});
+```latte
+<script>
+let url = new URL({link //foo!});
+url.searchParams.set({$control->getParameterId('bar')}, bar);
+
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+</script>
 ```
 
-Și gestionează metoda cu s parametrii corespunzători în componentă.
+O metodă de manipulare cu parametrii corespunzători din componentă:
 
 ```php
-public function handleChangeCountBasket(int $id, int $count): void
+public function handleFoo(int $bar): void
 {
-
 }
 ```

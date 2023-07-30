@@ -71,7 +71,7 @@ abstract class MultiChoiceControl extends BaseControl
 		$values = array_keys($flip);
 		if ($this->checkDefaultValue && ($diff = array_diff($values, array_keys($this->items)))) {
 			$set = Nette\Utils\Strings::truncate(
-				implode(', ', array_map(fn($s) => var_export($s, true), array_keys($this->items))),
+				implode(', ', array_map(fn($s) => var_export($s, return: true), array_keys($this->items))),
 				70,
 				'...',
 			);
@@ -150,7 +150,7 @@ abstract class MultiChoiceControl extends BaseControl
 		}
 
 		parent::setDisabled(false);
-		$this->disabled = array_fill_keys($value, true);
+		$this->disabled = array_fill_keys($value, value: true);
 		$this->value = array_diff($this->value, $value);
 		return $this;
 	}

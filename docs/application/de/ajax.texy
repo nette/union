@@ -10,9 +10,25 @@ Moderne Webanwendungen laufen heute zur Hälfte auf einem Server und zur Hälfte
 
 </div>
 
-Eine AJAX-Anfrage kann mit einer Methode eines Dienstes, [der eine HTTP-Anfrage kapselt |http:request], erkannt werden `$httpRequest->isAjax()` (erkennt anhand des `X-Requested-With` HTTP-Headers). Es gibt auch eine Kurzform der Methode in Presenter: `$this->isAjax()`.
 
-Eine AJAX-Anfrage unterscheidet sich nicht von einer normalen Anfrage - ein Presenter wird mit einer bestimmten Ansicht und Parametern aufgerufen. Auch hier ist es dem Präsentator überlassen, wie er reagiert: Er kann seine Routinen nutzen, um entweder ein Fragment von HTML-Code (ein Snippet), ein XML-Dokument, ein JSON-Objekt oder ein Stück Javascript-Code zurückzugeben.
+AJAX-Anfrage .[#toc-ajax-request]
+=================================
+
+Eine AJAX-Anfrage unterscheidet sich nicht von einer klassischen Anfrage - der Presenter wird mit einer bestimmten Ansicht und Parametern aufgerufen. Es liegt auch am Präsentator, wie er darauf reagiert: Er kann seine eigene Routine verwenden, die ein HTML-Codefragment (HTML-Snippet), ein XML-Dokument, ein JSON-Objekt oder JavaScript-Code zurückgibt.
+
+Auf der Browserseite starten wir die AJAX-Anfrage mit der Funktion `fetch()`:
+
+```js
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+.then(response => response.json())
+.then(payload => {
+	// Antwortverarbeitung
+});
+```
+
+Auf der Serverseite kann die AJAX-Anfrage durch die Methode `$httpRequest->isAjax()` des [HTTP-Request-Capsulation-Service |http:request] erkannt werden, der die Anfrage anhand des HTTP-Headers `X-Requested-With` erkennt. Innerhalb des Presenters gibt es eine "Abkürzung" in Form der Methode `$this->isAjax()`.
 
 Es gibt ein vorverarbeitetes Objekt namens `payload`, das für das Senden von Daten in JSON an den Browser bestimmt ist.
 
@@ -26,13 +42,13 @@ public function actionDelete(int $id): void
 }
 ```
 
-Um die volle Kontrolle über Ihre JSON-Ausgabe zu haben, verwenden Sie die Methode `sendJson` in Ihrem Presenter. Sie beendet den Presenter sofort und Sie können auf eine Vorlage verzichten:
+Wenn Sie die volle Kontrolle über das gesendete JSON benötigen, verwenden Sie die Presenter-Methode `sendJson()`, die die Daten sendet und den Presenter verlässt. Es findet also kein Rendering der Vorlage statt:
 
 ```php
 $this->sendJson(['key' => 'value', /* ... */]);
 ```
 
-Wenn wir HTML senden wollen, können wir entweder eine spezielle Vorlage für AJAX-Anfragen festlegen:
+Alternativ können Sie auch mit einer speziellen Vorlage für AJAX reagieren:
 
 ```php
 public function handleClick($param): void
@@ -60,6 +76,21 @@ npm install naja
 <script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
 ```
 
+Um eine AJAX-Anfrage aus einem regulären Link (Signal) oder einer Formularübermittlung zu erzeugen, markieren Sie einfach den entsprechenden Link, das Formular oder die Schaltfläche mit der Klasse `ajax`:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+or
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
 
 Schnipsel .[#toc-snippets]
 ==========================
@@ -71,8 +102,8 @@ Die Funktionsweise der Snippets besteht darin, dass bei der ersten (d.h. Nicht-A
 Snippets erinnern vielleicht an Hotwire für Ruby on Rails oder Symfony UX Turbo, aber Nette hat sie schon vierzehn Jahre früher erfunden.
 
 
-Invalidierung von Snippets .[#toc-invalidation-of-snippets]
-===========================================================
+Schnipsel neu zeichnen
+----------------------
 
 Jeder Nachkomme der Klasse [Control |components] (also auch ein Presenter) ist in der Lage, sich zu merken, ob es während einer Anfrage Änderungen gab, die ein erneutes Rendern erforderlich machen. Dafür gibt es zwei Methoden: `redrawControl()` und `isControlInvalid()`. Ein Beispiel:
 
@@ -103,14 +134,10 @@ Eine Komponente, die ein Signal erhält, wird automatisch zum Neuzeichnen markie
 Dank des Snippet-Redrawing wissen wir genau, welche Teile welcher Elemente neu gezeichnet werden sollten.
 
 
-Tag `{snippet} … {/snippet}` .{toc: Tag snippet}
-================================================
+Schnipsel in Latte
+------------------
 
 Das Rendering der Seite verläuft ganz ähnlich wie bei einer normalen Anfrage: Es werden die gleichen Vorlagen geladen usw. Entscheidend ist jedoch, dass die Teile, die nicht in die Ausgabe gelangen sollen, weggelassen werden; die anderen Teile sollen mit einem Bezeichner verknüpft und in einem für einen JavaScript-Handler verständlichen Format an den Benutzer gesendet werden.
-
-
-Syntax .[#toc-syntax]
----------------------
 
 Wenn ein Steuerelement oder ein Snippet in der Vorlage vorhanden ist, müssen wir es mit dem `{snippet} ... {/snippet}` pair-Tag einpacken - er sorgt dafür, dass das gerenderte Snippet "ausgeschnitten" und an den Browser gesendet wird. Außerdem wird es in ein Hilfs-Tag eingebettet `<div>` Tag (es ist möglich, einen anderen zu verwenden). Im folgenden Beispiel wird ein Snippet mit dem Namen `header` definiert. Es kann ebenso gut die Vorlage einer Komponente darstellen:
 
@@ -130,14 +157,14 @@ Wenn Sie ein Snippet mit einem anderen Element erstellen möchten als `<div>` er
 
 
 Dynamische Schnipsel .[#toc-dynamic-snippets]
-=============================================
+---------------------------------------------
 
 In Nette können Sie auch Snippets mit einem dynamischen Namen definieren, der auf einem Laufzeitparameter basiert. Dies eignet sich besonders für verschiedene Listen, bei denen nur eine Zeile geändert werden muss, aber nicht die ganze Liste mit übertragen werden soll. Ein Beispiel hierfür wäre:
 
 ```latte
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-		<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+		<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 ```
@@ -149,7 +176,7 @@ Ein dynamisches Snippet kann nicht direkt neu gezeichnet werden (das erneute Zei
 Im obigen Beispiel müssen Sie sicherstellen, dass bei einer AJAX-Anfrage nur ein Element zum Array `$list` hinzugefügt wird, so dass die Schleife `foreach` nur ein dynamisches Snippet ausgibt.
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	/**
 	 * This method returns data for the list.
@@ -185,7 +212,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 
 Snippets in einer eingebundenen Vorlage .[#toc-snippets-in-an-included-template]
-================================================================================
+--------------------------------------------------------------------------------
 
 Es kann vorkommen, dass sich das Snippet in einer Vorlage befindet, die von einer anderen Vorlage eingebunden wird. In diesem Fall müssen wir den Einbindungscode in der zweiten Vorlage mit dem `snippetArea` -Makro einschließen, dann zeichnen wir sowohl den Snippet-Bereich als auch das eigentliche Snippet neu.
 
@@ -212,7 +239,7 @@ Sie können es auch mit dynamischen Snippets kombinieren.
 
 
 Hinzufügen und Löschen .[#toc-adding-and-deleting]
-==================================================
+--------------------------------------------------
 
 Wenn Sie ein neues Element in die Liste einfügen und `itemsContainer` ungültig machen, liefert die AJAX-Anfrage Snippets, die das neue Element enthalten, aber der Javascript-Handler kann es nicht darstellen. Das liegt daran, dass es kein HTML-Element mit der neu erstellten ID gibt.
 
@@ -222,7 +249,7 @@ In diesem Fall besteht die einfachste Möglichkeit darin, die gesamte Liste in e
 {snippet wholeList}
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+	<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 {/snippet}
@@ -246,21 +273,21 @@ Parameter an die Komponente senden .[#toc-sending-parameters-to-component]
 
 Wenn wir Parameter über eine AJAX-Anfrage an die Komponente senden, egal ob es sich um Signalparameter oder dauerhafte Parameter handelt, müssen wir ihren globalen Namen angeben, der auch den Namen der Komponente enthält. Den vollständigen Namen des Parameters gibt die Methode `getParameterId()` zurück.
 
-```js
-$.getJSON(
-	{link changeCountBasket!},
-	{
-		{$control->getParameterId('id')}: id,
-		{$control->getParameterId('count')}: count
-	}
-});
+```latte
+<script>
+let url = new URL({link //foo!});
+url.searchParams.set({$control->getParameterId('bar')}, bar);
+
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+</script>
 ```
 
-Und behandeln Sie die Methode mit den entsprechenden Parametern in der Komponente.
+Eine Handle-Methode mit den entsprechenden Parametern in der Komponente:
 
 ```php
-public function handleChangeCountBasket(int $id, int $count): void
+public function handleFoo(int $bar): void
 {
-
 }
 ```

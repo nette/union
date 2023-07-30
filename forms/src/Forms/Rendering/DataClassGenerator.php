@@ -21,7 +21,6 @@ final class DataClassGenerator
 {
 	public string $classNameSuffix = 'FormData';
 	public bool $propertyPromotion = false;
-	public bool $useSmartObject = true;
 
 
 	public function generateCode(Form $form, ?string $baseName = null): string
@@ -78,7 +77,6 @@ final class DataClassGenerator
 		$class = $baseName . $this->classNameSuffix;
 		return "class $class\n"
 			. "{\n"
-			. ($this->useSmartObject ? "\tuse \\Nette\\SmartObject;\n\n" : '')
 			. ($this->propertyPromotion
 				? "\tpublic function __construct(\n"
 					. ($props ? "\t\t" . implode(",\n\t\t", $props) . ",\n" : '')

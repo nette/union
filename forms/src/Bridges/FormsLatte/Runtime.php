@@ -32,11 +32,6 @@ class Runtime
 	public function renderFormBegin(array $attrs, bool $withTags = true): string
 	{
 		$form = $this->current();
-		$form->fireRenderEvents();
-		foreach ($form->getControls() as $control) {
-			$control->setOption('rendered', false);
-		}
-
 		$el = $form->getElementPrototype();
 		$el->action = (string) $el->action;
 		$el = clone $el;
@@ -71,10 +66,6 @@ class Runtime
 			if ($control->getOption('type') === 'hidden' && !$control->getOption('rendered')) {
 				$s .= $control->getControl();
 			}
-		}
-
-		if (iterator_count($form->getComponents(true, Nette\Forms\Controls\TextInput::class)) < 2) {
-			$s .= "<!--[if IE]><input type=IEbug disabled style=\"display:none\"><![endif]-->\n";
 		}
 
 		return $s . ($withTags ? $form->getElementPrototype()->endTag() . "\n" : '');
@@ -126,6 +117,13 @@ class Runtime
 	public function begin(Container $form): void
 	{
 		$this->stack[] = $form;
+
+		if ($form instanceof Form) {
+			$form->fireRenderEvents();
+			foreach ($form->getControls() as $control) {
+				$control->setOption('rendered', false);
+			}
+		}
 	}
 
 

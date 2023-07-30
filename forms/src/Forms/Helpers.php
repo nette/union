@@ -96,7 +96,7 @@ final class Helpers
 			$name = substr_replace($name, '', strpos($name, ']'), 1) . ']';
 		}
 
-		if (is_numeric($name) || in_array($name, self::UnsafeNames, true)) {
+		if (is_numeric($name) || in_array($name, self::UnsafeNames, strict: true)) {
 			$name = '_' . $name;
 		}
 
@@ -133,7 +133,7 @@ final class Helpers
 					continue;
 				}
 			} else {
-				$msg = Validator::formatMessage($rule, false);
+				$msg = Validator::formatMessage($rule, withValue: false);
 				if ($msg instanceof Nette\HtmlStringable) {
 					$msg = html_entity_decode(strip_tags((string) $msg), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 				}
@@ -250,7 +250,7 @@ final class Helpers
 				$p = substr($k, 0, -1);
 				unset($attrs[$k], $attrs[$p]);
 				if ($k[-1] === '?') {
-					$dynamic[$p] = array_fill_keys((array) $v, true);
+					$dynamic[$p] = array_fill_keys((array) $v, value: true);
 				} elseif (is_array($v) && $v) {
 					$dynamic[$p] = $v;
 				} else {

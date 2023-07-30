@@ -10,9 +10,25 @@ Günümüzde modern web uygulamalarının yarısı sunucuda, yarısı da tarayı
 
 </div>
 
-Bir AJAX isteği, `$httpRequest->isAjax()` [HTTP isteğini kapsülleyen |http:request] bir hizmet yöntemi kullanılarak algılanabilir ( `X-Requested-With` HTTP başlığına göre algılar). Ayrıca presenter'da steno bir yöntem de vardır: `$this->isAjax()`.
 
-Bir AJAX isteği normal bir istekten farklı değildir - bir sunucu belirli bir görünüm ve parametrelerle çağrılır. Nasıl tepki vereceği de sunucuya bağlıdır: rutinlerini bir HTML kodu parçası (snippet), bir XML belgesi, bir JSON nesnesi veya bir Javascript kodu parçası döndürmek için kullanabilir.
+AJAX İsteği .[#toc-ajax-request]
+================================
+
+Bir AJAX isteği klasik bir istekten farklı değildir - sunum yapan kişi belirli bir görünüm ve parametrelerle çağrılır. Buna nasıl yanıt verileceği de sunucuya bağlıdır: bir HTML kod parçası (HTML snippet), bir XML belgesi, bir JSON nesnesi veya JavaScript kodu döndüren kendi rutinini kullanabilir.
+
+Tarayıcı tarafında, `fetch()` işlevini kullanarak AJAX isteğini başlatıyoruz:
+
+```js
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+.then(response => response.json())
+.then(payload => {
+	// yanıt işleme
+});
+```
+
+Sunucu tarafında AJAX isteği, isteği `X-Requested-With`[HTTP |http:request] başlığından algılayan HTTP [istek kapsülleme |http:request] hizmetinin `$httpRequest->isAjax()` yöntemi ile algılanabilir. Sunucunun içinde, `$this->isAjax()` yöntemi şeklinde bir "kısayol" mevcuttur.
 
 JSON'da tarayıcıya veri göndermeye adanmış `payload` adında önceden işlenmiş bir nesne vardır.
 
@@ -26,13 +42,13 @@ public function actionDelete(int $id): void
 }
 ```
 
-JSON çıktınız üzerinde tam kontrol sahibi olmak için sunumunuzda `sendJson` yöntemini kullanın. Sunucuyu hemen sonlandırır ve şablon olmadan yaparsınız:
+Gönderilen JSON üzerinde tam kontrole ihtiyacınız varsa, verileri gönderen ve sunum yapan kişiden çıkan `sendJson()` sunum yapan kişi yöntemini kullanın. Böylece şablon oluşturma gerçekleşmez:
 
 ```php
 $this->sendJson(['key' => 'value', /* ... */]);
 ```
 
-HTML göndermek istiyorsak, AJAX istekleri için özel bir şablon ayarlayabiliriz:
+Alternatif olarak, AJAX için özel bir şablon oluşturarak yanıt verebilirsiniz:
 
 ```php
 public function handleClick($param): void
@@ -60,6 +76,21 @@ npm install naja
 <script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
 ```
 
+Normal bir bağlantıdan (sinyal) veya form gönderiminden bir AJAX isteği oluşturmak için ilgili bağlantıyı, formu veya düğmeyi `ajax` sınıfıyla işaretlemeniz yeterlidir:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+or
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
 
 Parçacıklar .[#toc-snippets]
 ============================
@@ -71,8 +102,8 @@ Snippet'lerin çalışma şekli, ilk (yani AJAX olmayan) istek sırasında tüm 
 Snippet'ler size Ruby on Rails için Hotwire veya Symfony UX Turbo'yu hatırlatabilir, ancak Nette bunları on dört yıl önce buldu.
 
 
-Snippet'lerin Geçersiz Kılınması .[#toc-invalidation-of-snippets]
-=================================================================
+Parçacıkları Yeniden Çizme
+--------------------------
 
 [Control |components] sınıfının her bir torunu (ki bir Presenter da öyledir), bir istek sırasında yeniden oluşturmasını gerektiren herhangi bir değişiklik olup olmadığını hatırlayabilir. Bunu işlemek için bir çift yöntem vardır: `redrawControl()` ve `isControlInvalid()`. Bir örnek:
 
@@ -103,14 +134,10 @@ Sinyal alan bir bileşen otomatik olarak yeniden çizilmek üzere işaretlenir.
 Snippet yeniden çizimi sayesinde hangi öğelerin hangi kısımlarının yeniden işlenmesi gerektiğini tam olarak biliyoruz.
 
 
-Etiket `{snippet} … {/snippet}` .{toc: Tag snippet}
-===================================================
+Latte'de Parçacıklar
+--------------------
 
 Sayfanın oluşturulması normal bir istekle çok benzer şekilde ilerler: aynı şablonlar yüklenir, vb. Ancak önemli olan, çıktıya ulaşmaması gereken kısımların dışarıda bırakılmasıdır; diğer kısımlar bir tanımlayıcı ile ilişkilendirilmeli ve bir JavaScript işleyicisi için anlaşılabilir bir biçimde kullanıcıya gönderilmelidir.
-
-
-Sözdizimi .[#toc-syntax]
-------------------------
 
 Şablonda bir kontrol veya snippet varsa, bunu `{snippet} ... {/snippet}` pair etiketini kullanarak sarmalıyız - bu, işlenen snippet'in "kesilip çıkarılmasını" ve tarayıcıya gönderilmesini sağlayacaktır. Ayrıca onu bir yardımcı içine alacaktır `<div>` etiketi (farklı bir etiket kullanmak mümkündür). Aşağıdaki örnekte `header` adında bir snippet tanımlanmıştır. Bir bileşenin şablonunu da temsil edebilir:
 
@@ -130,14 +157,14 @@ dışındaki bir türden bir snippet `<div>` veya ek HTML öznitelikleri içeren
 
 
 Dinamik Parçacıklar .[#toc-dynamic-snippets]
-============================================
+--------------------------------------------
 
 Nette'de ayrıca bir çalışma zamanı parametresine dayalı olarak dinamik bir adla snippet'ler tanımlayabilirsiniz. Bu, sadece bir satırı değiştirmemiz gereken ancak tüm listeyi onunla birlikte aktarmak istemediğimiz çeşitli listeler için en uygun olanıdır. Bunun bir örneği şöyle olabilir:
 
 ```latte
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-		<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+		<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 ```
@@ -149,7 +176,7 @@ Dinamik bir snippet'i doğrudan yeniden çizemezsiniz ( `item-1` adresinin yenid
 Yukarıdaki örnekte, bir AJAX isteği için `$list` dizisine yalnızca bir öğe ekleneceğinden emin olmanız gerekir, bu nedenle `foreach` döngüsü yalnızca bir dinamik parçacık yazdıracaktır.
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	/**
 	 * This method returns data for the list.
@@ -185,7 +212,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 
 Dahil Edilen Bir Şablondaki Parçacıklar .[#toc-snippets-in-an-included-template]
-================================================================================
+--------------------------------------------------------------------------------
 
 Snippet, farklı bir şablondan dahil edilen bir şablonda olabilir. Bu durumda, ikinci şablondaki dahil etme kodunu `snippetArea` makrosuyla sarmamız gerekir, ardından hem snippetArea'yı hem de gerçek snippet'i yeniden çizeriz.
 
@@ -212,7 +239,7 @@ Ayrıca dinamik snippet'lerle de birleştirebilirsiniz.
 
 
 Ekleme ve Silme .[#toc-adding-and-deleting]
-===========================================
+-------------------------------------------
 
 Listeye yeni bir öğe ekler ve `itemsContainer` adresini geçersiz kılarsanız, AJAX isteği yenisini de içeren parçacıkları döndürür, ancak javascript işleyicisi bunu işleyemez. Bunun nedeni, yeni oluşturulan ID'ye sahip bir HTML öğesi olmamasıdır.
 
@@ -222,7 +249,7 @@ Bu durumda, en basit yol tüm listeyi bir parçacığa daha sarmak ve hepsini ge
 {snippet wholeList}
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+	<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 {/snippet}
@@ -246,21 +273,21 @@ Bileşene Parametre Gönderme .[#toc-sending-parameters-to-component]
 
 AJAX isteği aracılığıyla bileşene parametreler gönderdiğimizde, ister sinyal parametreleri ister kalıcı parametreler olsun, bileşenin adını da içeren global adlarını sağlamalıyız. Parametrenin tam adı `getParameterId()` yöntemini döndürür.
 
-```js
-$.getJSON(
-	{link changeCountBasket!},
-	{
-		{$control->getParameterId('id')}: id,
-		{$control->getParameterId('count')}: count
-	}
-});
+```latte
+<script>
+let url = new URL({link //foo!});
+url.searchParams.set({$control->getParameterId('bar')}, bar);
+
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+</script>
 ```
 
-Ve bileşende karşılık gelen parametrelerle yöntemi işleyin.
+Bileşende karşılık gelen parametreleri içeren bir tutamaç yöntemi:
 
 ```php
-public function handleChangeCountBasket(int $id, int $count): void
+public function handleFoo(int $bar): void
 {
-
 }
 ```

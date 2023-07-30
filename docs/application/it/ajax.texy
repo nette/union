@@ -10,9 +10,25 @@ Le moderne applicazioni web oggi vengono eseguite per metà su un server e per m
 
 </div>
 
-Una richiesta AJAX può essere rilevata utilizzando un metodo di un servizio [che incapsula una richiesta HTTP |http:request] `$httpRequest->isAjax()` (rileva in base all'intestazione HTTP `X-Requested-With` ). Esiste anche un metodo abbreviato in presenter: `$this->isAjax()`.
 
-Una richiesta AJAX non è diversa da una normale richiesta: un presenter viene chiamato con una determinata vista e con dei parametri. Anche il presentatore può decidere come reagire: può usare le sue routine per restituire un frammento di codice HTML (uno snippet), un documento XML, un oggetto JSON o un pezzo di codice Javascript.
+Richiesta AJAX .[#toc-ajax-request]
+===================================
+
+Una richiesta AJAX non differisce da una richiesta classica: il presentatore viene chiamato con una vista e dei parametri specifici. Il presentatore può anche decidere come rispondere: può usare la propria routine, che restituisce un frammento di codice HTML (snippet HTML), un documento XML, un oggetto JSON o codice JavaScript.
+
+Sul lato del browser, avviamo la richiesta AJAX utilizzando la funzione `fetch()`:
+
+```js
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+.then(response => response.json())
+.then(payload => {
+	// elaborazione della risposta
+});
+```
+
+Sul lato server, la richiesta AJAX può essere rilevata dal metodo `$httpRequest->isAjax()` del servizio di [incapsulamento delle richieste HTTP |http:request], che rileva la richiesta tramite l'intestazione HTTP `X-Requested-With`. All'interno del presentatore, è disponibile una "scorciatoia" sotto forma del metodo `$this->isAjax()`.
 
 Esiste un oggetto pre-elaborato chiamato `payload`, dedicato all'invio di dati al browser in JSON.
 
@@ -26,13 +42,13 @@ public function actionDelete(int $id): void
 }
 ```
 
-Per un controllo completo sull'output JSON, utilizzare il metodo `sendJson` nel presenter. Il metodo termina immediatamente il presentatore e si può fare a meno di un template:
+Se si desidera il pieno controllo sul JSON inviato, utilizzare il metodo del presentatore `sendJson()`, che invia i dati ed esce dal presentatore. In questo modo, non si verifica il rendering del template:
 
 ```php
 $this->sendJson(['key' => 'value', /* ... */]);
 ```
 
-Se vogliamo inviare HTML, possiamo impostare un modello speciale per le richieste AJAX:
+In alternativa, si può rispondere rendendo un modello speciale per AJAX:
 
 ```php
 public function handleClick($param): void
@@ -60,6 +76,21 @@ npm install naja
 <script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
 ```
 
+Per creare una richiesta AJAX da un normale link (segnale) o dall'invio di un modulo, è sufficiente contrassegnare il relativo link, modulo o pulsante con la classe `ajax`:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+or
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
 
 Snippet .[#toc-snippets]
 ========================
@@ -71,8 +102,8 @@ Il modo in cui funzionano gli snippet è che l'intera pagina viene trasferita du
 Gli snippet possono ricordare Hotwire per Ruby on Rails o Symfony UX Turbo, ma Nette li ha ideati quattordici anni prima.
 
 
-Invalidazione degli Snippet .[#toc-invalidation-of-snippets]
-============================================================
+Ridisegno degli snippet
+-----------------------
 
 Ogni discendente della classe [Control |components] (di cui fa parte anche un Presentatore) è in grado di ricordare se durante una richiesta sono state apportate modifiche che richiedono un nuovo rendering. Esistono due metodi per gestire questo aspetto: `redrawControl()` e `isControlInvalid()`. Un esempio:
 
@@ -103,14 +134,10 @@ Un componente che riceve un segnale viene automaticamente contrassegnato per ess
 Grazie allo snippet redrawing sappiamo esattamente quali parti di quali elementi devono essere ridisegnate.
 
 
-Tag `{snippet} … {/snippet}` .{toc: Tag snippet}
-================================================
+Frammenti in Latte
+------------------
 
 Il rendering della pagina procede in modo molto simile a una normale richiesta: vengono caricati gli stessi template, ecc. La parte fondamentale è, tuttavia, lasciare fuori le parti che non devono raggiungere l'output; le altre parti devono essere associate a un identificatore e inviate all'utente in un formato comprensibile per un gestore JavaScript.
-
-
-Sintassi .[#toc-syntax]
------------------------
 
 Se c'è un controllo o uno snippet nel template, dobbiamo avvolgerlo usando il tag di coppia `{snippet} ... {/snippet}` - che farà in modo che lo snippet reso venga "tagliato" e inviato al browser. Lo racchiuderà anche in un tag di aiuto `<div>` (è possibile utilizzarne uno diverso). Nell'esempio seguente viene definito uno snippet chiamato `header`. Può anche rappresentare il modello di un componente:
 
@@ -130,14 +157,14 @@ Uno snippet di tipo diverso da `<div>` o uno snippet con attributi HTML aggiunti
 
 
 Snippet dinamici .[#toc-dynamic-snippets]
-=========================================
+-----------------------------------------
 
 In Nette è possibile definire snippet con un nome dinamico basato su un parametro di runtime. Ciò è particolarmente indicato per vari elenchi in cui è necessario modificare una sola riga, ma non si vuole trasferire l'intero elenco. Un esempio potrebbe essere:
 
 ```latte
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-		<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+		<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 ```
@@ -149,7 +176,7 @@ Non è possibile ridisegnare direttamente uno snippet dinamico (il ridisegno di 
 Nell'esempio precedente, bisogna assicurarsi che per una richiesta AJAX venga aggiunto un solo elemento all'array `$list`, quindi il ciclo `foreach` stamperà un solo frammento dinamico.
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	/**
 	 * This method returns data for the list.
@@ -185,7 +212,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 
 Snippet in un template incluso .[#toc-snippets-in-an-included-template]
-=======================================================================
+-----------------------------------------------------------------------
 
 Può accadere che lo snippet si trovi in un template che viene incluso da un template diverso. In questo caso, occorre avvolgere il codice di inclusione nel secondo template con la tag `snippetArea`, quindi ridisegnare sia la snippetArea che lo snippet vero e proprio.
 
@@ -212,7 +239,7 @@ Si può anche combinare con gli snippet dinamici.
 
 
 Aggiunta e cancellazione .[#toc-adding-and-deleting]
-====================================================
+----------------------------------------------------
 
 Se si aggiunge un nuovo elemento all'elenco e si invalida `itemsContainer`, la richiesta AJAX restituisce gli snippet che includono il nuovo elemento, ma il gestore javascript non sarà in grado di renderlo. Questo perché non esiste un elemento HTML con l'ID appena creato.
 
@@ -222,7 +249,7 @@ In questo caso, il modo più semplice è avvolgere l'intero elenco in un altro f
 {snippet wholeList}
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+	<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 {/snippet}
@@ -246,21 +273,21 @@ Invio di parametri al componente .[#toc-sending-parameters-to-component]
 
 Quando si inviano parametri al componente tramite una richiesta AJAX, sia che si tratti di parametri di segnale che di parametri persistenti, occorre fornire il loro nome globale, che contiene anche il nome del componente. Il nome completo del parametro restituisce il metodo `getParameterId()`.
 
-```js
-$.getJSON(
-	{link changeCountBasket!},
-	{
-		{$control->getParameterId('id')}: id,
-		{$control->getParameterId('count')}: count
-	}
-});
+```latte
+<script>
+let url = new URL({link //foo!});
+url.searchParams.set({$control->getParameterId('bar')}, bar);
+
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+</script>
 ```
 
-E gestire il metodo con i parametri corrispondenti nel componente.
+Un metodo di gestione con i parametri corrispondenti nel componente:
 
 ```php
-public function handleChangeCountBasket(int $id, int $count): void
+public function handleFoo(int $bar): void
 {
-
 }
 ```

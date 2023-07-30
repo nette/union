@@ -18,8 +18,6 @@ use Stringable;
  */
 final class Rule
 {
-	use Nette\SmartObject;
-
 	public Control $control;
 
 	public mixed $validator;

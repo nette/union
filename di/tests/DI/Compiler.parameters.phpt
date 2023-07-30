@@ -29,7 +29,7 @@ class Service
 }
 
 
-test('', function () {
+test('Statement as parameter', function () {
 	$compiler = new DI\Compiler;
 	$container = createContainer($compiler, '
 	parameters:
@@ -38,12 +38,33 @@ test('', function () {
 	services:
 		one: Service(%bar%)
 	');
-	Assert::null($container->parameters['bar']);
+
+	Assert::same(['bar' => 'a'], $container->getParameters());
+	Assert::same('a', $container->getParameter('bar'));
 	Assert::same('a', $container->getService('one')->arg);
 });
 
 
-test('', function () {
+test('Statement within string expansion', function () {
+	$compiler = new DI\Compiler;
+	$container = createContainer($compiler, '
+	parameters:
+		bar: ::trim(" a ")
+		expand: hello%bar%
+
+	services:
+		one: Service(%expand%)
+	');
+
+	Assert::same(
+		['bar' => 'a', 'expand' => 'helloa'],
+		$container->getParameters(),
+	);
+	Assert::same('helloa', $container->getService('one')->arg);
+});
+
+
+test('NOT class constant as parameter', function () {
 	$compiler = new DI\Compiler;
 	$container = createContainer($compiler, '
 	parameters:
@@ -52,12 +73,13 @@ test('', function () {
 	services:
 		one: Service(%bar%)
 	');
-	Assert::same('Service::Name', $container->parameters['bar']); // not resolved
+
+	Assert::same(['bar' => 'Service::Name'], $container->getParameters()); // not resolved
 	Assert::same('hello', $container->getService('one')->arg);
 });
 
 
-test('', function () {
+test('Class method and constant resolution', function () {
 	$compiler = new DI\Compiler;
 	$container = createContainer($compiler, '
 	parameters:
@@ -66,12 +88,13 @@ test('', function () {
 	services:
 		one: Service(%bar%)
 	');
-	Assert::null($container->parameters['bar']);
+
+	Assert::same(['bar' => 'Service::method hello'], $container->getParameters());
 	Assert::same('Service::method hello', $container->getService('one')->arg);
 });
 
 
-test('', function () {
+test('Parameter NOT referencing a service', function () {
 	$compiler = new DI\Compiler;
 	$container = createContainer($compiler, '
 	parameters:
@@ -81,12 +104,14 @@ test('', function () {
 		one: Service(%bar%)
 		two: Service(two)
 	');
-	Assert::same('@two', $container->parameters['bar']); // not resolved
+
+	// intentionally not resolved, it is not possible to distinguish a string from a reference
+	Assert::same(['bar' => '@two'], $container->getParameters());
 	Assert::same($container->getService('two'), $container->getService('one')->arg);
 });
 
 
-test('', function () {
+test('Parameter as an instantiated class', function () {
 	$compiler = new DI\Compiler;
 	$container = createContainer($compiler, '
 	parameters:
@@ -96,12 +121,16 @@ test('', function () {
 		one: Service(%bar%)
 		two: Service(two)
 	');
-	Assert::null($container->parameters['bar']);
+
+	Assert::equal(
+		['bar' => new Service($container->getService('two'))],
+		$container->getParameters(),
+	);
 	Assert::same($container->getService('two'), $container->getService('one')->arg->arg);
 });
 
 
-test('', function () {
+test('Detecting circular references', function () {
 	$compiler = new DI\Compiler;
 	$container = createContainer($compiler, '
 	parameters:
@@ -111,6 +140,10 @@ test('', function () {
 		one: Service(%bar%)
 		two: Service(two)
 	');
-	Assert::null($container->parameters['bar']);
-	Assert::same([$container->getService('two')], $container->getService('one')->arg);
+
+	Assert::exception(
+		fn() => $container->getParameter('bar'),
+		Nette\InvalidStateException::class,
+		'Circular reference detected for: %bar%, one.',
+	);
 });

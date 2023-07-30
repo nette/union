@@ -361,9 +361,9 @@ class Form extends Container implements Nette\HtmlStringable
 		if (is_string($name) && isset($this->groups[$name])) {
 			$group = $this->groups[$name];
 
-		} elseif ($name instanceof ControlGroup && in_array($name, $this->groups, true)) {
+		} elseif ($name instanceof ControlGroup && in_array($name, $this->groups, strict: true)) {
 			$group = $name;
-			$name = array_search($group, $this->groups, true);
+			$name = array_search($group, $this->groups, strict: true);
 
 		} else {
 			throw new Nette\InvalidArgumentException("Group not found in form '$this->name'");
@@ -556,7 +556,7 @@ class Form extends Container implements Nette\HtmlStringable
 	public function reset(): static
 	{
 		$this->setSubmittedBy(null);
-		$this->setValues([], true);
+		$this->setValues([], erase: true);
 		return $this;
 	}
 
@@ -584,7 +584,7 @@ class Form extends Container implements Nette\HtmlStringable
 			}
 		}
 
-		if ($tracker = $this->getComponent(self::TrackerId, false)) {
+		if ($tracker = $this->getComponent(self::TrackerId, throw: false)) {
 			if (!isset($data[self::TrackerId]) || $data[self::TrackerId] !== $tracker->getValue()) {
 				return null;
 			}
@@ -773,7 +773,7 @@ class Form extends Container implements Nette\HtmlStringable
 
 		self::$defaultHttpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 
-		if (PHP_SAPI !== 'cli') {
+		if (!in_array(PHP_SAPI, ['cli', 'phpdbg', 'embed'], true)) {
 			if (headers_sent($file, $line)) {
 				throw new Nette\InvalidStateException(
 					'Create a form or call Nette\Forms\Form::initialize() before the headers are sent to initialize CSRF protection.'

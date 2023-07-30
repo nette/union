@@ -26,6 +26,7 @@
 ---------
 - [Повторна употреба на формуляри |form-reuse]
 - [Формуляр за създаване и редактиране на запис |creating-editing-form]
+- [Да създадем формуляр за контакт |lets-create-contact-form]
 - [Зависими полета за избор |https://blog.nette.org/bg/zavisimi-selektirasi-poleta-elegantno-v-nette-i-cist-js]
 
 </div>
@@ -35,6 +36,7 @@
 Обща
 ----
 - [Как да заредим конфигурационен файл |bootstrap:]
+- [Как да пишем микросайтове |microsites]
 - [Защо Nette използва константна нотация PascalCase? |https://blog.nette.org/bg/za-po-malko-kresene-v-koda]
 - [Защо Nette не използва суфикса Interface? |https://blog.nette.org/bg/prefiksite-i-sufiksite-ne-prinadlezat-na-imenata-na-interfejsite]
 - [Съвети за използване на Composer |composer]

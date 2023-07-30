@@ -112,6 +112,15 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 			if ($controls === null && $submitter instanceof SubmitterControl) {
 				$controls = $submitter->getValidationScope();
+				if ($controls !== null && !in_array($this, $controls, true)) {
+					$scope = $this;
+					while (($scope = $scope->getParent()) instanceof self) {
+						if (in_array($scope, $controls, true)) {
+							$controls[] = $this;
+							break;
+						}
+					}
+				}
 			}
 		}
 
@@ -146,7 +155,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 		}
 
 		foreach ($this->getComponents() as $name => $control) {
-			$allowed = $controls === null || in_array($control, $controls, true);
+			$allowed = $controls === null || in_array($this, $controls, true) || in_array($control, $controls, true);
 			$name = (string) $name;
 			if (
 				$control instanceof Control
@@ -383,11 +392,24 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 
 	/**
+	 * Adds input for float.
+	 */
+	public function addFloat(string $name, string|Stringable|null $label = null): Controls\TextInput
+	{
+		return $this[$name] = (new Controls\TextInput($label))
+			->setNullable()
+			->setHtmlType('number')
+			->setHtmlAttribute('step', 'any')
+			->addRule(Form::Float);
+	}
+
+
+	/**
 	 * Adds control that allows the user to upload files.
 	 */
 	public function addUpload(string $name, string|Stringable|null $label = null): Controls\UploadControl
 	{
-		return $this[$name] = new Controls\UploadControl($label, false);
+		return $this[$name] = new Controls\UploadControl($label, multiple: false);
 	}
 
 
@@ -396,7 +418,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 */
 	public function addMultiUpload(string $name, string|Stringable|null $label = null): Controls\UploadControl
 	{
-		return $this[$name] = new Controls\UploadControl($label, true);
+		return $this[$name] = new Controls\UploadControl($label, multiple: true);
 	}
 
 

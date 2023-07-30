@@ -17,28 +17,19 @@ use Nette;
  */
 class RouteList implements Router
 {
-	use Nette\SmartObject;
+	private const OneWay = 'oneWay';
 
-	/** @var self|null */
-	protected $parent;
+	protected ?self $parent;
 
 	/** @var array of [Router, flags] */
-	private $list = [];
+	private array $list = [];
 
 	/** @var Router[][]|null */
 	private $ranks;
-
-	/** @var string */
-	private $cacheKey;
-
-	/** @var string|null */
-	private $domain;
-
-	/** @var string|null */
-	private $path;
-
-	/** @var \SplObjectStorage|null */
-	private $refUrlCache;
+	private ?string $cacheKey;
+	private ?string $domain = null;
+	private ?string $path = null;
+	private ?\SplObjectStorage $refUrlCache;
 
 
 	public function __construct()
@@ -49,7 +40,23 @@ class RouteList implements Router
 	/**
 	 * Maps HTTP request to an array.
 	 */
-	public function match(Nette\Http\IRequest $httpRequest): ?array
+	final public function match(Nette\Http\IRequest $httpRequest): ?array
+	{
+		if ($httpRequest = $this->prepareRequest($httpRequest)) {
+			foreach ($this->list as [$router]) {
+				if (
+					($params = $router->match($httpRequest)) !== null
+					&& ($params = $this->completeParameters($params)) !== null
+				) {
+					return $params;
+				}
+			}
+		}
+		return null;
+	}
+
+
+	protected function prepareRequest(Nette\Http\IRequest $httpRequest): ?Nette\Http\IRequest
 	{
 		if ($this->domain) {
 			$host = $httpRequest->getUrl()->getHost();
@@ -60,22 +67,25 @@ class RouteList implements Router
 
 		if ($this->path) {
 			$url = $httpRequest->getUrl();
-			if (strncmp($url->getRelativePath(), $this->path, strlen($this->path))) {
+			$relativePath = $url->getRelativePath();
+			if (strncmp($relativePath, $this->path, strlen($this->path)) === 0) {
+				$url = $url->withPath($url->getPath(), $url->getBasePath() . $this->path);
+			} elseif ($relativePath . '/' === $this->path) {
+				$url = $url->withPath($url->getPath() . '/');
+			} else {
 				return null;
 			}
 
-			$url = $url->withPath($url->getPath(), $url->getBasePath() . $this->path);
 			$httpRequest = $httpRequest->withUrl($url);
 		}
 
-		foreach ($this->list as [$router]) {
-			$params = $router->match($httpRequest);
-			if ($params !== null) {
-				return $params;
-			}
-		}
+		return $httpRequest;
+	}
 
-		return null;
+
+	protected function completeParameters(array $params): ?array
+	{
+		return $params;
 	}
 
 
@@ -87,7 +97,7 @@ class RouteList implements Router
 		if ($this->domain) {
 			if (!isset($this->refUrlCache[$refUrl])) {
 				$this->refUrlCache[$refUrl] = $refUrl->withHost(
-					$this->expandDomain($refUrl->getHost())
+					$this->expandDomain($refUrl->getHost()),
 				);
 			}
 
@@ -128,7 +138,7 @@ class RouteList implements Router
 		$candidates = [];
 		$routers = [];
 		foreach ($this->list as [$router, $flags]) {
-			if ($flags & self::ONE_WAY) {
+			if ($flags[self::OneWay]) {
 				continue;
 			} elseif ($router instanceof self) {
 				$router->warmupCache();
@@ -177,11 +187,10 @@ class RouteList implements Router
 
 	/**
 	 * Adds a router.
-	 * @return static
 	 */
-	public function add(Router $router, int $flags = 0)
+	public function add(Router $router, bool $oneWay = false): static
 	{
-		$this->list[] = [$router, $flags];
+		$this->list[] = [$router, [self::OneWay => $oneWay]];
 		$this->ranks = null;
 		return $this;
 	}
@@ -190,9 +199,9 @@ class RouteList implements Router
 	/**
 	 * Prepends a router.
 	 */
-	public function prepend(Router $router, int $flags = 0): void
+	public function prepend(Router $router, bool $oneWay = false): void
 	{
-		array_splice($this->list, 0, 0, [[$router, $flags]]);
+		array_splice($this->list, 0, 0, [[$router, [self::OneWay => $oneWay]]]);
 		$this->ranks = null;
 	}
 
@@ -212,23 +221,17 @@ class RouteList implements Router
 	}
 
 
-	/**
-	 * @param  string  $mask  e.g. '<presenter>/<action>/<id \d{1,3}>'
-	 * @param  array  $metadata  default values or metadata
-	 * @return static
-	 */
-	public function addRoute(string $mask, $metadata = [], int $flags = 0)
+	public function addRoute(string $mask, array $metadata = [], bool $oneWay = false): static
 	{
-		$this->add(new Route($mask, $metadata), $flags);
+		$this->add(new Route($mask, $metadata), $oneWay);
 		return $this;
 	}
 
 
 	/**
 	 * Returns an iterator over all routers.
-	 * @return static
 	 */
-	public function withDomain(string $domain)
+	public function withDomain(string $domain): static
 	{
 		$router = new static;
 		$router->domain = $domain;
@@ -239,10 +242,7 @@ class RouteList implements Router
 	}
 
 
-	/**
-	 * @return static
-	 */
-	public function withPath(string $path)
+	public function withPath(string $path): static
 	{
 		$router = new static;
 		$router->path = rtrim($path, '/') . '/';
@@ -253,10 +253,7 @@ class RouteList implements Router
 	}
 
 
-	/**
-	 * @return ?static
-	 */
-	public function end()
+	public function end(): ?static
 	{
 		return $this->parent;
 	}
@@ -272,7 +269,7 @@ class RouteList implements Router
 
 
 	/**
-	 * @return int[]
+	 * @return bool[]
 	 */
 	public function getFlags(): array
 	{

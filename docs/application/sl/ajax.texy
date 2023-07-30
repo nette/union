@@ -10,9 +10,25 @@ Sodobne spletne aplikacije danes tečejo pol na strežniku in pol v brskalniku. 
 
 </div>
 
-Zahtevo AJAX je mogoče zaznati z metodo storitve, ki [enkapsulira zahtevo HTTP |http:request] `$httpRequest->isAjax()` (zaznava na podlagi glave `X-Requested-With` HTTP). Obstaja tudi skrajšana metoda v programu presenter: `$this->isAjax()`.
 
-Zahteva AJAX se v ničemer ne razlikuje od običajne zahteve - presenter se pokliče z določenim pogledom in parametri. Tudi od predstavnika je odvisno, kako se bo odzval: s svojimi rutinami lahko vrne fragment kode HTML (snippet), dokument XML, objekt JSON ali del kode Javascript.
+Zahteva AJAX .[#toc-ajax-request]
+=================================
+
+Zahteva AJAX se ne razlikuje od klasične zahteve - predvajalnik se pokliče z določenim pogledom in parametri. Prav tako je od predstavnika odvisno, kako se bo nanjo odzval: uporabi lahko svojo rutino, ki vrne fragment kode HTML (fragment HTML), dokument XML, objekt JSON ali kodo JavaScript.
+
+Na strani brskalnika začnemo zahtevo AJAX s funkcijo `fetch()`:
+
+```js
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+.then(response => response.json())
+.then(payload => {
+	// obdelava odzivov
+});
+```
+
+Na strani strežnika lahko zahtevo AJAX zaznamo z metodo `$httpRequest->isAjax()` storitve [enkapsulacije zahtevkov HTTP |http:request], ki zahtevo zazna s pomočjo glave HTTP `X-Requested-With`. Znotraj predstavnika je na voljo "bližnjica" v obliki metode `$this->isAjax()`.
 
 Na voljo je vnaprej obdelan objekt, imenovan `payload`, namenjen pošiljanju podatkov brskalniku v obliki JSON.
 
@@ -26,13 +42,13 @@ public function actionDelete(int $id): void
 }
 ```
 
-Za popoln nadzor nad izpisom JSON uporabite metodo `sendJson` v svojem predstavitvenem programu. S tem se takoj zaključi predstavitveni program, vi pa boste opravili brez predloge:
+Če potrebujete popoln nadzor nad poslanim JSON, uporabite metodo predstavnika `sendJson()`, ki pošlje podatke in zapusti predstavnik. Tako ne pride do izrisa predloge:
 
 ```php
 $this->sendJson(['key' => 'value', /* ... */]);
 ```
 
-Če želimo poslati HTML, lahko nastavimo posebno predlogo za zahteve AJAX:
+Lahko se odzovete tudi tako, da prikažete posebno predlogo za AJAX:
 
 ```php
 public function handleClick($param): void
@@ -60,6 +76,21 @@ npm install naja
 <script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
 ```
 
+Če želite ustvariti zahtevo AJAX iz običajne povezave (signala) ali oddaje obrazca, preprosto označite ustrezno povezavo, obrazec ali gumb z razredom `ajax`:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+or
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
 
 . .[#toc-snippets]
 ==================
@@ -71,8 +102,8 @@ Snippets delujejo tako, da se med začetno zahtevo (tj. zahtevo brez AJAX-a) pre
 Snippets vas morda spominjajo na Hotwire za Ruby on Rails ali Symfony UX Turbo, vendar jih je Nette zasnoval že štirinajst let prej.
 
 
-Neveljavnost nizov (Snippets) .[#toc-invalidation-of-snippets]
-==============================================================
+Ponovno risanje utrinkov
+------------------------
 
 Vsak potomec razreda [Control |components] (kar je tudi Presenter) si lahko zapomni, ali je med zahtevo prišlo do kakšnih sprememb, zaradi katerih je treba ponovno prikazati. Za to obstaja par metod: `redrawControl()` in `isControlInvalid()`. Primer:
 
@@ -103,14 +134,10 @@ Komponenta, ki prejme signal, je samodejno označena za ponovno izrisovanje.
 Zahvaljujoč ponovnemu izrisu snippetov natančno vemo, katere dele katerih elementov je treba ponovno izrisati.
 
 
-Oznaka `{snippet} … {/snippet}` .{toc: Tag snippet}
-===================================================
+Utrinki v Latte
+---------------
 
 Prikazovanje strani poteka zelo podobno kot pri običajni zahtevi: naložijo se iste predloge itd. Bistveno pa je, da se izpustijo deli, ki naj ne bi dosegli izpisa; drugi deli se povežejo z identifikatorjem in pošljejo uporabniku v obliki, razumljivi za obdelovalnik JavaScript.
-
-
-Sintaksa .[#toc-syntax]
------------------------
 
 Če je v predlogi kontrolni element ali izsek, ga moramo oviti z uporabo oznake `{snippet} ... {/snippet}` pair - ta bo poskrbela, da bo izrisani izsek "izrezan" in poslan brskalniku. Prav tako ga bo zaprla v pomožno vrstico `<div>` (možno je uporabiti tudi drugačno oznako). V naslednjem primeru je opredeljen izsek z imenom `header`. Prav tako lahko predstavlja predlogo komponente:
 
@@ -130,14 +157,14 @@ Snippet tipa, ki ni `<div>` ali izsek z dodatnimi atributi HTML se doseže z upo
 
 
 Dinamični utrinki .[#toc-dynamic-snippets]
-==========================================
+------------------------------------------
 
 V programu Nette lahko na podlagi parametra v času izvajanja določite tudi dinamično ime snippetov. To je najbolj primerno za različne sezname, kjer moramo spremeniti samo eno vrstico, vendar ne želimo skupaj z njo prenesti celotnega seznama. Primer tega je:
 
 ```latte
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-		<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+		<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 ```
@@ -149,7 +176,7 @@ Dinamičnega utrinka ne morete narisati neposredno (ponovno narisanje `item-1` n
 V zgornjem primeru morate poskrbeti, da bo za zahtevo AJAX v polje `$list` dodan samo en element, zato bo zanka `foreach` izpisala samo en dinamični odlomek.
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	/**
 	 * This method returns data for the list.
@@ -185,7 +212,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 
 Utrinki v vključeni predlogi .[#toc-snippets-in-an-included-template]
-=====================================================================
+---------------------------------------------------------------------
 
 Lahko se zgodi, da je snippet v predlogi, ki je vključena iz druge predloge. V tem primeru moramo vključitveno kodo v drugi predlogi oviti z oznako `snippetArea`, nato pa ponovno narišemo območje snippetArea in dejanski snippet.
 
@@ -212,7 +239,7 @@ Kombinirate jo lahko tudi z dinamičnimi utrinki.
 
 
 Dodajanje in brisanje .[#toc-adding-and-deleting]
-=================================================
+-------------------------------------------------
 
 Če na seznam dodate nov element in razveljavite `itemsContainer`, zahteva AJAX vrne odlomke, vključno z novim elementom, vendar ga obdelovalnik javascript ne bo mogel prikazati. Razlog za to je, da ni elementa HTML z novo ustvarjenim ID.
 
@@ -222,7 +249,7 @@ V tem primeru je najpreprostejši način, da celoten seznam zavijete v še en iz
 {snippet wholeList}
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+	<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 {/snippet}
@@ -246,21 +273,21 @@ Pošiljanje parametrov sestavini .[#toc-sending-parameters-to-component]
 
 Ko komponenti prek zahteve AJAX pošiljamo parametre, bodisi signalne bodisi trajne, moramo navesti njihovo globalno ime, ki vsebuje tudi ime komponente. Polno ime parametra vrne metoda `getParameterId()`.
 
-```js
-$.getJSON(
-	{link changeCountBasket!},
-	{
-		{$control->getParameterId('id')}: id,
-		{$control->getParameterId('count')}: count
-	}
-});
+```latte
+<script>
+let url = new URL({link //foo!});
+url.searchParams.set({$control->getParameterId('bar')}, bar);
+
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+</script>
 ```
 
-In obdela metodo z ustreznimi parametri v komponenti.
+Metoda handle z ustreznimi parametri v komponenti:
 
 ```php
-public function handleChangeCountBasket(int $id, int $count): void
+public function handleFoo(int $bar): void
 {
-
 }
 ```

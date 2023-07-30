@@ -444,4 +444,28 @@ services:
 ```
 
 
+Servicios DI .[#toc-di-services]
+================================
+
+Estos servicios se añaden al contenedor DI:
+
+| Nombre | Tipo | Descripción
+|----------------------------------------------------------
+| `cache.journal` | [api:Nette\Caching\Storages\Journal] | Journal
+| `cache.storage` | [api:Nette\Caching\Storage] | Repositorio
+
+
+Cómo desactivar la caché .[#toc-turning-off-cache]
+==================================================
+
+Una de las formas de desactivar el almacenamiento en caché en la aplicación es establecer el almacenamiento a [DevNullStorage |#DevNullStorage]:
+
+```neon
+services:
+	cache.storage: Nette\Caching\Storages\DevNullStorage
+```
+
+Esta configuración no afecta al almacenamiento en caché de las plantillas en Latte o el contenedor DI, ya que estas bibliotecas no utilizan los servicios de nette/caching y gestionan su caché de forma independiente. Además, [no es necesario desactivar |nette:troubleshooting#how-to-disable-cache-during-development] su caché en el modo de desarrollo.
+
+
 {{leftbar: nette:@menu-topics}}

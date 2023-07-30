@@ -60,7 +60,7 @@ abstract class ChoiceControl extends BaseControl
 
 		if ($this->checkDefaultValue && $value !== null && !array_key_exists((string) $value, $this->items)) {
 			$set = Nette\Utils\Strings::truncate(
-				implode(', ', array_map(fn($s) => var_export($s, true), array_keys($this->items))),
+				implode(', ', array_map(fn($s) => var_export($s, return: true), array_keys($this->items))),
 				70,
 				'...',
 			);
@@ -140,7 +140,7 @@ abstract class ChoiceControl extends BaseControl
 		}
 
 		parent::setDisabled(false);
-		$this->disabled = array_fill_keys($value, true);
+		$this->disabled = array_fill_keys($value, value: true);
 		if (isset($this->disabled[$this->value])) {
 			$this->value = null;
 		}

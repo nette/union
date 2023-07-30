@@ -28,15 +28,15 @@ Assert::exception(function () {
 	$def = new FactoryDefinition;
 	$resolver = new Nette\DI\Resolver(new Nette\DI\ContainerBuilder);
 	$resolver->resolveDefinition($def);
-}, Nette\DI\ServiceCreationException::class, 'Type is missing in definition of service.');
+}, Nette\DI\ServiceCreationException::class, '[Service ?]
+Type is missing in definition of service.');
 
 
 Assert::exception(function () {
 	$def = new FactoryDefinition;
-	@$def->setImplement(Bad1::class); // missing type triggers warning
-	$resolver = new Nette\DI\Resolver(new Nette\DI\ContainerBuilder);
-	$resolver->resolveDefinition($def);
-}, Nette\DI\ServiceCreationException::class, 'Service of type Bad1: Return type of Bad1::create() is not declared.');
+	$def->setImplement(Bad1::class);
+}, Nette\DI\ServiceCreationException::class, '[Service ?]
+Return type of Bad1::create() is not declared.');
 
 
 Assert::noError(function () {
@@ -77,4 +77,5 @@ Assert::exception(function () {
 
 	$resolver = new Nette\DI\Resolver(new Nette\DI\ContainerBuilder);
 	$resolver->resolveDefinition($def);
-}, Nette\DI\ServiceCreationException::class, 'Service of type Good1: Factory for stdClass cannot create incompatible DateTime type.');
+}, Nette\DI\ServiceCreationException::class, '[Service of type Good1]
+Factory for stdClass cannot create incompatible DateTime type.');

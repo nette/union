@@ -6,13 +6,16 @@ Dokumentace Nette
 <div>
 
 
+Seznámení
+---------
+- [Proč používat Nette? |www:10-reasons-why-nette]
+- [Instalace |installation]
+- [Píšeme první aplikaci! |quickstart:]
+
+
 Obecné
 ------
-- [Proč používat Nette? |www:10-reasons-why-nette]
-- <b>[Píšeme první aplikaci! |quickstart:]</b>
-
-
-- [Balíčky & instalace |www:packages]
+- [Seznam balíčků |www:packages]
 - [Údržba a PHP verze |www:maintenance]
 - [Release Notes |https://nette.org/releases]
 - [Přechod na novější verze|migrations:]
@@ -20,6 +23,7 @@ Obecné
 - [Kdo tvoří Nette |https://nette.org/contributors]
 - [Historie Nette |www:history]
 - [Zapojte se |contributing:]
+- [Podpořte vývoj |https://nette.org/cs/donate]
 - [API reference |https://api.nette.org/]
 </div>
 
@@ -80,11 +84,11 @@ Utilities
 - [utils:JSON]
 - [NEON|neon:]
 - [Hashování hesel |security:passwords]
-- [SmartObject |utils:smartobject]
 - [PHP typy |utils:type]
 - [Řetězce |utils:strings]
 - [Validátory |utils:validators]
 - [RobotLoader |robot-loader:]
+- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
 - [SafeStream |safe-stream:]
 - [...další |utils:]
 </div>

@@ -2,7 +2,6 @@
 
 /**
  * Test: TemplateFactory in Bridge properly handles TemplateFactory::onCreate
- * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -14,10 +13,6 @@ use Nette\Http;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-
-if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-	Tester\Environment::skip('Test for Latte 3');
-}
 
 
 test('', function () {

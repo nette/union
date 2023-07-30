@@ -50,7 +50,7 @@ test('', function () {
 			'd' => new DynamicParameter("\$this->parameters['int']"),
 			'arr' => ['x' => new DynamicParameter("\$this->parameters['baz']")],
 			'anyOf' => new DynamicParameter("\$this->parameters['anyOf']"),
-		], $context)
+		], $context),
 	);
 
 	Assert::equal(
@@ -58,20 +58,24 @@ test('', function () {
 			[
 				new DynamicParameter("\$this->parameters['foo']"),
 				'string',
+				['a'],
 			],
 			[
 				new DynamicParameter("\$this->parameters['bar']"),
 				'string',
+				['b'],
 			],
 			[
 				new DynamicParameter("\$this->parameters['int']"),
 				'int:10..20',
+				['d'],
 			],
 			[
 				new DynamicParameter("\$this->parameters['baz']"),
 				'int',
+				['arr', 'x'],
 			],
 		],
-		$context->dynamics
+		$context->dynamics,
 	);
 });

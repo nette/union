@@ -2,7 +2,6 @@
 
 /**
  * Test: LatteExtension v3
- * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -11,10 +10,6 @@ use Nette\DI;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-
-if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-	Tester\Environment::skip('Test for Latte 3');
-}
 
 
 class MyExtension extends Latte\Extension
@@ -52,7 +47,7 @@ services:
 ', 'neon'));
 
 $compiler = new DI\Compiler;
-$compiler->addExtension('latte', new Nette\Bridges\ApplicationDI\LatteExtension('', false));
+$compiler->addExtension('latte', new Nette\Bridges\ApplicationDI\LatteExtension('', debugMode: false));
 $compiler->addExtension('another', new AnotherExtension);
 $code = $compiler->addConfig($config)->compile();
 eval($code);

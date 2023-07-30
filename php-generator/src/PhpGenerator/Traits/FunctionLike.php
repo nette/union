@@ -141,6 +141,7 @@ trait FunctionLike
 	}
 
 
+	/** @return ($asObject is true ? ?Type : ?string) */
 	public function getReturnType(bool $asObject = false): Type|string|null
 	{
 		return $asObject && $this->returnType
@@ -171,14 +172,6 @@ trait FunctionLike
 
 	public function isReturnNullable(): bool
 	{
-		return $this->returnNullable;
-	}
-
-
-	/** @deprecated  use isReturnNullable() */
-	public function getReturnNullable(): bool
-	{
-		trigger_error(__METHOD__ . '() is deprecated, use isReturnNullable().', E_USER_DEPRECATED);
 		return $this->returnNullable;
 	}
 }

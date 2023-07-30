@@ -158,7 +158,7 @@ Metoda `forward()` trece imediat la noul prezentator, fără redirecționare HTT
 $this->forward('Product:show');
 ```
 
-Exemplu de redirecționare temporară cu codul HTTP 302 sau 303:
+Exemplu de așa-numită redirecționare temporară cu codul HTTP 302 (sau 303, dacă metoda de solicitare curentă este POST):
 
 ```php
 $this->redirect('Product:show', $id);
@@ -170,7 +170,7 @@ Pentru a obține o redirecționare permanentă cu codul HTTP 301, utilizați:
 $this->redirectPermanent('Product:show', $id);
 ```
 
-Puteți redirecționa către un alt URL din afara aplicației cu metoda `redirectUrl()`:
+Puteți redirecționa către o altă adresă URL din afara aplicației utilizând metoda `redirectUrl()`. Codul HTTP poate fi specificat ca al doilea parametru, valoarea implicită fiind 302 (sau 303, dacă metoda de solicitare curentă este POST):
 
 ```php
 $this->redirectUrl('https://nette.org');
@@ -236,49 +236,83 @@ public function actionData(): void
 ```
 
 
-Parametrii persistenți .[#toc-persistent-parameters]
-====================================================
+Parametrii cererii .[#toc-request-parameters]
+=============================================
 
-Parametrii persistenți sunt **transferați automat** în legături. Acest lucru înseamnă că nu trebuie să îi specificăm în mod explicit în fiecare `link()` sau `n:href` din șablon, dar ei vor fi totuși transferați.
+Prezentatorul, ca și fiecare componentă, își obține parametrii din cererea HTTP. Valorile acestora pot fi recuperate cu ajutorul metodei `getParameter($name)` sau `getParameters()`. Valorile sunt șiruri de caractere sau rețele de șiruri de caractere, în esență date brute obținute direct din URL.
 
-Dacă aplicația dvs. are mai multe versiuni lingvistice, atunci limba curentă este un parametru care trebuie să facă întotdeauna parte din URL. Și ar fi incredibil de obositor să îl menționați în fiecare link. Acest lucru nu este necesar cu Nette. Pur și simplu marcăm parametrul `lang` ca fiind persistent în acest mod:
+Pentru mai multă comoditate, recomandăm ca parametrii să fie accesibili prin intermediul proprietăților. Este suficient să îi adnotați cu ajutorul caracterului `#[Parameter]` atribut:
 
 ```php
-class ProductPresenter extends Nette\Application\UI\Presenter
+use Nette\Application\Attributes\Parameter;  // această linie este importantă
+
+class HomePresenter extends Nette\Application\UI\Presenter
 {
-	/** @persistent */
-	public string $lang;
+	#[Parameter]
+	public string $theme; // trebuie să fie publică
 }
 ```
 
-Dacă valoarea curentă a parametrului `lang` este `'en'`, atunci URL-ul creat cu `link()` sau `n:href` în șablon va conține `lang=en`. Minunat!
+Pentru proprietăți, sugerăm să se precizeze tipul de date (de exemplu, `string`). Apoi, Nette va transforma automat valoarea pe baza acestuia. Valorile parametrilor pot fi, de asemenea, [validate |#Validation of Parameters].
 
-Cu toate acestea, putem adăuga și parametrul `lang` și, prin aceasta, putem schimba valoarea acestuia:
-
-```latte
-<a n:href="Product:show $id, lang: en">detail in English</a>
-```
-
-Sau, dimpotrivă, poate fi eliminat prin setarea la null:
+Atunci când creați o legătură, puteți seta direct valoarea parametrilor:
 
 ```latte
-<a n:href="Product:show $id, lang: null">click here</a>
+<a n:href="Home:default theme: dark">click</a>
 ```
 
-Variabila persistentă trebuie să fie declarată ca fiind publică. De asemenea, putem specifica o valoare implicită. Dacă parametrul are aceeași valoare ca cea implicită, acesta nu va fi inclus în URL.
 
-Persistența reflectă ierarhia claselor de prezentatori, astfel încât parametrul definit într-un anumit prezentator sau trăsătură este apoi transferat automat la fiecare prezentator care moștenește din acesta sau care utilizează aceeași trăsătură.
+Parametrii persistenți .[#toc-persistent-parameters]
+====================================================
 
-În PHP 8, puteți utiliza, de asemenea, atribute pentru a marca parametrii persistenți:
+Parametrii persistenți sunt utilizați pentru a menține starea între diferite cereri. Valoarea lor rămâne aceeași chiar și după ce se face clic pe un link. Spre deosebire de datele de sesiune, aceștia sunt trecuți în URL. Acest lucru este complet automat, astfel încât nu este nevoie să îi menționăm în mod explicit în `link()` sau `n:href`.
+
+Exemplu de utilizare? Aveți o aplicație multilingvă. Limba actuală este un parametru care trebuie să facă parte în permanență din URL. Dar ar fi incredibil de anevoios să îl includeți în fiecare link. Așa că îl transformați într-un parametru persistent numit `lang` și se va păstra singur. E foarte bine!
+
+Crearea unui parametru persistent este extrem de ușoară în Nette. Trebuie doar să creați o proprietate publică și să o marcați cu atributul: (anterior se folosea `/** @persistent */` )
 
 ```php
-use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Persistent; // această linie este importantă
 
 class ProductPresenter extends Nette\Application\UI\Presenter
 {
 	#[Persistent]
+	public string $lang; // trebuie să fie publice
+}
+```
+
+Dacă `$this->lang` are o valoare, cum ar fi `'en'`, atunci legăturile create folosind `link()` sau `n:href` vor conține și parametrul `lang=en`. Iar atunci când se face clic pe link, acesta va fi din nou `$this->lang = 'en'`.
+
+Pentru proprietăți, vă recomandăm să includeți tipul de date (de exemplu, `string`) și puteți include și o valoare implicită. Valorile parametrilor pot fi [validate |#Validation of Parameters].
+
+Parametrii persistenți sunt trecuți în mod implicit între toate acțiunile unui anumit prezentator. Pentru a-i transmite între mai mulți prezentatori, trebuie să îi definiți fie:
+
+- într-un strămoș comun din care moștenesc prezentatorii
+- în trăsătura pe care o utilizează prezentatorii:
+
+```php
+trait LangAware
+{
+	#[Persistent]
 	public string $lang;
 }
+
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	use LangAware;
+}
+```
+
+Puteți modifica valoarea unui parametru persistent atunci când creați o legătură:
+
+```latte
+<a n:href="Product:show $id, lang: cs">detail in Czech</a>
+```
+
+Sau poate fi *restat*, adică eliminat din URL. În acest caz, va lua valoarea implicită:
+
+```latte
+<a n:href="Product:show $id, lang: null">click</a>
 ```
 
 
@@ -299,16 +333,37 @@ Aprofundare .[#toc-going-deeper]
 Ceea ce am arătat până acum în acest capitol va fi probabil suficient. Rândurile următoare sunt destinate celor care sunt interesați de prezentatori în profunzime și doresc să știe totul.
 
 
-Cerință și parametri .[#toc-requirement-and-parameters]
+Validarea parametrilor .[#toc-validation-of-parameters]
 -------------------------------------------------------
 
-Cererea gestionată de prezentator este obiectul [api:Nette\Application\Request] și este returnată de metoda prezentatorului `getRequest()`. Acesta include o matrice de parametri și fiecare dintre ei aparține fie unora dintre componente, fie direct prezentatorului (care este de fapt tot o componentă, deși una specială). Așadar, Nette redistribui parametrii și trece între componentele individuale (și prezentator) prin apelarea metodei `loadState(array $params)`, care este descrisă în continuare în capitolul [Componente |Components]. Parametrii pot fi obținuți prin metoda `getParameters(): array`, folosind individual `getParameter($name)`. Valorile parametrilor sunt șiruri de caractere sau array-uri de șiruri de caractere, acestea fiind practic date brute obținute direct dintr-un URL.
+Valorile [parametrilor de cerere |#request parameters] și ale [parametrilor persistenți |#persistent parameters] primiți de la URL-uri sunt scrise în proprietăți prin metoda `loadState()`. Aceasta verifică, de asemenea, dacă tipul de date specificat în proprietate corespunde, în caz contrar se va răspunde cu o eroare 404 și pagina nu va fi afișată.
+
+Nu vă încredeți niciodată orbește în parametri, deoarece aceștia pot fi ușor suprascriși de către utilizator în URL. De exemplu, iată cum verificăm dacă `$this->lang` se află printre limbile acceptate. O modalitate bună de a face acest lucru este să suprascrieți metoda `loadState()` menționată mai sus:
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $lang;
+
+	public function loadState(array $params): void
+	{
+		parent::loadState($params); // aici este setat $this->lang
+		// urmează verificarea valorii utilizatorului:
+		if (!in_array($this->lang, ['en', 'cs'])) {
+			$this->error();
+		}
+	}
+}
+```
 
 
 Salvarea și restaurarea cererii .[#toc-save-and-restore-the-request]
 --------------------------------------------------------------------
 
-Puteți salva cererea curentă într-o sesiune sau o puteți restaura din sesiune și permite prezentatorului să o execute din nou. Acest lucru este util, de exemplu, atunci când un utilizator completează un formular și login-ul său expiră. Pentru a nu pierde date, înainte de redirecționarea către pagina de autentificare, salvăm cererea curentă în sesiune folosind `$reqId = $this->storeRequest()`, care returnează un identificator sub forma unui șir scurt și îl transmite ca parametru către prezentatorul de autentificare.
+Cererea pe care o gestionează prezentatorul este un obiect [api:Nette\Application\Request] și este returnată de metoda prezentatorului `getRequest()`.
+
+Puteți salva cererea curentă într-o sesiune sau o puteți restaura din sesiune și permite prezentatorului să o execute din nou. Acest lucru este util, de exemplu, atunci când un utilizator completează un formular și login-ul său expiră. Pentru a nu pierde date, înainte de redirecționarea către pagina de conectare, salvăm cererea curentă în sesiune cu ajutorul aplicației `$reqId = $this->storeRequest()`, care returnează un identificator sub forma unui șir scurt și îl transmite ca parametru către prezentatorul de conectare.
 
 După conectare, apelăm metoda `$this->restoreRequest($reqId)`, care preia cererea din sesiune și o transmite acesteia. Metoda verifică dacă cererea a fost creată de același utilizator ca și cel care s-a logat acum este. Dacă un alt utilizator se conectează sau dacă cheia nu este validă, nu face nimic și programul continuă.
 
@@ -390,6 +445,27 @@ $callback = function (Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $ht
 };
 $this->sendResponse(new Responses\CallbackResponse($callback));
 ```
+
+
+Verificarea metodei HTTP .[#toc-http-method-check]
+--------------------------------------------------
+
+Prezentatorii din Nette verifică automat metoda HTTP a fiecărei cereri primite. Motivul principal al acestei verificări este securitatea. Verificarea metodei se efectuează în `checkHttpMethod()`, care determină dacă metoda specificată în cerere este inclusă în matricea `$presenter->allowedMethods`. În mod implicit, această matrice conține elementele `GET`, `POST`, `HEAD`, , `PUT`, `DELETE`, `PATCH`, ceea ce înseamnă că aceste metode sunt permise.
+
+Dacă doriți să permiteți în plus metoda `OPTIONS`, acest lucru poate fi realizat în felul următor:
+
+```php
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+    protected function checkHttpMethod(): void
+    {
+        $this->allowedMethods[] = 'OPTIONS';
+        parent::checkHttpMethod();
+    }
+}
+```
+
+Este esențial să subliniem faptul că, dacă activați metoda `OPTIONS`, trebuie să o gestionați în mod corespunzător și în prezentator. Această metodă este adesea utilizată ca o așa-numită cerere de preflight, pe care browserele o trimit automat înainte de cererea efectivă atunci când este necesar să se determine dacă cererea este permisă din punctul de vedere al politicii CORS (Cross-Origin Resource Sharing). Dacă permiteți această metodă, dar nu implementați un răspuns adecvat, aceasta poate duce la inconsecvențe și la potențiale probleme de securitate.
 
 
 Lecturi suplimentare .[#toc-further-reading]

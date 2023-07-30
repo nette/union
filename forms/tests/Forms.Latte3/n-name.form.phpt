@@ -7,10 +7,6 @@ use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
-if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-	Tester\Environment::skip('Test for Latte 3');
-}
-
 
 $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader);
@@ -39,7 +35,7 @@ Assert::match(
 				$ʟ_tag[0] = '';
 				if (0) /* line 1 */ {
 					echo '<';
-					echo $ʟ_tmp = ('form');
+					echo $ʟ_tmp = 'form' /* line 1 */;
 					$ʟ_tag[0] = '</' . $ʟ_tmp . '>' . $ʟ_tag[0];
 					echo $this->global->forms->renderFormBegin([], false) /* line 1 */;
 					echo '>';

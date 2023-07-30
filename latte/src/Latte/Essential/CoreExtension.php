@@ -188,7 +188,7 @@ final class CoreExtension extends Latte\Extension
 			'last' => [Filters::class, 'last'],
 			'odd' => [Filters::class, 'odd'],
 			'slice' => [Filters::class, 'slice'],
-			'blockExists' => fn(string $name): bool => $this->template->hasBlock($name),
+			'hasBlock' => fn(string $name): bool => $this->template->hasBlock($name),
 		];
 	}
 

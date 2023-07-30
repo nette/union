@@ -10,9 +10,25 @@ Moderní webové aplikace dnes běží napůl na serveru, napůl v prohlížeči
 
 </div>
 
-AJAXový požadavek lze detekovat metodou služby [zapouzdřující HTTP požadavek |http:request] `$httpRequest->isAjax()` (detekuje podle HTTP hlavičky `X-Requested-With`). Uvnitř presenteru je k dispozici "zkratka" v podobě metody `$this->isAjax()`.
+
+AJAXový požadavek
+=================
 
 AJAXový požadavek se nijak neliší od klasického požadavku - je zavolán presenter s určitým view a parametry. Je také věcí presenteru, jak bude na něj reagovat: může použít vlastní rutinu, která vrátí nějaký fragment HTML kódu (HTML snippet), XML dokument, JSON objekt nebo kód v JavaScriptu.
+
+Na straně prohlížeče odstartujeme AJAXový požadavek pomocí funkce `fetch()`:
+
+```js
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+.then(response => response.json())
+.then(payload => {
+	// zpracování odpovědi
+});
+```
+
+Na straně serveru lze AJAXový požadavek detekovat metodou `$httpRequest->isAjax()` služby [zapouzdřující HTTP požadavek |http:request], která jej detekuje podle HTTP hlavičky `X-Requested-With`. Uvnitř presenteru je k dispozici "zkratka" v podobě metody `$this->isAjax()`.
 
 Pro odesílání dat prohlížeči ve formátu JSON lze využít předpřipravený objekt `payload`:
 
@@ -26,13 +42,13 @@ public function actionDelete(int $id): void
 }
 ```
 
-Pokud potřebujete plnou kontrolu nad odeslaným JSONem, použijte metodu `sendJson` v presenteru. Tím ihned ukončíte činnost presenteru a obejdete se i bez šablony:
+Pokud potřebujete plnou kontrolu nad odeslaným JSONem, použijte metodu presenteru `sendJson()`, která odešle data a ukončí činnost presenteru. Nedojde tedy k vykreslování šablony:
 
 ```php
 $this->sendJson(['key' => 'value', /* ... */]);
 ```
 
-Když chceme odeslat HTML, můžeme jednak zvolit speciální šablonu pro AJAX:
+Nebo naopak můžete odpovědět vykreslením speciální šablony pro AJAX:
 
 ```php
 public function handleClick($param): void
@@ -60,6 +76,21 @@ npm install naja
 <script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
 ```
 
+Aby se z obyčejného odkazu (signálu) nebo odeslání formuláře vytvořil AJAXový požadavek, stačí označit příslušný odkaz, formulář nebo tlačítko třídou `ajax`:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+nebo
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
 
 Snippety
 ========
@@ -71,8 +102,8 @@ Snippety fungují tak, že při prvotním (tedy neAJAXovém) požadavku se přen
 Snippety vám mohou připomínat Hotwire pro Ruby on Rails nebo Symfony UX Turbo, nicméně Nette s nimi přišlo už o čtrnáct let dříve.
 
 
-Invalidace snippetů
-===================
+Překreslení snippetů
+--------------------
 
 Každý objekt třídy [Control |components] (což je i samotný Presenter) si umí zapamatovat, jestli při signálu došlo ke změnám, které si vyžadují jej překreslit. K tomu slouží dvojice metod `redrawControl()` a  `isControlInvalid()`. Příklad:
 
@@ -103,14 +134,10 @@ Komponenta, která přijímá signál, je automaticky označena za invalidní.
 Díky invalidaci snippetů přesně víme, které části kterých prvků bude potřeba překreslit.
 
 
-Tagy `{snippet} … {/snippet}` .{toc: Tag snippet}
-=================================================
+Snippety v Latte
+----------------
 
 Vykreslování stránky probíhá velmi podobně jako při běžném požadavku: načtou se stejné šablony atd. Podstatné však je vynechání částí, které se nemají dostat na výstup; ostatní části se přiřadí k identifikátoru a pošlou se uživateli ve formátu srozumitelném pro obslužný program JavaScriptu.
-
-
-Syntaxe
--------
 
 Pokud se uvnitř šablony nachází control nebo snippet, musíme jej obalit párovou značkou `{snippet} ... {/snippet}` - ty totiž zajistí, že se vykreslený snippet vystřihne a pošle do prohlížeče. Také jej obalí pomocnou značkou `<div>` s vygenerovaným `id`. V uvedeném příkladě je snippet pojmenován jako `header` a může představovat i například šablonu controlu:
 
@@ -130,14 +157,14 @@ Snippetu jiného typu než `<div>` nebo snippetu s dalšími HTML atributy docí
 
 
 Dynamické snippety
-==================
+------------------
 
 Nette také umožňuje používání snippetů, jejichž název se vytvoří až za běhu - tj. dynamicky. Hodí se to pro různé seznamy, kde při změně jednoho řádku nechceme přenášet AJAXem celý seznam, ale stačí onen samotný řádek. Příklad:
 
 ```latte
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+	<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 ```
@@ -149,7 +176,7 @@ Dynamické snippety nelze invalidovat přímo (invalidace `item-1` neudělá vů
 V příkladu výše zkrátka musíte zajistit, aby při ajaxovém požadavku byla v proměnné `$list` pouze jedna položka a tedy aby ten cyklus `foreach` naplnil pouze jeden dynamický snippet:
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	/**
 	 * Tato metoda vrací data pro seznam.
@@ -185,7 +212,7 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 
 
 Snippety v includované šabloně
-==============================
+------------------------------
 
 Může se stát, že máme snippet v šabloně, kterou teprve includujeme do jiné šablony. V takovém případě je nutné vkládání této šablony obalit značkami `snippetArea`, které pak invalidujeme spolu se samotnym snippetem.
 
@@ -212,7 +239,7 @@ Tento přístup se nechá použít i v kombinaci s dynamickými snippety.
 
 
 Přidávání a mazání
-==================
+------------------
 
 Pokud přidáte novou položku a invalidujete `itemsContainer`, pak vám AJAXový požadavek sice vrátí i nový snippet, ale obslužný javascript ho neumí nikam přiřadit. Na stránce totiž zatím není žádný HTML prvek s takovým ID.
 
@@ -222,7 +249,7 @@ V takovém případě je nejjednodušší celý ten seznam obalit ještě jední
 {snippet wholeList}
 <ul n:snippet="itemsContainer">
 	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+	<li n:snippet="item-{$id}">{$item} <a class="ajax" n:href="update! $id">update</a></li>
 	{/foreach}
 </ul>
 {/snippet}
@@ -246,21 +273,21 @@ Posílání parametrů do komponenty
 
 Pokud komponentě pomocí AJAXového požadavku odesíláme parametry, ať už parametry signálu nebo persistentní parametry, musíme u požadavku uvést jejich globální název, který obsahuje i jméno komponenty. Celý název parametru vrací metoda `getParameterId()`.
 
-```js
-$.getJSON(
-	{link changeCountBasket!},
-	{
-		{$control->getParameterId('id')}: id,
-		{$control->getParameterId('count')}: count
-	}
-});
+```latte
+<script>
+let url = new URL({link //foo!});
+url.searchParams.set({$control->getParameterId('bar')}, bar);
+
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+</script>
 ```
 
-A handle metoda s odpovídajícími parametry v komponentě.
+A handle metoda s odpovídajícími parametry v komponentě:
 
 ```php
-public function handleChangeCountBasket(int $id, int $count): void
+public function handleFoo(int $bar): void
 {
-
 }
 ```

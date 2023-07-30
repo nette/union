@@ -7,10 +7,6 @@ use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
-if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-	Tester\Environment::skip('Test for Latte 3');
-}
-
 
 $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader);
@@ -39,7 +35,7 @@ Assert::match(
 Assert::exception(
 	fn() => $latte->compile('{label foo: class => foo /}'),
 	Latte\CompileException::class,
-	"Unexpected '=>foo', expecting end of tag in {label} (on line 1 at column 19)",
+	"Unexpected '=>', expecting end of tag in {label} (on line 1 at column 19)",
 );
 
 Assert::match(

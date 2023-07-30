@@ -35,7 +35,7 @@ class MockSession extends Http\Session
 
 	public function getSection(
 		string $section,
-		string $class = Nette\Http\SessionSection::class
+		string $class = Nette\Http\SessionSection::class,
 	): Nette\Http\SessionSection
 	{
 		return $this->testSection;
@@ -74,10 +74,11 @@ class MockSessionSection extends Nette\Http\SessionSection
 	}
 
 
-	public function setExpiration($expiraton, $variables = null)
+	public function setExpiration(?string $expiraton, string|array|null $variables = null): static
 	{
 		$this->testExpiration = $expiraton;
 		$this->testExpirationVariables = $variables;
+		return $this;
 	}
 
 
@@ -93,7 +94,7 @@ class MockSessionSection extends Nette\Http\SessionSection
 	}
 
 
-	public function offsetGet($name)
+	public function offsetGet($name): mixed
 	{
 	}
 
@@ -110,7 +111,7 @@ class MockUser extends Security\User
 	}
 
 
-	public function getId()
+	public function getId(): string|int
 	{
 		return 'test_id';
 	}
@@ -119,13 +120,12 @@ class MockUser extends Security\User
 test('', function () {
 	$presenter = new TestPresenter;
 	$presenter->injectPrimary(
-		null,
-		null,
-		new Application\Routers\SimpleRouter,
 		new Http\Request(new Http\UrlScript),
 		new Http\Response,
+		null,
+		new Application\Routers\SimpleRouter,
 		$session = new MockSession,
-		$user = new MockUser
+		$user = new MockUser,
 	);
 
 	$section = $session->testSection = new MockSessionSection($session);
@@ -146,12 +146,11 @@ test('', function () {
 test('', function () {
 	$presenter = new TestPresenter;
 	$presenter->injectPrimary(
-		null,
-		null,
-		new Application\Routers\SimpleRouter,
 		new Http\Request(new Http\UrlScript),
 		new Http\Response,
-		$session = new MockSession
+		null,
+		new Application\Routers\SimpleRouter,
+		$session = new MockSession,
 	);
 
 	$section = $session->testSection = new MockSessionSection($session);

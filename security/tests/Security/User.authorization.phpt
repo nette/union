@@ -42,7 +42,7 @@ class Authorizator implements Nette\Security\Authorizator
 {
 	public function isAllowed($role = self::All, $resource = self::All, $privilege = self::All): bool
 	{
-		return $role === 'admin' && strpos($resource, 'jany') === false;
+		return $role === 'admin' && !str_contains($resource, 'jany');
 	}
 }
 
@@ -54,7 +54,7 @@ class TesterRole implements Role
 	}
 }
 
-$user = new Nette\Security\User(null, null, null, new MockUserStorage);
+$user = new Nette\Security\User(new MockUserStorage);
 
 // guest
 Assert::false($user->isLoggedIn());
@@ -81,9 +81,11 @@ Assert::false($user->isInRole('guest'));
 
 
 // authorization
-Assert::exception(function () use ($user) {
-	$user->isAllowed('delete_file');
-}, Nette\InvalidStateException::class, 'Authorizator has not been set.');
+Assert::exception(
+	fn() => $user->isAllowed('delete_file'),
+	Nette\InvalidStateException::class,
+	'Authorizator has not been set.',
+);
 
 $handler = new Authorizator;
 $user->setAuthorizator($handler);

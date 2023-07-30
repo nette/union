@@ -85,7 +85,7 @@ class SelectBox extends ChoiceControl
 		}
 
 		$this->options = $items;
-		return parent::setItems(Nette\Utils\Arrays::flatten($items, true));
+		return parent::setItems(Nette\Utils\Arrays::flatten($items, preserveKeys: true));
 	}
 
 

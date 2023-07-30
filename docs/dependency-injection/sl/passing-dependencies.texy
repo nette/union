@@ -12,7 +12,7 @@ Argumente ali "odvisnosti" v terminologiji DI lahko razredom posredujete na nasl
 
 </div>
 
-Prve tri metode veljajo na splošno v vseh objektno usmerjenih jezikih, četrta pa je specifična za predstavnike Nette, zato je obravnavana v [posebnem poglavju |best-practices:inject-method-attribute]. Zdaj si bomo podrobneje ogledali vsako od teh možnosti in jih prikazali s konkretnimi primeri.
+Različne različice bomo zdaj ponazorili s konkretnimi primeri.
 
 
 Vbrizgavanje konstruktorjev .[#toc-constructor-injection]
@@ -21,17 +21,17 @@ Vbrizgavanje konstruktorjev .[#toc-constructor-injection]
 Odvisnosti se konstruktorju ob ustvarjanju predmeta posredujejo kot argumenti:
 
 ```php
-class MyService
+class MyClass
 {
 	private Cache $cache;
 
-	public function __construct(Cache $service)
+	public function __construct(Cache $cache)
 	{
-		$this->cache = $service;
+		$this->cache = $cache;
 	}
 }
 
-$service = new MyService($cache);
+$obj = new MyClass($cache);
 ```
 
 Ta oblika je uporabna za obvezne odvisnosti, ki jih razred nujno potrebuje za delovanje, saj brez njih primerka ni mogoče ustvariti.
@@ -40,10 +40,10 @@ Od različice PHP 8.0 lahko uporabimo krajšo obliko zapisa ([constructor proper
 
 ```php
 // PHP 8.0
-class MyService
+class MyClass
 {
 	public function __construct(
-		private Cache $service,
+		private Cache $cache,
 	) {
 	}
 }
@@ -53,10 +53,10 @@ Od PHP 8.1 lahko lastnost označimo z zastavico `readonly`, ki izjavlja, da se v
 
 ```php
 // PHP 8.1
-class MyService
+class MyClass
 {
 	public function __construct(
-		private readonly Cache $service,
+		private readonly Cache $cache,
 	) {
 	}
 }
@@ -65,24 +65,84 @@ class MyService
 Kontejner DI samodejno posreduje odvisnosti konstruktorju z uporabo [samodejnega povezovanja |autowiring]. Argumente, ki jih ni mogoče posredovati na ta način (npr. nize, številke, logične vrednosti), [zapiše v konfiguracijo |services#Arguments].
 
 
-Vbrizgavanje množice .[#toc-setter-injection]
-=============================================
+Konstruktorski pekel .[#toc-constructor-hell]
+---------------------------------------------
 
-Odvisnosti se posredujejo s klicem metode, ki jih shrani v zasebne lastnosti. Običajno je poimenovanje teh metod v obliki `set*()`, zato jih imenujemo setterji.
+Izraz *konstruktorski pekel* se nanaša na situacijo, ko potomec podeduje od starševskega razreda, katerega konstruktor zahteva odvisnosti, in tudi potomec zahteva odvisnosti. Prav tako mora prevzeti in prenesti odvisnosti starševskega razreda:
 
 ```php
-class MyService
+abstract class BaseClass
 {
 	private Cache $cache;
 
-	public function setCache(Cache $service): void
+	public function __construct(Cache $cache)
 	{
-		$this->cache = $service;
+		$this->cache = $cache;
 	}
 }
 
-$service = new MyService;
-$service->setCache($cache);
+final class MyClass extends BaseClass
+{
+	private Database $db;
+
+	// ⛔ CONSTRUCTOR HELL
+	public function __construct(Cache $cache, Database $db)
+	{
+		parent::__construct($cache);
+		$this->db = $db;
+	}
+}
+```
+
+Težava se pojavi, ko želimo spremeniti konstruktor razreda `BaseClass`, na primer ko dodamo novo odvisnost. Takrat moramo spremeniti tudi vse konstruktorje otrok. Zaradi tega je takšna sprememba pekel.
+
+Kako to preprečiti? Rešitev je, da **prednost dajemo kompoziciji pred dedovanjem**.
+
+Zato kodo oblikujmo drugače. Izogibali se bomo abstraktnim `Base*` razredom. Namesto da bi razred `MyClass` pridobil neko funkcionalnost s podedovanjem od razreda `BaseClass`, mu bo ta funkcionalnost posredovana kot odvisnost:
+
+```php
+final class SomeFunctionality
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+final class MyClass
+{
+	private SomeFunctionality $sf;
+	private Database $db;
+
+	public function __construct(SomeFunctionality $sf, Database $db) // ✅
+	{
+		$this->sf = $sf;
+		$this->db = $db;
+	}
+}
+```
+
+
+Vbrizgavanje množice .[#toc-setter-injection]
+=============================================
+
+Odvisnosti se posredujejo s klicem metode, ki jih shrani v zasebne lastnosti. Običajno so te metode poimenovane v obliki `set*()`, zato se imenujejo setterji, seveda pa se lahko imenujejo tudi kako drugače.
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function setCache(Cache $cache): void
+	{
+		$this->cache = $cache;
+	}
+}
+
+$obj = new MyClass;
+$obj->setCache($cache);
 ```
 
 Ta metoda je uporabna za neobvezne odvisnosti, ki niso potrebne za delovanje razreda, saj ni zagotovljeno, da jih bo objekt dejansko prejel (tj. da bo uporabnik poklical metodo).
@@ -90,16 +150,16 @@ Ta metoda je uporabna za neobvezne odvisnosti, ki niso potrebne za delovanje raz
 Hkrati ta metoda omogoča, da se setter večkrat pokliče za spremembo odvisnosti. Če to ni zaželeno, metodi dodajte preverjanje ali pa od različice PHP 8.1 označite lastnost `$cache` z zastavico `readonly`.
 
 ```php
-class MyService
+class MyClass
 {
 	private Cache $cache;
 
-	public function setCache(Cache $service): void
+	public function setCache(Cache $cache): void
 	{
 		if ($this->cache) {
 			throw new RuntimeException('The dependency has already been set');
 		}
-		$this->cache = $service;
+		$this->cache = $cache;
 	}
 }
 ```
@@ -108,8 +168,7 @@ Klic setterja je opredeljen v konfiguraciji vsebnika DI v [razdelku setup |servi
 
 ```neon
 services:
-	-
-		create: MyService
+	-	create: MyClass
 		setup:
 			- setCache
 ```
@@ -121,13 +180,13 @@ Vbrizgavanje lastnosti .[#toc-property-injection]
 Odvisnosti se posredujejo neposredno lastnosti:
 
 ```php
-class MyService
+class MyClass
 {
 	public Cache $cache;
 }
 
-$service = new MyService;
-$service->cache = $cache;
+$obj = new MyClass;
+$obj->cache = $cache;
 ```
 
  `public`Tako nimamo nadzora nad tem, ali bo posredovana odvisnost dejansko določenega tipa (to je veljalo pred PHP 7.4), in izgubimo možnost, da bi se na novo dodeljeno odvisnost odzvali z lastno kodo, na primer da bi preprečili nadaljnje spremembe. Hkrati lastnost postane del javnega vmesnika razreda, kar morda ni zaželeno.
@@ -136,11 +195,16 @@ Nastavitev spremenljivke je opredeljena v konfiguraciji vsebnika DI v [razdelku 
 
 ```neon
 services:
-	-
-		create: MyService
+	-	create: MyClass
 		setup:
 			- $cache = @\Cache
 ```
+
+
+Vbrizgajte .[#toc-inject]
+=========================
+
+Medtem ko so prejšnje tri metode na splošno veljavne v vseh objektno usmerjenih jezikih, je injiciranje z metodo, anotacijo ali atributom *inject* značilno za predstavnike Nette. Obravnavani so v [ločenem poglavju |best-practices:inject-method-attribute].
 
 
 Kateri način izbrati? .[#toc-which-way-to-choose]

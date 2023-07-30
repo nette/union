@@ -12,7 +12,7 @@ Arguments, or "dependencies" in DI terminology, can be passed to classes in the 
 
 </div>
 
-The first three methods apply in general in all object-oriented languages, the fourth is specific to Nette presenters, so it is discussed in [separate chapter |best-practices:inject-method-attribute]. We will now take a closer look at each of these options and show them with specific examples.
+We will now illustrate the different variants with concrete examples.
 
 
 Constructor Injection
@@ -21,17 +21,17 @@ Constructor Injection
 Dependencies are passed as arguments to the constructor when the object is created:
 
 ```php
-class MyService
+class MyClass
 {
 	private Cache $cache;
 
-	public function __construct(Cache $service)
+	public function __construct(Cache $cache)
 	{
-		$this->cache = $service;
+		$this->cache = $cache;
 	}
 }
 
-$service = new MyService($cache);
+$obj = new MyClass($cache);
 ```
 
 This form is useful for mandatory dependencies that the class absolutely needs to function, as without them the instance cannot be created.
@@ -40,10 +40,10 @@ Since PHP 8.0, we can use a shorter form of notation ([constructor property prom
 
 ```php
 // PHP 8.0
-class MyService
+class MyClass
 {
 	public function __construct(
-		private Cache $service,
+		private Cache $cache,
 	) {
 	}
 }
@@ -53,10 +53,10 @@ As of PHP 8.1, a property can be marked with a flag `readonly` that declares tha
 
 ```php
 // PHP 8.1
-class MyService
+class MyClass
 {
 	public function __construct(
-		private readonly Cache $service,
+		private readonly Cache $cache,
 	) {
 	}
 }
@@ -65,24 +65,84 @@ class MyService
 DI container passes dependencies to the constructor automatically using [autowiring]. Arguments that cannot be passed in this way (e.g. strings, numbers, booleans) [write in configuration |services#Arguments].
 
 
-Setter Injection
-================
+Constructor Hell
+----------------
 
-Dependencies are passed by calling a method that stores them in a private properties. The usual naming convention for these methods is of the form `set*()`, which is why they are called setters.
+The term *constructor hell* refers to a situation where a child inherits from a parent class whose constructor requires dependencies, and the child requires dependencies too. It must also take over and pass on the parent's dependencies:
 
 ```php
-class MyService
+abstract class BaseClass
 {
 	private Cache $cache;
 
-	public function setCache(Cache $service): void
+	public function __construct(Cache $cache)
 	{
-		$this->cache = $service;
+		$this->cache = $cache;
 	}
 }
 
-$service = new MyService;
-$service->setCache($cache);
+final class MyClass extends BaseClass
+{
+	private Database $db;
+
+	// ⛔ CONSTRUCTOR HELL
+	public function __construct(Cache $cache, Database $db)
+	{
+		parent::__construct($cache);
+		$this->db = $db;
+	}
+}
+```
+
+The problem occurs when we want to change the constructor of the `BaseClass` class, for example when a new dependency is added. Then we have to modify all the constructors of the children as well. Which makes such a modification hell.
+
+How to prevent this? The solution is to **prioritize composition over inheritance**.
+
+So let's design the code differently. We'll avoid abstract `Base*` classes. Instead of `MyClass` getting some functionality by inheriting from `BaseClass`, it will have that functionality passed as a dependency:
+
+```php
+final class SomeFunctionality
+{
+	private Cache $cache;
+
+	public function __construct(Cache $cache)
+	{
+		$this->cache = $cache;
+	}
+}
+
+final class MyClass
+{
+	private SomeFunctionality $sf;
+	private Database $db;
+
+	public function __construct(SomeFunctionality $sf, Database $db) // ✅
+	{
+		$this->sf = $sf;
+		$this->db = $db;
+	}
+}
+```
+
+
+Setter Injection
+================
+
+Dependencies are passed by calling a method that stores them in a private properties. The usual naming convention for these methods is of the form `set*()`, which is why they are called setters, but of course they can be called anything else.
+
+```php
+class MyClass
+{
+	private Cache $cache;
+
+	public function setCache(Cache $cache): void
+	{
+		$this->cache = $cache;
+	}
+}
+
+$obj = new MyClass;
+$obj->setCache($cache);
 ```
 
 This method is useful for optional dependencies that are not necessary for the class function, since it is not guaranteed that the object will actually receive them (i.e., that the user will call the method).
@@ -90,16 +150,16 @@ This method is useful for optional dependencies that are not necessary for the c
 At the same time, this method allows the setter to be called repeatedly to change the dependency. If this is not desirable, add a check to the method, or as of PHP 8.1, mark the property `$cache` with the `readonly` flag.
 
 ```php
-class MyService
+class MyClass
 {
 	private Cache $cache;
 
-	public function setCache(Cache $service): void
+	public function setCache(Cache $cache): void
 	{
 		if ($this->cache) {
 			throw new RuntimeException('The dependency has already been set');
 		}
-		$this->cache = $service;
+		$this->cache = $cache;
 	}
 }
 ```
@@ -108,8 +168,7 @@ The setter call is defined in the DI container configuration in [section setup |
 
 ```neon
 services:
-	-
-		create: MyService
+	-	create: MyClass
 		setup:
 			- setCache
 ```
@@ -121,13 +180,13 @@ Property Injection
 Dependencies are passed directly to the property:
 
 ```php
-class MyService
+class MyClass
 {
 	public Cache $cache;
 }
 
-$service = new MyService;
-$service->cache = $cache;
+$obj = new MyClass;
+$obj->cache = $cache;
 ```
 
 This method is considered inappropriate because the property must be declared as `public`. Hence, we have no control over whether the passed dependency will actually be of the specified type (this was true before PHP 7.4) and we lose the ability to react to the newly assigned dependency with our own code, for example to prevent subsequent changes. At the same time, the property becomes part of the public interface of the class, which may not be desirable.
@@ -136,11 +195,16 @@ The setting of the variable is defined in the DI container configuration in [sec
 
 ```neon
 services:
-	-
-		create: MyService
+	-	create: MyClass
 		setup:
 			- $cache = @\Cache
 ```
+
+
+Inject
+======
+
+While the previous three methods are generally valid in all object-oriented languages, injecting by method, annotation or *inject* attribute is specific to Nette presenters. They are discussed in [a separate chapter |best-practices:inject-method-attribute].
 
 
 Which Way to Choose?

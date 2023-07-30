@@ -18,8 +18,6 @@ use Stringable;
  */
 final class Rules implements \IteratorAggregate
 {
-	use Nette\SmartObject;
-
 	private const NegRules = [
 		Form::Filled => Form::Blank,
 		Form::Blank => Form::Filled,
@@ -252,7 +250,7 @@ final class Rules implements \IteratorAggregate
 				return false;
 
 			} elseif (!$success && !$rule->branch) {
-				$rule->control->addError(Validator::formatMessage($rule, true), false);
+				$rule->control->addError(Validator::formatMessage($rule), translate: false);
 				return false;
 			}
 		}

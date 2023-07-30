@@ -292,7 +292,7 @@ final class Validator
 
 	public static function validatePatternCaseInsensitive(Control $control, string $pattern): bool
 	{
-		return self::validatePattern($control, $pattern, true);
+		return self::validatePattern($control, $pattern, caseInsensitive: true);
 	}
 
 

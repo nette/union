@@ -18,15 +18,15 @@
 		"php": "8.0 - 8.3",
 		"ext-pdo": "*",
 		"nette/caching": "^3.1 || ^4.0",
-		"nette/utils": "^4.0"
+		"nette/utils": "^4.0",
+		"jetbrains/phpstorm-attributes": "dev-master"
 	},
 	"require-dev": {
 		"nette/tester": "^2.5",
 		"nette/di": "^3.1 || ^4.0",
 		"mockery/mockery": "^1.4.3",
 		"tracy/tracy": "^2.8",
-		"phpstan/phpstan-nette": "^1.0",
-		"jetbrains/phpstorm-attributes": "dev-master"
+		"phpstan/phpstan-nette": "^1.0"
 	},
 	"autoload": {
 		"classmap": ["src/"]

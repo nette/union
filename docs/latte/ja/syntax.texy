@@ -155,6 +155,20 @@ Latteでは、パイプ記号を使った記法でフィルタを呼び出すこ
 ```
 
 
+ダイナミックHTMLタグ .[#toc-dynamic-html-tags]
+======================================
+
+Latteは動的HTMLタグをサポートしており、タグ名に柔軟性が必要な場合に便利です：
+
+```latte
+<h{$level}>Heading</h{$level}>
+```
+
+例えば、上記のコードでは `<h1>Heading</h1>`または `<h2>Heading</h2>``$level`を生成することができる。LatteのダイナミックHTMLタグは常にペアでなければなりません。その代わりとなるのが[n:tag |tags#n:tag]です。
+
+Latteは安全なテンプレートシステムであるため、生成されるタグ名が有効で、不要な値や悪意のある値を含まないことをチェックします。また、終了タグ名が常に開始タグ名と同じであることを保証します。
+
+
 コメント .[#toc-comments]
 =====================
 
@@ -238,35 +252,19 @@ modern:      {var $arr = [one: 'item 1', two: 'item 2']}
 ```
 
 
-.{data-version:2.9}
-未定義安全演算子によるオプショナルチェーニング .[#toc-optional-chaining-with-undefined-safe-operator]
-------------------------------------------------------------------------------
-
-未定義安全演算子`??->` は nullsafe 演算子`?->` と似ていますが、変数、プロパティ、インデックスが全く存在しない場合にもエラーを発生させません。
-
-```latte
-{$order??->id}
-```
-
-これは、`$order` が定義されていて null でないときは`$order->id` が計算されるが、`$order` が null か存在しないときは、今やっていることをやめて null を返すだけでよい、ということを意味しています。
-
-```latte
-{$user??->address??->street}
-// roughly means isset($user) && isset($user->address) ? $user->address->street : null
-```
-
-
 歴史への窓 .[#toc-a-window-into-history]
 -----------------------------------
 
 Latteはその歴史の中で、数年後にPHP自体に登場する構文上のお菓子をいくつも生み出してきました。例えば、Latteでは、配列を  の代わりに `[1, 2, 3]`の代わりに`array(1, 2, 3)` と書いたり、ヌルセーフ演算子`$obj?->foo` を使ったりすることが、PHPで可能になるずっと以前から可能でした。また、Latteでは配列展開演算子`(expand) $arr` も導入されており、これは現在のPHPの演算子`...$arr` に相当するものです。
 
+`?->`undefined-safe 演算子`??->` は nullsafe 演算子`?->` と似ていますが、変数が存在しない場合にエラーを発生させません。
+
 
 LatteにおけるPHPの制限事項 .[#toc-php-limitations-in-latte]
 ==================================================
 
-Latteで記述できるのはPHPの式のみです。つまり、クラスを宣言したり、`if`,`foreach`,`switch`,`return`,`try`,`throw` などの[制御 |https://www.php.net/manual/en/language.control-structures.php]構造を使用することはできませんが、Latteはその代わりに[タグを |tags]提供しています。
-また、[属性や |https://www.php.net/manual/en/language.attributes.php] [バックスティック |https://www.php.net/manual/en/language.operators.execution.php]、[マジック定数も |https://www.php.net/manual/en/language.constants.magic.php]使えません。
-`echo`,`include`,`require`,`exit`,`eval`,`unset` は関数ではなく、PHPの特殊な言語構造であり、式ではないので、使うことすらできません。
+Latteで記述できるのは、PHPの表現のみです。つまり、セミコロンで終わる文は使えません。クラスの宣言や、`if`,`foreach`,`switch`,`return`,`try`,`throw` など、Latteが[タグを |tags]提供する代わりに[制御構造を |https://www.php.net/manual/en/language.control-structures.php]使用することはできません。
+また、[アトリビュートや |https://www.php.net/manual/en/language.attributes.php] [バックスティック |https://www.php.net/manual/en/language.operators.execution.php]、[マジック定数も |https://www.php.net/manual/en/language.constants.magic.php]使えない。
+`unset`,`echo`,`include`,`require`,`exit`,`eval` は関数ではなく PHP の特殊な言語構造体であり、式ではないため使用することもできません。サポートされているのは複数行のコメントのみです`/* ... */` 。
 
 しかし、[RawPhpExtension |develop#RawPhpExtension]拡張モジュールを有効にすることで、これらの制限を回避することができます。これにより、テンプレートの作者の責任において`{php ...}` タグで任意の PHP コードを使用することができます。

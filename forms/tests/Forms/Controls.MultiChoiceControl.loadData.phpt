@@ -118,7 +118,7 @@ test('setItems without keys', function () use ($series) {
 
 	$form = new Form;
 	$input = $form['multi'] = new MultiChoiceControl;
-	$input->setItems(array_keys($series), false);
+	$input->setItems(array_keys($series), useKeys: false);
 	Assert::same([
 		'red-dwarf' => 'red-dwarf',
 		'the-simpsons' => 'the-simpsons',
@@ -179,17 +179,23 @@ test('setValue() and invalid argument', function () use ($series) {
 	$input = $form['select'] = new MultiChoiceControl(null, $series);
 	$input->setValue(null);
 
-	Assert::exception(function () use ($input) {
-		$input->setValue('unknown');
-	}, Nette\InvalidArgumentException::class, "Value 'unknown' are out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.");
+	Assert::exception(
+		fn() => $input->setValue('unknown'),
+		Nette\InvalidArgumentException::class,
+		"Value 'unknown' are out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.",
+	);
 
-	Assert::exception(function () use ($input) {
-		$input->setValue(new stdClass);
-	}, Nette\InvalidArgumentException::class, "Value must be array or null, stdClass given in field 'select'.");
+	Assert::exception(
+		fn() => $input->setValue(new stdClass),
+		Nette\InvalidArgumentException::class,
+		"Value must be array or null, stdClass given in field 'select'.",
+	);
 
-	Assert::exception(function () use ($input) {
-		$input->setValue([new stdClass]);
-	}, Nette\InvalidArgumentException::class, "Values must be scalar, stdClass given in field 'select'.");
+	Assert::exception(
+		fn() => $input->setValue([new stdClass]),
+		Nette\InvalidArgumentException::class,
+		"Values must be scalar, stdClass given in field 'select'.",
+	);
 });
 
 
@@ -200,13 +206,17 @@ test('setValue() and disabled checkDefaultValue()', function () use ($series) {
 	$input->setValue('unknown');
 	Assert::same([], $input->getValue());
 
-	Assert::exception(function () use ($input) {
-		$input->setValue(new stdClass);
-	}, Nette\InvalidArgumentException::class, "Value must be array or null, stdClass given in field 'select'.");
+	Assert::exception(
+		fn() => $input->setValue(new stdClass),
+		Nette\InvalidArgumentException::class,
+		"Value must be array or null, stdClass given in field 'select'.",
+	);
 
-	Assert::exception(function () use ($input) {
-		$input->setValue([new stdClass]);
-	}, Nette\InvalidArgumentException::class, "Values must be scalar, stdClass given in field 'select'.");
+	Assert::exception(
+		fn() => $input->setValue([new stdClass]),
+		Nette\InvalidArgumentException::class,
+		"Values must be scalar, stdClass given in field 'select'.",
+	);
 });
 
 

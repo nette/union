@@ -101,9 +101,11 @@ test('setValue() and invalid argument', function () {
 	$input = $form->addText('text');
 	$input->setValue(null);
 
-	Assert::exception(function () use ($input) {
-		$input->setValue([]);
-	}, Nette\InvalidArgumentException::class, "Value must be scalar or null, array given in field 'text'.");
+	Assert::exception(
+		fn() => $input->setValue([]),
+		Nette\InvalidArgumentException::class,
+		"Value must be scalar or null, array given in field 'text'.",
+	);
 });
 
 
