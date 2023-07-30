@@ -17,7 +17,7 @@ date_default_timezone_set('Europe/Prague');
 
 class Notes
 {
-	public static array $notes = [];
+	public static $notes = [];
 
 
 	public static function add($message): void

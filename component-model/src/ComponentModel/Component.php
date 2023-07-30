@@ -24,12 +24,14 @@ abstract class Component implements IComponent
 {
 	use Nette\SmartObject;
 
-	private ?IContainer $parent = null;
+	/** @var IContainer|null */
+	private $parent;
 
-	private ?string $name = null;
+	/** @var string|null */
+	private $name;
 
 	/** @var array<string, array{?IComponent, ?int, ?string, array<int, array{?callable, ?callable}>}> means [type => [obj, depth, path, [attached, detached]]] */
-	private array $monitors = [];
+	private $monitors = [];
 
 
 	/**
@@ -97,9 +99,9 @@ abstract class Component implements IComponent
 		}
 
 		if (
-			($obj = $this->lookup($type, throw: false))
+			($obj = $this->lookup($type, false))
 			&& $attached
-			&& !in_array([$attached, $detached], $this->monitors[$type][3], strict: true)
+			&& !in_array([$attached, $detached], $this->monitors[$type][3], true)
 		) {
 			$attached($obj);
 		}
@@ -158,10 +160,11 @@ abstract class Component implements IComponent
 	/**
 	 * Sets or removes the parent of this component. This method is managed by containers and should
 	 * not be called by applications
+	 * @return static
 	 * @throws Nette\InvalidStateException
 	 * @internal
 	 */
-	public function setParent(?IContainer $parent, ?string $name = null): static
+	public function setParent(?IContainer $parent, ?string $name = null)
 	{
 		if ($parent === null && $this->parent === null && $name !== null) {
 			$this->name = $name; // just rename
@@ -247,7 +250,7 @@ abstract class Component implements IComponent
 
 				} else {
 					unset($this->monitors[$type]); // forces re-lookup
-					if ($obj = $this->lookup($type, throw: false)) {
+					if ($obj = $this->lookup($type, false)) {
 						foreach ($rec[3] as $pair) {
 							$listeners[] = [$pair[0], $obj];
 						}
@@ -263,7 +266,7 @@ abstract class Component implements IComponent
 		if ($depth === 0) { // call listeners
 			$prev = [];
 			foreach ($listeners as $item) {
-				if ($item[0] && !in_array($item, $prev, strict: true)) {
+				if ($item[0] && !in_array($item, $prev, true)) {
 					$item[0]($item[1]);
 					$prev[] = $item;
 				}
