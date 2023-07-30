@@ -18,16 +18,23 @@ use Nette\Schema\Context;
  */
 trait Base
 {
-	private bool $required = false;
-	private mixed $default = null;
+	/** @var bool */
+	private $required = false;
 
-	/** @var ?callable */
+	/** @var mixed */
+	private $default;
+
+	/** @var callable|null */
 	private $before;
 
 	/** @var array[] */
-	private array $asserts = [];
-	private ?string $castTo = null;
-	private ?string $deprecated = null;
+	private $asserts = [];
+
+	/** @var string|null */
+	private $castTo;
+
+	/** @var string|null */
+	private $deprecated;
 
 
 	public function default($value): self
@@ -73,12 +80,12 @@ trait Base
 	}
 
 
-	public function completeDefault(Context $context): mixed
+	public function completeDefault(Context $context)
 	{
 		if ($this->required) {
 			$context->addError(
 				'The mandatory item %path% is missing.',
-				Nette\Schema\Message::MissingItem,
+				Nette\Schema\Message::MissingItem
 			);
 			return null;
 		}
@@ -87,7 +94,7 @@ trait Base
 	}
 
 
-	public function doNormalize(mixed $value, Context $context): mixed
+	public function doNormalize($value, Context $context)
 	{
 		if ($this->before) {
 			$value = ($this->before)($value);
@@ -102,20 +109,20 @@ trait Base
 		if ($this->deprecated !== null) {
 			$context->addWarning(
 				$this->deprecated,
-				Nette\Schema\Message::Deprecated,
+				Nette\Schema\Message::Deprecated
 			);
 		}
 	}
 
 
-	private function doValidate(mixed $value, string $expected, Context $context): bool
+	private function doValidate($value, string $expected, Context $context): bool
 	{
 		if (!Nette\Utils\Validators::is($value, $expected)) {
 			$expected = str_replace(['|', ':'], [' or ', ' in range '], $expected);
 			$context->addError(
 				'The %label% %path% expects to be %expected%, %value% given.',
 				Nette\Schema\Message::TypeMismatch,
-				['value' => $value, 'expected' => $expected],
+				['value' => $value, 'expected' => $expected]
 			);
 			return false;
 		}
@@ -124,12 +131,12 @@ trait Base
 	}
 
 
-	private function doValidateRange(mixed $value, array $range, Context $context, string $types = ''): bool
+	private function doValidateRange($value, array $range, Context $context, string $types = ''): bool
 	{
 		if (is_array($value) || is_string($value)) {
 			[$length, $label] = is_array($value)
 				? [count($value), 'items']
-				: (in_array('unicode', explode('|', $types), strict: true)
+				: (in_array('unicode', explode('|', $types), true)
 					? [Nette\Utils\Strings::length($value), 'characters']
 					: [strlen($value), 'bytes']);
 
@@ -137,7 +144,7 @@ trait Base
 				$context->addError(
 					"The length of %label% %path% expects to be in range %expected%, %length% $label given.",
 					Nette\Schema\Message::LengthOutOfRange,
-					['value' => $value, 'length' => $length, 'expected' => implode('..', $range)],
+					['value' => $value, 'length' => $length, 'expected' => implode('..', $range)]
 				);
 				return false;
 			}
@@ -145,7 +152,7 @@ trait Base
 			$context->addError(
 				'The %label% %path% expects to be in range %expected%, %value% given.',
 				Nette\Schema\Message::ValueOutOfRange,
-				['value' => $value, 'expected' => implode('..', $range)],
+				['value' => $value, 'expected' => implode('..', $range)]
 			);
 			return false;
 		}
@@ -154,24 +161,25 @@ trait Base
 	}
 
 
-	private function isInRange(mixed $value, array $range): bool
+	private function isInRange($value, array $range): bool
 	{
 		return ($range[0] === null || $value >= $range[0])
 			&& ($range[1] === null || $value <= $range[1]);
 	}
 
 
-	private function doFinalize(mixed $value, Context $context)
+	private function doFinalize($value, Context $context)
 	{
 		if ($this->castTo) {
-			if (Nette\Utils\Validators::isBuiltinType($this->castTo)) {
+			if (Nette\Utils\Reflection::isBuiltinType($this->castTo)) {
 				settype($value, $this->castTo);
-			} elseif (strcasecmp($this->castTo, \stdClass::class) === 0) {
-				$value = Nette\Utils\Arrays::toObject($value, new $this->castTo);
 			} else {
-				$value = is_array($value)
-					? new ($this->castTo)(...$value)
-					: new ($this->castTo)($value);
+				$object = new $this->castTo;
+				foreach ($value as $k => $v) {
+					$object->$k = $v;
+				}
+
+				$value = $object;
 			}
 		}
 
@@ -181,7 +189,7 @@ trait Base
 				$context->addError(
 					'Failed assertion ' . ($description ? "'%assertion%'" : '%assertion%') . ' for %label% %path% with value %value%.',
 					Nette\Schema\Message::FailedAssertion,
-					['value' => $value, 'assertion' => $expected],
+					['value' => $value, 'assertion' => $expected]
 				);
 				return;
 			}

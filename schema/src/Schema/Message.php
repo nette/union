@@ -9,9 +9,13 @@ declare(strict_types=1);
 
 namespace Nette\Schema;
 
+use Nette;
+
 
 final class Message
 {
+	use Nette\SmartObject;
+
 	/** variables: {value: mixed, expected: string} */
 	public const TypeMismatch = 'schema.typeMismatch';
 
@@ -36,38 +40,27 @@ final class Message
 	/** no variables */
 	public const Deprecated = 'schema.deprecated';
 
-	/** @deprecated use Message::TypeMismatch */
+	/** Deprecated */
 	public const TYPE_MISMATCH = self::TypeMismatch;
-
-	/** @deprecated use Message::ValueOutOfRange */
 	public const VALUE_OUT_OF_RANGE = self::ValueOutOfRange;
-
-	/** @deprecated use Message::LengthOutOfRange */
 	public const LENGTH_OUT_OF_RANGE = self::LengthOutOfRange;
-
-	/** @deprecated use Message::PatternMismatch */
 	public const PATTERN_MISMATCH = self::PatternMismatch;
-
-	/** @deprecated use Message::FailedAssertion */
 	public const FAILED_ASSERTION = self::FailedAssertion;
-
-	/** @deprecated use Message::MissingItem */
 	public const MISSING_ITEM = self::MissingItem;
-
-	/** @deprecated use Message::UnexpectedItem */
 	public const UNEXPECTED_ITEM = self::UnexpectedItem;
-
-	/** @deprecated use Message::Deprecated */
 	public const DEPRECATED = self::Deprecated;
 
-	public string $message;
-	public string $code;
+	/** @var string */
+	public $message;
+
+	/** @var string */
+	public $code;
 
 	/** @var string[] */
-	public array $path;
+	public $path;
 
 	/** @var string[] */
-	public array $variables;
+	public $variables;
 
 
 	public function __construct(string $message, string $code, array $path, array $variables = [])
