@@ -38,7 +38,7 @@ test('without default value', function () {
 
 
 test('not merging', function () {
-	$schema = Expect::list([1, 2, 3]);
+	$schema = Expect::list([1, 2, 3])->mergeDefaults(false);
 
 	Assert::same([], (new Processor)->process($schema, []));
 
@@ -49,7 +49,7 @@ test('not merging', function () {
 
 
 test('merging', function () {
-	$schema = Expect::list([1, 2, 3])->mergeDefaults(true);
+	$schema = Expect::list([1, 2, 3]);
 
 	Assert::same([1, 2, 3], (new Processor)->process($schema, []));
 
@@ -60,7 +60,7 @@ test('merging', function () {
 
 
 test('merging & other items validation', function () {
-	$schema = Expect::list([1, 2, 3])->mergeDefaults(true)->items('string');
+	$schema = Expect::list([1, 2, 3])->items('string');
 
 	Assert::same([1, 2, 3], (new Processor)->process($schema, []));
 
@@ -100,8 +100,7 @@ test('listOf() & scalar', function () {
 
 
 test('listOf() & error', function () {
-	Assert::exception(
-		fn() => Expect::listOf(['a' => Expect::string()]),
-		TypeError::class,
-	);
+	Assert::exception(function () {
+		Expect::listOf(['a' => Expect::string()]);
+	}, TypeError::class);
 });
