@@ -7,9 +7,6 @@
 declare(strict_types=1);
 
 use Mockery\MockInterface;
-use Nette\Database\Reflection\Column;
-use Nette\Database\Reflection\ForeignKey;
-use Nette\Database\Reflection\Table;
 use Nette\Database\Structure;
 use Tester\Assert;
 use Tester\TestCase;
@@ -21,7 +18,7 @@ class StructureMock extends Structure
 {
 	protected function needStructure(): void
 	{
-		if (!isset($this->structure)) {
+		if (!$this->structure) {
 			$this->structure = $this->loadStructure();
 		}
 	}
@@ -33,13 +30,17 @@ class StructureMock extends Structure
  */
 class StructureTestCase extends TestCase
 {
-	private MockInterface $connection;
+	/** @var MockInterface */
+	private $connection;
 
-	private MockInterface $driver;
+	/** @var MockInterface */
+	private $driver;
 
-	private MockInterface $storage;
+	/** @var MockInterface */
+	private $storage;
 
-	private Structure $structure;
+	/** @var Structure */
+	private $structure;
 
 
 	protected function setUp()
@@ -52,42 +53,42 @@ class StructureTestCase extends TestCase
 		$this->connection->shouldReceive('getDsn')->once()->andReturn('');
 		$this->connection->shouldReceive('getDriver')->once()->andReturn($this->driver);
 		$this->driver->shouldReceive('getTables')->once()->andReturn([
-			new Table(name: 'authors', view: false),
-			new Table(name: 'Books', view: false),
-			new Table(name: 'tags', view: false),
-			new Table(name: 'books_x_tags', view: false),
-			new Table(name: 'books_view', view: true),
+			['name' => 'authors', 'view' => false],
+			['name' => 'Books', 'view' => false],
+			['name' => 'tags', 'view' => false],
+			['name' => 'books_x_tags', 'view' => false],
+			['name' => 'books_view', 'view' => true],
 		]);
 		$this->driver->shouldReceive('getColumns')->with('authors')->once()->andReturn([
-			new Column(name: 'id', primary: true, autoIncrement: true, vendor: ['sequence' => '"public"."authors_id_seq"']),
-			new Column(name: 'name', primary: false, autoIncrement: false, vendor: []),
+			['name' => 'id', 'primary' => true, 'autoincrement' => true, 'vendor' => ['sequence' => '"public"."authors_id_seq"']],
+			['name' => 'name', 'primary' => false, 'autoincrement' => false, 'vendor' => []],
 		]);
 		$this->driver->shouldReceive('getColumns')->with('Books')->once()->andReturn([
-			new Column(name: 'id', primary: true, autoIncrement: true, vendor: ['sequence' => '"public"."Books_id_seq"']),
-			new Column(name: 'title', primary: false, autoIncrement: false, vendor: []),
+			['name' => 'id', 'primary' => true, 'autoincrement' => true, 'vendor' => ['sequence' => '"public"."Books_id_seq"']],
+			['name' => 'title', 'primary' => false, 'autoincrement' => false, 'vendor' => []],
 		]);
 		$this->driver->shouldReceive('getColumns')->with('tags')->once()->andReturn([
-			new Column(name: 'id', primary: true, autoIncrement: false, vendor: []),
-			new Column(name: 'name', primary: false, autoIncrement: false, vendor: []),
+			['name' => 'id', 'primary' => true, 'autoincrement' => false, 'vendor' => []],
+			['name' => 'name', 'primary' => false, 'autoincrement' => false, 'vendor' => []],
 		]);
 		$this->driver->shouldReceive('getColumns')->with('books_x_tags')->once()->andReturn([
-			new Column(name: 'book_id', primary: true, autoIncrement: false, vendor: []),
-			new Column(name: 'tag_id', primary: true, autoIncrement: false, vendor: []),
+			['name' => 'book_id', 'primary' => true, 'autoincrement' => false, 'vendor' => []],
+			['name' => 'tag_id', 'primary' => true, 'autoincrement' => false, 'vendor' => []],
 		]);
 		$this->driver->shouldReceive('getColumns')->with('books_view')->once()->andReturn([
-			new Column(name: 'id', primary: false, autoIncrement: false, vendor: []),
-			new Column(name: 'title', primary: false, autoIncrement: false, vendor: []),
+			['name' => 'id', 'primary' => false, 'autoincrement' => false, 'vendor' => []],
+			['name' => 'title', 'primary' => false, 'autoincrement' => false, 'vendor' => []],
 		]);
 		$this->connection->shouldReceive('getDriver')->times(4)->andReturn($this->driver);
 		$this->driver->shouldReceive('getForeignKeys')->with('authors')->once()->andReturn([]);
 		$this->driver->shouldReceive('getForeignKeys')->with('Books')->once()->andReturn([
-			new ForeignKey(columns: ['author_id'], targetTable: 'authors', targetColumns: ['id'], name: 'authors_fk1'),
-			new ForeignKey(columns: ['translator_id'], targetTable: 'authors', targetColumns: ['id'], name: 'authors_fk2'),
+			['local' => 'author_id', 'table' => 'authors', 'foreign' => 'id', 'name' => 'authors_fk1'],
+			['local' => 'translator_id', 'table' => 'authors', 'foreign' => 'id', 'name' => 'authors_fk2'],
 		]);
 		$this->driver->shouldReceive('getForeignKeys')->with('tags')->once()->andReturn([]);
 		$this->driver->shouldReceive('getForeignKeys')->with('books_x_tags')->once()->andReturn([
-			new ForeignKey(columns: ['book_id'], targetTable: 'Books', targetColumns: ['id'], name: 'books_x_tags_fk1'),
-			new ForeignKey(columns: ['tag_id'], targetTable: 'tags', targetColumns: ['id'], name: 'books_x_tags_fk2'),
+			['local' => 'book_id', 'table' => 'Books', 'foreign' => 'id', 'name' => 'books_x_tags_fk1'],
+			['local' => 'tag_id', 'table' => 'tags', 'foreign' => 'id', 'name' => 'books_x_tags_fk2'],
 		]);
 
 		$this->structure = new StructureMock($this->connection, $this->storage);
@@ -96,12 +97,12 @@ class StructureTestCase extends TestCase
 
 	public function testGetTables()
 	{
-		Assert::equal([
-			new Table(name: 'authors', view: false),
-			new Table(name: 'Books', view: false),
-			new Table(name: 'tags', view: false),
-			new Table(name: 'books_x_tags', view: false),
-			new Table(name: 'books_view', view: true),
+		Assert::same([
+			['name' => 'authors', 'view' => false],
+			['name' => 'Books', 'view' => false],
+			['name' => 'tags', 'view' => false],
+			['name' => 'books_x_tags', 'view' => false],
+			['name' => 'books_view', 'view' => true],
 		], $this->structure->getTables());
 	}
 
@@ -109,19 +110,17 @@ class StructureTestCase extends TestCase
 	public function testGetColumns()
 	{
 		$columns = [
-			new Column(name: 'id', primary: true, autoIncrement: false, vendor: []),
-			new Column(name: 'name', primary: false, autoIncrement: false, vendor: []),
+			['name' => 'id', 'primary' => true, 'autoincrement' => false, 'vendor' => []],
+			['name' => 'name', 'primary' => false, 'autoincrement' => false, 'vendor' => []],
 		];
 
-		Assert::equal($columns, $this->structure->getColumns('tags'));
-		Assert::equal($columns, $this->structure->getColumns('Tags'));
+		Assert::same($columns, $this->structure->getColumns('tags'));
+		Assert::same($columns, $this->structure->getColumns('Tags'));
 
 		$structure = $this->structure;
-		Assert::exception(
-			fn() => $structure->getColumns('InvaliD'),
-			Nette\InvalidArgumentException::class,
-			"Table 'invalid' does not exist.",
-		);
+		Assert::exception(function () use ($structure) {
+			$structure->getColumns('InvaliD');
+		}, Nette\InvalidArgumentException::class, "Table 'invalid' does not exist.");
 	}
 
 
@@ -129,11 +128,9 @@ class StructureTestCase extends TestCase
 	{
 		Assert::same('id', $this->structure->getPrimaryKey('books'));
 		Assert::same(['book_id', 'tag_id'], $this->structure->getPrimaryKey('Books_x_tags'));
-		Assert::exception(
-			fn() => $this->structure->getPrimaryKey('invalid'),
-			Nette\InvalidArgumentException::class,
-			"Table 'invalid' does not exist.",
-		);
+		Assert::exception(function () {
+			$this->structure->getPrimaryKey('invalid');
+		}, Nette\InvalidArgumentException::class, "Table 'invalid' does not exist.");
 	}
 
 
@@ -158,7 +155,7 @@ class StructureTestCase extends TestCase
 
 		Assert::same(
 			['author_id', 'translator_id'],
-			$this->structure->getHasManyReference('authors', 'books'),
+			$this->structure->getHasManyReference('authors', 'books')
 		);
 	}
 
@@ -179,7 +176,7 @@ class StructureTestCase extends TestCase
 
 		Assert::same(
 			['Books', 'book_id'],
-			$this->structure->getBelongsToReference('books_x_tags', 'book_id'),
+			$this->structure->getBelongsToReference('books_x_tags', 'book_id')
 		);
 
 		Assert::null($this->structure->getBelongsToReference('books_x_tags', 'non_exist'));

@@ -80,7 +80,7 @@ test('test more ActiveRow as a parameter', function () use ($explorer) {
 test('test Selection with parameters as a parameter', function () use ($explorer) {
 	$sqlBuilder = new SqlBuilder('book', $explorer);
 	$sqlBuilder->addWhere('id', $explorer->table('book')->having('COUNT(:book_tag.tag_id) >', 1));
-	$schemaSupported = $explorer->getConnection()->getDriver()->isSupported(Driver::SupportSchema);
+	$schemaSupported = $explorer->getConnection()->getDriver()->isSupported(Driver::SUPPORT_SCHEMA);
 	Assert::equal(reformat([
 		'mysql' => 'SELECT * FROM `book` WHERE (`id` IN (?))',
 		'SELECT * FROM [book] WHERE ([id] IN (SELECT [id] FROM [book] LEFT JOIN ' . ($schemaSupported ? '[public].[book_tag] ' : '') . '[book_tag] ON [book].[id] = [book_tag].[book_id] HAVING COUNT([book_tag].[tag_id]) > ?))',
@@ -129,17 +129,13 @@ test('test empty array', function () use ($explorer) {
 	$sqlBuilder->addWhere('id NOT', []);
 	$sqlBuilder->addWhere('NOT (id ?)', []);
 
-	Assert::exception(
-		fn() => $sqlBuilder->addWhere('TRUE AND id', []),
-		Nette\InvalidArgumentException::class,
-		'Possible SQL query corruption. Add parentheses around operators.',
-	);
+	Assert::exception(function () use ($sqlBuilder) {
+		$sqlBuilder->addWhere('TRUE AND id', []);
+	}, Nette\InvalidArgumentException::class, 'Possible SQL query corruption. Add parentheses around operators.');
 
-	Assert::exception(
-		fn() => $sqlBuilder->addWhere('NOT id', []),
-		Nette\InvalidArgumentException::class,
-		'Possible SQL query corruption. Add parentheses around operators.',
-	);
+	Assert::exception(function () use ($sqlBuilder) {
+		$sqlBuilder->addWhere('NOT id', []);
+	}, Nette\InvalidArgumentException::class, 'Possible SQL query corruption. Add parentheses around operators.');
 
 	Assert::same(reformat('SELECT * FROM [book] WHERE ([id] IS NULL AND FALSE) AND ([id] IS NULL OR TRUE) AND (NOT ([id] IS NULL AND FALSE))'), $sqlBuilder->buildSelectQuery());
 });
@@ -207,20 +203,18 @@ test('tests operator suffix', function () use ($explorer) {
 test('', function () use ($explorer) {
 	$books = $explorer->table('book')->where(
 		'id',
-		$explorer->table('book_tag')->select('book_id')->where('tag_id', 21),
+		$explorer->table('book_tag')->select('book_id')->where('tag_id', 21)
 	);
 	Assert::same(3, $books->count());
 });
 
 
-Assert::exception(
-	fn() => $explorer->table('book')->where(
+Assert::exception(function () use ($explorer) {
+	$explorer->table('book')->where(
 		'id',
-		$explorer->table('book_tag')->where('tag_id', 21),
-	),
-	Nette\InvalidArgumentException::class,
-	'Selection argument must have defined a select column.',
-);
+		$explorer->table('book_tag')->where('tag_id', 21)
+	);
+}, Nette\InvalidArgumentException::class, 'Selection argument must have defined a select column.');
 
 
 Assert::exception(function () use ($explorer) {
@@ -278,14 +272,12 @@ test('', function () use ($driverName, $explorer, $connection, $structure) {
 	$e = Assert::exception(function () use ($dao) {
 		$books = $dao->table('book')->where(
 			'id',
-			$dao->table('book_tag')->where('tag_id', 21),
+			$dao->table('book_tag')->where('tag_id', 21)
 		);
 		$books->fetch();
 	}, Nette\InvalidArgumentException::class, 'Selection argument must have defined a select column.');
 
-	Assert::exception(
-		fn() => throw $e->getPrevious(),
-		LogicException::class,
-		"Table 'book_tag' does not have a primary key.",
-	);
+	Assert::exception(function () use ($e) {
+		throw $e->getPrevious();
+	}, LogicException::class, "Table 'book_tag' does not have a primary key.");
 });

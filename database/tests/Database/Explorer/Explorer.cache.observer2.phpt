@@ -17,7 +17,7 @@ Nette\Database\Helpers::loadFromFile($connection, __DIR__ . "/../files/{$driverN
 
 class CacheMock extends MemoryStorage
 {
-	public int $writes = 0;
+	public $writes = 0;
 
 
 	public function write(string $key, $data, array $dependencies): void
