@@ -14,6 +14,8 @@ use Nette;
 
 class FallbackMailer implements Mailer
 {
+	use Nette\SmartObject;
+
 	/** @var callable[]  function (FallbackMailer $sender, SendException $e, Mailer $mailer, Message $mail): void */
 	public array $onFailure = [];
 

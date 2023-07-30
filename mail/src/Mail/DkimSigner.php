@@ -14,6 +14,8 @@ use Nette;
 
 class DkimSigner implements Signer
 {
+	use Nette\SmartObject;
+
 	private const DefaultSignHeaders = [
 		'From',
 		'To',
@@ -94,7 +96,7 @@ class DkimSigner implements Signer
 			if (str_contains($header, ':')) {
 				[$heading, $value] = explode(':', $header, 2);
 
-				if (($index = array_search($heading, $selectedHeaders, strict: true)) !== false) {
+				if (($index = array_search($heading, $selectedHeaders, true)) !== false) {
 					$parts[$index] =
 						trim(strtolower($heading), " \t") . ':' .
 						trim(preg_replace("/[ \t]{2,}/", ' ', $value), " \t");
