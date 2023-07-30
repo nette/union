@@ -73,7 +73,7 @@ class Wrapper
 			$resMode[0] = 'c';
 		}
 
-		$handle = fopen($path, $resMode . $flag, $use_path);
+		$handle = @fopen($path, $resMode . $flag, $use_path); // @ may fail
 		if (!$handle || !flock($handle, $lock)) {
 			return false;
 		}
