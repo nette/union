@@ -17,6 +17,8 @@ use Nette;
  */
 class Session
 {
+	use Nette\SmartObject;
+
 	/** Default file lifetime */
 	private const DefaultFileLifetime = 3 * Nette\Utils\DateTime::HOUR;
 
@@ -30,27 +32,41 @@ class Session
 	];
 
 	/** @var array<callable(self): void>  Occurs when the session is started */
-	public array $onStart = [];
+	public $onStart = [];
 
 	/** @var array<callable(self): void>  Occurs before the session is written to disk */
-	public array $onBeforeWrite = [];
+	public $onBeforeWrite = [];
 
-	private bool $regenerated = false;
-	private bool $started = false;
+	/** @var bool  has been session ID regenerated? */
+	private $regenerated = false;
 
-	/** default configuration */
-	private array $options = [
+	/** @var bool  has been session started by Nette? */
+	private $started = false;
+
+	/** @var array default configuration */
+	private $options = [
 		'cookie_samesite' => IResponse::SameSiteLax,
 		'cookie_lifetime' => 0,   // for a maximum of 3 hours or until the browser is closed
 		'gc_maxlifetime' => self::DefaultFileLifetime, // 3 hours
 	];
 
-	private IRequest $request;
-	private IResponse $response;
-	private ?\SessionHandlerInterface $handler = null;
-	private bool $readAndClose = false;
-	private bool $fileExists = true;
-	private bool $autoStart = true;
+	/** @var IRequest */
+	private $request;
+
+	/** @var IResponse */
+	private $response;
+
+	/** @var \SessionHandlerInterface */
+	private $handler;
+
+	/** @var bool */
+	private $readAndClose = false;
+
+	/** @var bool */
+	private $fileExists = true;
+
+	/** @var bool */
+	private $autoStart = true;
 
 
 	public function __construct(IRequest $request, IResponse $response)
@@ -101,7 +117,7 @@ class Session
 				[['read_and_close' => $this->readAndClose]],
 				function (string $message) use (&$e): void {
 					$e = new Nette\InvalidStateException($message);
-				},
+				}
 			);
 		} catch (\Throwable $e) {
 		}
@@ -272,8 +288,9 @@ class Session
 
 	/**
 	 * Sets the session name to a specified one.
+	 * @return static
 	 */
-	public function setName(string $name): static
+	public function setName(string $name)
 	{
 		if (!preg_match('#[^0-9.][^.]*$#DA', $name)) {
 			throw new Nette\InvalidArgumentException('Session name cannot contain dot.');
@@ -300,6 +317,7 @@ class Session
 
 	/**
 	 * Returns specified session section.
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function getSection(string $section, string $class = SessionSection::class): SessionSection
 	{
@@ -331,6 +349,14 @@ class Session
 	}
 
 
+	/** @deprecated use getSectionNames() */
+	public function getIterator(): \Iterator
+	{
+		trigger_error(__METHOD__ . '() is deprecated', E_USER_DEPRECATED);
+		return new \ArrayIterator($this->getSectionNames());
+	}
+
+
 	/**
 	 * Cleans and minimizes meta structures.
 	 */
@@ -343,19 +369,7 @@ class Session
 		Nette\Utils\Arrays::invoke($this->onBeforeWrite, $this);
 
 		$nf = &$_SESSION['__NF'];
-		foreach ($nf['DATA'] ?? [] as $name => $data) {
-			foreach ($data ?? [] as $k => $v) {
-				if ($v === null) {
-					unset($nf['DATA'][$name][$k], $nf['META'][$name][$k]);
-				}
-			}
-
-			if (empty($nf['DATA'][$name])) {
-				unset($nf['DATA'][$name], $nf['META'][$name]);
-			}
-		}
-
-		foreach ($nf['META'] ?? [] as $name => $data) {
+		foreach ($nf['META'] ?? [] as $name => $foo) {
 			if (empty($nf['META'][$name])) {
 				unset($nf['META'][$name]);
 			}
@@ -368,13 +382,14 @@ class Session
 
 	/**
 	 * Sets session options.
+	 * @return static
 	 * @throws Nette\NotSupportedException
 	 * @throws Nette\InvalidStateException
 	 */
-	public function setOptions(array $options): static
+	public function setOptions(array $options)
 	{
 		$normalized = [];
-		$allowed = ini_get_all('session', false) + ['session.read_and_close' => 1];
+		$allowed = ini_get_all('session', false) + ['session.read_and_close' => 1, 'session.cookie_samesite' => 1]; // for PHP < 7.3
 
 		foreach ($options as $key => $value) {
 			if (!strncmp($key, 'session.', 8)) { // back compatibility
@@ -386,7 +401,7 @@ class Session
 			if (!isset($allowed["session.$normKey"])) {
 				$hint = substr((string) Nette\Utils\Helpers::getSuggestion(array_keys($allowed), "session.$normKey"), 8);
 				if ($key !== $normKey) {
-					$hint = preg_replace_callback('#_(.)#', fn($m) => strtoupper($m[1]), $hint); // snake_case -> camelCase
+					$hint = preg_replace_callback('#_(.)#', function ($m) { return strtoupper($m[1]); }, $hint); // snake_case -> camelCase
 				}
 
 				throw new Nette\InvalidStateException("Invalid session configuration option '$key'" . ($hint ? ", did you mean '$hint'?" : '.'));
@@ -458,7 +473,17 @@ class Session
 		}
 
 		if ($cookie !== $origCookie) {
-			@session_set_cookie_params($cookie); // @ may trigger warning when session is active since PHP 7.2
+			if (PHP_VERSION_ID >= 70300) {
+				@session_set_cookie_params($cookie); // @ may trigger warning when session is active since PHP 7.2
+			} else {
+				@session_set_cookie_params( // @ may trigger warning when session is active since PHP 7.2
+					$cookie['lifetime'],
+					$cookie['path'] . (isset($cookie['samesite']) ? '; SameSite=' . $cookie['samesite'] : ''),
+					$cookie['domain'],
+					$cookie['secure'],
+					$cookie['httponly']
+				);
+			}
 
 			if (session_status() === PHP_SESSION_ACTIVE) {
 				$this->sendCookie();
@@ -474,8 +499,9 @@ class Session
 	/**
 	 * Sets the amount of time (like '20 minutes') allowed between requests before the session will be terminated,
 	 * null means "for a maximum of 3 hours or until the browser is closed".
+	 * @return static
 	 */
-	public function setExpiration(?string $expire): static
+	public function setExpiration(?string $expire)
 	{
 		if ($expire === null) {
 			return $this->setOptions([
@@ -495,14 +521,14 @@ class Session
 
 	/**
 	 * Sets the session cookie parameters.
+	 * @return static
 	 */
 	public function setCookieParameters(
 		string $path,
 		?string $domain = null,
 		?bool $secure = null,
-		?string $sameSite = null,
-	): static
-	{
+		?string $sameSite = null
+	) {
 		return $this->setOptions([
 			'cookie_path' => $path,
 			'cookie_domain' => $domain,
@@ -512,10 +538,19 @@ class Session
 	}
 
 
+	/** @deprecated */
+	public function getCookieParameters(): array
+	{
+		trigger_error(__METHOD__ . '() is deprecated.', E_USER_DEPRECATED);
+		return session_get_cookie_params();
+	}
+
+
 	/**
 	 * Sets path of the directory used to save session data.
+	 * @return static
 	 */
-	public function setSavePath(string $path): static
+	public function setSavePath(string $path)
 	{
 		return $this->setOptions([
 			'save_path' => $path,
@@ -525,8 +560,9 @@ class Session
 
 	/**
 	 * Sets user session handler.
+	 * @return static
 	 */
-	public function setHandler(\SessionHandlerInterface $handler): static
+	public function setHandler(\SessionHandlerInterface $handler)
 	{
 		if ($this->started) {
 			throw new Nette\InvalidStateException('Unable to set handler when session has been started.');
@@ -551,7 +587,7 @@ class Session
 			$cookie['domain'],
 			$cookie['secure'],
 			$cookie['httponly'],
-			$cookie['samesite'] ?? null,
+			$cookie['samesite'] ?? null
 		);
 	}
 }
