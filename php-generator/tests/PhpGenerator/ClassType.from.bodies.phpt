@@ -9,11 +9,9 @@ require __DIR__ . '/../bootstrap.php';
 require __DIR__ . '/fixtures/bodies.php';
 
 
-Assert::exception(
-	fn() => ClassType::from(PDO::class, withBodies: true),
-	Nette\NotSupportedException::class,
-	'The $withBodies parameter cannot be used for anonymous or internal classes.',
-);
+Assert::exception(function () {
+	ClassType::from(PDO::class, withBodies: true);
+}, Nette\InvalidStateException::class, 'Source code of PDO not found.');
 
 
 Assert::exception(
@@ -23,7 +21,7 @@ Assert::exception(
 		}
 	}, withBodies: true),
 	Nette\NotSupportedException::class,
-	'The $withBodies parameter cannot be used for anonymous or internal classes.',
+	'The $withBodies parameter cannot be used for anonymous functions.',
 );
 
 

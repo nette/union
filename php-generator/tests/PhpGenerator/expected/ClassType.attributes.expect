@@ -3,7 +3,7 @@
  */
 #[ExampleAttribute]
 #[WithArgument(Foo::BAR)]
-#[Table(name: 'user', constraints: [new UniqueConstraint(name: 'ean', columns: ['ean'])])]
+#[NamedArguments(foo: 'bar', bar: [1, 2, 3])]
 class Example
 {
 	/** Commented */
@@ -21,8 +21,7 @@ class Example
 	 */
 	#[ExampleAttribute]
 	public function getHandle(
-		/** comment */
-		#[ExampleAttribute, WithArguments(0)]
+		#[ExampleAttribute, WithArguments(123)]
 		$mode,
 	) {
 	}
