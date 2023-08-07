@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Latte\Compiler\Nodes\Php\Expression;
 
 use Latte\Compiler\Nodes\Php\ExpressionNode;
+use Latte\Compiler\Nodes\Php\ListNode;
 use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
 
@@ -17,7 +18,7 @@ use Latte\Compiler\PrintContext;
 class AssignNode extends ExpressionNode
 {
 	public function __construct(
-		public ExpressionNode $var,
+		public ExpressionNode|ListNode $var,
 		public ExpressionNode $expr,
 		public bool $byRef = false,
 		public ?Position $position = null,
