@@ -87,7 +87,7 @@ test('', function () {
 		'children' => [
 			'c' => 'John',
 		],
-	], recursive: false);
+	], false);
 	Assert::type(Nette\Utils\ArrayHash::class, $list);
 	Assert::type('array', $list['children']);
 });
