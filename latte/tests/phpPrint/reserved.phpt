@@ -9,7 +9,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 $test = <<<'XX'
-	__FILE__,
+	__FUNCTION__,
 	class,
 	class::$x,
 	class::interface,
@@ -27,7 +27,7 @@ Assert::same(
 );
 
 __halt_compiler();
-namespace\__FILE__,
+namespace\__FUNCTION__,
 'class',
 namespace\class::$x,
 namespace\class::interface,
