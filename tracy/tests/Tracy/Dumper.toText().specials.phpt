@@ -63,14 +63,14 @@ $key = $objStorage->key();
 
 Assert::match(
 	<<<'XX'
-		SplObjectStorage (2) #%d%
-		   :
-		   |  key: stdClass #%d%
-		   |  value: 'o1'
-		   :
-		   |  key: stdClass #%d%
+		SplObjectStorage #%d%
+		   0: array (2)
+		   |  'object' => stdClass #%d%
+		   |  'data' => 'o1'
+		   1: array (2)
+		   |  'object' => stdClass #%d%
 		   |  |  foo: 'bar'
-		   |  value: 'o2'
+		   |  'data' => 'o2'
 		XX,
 	Dumper::toText($objStorage),
 );
@@ -78,31 +78,11 @@ Assert::match(
 Assert::same($key, $objStorage->key());
 
 
-// WeakMap
-$weakmap = new WeakMap;
-$weakmap[$o1] = 'o1';
-$weakmap[$o2] = 'o2';
-
-Assert::match(
-	<<<'XX'
-		WeakMap (2) #%d%
-		   :
-		   |  key: stdClass #%d%
-		   |  value: 'o1'
-		   :
-		   |  key: stdClass #%d%
-		   |  |  foo: 'bar'
-		   |  value: 'o2'
-		XX,
-	Dumper::toText($weakmap),
-);
-
-
 // ArrayObject
 $obj = new ArrayObject(['a' => 1, 'b' => 2]);
 Assert::match(
 	<<<'XX'
-		ArrayObject (2) #%d%
+		ArrayObject #%d%
 		   storage: array (2)
 		   |  'a' => 1
 		   |  'b' => 2
@@ -117,7 +97,7 @@ class ArrayObjectChild extends ArrayObject
 
 $obj = new ArrayObjectChild(['a' => 1, 'b' => 2]);
 Assert::match(<<<'XX'
-	ArrayObjectChild (2) #%d%
+	ArrayObjectChild #%d%
 	   prop: 123
 	   storage: array (2)
 	   |  'a' => 1
