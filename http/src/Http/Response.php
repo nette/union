@@ -16,7 +16,7 @@ use Nette\Utils\DateTime;
 /**
  * HttpResponse class.
  *
- * @property-read array $headers
+ * @property-deprecated array $headers
  */
 final class Response implements IResponse
 {

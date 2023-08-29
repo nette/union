@@ -15,15 +15,15 @@ use Nette;
 /**
  * Provides access to individual files that have been uploaded by a client.
  *
- * @property-read string $name
- * @property-read string $sanitizedName
- * @property-read string $untrustedFullPath
- * @property-read string|null $contentType
- * @property-read int $size
- * @property-read string $temporaryFile
- * @property-read int $error
- * @property-read bool $ok
- * @property-read string|null $contents
+ * @property-deprecated string $name
+ * @property-deprecated string $sanitizedName
+ * @property-deprecated string $untrustedFullPath
+ * @property-deprecated string|null $contentType
+ * @property-deprecated int $size
+ * @property-deprecated string $temporaryFile
+ * @property-deprecated int $error
+ * @property-deprecated bool $ok
+ * @property-deprecated string|null $contents
  */
 final class FileUpload
 {
