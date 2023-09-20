@@ -98,7 +98,7 @@ class Arrays
 	 */
 	public static function getKeyOffset(array $array, string|int $key): ?int
 	{
-		return Helpers::falseToNull(array_search(self::toKey($key), array_keys($array), strict: true));
+		return Helpers::falseToNull(array_search(self::toKey($key), array_keys($array), true));
 	}
 
 
@@ -128,7 +128,7 @@ class Arrays
 	 */
 	public static function first(array $array): mixed
 	{
-		return $array[array_key_first($array)] ?? null;
+		return count($array) ? reset($array) : null;
 	}
 
 
@@ -140,7 +140,7 @@ class Arrays
 	 */
 	public static function last(array $array): mixed
 	{
-		return $array[array_key_last($array)] ?? null;
+		return count($array) ? end($array) : null;
 	}
 
 
@@ -151,9 +151,9 @@ class Arrays
 	public static function insertBefore(array &$array, string|int|null $key, array $inserted): void
 	{
 		$offset = $key === null ? 0 : (int) self::getKeyOffset($array, $key);
-		$array = array_slice($array, 0, $offset, preserve_keys: true)
+		$array = array_slice($array, 0, $offset, true)
 			+ $inserted
-			+ array_slice($array, $offset, count($array), preserve_keys: true);
+			+ array_slice($array, $offset, count($array), true);
 	}
 
 
@@ -167,9 +167,9 @@ class Arrays
 			$offset = count($array) - 1;
 		}
 
-		$array = array_slice($array, 0, $offset + 1, preserve_keys: true)
+		$array = array_slice($array, 0, $offset + 1, true)
 			+ $inserted
-			+ array_slice($array, $offset + 1, count($array), preserve_keys: true);
+			+ array_slice($array, $offset + 1, count($array), true);
 	}
 
 
