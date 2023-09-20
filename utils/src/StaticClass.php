@@ -18,7 +18,7 @@ trait StaticClass
 	/**
 	 * Class is static and cannot be instantiated.
 	 */
-	private function __construct()
+	final private function __construct()
 	{
 	}
 

@@ -37,5 +37,5 @@ Assert::same(
 	Arrays::normalize([
 		1 => 'first',
 		'' => 'second',
-	], filling: true),
+	], true),
 );
