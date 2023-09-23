@@ -7,7 +7,6 @@
 declare(strict_types=1);
 
 use Nette\DI;
-use Nette\DI\Attributes\Inject;
 use Nette\InvalidStateException;
 use Tester\Assert;
 
@@ -17,35 +16,35 @@ require __DIR__ . '/../bootstrap.php';
 
 class ServiceA
 {
-	#[Inject]
-	public DateTimeImmutable $a;
+	/** @var DateTimeImmutable @inject */
+	public $a;
 }
 
 
 class ServiceB
 {
-	#[Inject]
-	public Unknown $a;
+	/** @var Unknown @inject */
+	public $a;
 }
 
 
 class ServiceC
 {
-	#[Inject]
+	/** @inject */
 	public $a;
 }
 
 
 class ServiceD
 {
-	#[Inject]
+	/** @inject */
 	protected $a;
 }
 
 
 class ServiceE
 {
-	#[Inject]
+	/** @inject */
 	public static $a;
 }
 
@@ -56,12 +55,10 @@ Assert::exception(function () {
 	createContainer($compiler, '
 services:
 	service:
-		create: ServiceA
+		factory: ServiceA
 		inject: yes
 ');
-}, InvalidStateException::class, "[Service 'service' of type ServiceA]
-Service of type DateTimeImmutable required by ServiceA::\$a not found.
-Did you add it to configuration file?");
+}, InvalidStateException::class, "Service 'service' (type of ServiceA): Service of type DateTimeImmutable not found. Did you add it to configuration file?");
 
 
 Assert::exception(function () {
@@ -70,14 +67,11 @@ Assert::exception(function () {
 	createContainer($compiler, '
 services:
 	service:
-		create: ServiceB
+		factory: ServiceB
 		inject: yes
 ');
 }, InvalidStateException::class, "Class 'Unknown' not found.
 Check the type of property ServiceB::\$a.");
-// }, InvalidStateException::class, "[Service 'service' of type ServiceB]
-// Class 'Unknown' required by ServiceB::\$a not found.
-// Check the property type and 'use' statements.");
 
 
 Assert::exception(function () {
@@ -86,33 +80,31 @@ Assert::exception(function () {
 	createContainer($compiler, '
 services:
 	service:
-		create: ServiceC
+		factory: ServiceC
 		inject: yes
 ');
 }, InvalidStateException::class, 'Type of property ServiceC::$a is not declared.');
-//}, InvalidStateException::class, "[Service 'service' of type ServiceC]
-//Property ServiceC::\$a has no type.");
 
 
-Assert::exception(function () {
+Assert::error(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('inject', new Nette\DI\Extensions\InjectExtension);
 	createContainer($compiler, '
 services:
 	service:
-		create: ServiceD
+		factory: ServiceD
 		inject: yes
 ');
-}, InvalidStateException::class, 'Property ServiceD::$a for injection must not be static, readonly and must be public.');
+}, E_USER_WARNING, 'Property ServiceD::$a for injection must be public and non-static.');
 
 
-Assert::exception(function () {
+Assert::error(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('inject', new Nette\DI\Extensions\InjectExtension);
 	createContainer($compiler, '
 services:
 	service:
-		create: ServiceE
+		factory: ServiceE
 		inject: yes
 ');
-}, InvalidStateException::class, 'Property ServiceE::$a for injection must not be static, readonly and must be public.');
+}, E_USER_WARNING, 'Property ServiceE::$a for injection must be public and non-static.');

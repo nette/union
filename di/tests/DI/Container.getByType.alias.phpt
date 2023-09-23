@@ -25,23 +25,17 @@ $two = $builder->addDefinition('two')
 $container = createContainer($builder);
 
 
-Assert::exception(
-	fn() => $container->getByType(Service::class),
-	Nette\DI\MissingServiceException::class,
-	'Multiple services of type Service found: one, two.',
-);
+Assert::exception(function () use ($container) {
+	$container->getByType(Service::class);
+}, Nette\DI\MissingServiceException::class, 'Multiple services of type Service found: one, two.');
 
-Assert::exception(
-	fn() => $container->getByType(Alias::class),
-	Nette\DI\MissingServiceException::class,
-	'Multiple services of type Service found: one, two.',
-);
+Assert::exception(function () use ($container) {
+	$container->getByType(Alias::class);
+}, Nette\DI\MissingServiceException::class, 'Multiple services of type Service found: one, two.');
 
-Assert::exception(
-	fn() => $builder->getByType('\service'),
-	Nette\DI\ServiceCreationException::class,
-	'Multiple services of type Service found: one, two',
-);
+Assert::exception(function () use ($builder) {
+	$builder->getByType('\service');
+}, Nette\DI\ServiceCreationException::class, 'Multiple services of type Service found: one, two');
 
 
 

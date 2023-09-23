@@ -14,7 +14,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('Tag are exported when setting is true', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$container = createContainer($compiler, '
@@ -24,7 +24,7 @@ test('Tag are exported when setting is true', function () {
 
 	services:
 		-
-			create: stdClass
+			factory: stdClass
 			tags:
 				first: a
 				second: b
@@ -35,7 +35,7 @@ test('Tag are exported when setting is true', function () {
 });
 
 
-test('Tags are not exported when setting is false', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedTag('first');
@@ -46,7 +46,7 @@ test('Tags are not exported when setting is false', function () {
 
 	services:
 		-
-			create: stdClass
+			factory: stdClass
 			tags:
 				first: a
 				second: b
@@ -57,7 +57,7 @@ test('Tags are not exported when setting is false', function () {
 });
 
 
-test('Default tag export behavior without explicit setting', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedTag('first');
@@ -68,7 +68,7 @@ test('Default tag export behavior without explicit setting', function () {
 
 	services:
 		-
-			create: stdClass
+			factory: stdClass
 			tags:
 				first: a
 				second: b
@@ -79,7 +79,7 @@ test('Default tag export behavior without explicit setting', function () {
 });
 
 
-test('Specific tag export when listed', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedTag('second');
@@ -91,7 +91,7 @@ test('Specific tag export when listed', function () {
 
 	services:
 		-
-			create: stdClass
+			factory: stdClass
 			tags:
 				first: a
 				second: b

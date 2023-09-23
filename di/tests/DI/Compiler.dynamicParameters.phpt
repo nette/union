@@ -22,7 +22,7 @@ class Service
 	}
 }
 
-test('Dynamic parameter as scalar value', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -33,7 +33,7 @@ test('Dynamic parameter as scalar value', function () {
 });
 
 
-test('Dynamic parameter as array item', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -44,7 +44,7 @@ test('Dynamic parameter as array item', function () {
 });
 
 
-test('Default value', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -58,7 +58,7 @@ test('Default value', function () {
 });
 
 
-test('Overwriting default parameter', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -72,7 +72,7 @@ test('Overwriting default parameter', function () {
 });
 
 
-test('Dynamic parameter within string expansion', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -85,7 +85,7 @@ test('Dynamic parameter within string expansion', function () {
 });
 
 
-test('Array item as dynamic parameter within string expansion', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -100,7 +100,7 @@ test('Array item as dynamic parameter within string expansion', function () {
 });
 
 
-test('Statement as parameter', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -114,7 +114,7 @@ test('Statement as parameter', function () {
 });
 
 
-test('Class constant as parameter', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$container = createContainer($compiler, '
@@ -128,27 +128,16 @@ test('Class constant as parameter', function () {
 });
 
 
-testException('Reference as parameter', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
-	$container = createContainer($compiler, '
-	parameters:
-		dynamic: @one
+	Assert::exception(function () use ($compiler) {
+		createContainer($compiler, '
+		parameters:
+			dynamic: @one
 
-	services:
-		one: Service(%dynamic%)
-	');
-	$container->getService('one');
-}, Nette\InvalidStateException::class, 'Circular reference detected for: one, %dynamic%.');
-
-
-testException('Circula references', function () {
-	$compiler = new DI\Compiler;
-	$compiler->setDynamicParameterNames(['one', 'two']);
-	$container = createContainer($compiler, '
-	parameters:
-		one: %two%
-		two: %one%
-	');
-	$container->getParameter('one');
-}, Nette\InvalidStateException::class, 'Circular reference detected for: %one%, %two%.');
+		services:
+			one: Service
+		');
+	}, Nette\DI\ServiceCreationException::class, "Reference to missing service 'one'.");
+});

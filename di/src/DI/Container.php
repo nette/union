@@ -17,38 +17,40 @@ use Nette;
  */
 class Container
 {
-	/**
-	 * @var mixed[]
-	 * @deprecated use Container::getParameter() or getParameters()
-	 */
+	use Nette\SmartObject;
+
+	/** @var array  user parameters */
 	public $parameters = [];
 
+	/** @var string[]  services name => type (complete list of available services) */
+	protected $types = [];
+
 	/** @var string[]  alias => service name */
-	protected array $aliases = [];
+	protected $aliases = [];
 
 	/** @var array[]  tag name => service name => tag value */
-	protected array $tags = [];
+	protected $tags = [];
 
-	/** @var array[]  type => (high, low, no) => services */
-	protected array $wiring = [];
+	/** @var array[]  type => level => services */
+	protected $wiring = [];
 
 	/** @var object[]  service name => instance */
-	private array $instances = [];
+	private $instances = [];
 
-	/** @var array<string, true>  circular reference detector */
-	private array $creating;
+	/** @var array circular reference detector */
+	private $creating;
 
-	/** @var array<string, int> */
-	private array $methods;
-
-	/** @var array<string, \Closure>  service name => \Closure */
-	private array $factories = [];
+	/** @var array */
+	private $methods;
 
 
 	public function __construct(array $params = [])
 	{
-		$this->parameters = $params + $this->getStaticParameters();
-		$this->methods = array_flip(get_class_methods($this));
+		$this->parameters = $params;
+		$this->methods = array_flip(array_filter(
+			get_class_methods($this),
+			function ($s) { return preg_match('#^createService.#', $s); }
+		));
 	}
 
 
@@ -58,32 +60,12 @@ class Container
 	}
 
 
-	public function getParameter(string|int $key): mixed
-	{
-		if (!array_key_exists($key, $this->parameters)) {
-			$this->parameters[$key] = $this->preventDeadLock("%$key%", fn() => $this->getDynamicParameter($key));
-		}
-		return $this->parameters[$key];
-	}
-
-
-	protected function getStaticParameters(): array
-	{
-		return [];
-	}
-
-
-	protected function getDynamicParameter(string|int $key): mixed
-	{
-		throw new Nette\InvalidStateException(sprintf("Parameter '%s' not found. Check if 'di › export › parameters' is enabled.", $key));
-	}
-
-
 	/**
-	 * Adds the service or its factory to the container.
+	 * Adds the service to the container.
 	 * @param  object  $service  service or its factory
+	 * @return static
 	 */
-	public function addService(string $name, object $service): static
+	public function addService(string $name, object $service)
 	{
 		$name = $this->aliases[$name] ?? $name;
 		if (isset($this->instances[$name])) {
@@ -94,23 +76,24 @@ class Container
 			$rt = Nette\Utils\Type::fromReflection(new \ReflectionFunction($service));
 			$type = $rt ? Helpers::ensureClassType($rt, 'return type of closure') : '';
 		} else {
-			$type = $service::class;
+			$type = get_class($service);
 		}
 
-		if (isset($this->methods[self::getMethodName($name)])
-			&& ($expectedType = $this->getServiceType($name))
-			&& !is_a($type, $expectedType, allow_string: true)
-		) {
+		if (!isset($this->methods[self::getMethodName($name)])) {
+			$this->types[$name] = $type;
+
+		} elseif (($expectedType = $this->getServiceType($name)) && !is_a($type, $expectedType, true)) {
 			throw new Nette\InvalidArgumentException(sprintf(
 				"Service '%s' must be instance of %s, %s.",
 				$name,
 				$expectedType,
-				$type ? "$type given" : 'add typehint to closure',
+				$type ? "$type given" : 'add typehint to closure'
 			));
 		}
 
 		if ($service instanceof \Closure) {
-			$this->factories[$name] = $service;
+			$this->methods[self::getMethodName($name)] = $service;
+			$this->types[$name] = $type;
 		} else {
 			$this->instances[$name] = $service;
 		}
@@ -120,7 +103,7 @@ class Container
 
 
 	/**
-	 * Removes a service instance from the container.
+	 * Removes the service from the container.
 	 */
 	public function removeService(string $name): void
 	{
@@ -130,7 +113,7 @@ class Container
 
 
 	/**
-	 * Returns the service instance. If it has not been created yet, it creates it.
+	 * Gets the service object by name.
 	 * @throws MissingServiceException
 	 */
 	public function getService(string $name): object
@@ -148,8 +131,7 @@ class Container
 
 
 	/**
-	 * Returns the service instance. If it has not been created yet, it creates it.
-	 * Alias for getService().
+	 * Gets the service object by name.
 	 * @throws MissingServiceException
 	 */
 	public function getByName(string $name): object
@@ -159,7 +141,7 @@ class Container
 
 
 	/**
-	 * Returns type of the service.
+	 * Gets the service type by name.
 	 * @throws MissingServiceException
 	 */
 	public function getServiceType(string $name): string
@@ -168,14 +150,15 @@ class Container
 		if (isset($this->aliases[$name])) {
 			return $this->getServiceType($this->aliases[$name]);
 
-		} elseif (isset($this->methods[$method])) {
-			return (string) (new \ReflectionMethod($this, $method))->getReturnType();
+		} elseif (isset($this->types[$name])) {
+			return $this->types[$name];
 
-		} elseif ($cb = $this->factories[$name] ?? null) {
-			return (string) (new \ReflectionFunction($cb))->getReturnType();
+		} elseif (isset($this->methods[$method])) {
+			$type = (new \ReflectionMethod($this, $method))->getReturnType();
+			return $type ? $type->getName() : '';
 
 		} else {
-			throw new MissingServiceException(sprintf("Type of service '%s' not known.", $name));
+			throw new MissingServiceException(sprintf("Service '%s' not found.", $name));
 		}
 	}
 
@@ -186,12 +169,12 @@ class Container
 	public function hasService(string $name): bool
 	{
 		$name = $this->aliases[$name] ?? $name;
-		return isset($this->methods[self::getMethodName($name)]) || isset($this->instances[$name]) || isset($this->factories[$name]);
+		return isset($this->methods[self::getMethodName($name)]) || isset($this->instances[$name]);
 	}
 
 
 	/**
-	 * Has a service instance been created?
+	 * Is the service created?
 	 */
 	public function isCreated(string $name): bool
 	{
@@ -208,22 +191,32 @@ class Container
 	 * Creates new instance of the service.
 	 * @throws MissingServiceException
 	 */
-	public function createService(string $name): object
+	public function createService(string $name, array $args = []): object
 	{
 		$name = $this->aliases[$name] ?? $name;
 		$method = self::getMethodName($name);
-		if ($callback = ($this->factories[$name] ?? null)) {
-			$service = $this->preventDeadLock($name, fn() => $callback());
-		} elseif (isset($this->methods[$method])) {
-			$service = $this->preventDeadLock($name, fn() => $this->$method());
-		} else {
+		$cb = $this->methods[$method] ?? null;
+		if (isset($this->creating[$name])) {
+			throw new Nette\InvalidStateException(sprintf('Circular reference detected for services: %s.', implode(', ', array_keys($this->creating))));
+
+		} elseif ($cb === null) {
 			throw new MissingServiceException(sprintf("Service '%s' not found.", $name));
+		}
+
+		try {
+			$this->creating[$name] = true;
+			$service = $cb instanceof \Closure
+				? $cb(...$args)
+				: $this->$method(...$args);
+
+		} finally {
+			unset($this->creating[$name]);
 		}
 
 		if (!is_object($service)) {
 			throw new Nette\UnexpectedValueException(sprintf(
 				"Unable to create service '$name', value returned by %s is not object.",
-				$callback instanceof \Closure ? 'closure' : "method $method()",
+				$cb instanceof \Closure ? 'closure' : "method $method()"
 			));
 		}
 
@@ -232,10 +225,10 @@ class Container
 
 
 	/**
-	 * Returns an instance of the autowired service of the given type. If it has not been created yet, it creates it.
+	 * Resolves service by type.
 	 * @template T of object
 	 * @param  class-string<T>  $type
-	 * @return ($throw is true ? T : ?T)
+	 * @return ?T
 	 * @throws MissingServiceException
 	 */
 	public function getByType(string $type, bool $throw = true): ?object
@@ -252,11 +245,22 @@ class Container
 		} elseif ($throw) {
 			if (!class_exists($type) && !interface_exists($type)) {
 				throw new MissingServiceException(sprintf("Service of type '%s' not found. Check the class name because it cannot be found.", $type));
-			} elseif ($this->findByType($type)) {
-				throw new MissingServiceException(sprintf("Service of type %s is not autowired or is missing in di\u{a0}›\u{a0}export\u{a0}›\u{a0}types.", $type));
-			} else {
-				throw new MissingServiceException(sprintf('Service of type %s not found. Did you add it to configuration file?', $type));
 			}
+
+			foreach ($this->methods as $method => $foo) {
+				$methodType = (new \ReflectionMethod(static::class, $method))->getReturnType()->getName();
+				if (is_a($methodType, $type, true)) {
+					throw new MissingServiceException(sprintf(
+						"Service of type %s is not autowired or is missing in di\u{a0}›\u{a0}export\u{a0}›\u{a0}types.",
+						$type
+					));
+				}
+			}
+
+			throw new MissingServiceException(sprintf(
+				'Service of type %s not found. Did you add it to configuration file?',
+				$type
+			));
 		}
 
 		return null;
@@ -264,7 +268,7 @@ class Container
 
 
 	/**
-	 * Returns the names of autowired services of the given type.
+	 * Gets the autowired service names of the specified type.
 	 * @return string[]
 	 * @internal
 	 */
@@ -276,7 +280,7 @@ class Container
 
 
 	/**
-	 * Returns the names of all services of the given type.
+	 * Gets the service names of the specified type.
 	 * @return string[]
 	 */
 	public function findByType(string $type): array
@@ -289,7 +293,7 @@ class Container
 
 
 	/**
-	 * Returns the names of services with the given tag.
+	 * Gets the service names of the specified tag.
 	 * @return array of [service name => tag attributes]
 	 */
 	public function findByTag(string $tag): array
@@ -298,28 +302,12 @@ class Container
 	}
 
 
-	/**
-	 * Prevents circular references during service creation by checking if the service is already being created.
-	 */
-	private function preventDeadLock(string $key, \Closure $callback): mixed
-	{
-		if (isset($this->creating[$key])) {
-			throw new Nette\InvalidStateException(sprintf('Circular reference detected for: %s.', implode(', ', array_keys($this->creating))));
-		}
-		try {
-			$this->creating[$key] = true;
-			return $callback();
-		} finally {
-			unset($this->creating[$key]);
-		}
-	}
-
-
 	/********************* autowiring ****************d*g**/
 
 
 	/**
-	 * Creates an instance of the class and passes dependencies to the constructor using autowiring.
+	 * Creates new instance using autowiring.
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function createInstance(string $class, array $args = []): object
 	{
@@ -339,7 +327,7 @@ class Container
 
 
 	/**
-	 * Calls all methods starting with 'inject' and passes dependencies to them via autowiring.
+	 * Calls all methods starting with with "inject" using autowiring.
 	 */
 	public function callInjects(object $service): void
 	{
@@ -348,9 +336,10 @@ class Container
 
 
 	/**
-	 * Calls the method and passes dependencies to it via autowiring.
+	 * Calls method using autowiring.
+	 * @return mixed
 	 */
-	public function callMethod(callable $function, array $args = []): mixed
+	public function callMethod(callable $function, array $args = [])
 	{
 		return $function(...$this->autowireArguments(Nette\Utils\Callback::toReflection($function), $args));
 	}
@@ -358,26 +347,20 @@ class Container
 
 	private function autowireArguments(\ReflectionFunctionAbstract $function, array $args = []): array
 	{
-		return Resolver::autowireArguments($function, $args, fn(string $type, bool $single) => $single
+		return Resolver::autowireArguments($function, $args, function (string $type, bool $single) {
+			return $single
 				? $this->getByType($type)
-				: array_map($this->getService(...), $this->findAutowired($type)));
+				: array_map([$this, 'getService'], $this->findAutowired($type));
+		});
 	}
 
 
-	/**
-	 * Returns the method name for creating a service.
-	 */
-	final public static function getMethodName(string $name): string
+	public static function getMethodName(string $name): string
 	{
 		if ($name === '') {
 			throw new Nette\InvalidArgumentException('Service name must be a non-empty string.');
 		}
 
 		return 'createService' . str_replace('.', '__', ucfirst($name));
-	}
-
-
-	public function initialize(): void
-	{
 	}
 }

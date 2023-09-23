@@ -19,7 +19,7 @@ class Lorem
 
 	public $args;
 
-	public int $var = 123;
+	public $var = 123;
 
 
 	public function __construct()
@@ -46,7 +46,7 @@ define('MyConstantTest', 'one');
 $container = createContainer(new DI\Compiler, "
 services:
 	lorem:
-		create: Lorem(::MyConstantTest, Lorem::DolorSit, NOT_CONSTANT_TEST)
+		factory: Lorem(::MyConstantTest, Lorem::DolorSit, NOT_CONSTANT_TEST)
 		setup:
 			- method( @lorem, @self, @container )
 			- method( @lorem::add(1, 2), [x: ::strtoupper('hello')] )

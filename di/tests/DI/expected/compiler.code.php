@@ -6,13 +6,15 @@ declare(strict_types=1);
 
 class Container extends Nette\DI\Container
 {
-	protected array $aliases = [];
-	protected array $wiring = ['Nette\DI\Container' => [['container']], 'stdClass' => [['01', 'name']]];
+	protected $types = ['container' => 'Nette\DI\Container'];
+	protected $aliases = [];
+	protected $wiring = ['Nette\DI\Container' => [['container']], 'stdClass' => [['01', 'name']]];
 
 
 	public function __construct(array $params = [])
 	{
 		parent::__construct($params);
+		$this->parameters += [];
 	}
 
 
@@ -22,7 +24,7 @@ class Container extends Nette\DI\Container
 	}
 
 
-	public function createServiceContainer(): Nette\DI\Container
+	public function createServiceContainer(): Container
 	{
 		return $this;
 	}
@@ -34,13 +36,7 @@ class Container extends Nette\DI\Container
 	}
 
 
-	public function initialize(): void
+	public function initialize()
 	{
-	}
-
-
-	protected function getStaticParameters(): array
-	{
-		return [];
 	}
 }

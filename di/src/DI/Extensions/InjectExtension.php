@@ -32,11 +32,16 @@ final class InjectExtension extends DI\CompilerExtension
 	}
 
 
-	public function beforeCompile(): void
+	public function beforeCompile()
 	{
 		foreach ($this->getContainerBuilder()->getDefinitions() as $def) {
-			if ($def instanceof Definitions\ServiceDefinition && $def->getTag(self::TagInject)) {
-				$this->updateDefinition($def);
+			if ($def->getTag(self::TagInject)) {
+				$def = $def instanceof Definitions\FactoryDefinition
+					? $def->getResultDefinition()
+					: $def;
+				if ($def instanceof Definitions\ServiceDefinition) {
+					$this->updateDefinition($def);
+				}
 			}
 		}
 	}
@@ -52,25 +57,22 @@ final class InjectExtension extends DI\CompilerExtension
 
 		foreach (self::getInjectProperties($class) as $property => $type) {
 			$builder = $this->getContainerBuilder();
-			$inject = new Definitions\Statement(['@self', '$' . $property], [Definitions\Reference::fromType((string) $type)]);
+			$inject = new Definitions\Statement('$' . $property, [Definitions\Reference::fromType((string) $type)]);
 			foreach ($setups as $key => $setup) {
-				if ($setup->getEntity() == $inject->getEntity()) { // intentionally ==
+				if ($setup->getEntity() === $inject->getEntity()) {
 					$inject = $setup;
 					$builder = null;
 					unset($setups[$key]);
 				}
 			}
 
-			if ($builder) {
-				self::checkType($class, $property, $type, $builder, $def);
-			}
 			array_unshift($setups, $inject);
 		}
 
 		foreach (array_reverse(self::getInjectMethods($class)) as $method) {
-			$inject = new Definitions\Statement(['@self', $method]);
+			$inject = new Definitions\Statement($method);
 			foreach ($setups as $key => $setup) {
-				if ($setup->getEntity() == $inject->getEntity()) { // intentionally ==
+				if ($setup->getEntity() === $inject->getEntity()) {
 					$inject = $setup;
 					unset($setups[$key]);
 				}
@@ -91,15 +93,17 @@ final class InjectExtension extends DI\CompilerExtension
 	{
 		$classes = [];
 		foreach (get_class_methods($class) as $name) {
-			if (str_starts_with($name, 'inject')) {
+			if (substr($name, 0, 6) === 'inject') {
 				$classes[$name] = (new \ReflectionMethod($class, $name))->getDeclaringClass()->name;
 			}
 		}
 
 		$methods = array_keys($classes);
-		uksort($classes, fn(string $a, string $b): int => $classes[$a] === $classes[$b]
-				? array_search($a, $methods, strict: true) <=> array_search($b, $methods, strict: true)
-				: (is_a($classes[$a], $classes[$b], allow_string: true) ? 1 : -1));
+		uksort($classes, function (string $a, string $b) use ($classes, $methods): int {
+			return $classes[$a] === $classes[$b]
+				? array_search($a, $methods, true) <=> array_search($b, $methods, true)
+				: (is_a($classes[$a], $classes[$b], true) ? 1 : -1);
+		});
 		return array_keys($classes);
 	}
 
@@ -112,15 +116,25 @@ final class InjectExtension extends DI\CompilerExtension
 	{
 		$res = [];
 		foreach ((new \ReflectionClass($class))->getProperties() as $rp) {
-			if (
-				$rp->getAttributes(DI\Attributes\Inject::class)
-				|| DI\Helpers::parseAnnotation($rp, 'inject') !== null
-			) {
-				if (!$rp->isPublic() || $rp->isStatic() || $rp->isReadOnly()) {
-					throw new Nette\InvalidStateException(sprintf('Property %s for injection must not be static, readonly and must be public.', Reflection::toString($rp)));
+			$name = $rp->getName();
+			$hasAttr = PHP_VERSION_ID >= 80000 && $rp->getAttributes(DI\Attributes\Inject::class);
+			if ($hasAttr || DI\Helpers::parseAnnotation($rp, 'inject') !== null) {
+				if (!$rp->isPublic() || $rp->isStatic()) {
+					trigger_error(sprintf('Property %s for injection must be public and non-static.', Reflection::toString($rp)), E_USER_WARNING);
+					continue;
 				}
 
-				$res[$rp->getName()] = DI\Helpers::ensureClassType(Nette\Utils\Type::fromReflection($rp), 'type of property ' . Reflection::toString($rp));
+				if (PHP_VERSION_ID >= 80100 && $rp->isReadOnly()) {
+					throw new Nette\InvalidStateException(sprintf('Property %s for injection must not be readonly.', Reflection::toString($rp)));
+				}
+
+				$type = Nette\Utils\Type::fromReflection($rp);
+				if (!$type && !$hasAttr && ($annotation = DI\Helpers::parseAnnotation($rp, 'var'))) {
+					$annotation = Reflection::expandClassName($annotation, Reflection::getPropertyDeclaringClass($rp));
+					$type = Nette\Utils\Type::fromString($annotation);
+				}
+
+				$res[$rp->getName()] = DI\Helpers::ensureClassType($type, 'type of property ' . Reflection::toString($rp));
 			}
 		}
 
@@ -130,36 +144,21 @@ final class InjectExtension extends DI\CompilerExtension
 
 
 	/**
-	 * Calls all methods starting with "inject" using autowiring.
+	 * Calls all methods starting with with "inject" using autowiring.
+	 * @param  object  $service
 	 */
-	public static function callInjects(DI\Container $container, object $service): void
+	public static function callInjects(DI\Container $container, $service): void
 	{
-		foreach (self::getInjectMethods($service::class) as $method) {
+		if (!is_object($service)) {
+			throw new Nette\InvalidArgumentException(sprintf('Service must be object, %s given.', gettype($service)));
+		}
+
+		foreach (self::getInjectMethods(get_class($service)) as $method) {
 			$container->callMethod([$service, $method]);
 		}
 
-		foreach (self::getInjectProperties($service::class) as $property => $type) {
-			self::checkType($service, $property, $type, $container, null);
+		foreach (self::getInjectProperties(get_class($service)) as $property => $type) {
 			$service->$property = $container->getByType($type);
-		}
-	}
-
-
-	private static function checkType(
-		object|string $class,
-		string $name,
-		?string $type,
-		DI\Container|DI\ContainerBuilder $container,
-		?Definitions\Definition $def,
-	): void
-	{
-		if (!$container->getByType($type, throw: false)) {
-			throw new Nette\DI\MissingServiceException(sprintf(
-				"%sService of type %s required by %s not found.\nDid you add it to configuration file?",
-				$def ? '[' . $def->getDescriptor() . "]\n" : '',
-				$type,
-				Reflection::toString(new \ReflectionProperty($class, $name)),
-			));
 		}
 	}
 }

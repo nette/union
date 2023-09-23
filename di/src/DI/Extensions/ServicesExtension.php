@@ -16,17 +16,19 @@ use Nette\DI\Helpers;
 
 
 /**
- * Services definitions loader.
+ * Service definitions loader.
  */
 final class ServicesExtension extends Nette\DI\CompilerExtension
 {
+	use Nette\SmartObject;
+
 	public function getConfigSchema(): Nette\Schema\Schema
 	{
 		return Nette\Schema\Expect::arrayOf(new DefinitionSchema($this->getContainerBuilder()));
 	}
 
 
-	public function loadConfiguration(): void
+	public function loadConfiguration()
 	{
 		$this->loadDefinitions($this->config);
 	}
@@ -35,7 +37,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 	/**
 	 * Loads list of service definitions.
 	 */
-	public function loadDefinitions(array $config): void
+	public function loadDefinitions(array $config)
 	{
 		foreach ($config as $key => $defConfig) {
 			$this->loadDefinition($this->convertKeyToName($key), $defConfig);
@@ -53,7 +55,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 				$this->getContainerBuilder()->removeDefinition($name);
 				return;
 			} elseif (!empty($config->alteration) && !$this->getContainerBuilder()->hasDefinition($name)) {
-				throw new Nette\DI\InvalidConfigurationException('Missing original definition for alteration.');
+				throw new Nette\DI\InvalidConfigurationException('missing original definition for alteration.');
 			}
 
 			$def = $this->retrieveDefinition($name, $config);
@@ -68,12 +70,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 			$this->{$methods[$config->defType]}($def, $config);
 			$this->updateDefinition($def, $config);
 		} catch (\Throwable $e) {
-			$message = $e->getMessage();
-			if ($name && !str_starts_with($message, '[Service ')) {
-				$message = "[Service '$name']\n$message";
-			}
-
-			throw new Nette\DI\InvalidConfigurationException($message, 0, $e);
+			throw new Nette\DI\InvalidConfigurationException(($name ? "Service '$name': " : '') . $e->getMessage(), 0, $e);
 		}
 	}
 
@@ -106,7 +103,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 				$definition->setSetup([]);
 			}
 
-			foreach (Helpers::filterArguments($config->setup) as $setup) {
+			foreach (Helpers::filterArguments($config->setup) as $id => $setup) {
 				if (is_array($setup)) {
 					$setup = new Statement(key($setup), array_values($setup));
 				}
@@ -139,7 +136,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 
 		if (isset($config->implement)) {
 			$definition->setImplement($config->implement);
-			$definition->setAutowired();
+			$definition->setAutowired(true);
 		}
 
 		if ($config->create) {
@@ -164,7 +161,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 				$resultDef->setSetup([]);
 			}
 
-			foreach (Helpers::filterArguments($config->setup) as $setup) {
+			foreach (Helpers::filterArguments($config->setup) as $id => $setup) {
 				if (is_array($setup)) {
 					$setup = new Statement(key($setup), array_values($setup));
 				}
@@ -173,8 +170,12 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 			}
 		}
 
+		if (isset($config->parameters)) {
+			$definition->setParameters($config->parameters);
+		}
+
 		if (isset($config->inject)) {
-			$resultDef->addTag(InjectExtension::TagInject, $config->inject);
+			$definition->addTag(InjectExtension::TagInject, $config->inject);
 		}
 	}
 
@@ -186,16 +187,6 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 		}
 
 		if (isset($config->references)) {
-			foreach ($config->references as $name => $reference) {
-				if ($reference instanceof Statement) {
-					$config->references[$name] = '@' . $this->getContainerBuilder()
-						->addDefinition(null)
-						->setFactory($reference)
-						->setAutowired(false)
-						->getName();
-				}
-			}
-
 			$definition->setReferences($config->references);
 		}
 
@@ -240,7 +231,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 		if (is_int($key)) {
 			return null;
 		} elseif (preg_match('#^@[\w\\\\]+$#D', $key)) {
-			return $this->getContainerBuilder()->getByType(substr($key, 1), throw: true);
+			return $this->getContainerBuilder()->getByType(substr($key, 1), true);
 		}
 
 		return $key;

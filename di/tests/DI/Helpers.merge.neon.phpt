@@ -35,12 +35,10 @@ Assert::same(['item' => []], merge('item!:', 'item: 123'));
 
 Assert::same(['item' => []], merge('item!: []', 'item: []'));
 
-Assert::exception(
-	fn() => merge('item!: 231', 'item:'),
-	Nette\DI\InvalidConfigurationException::class,
-);
+Assert::exception(function () {
+	merge('item!: 231', 'item:');
+}, Nette\DI\InvalidConfigurationException::class);
 
-Assert::exception(
-	fn() => merge('item!: 231', 'item: 231'),
-	Nette\DI\InvalidConfigurationException::class,
-);
+Assert::exception(function () {
+	merge('item!: 231', 'item: 231');
+}, Nette\DI\InvalidConfigurationException::class);

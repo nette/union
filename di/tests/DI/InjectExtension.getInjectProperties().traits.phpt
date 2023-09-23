@@ -16,12 +16,11 @@ namespace A
 namespace B
 {
 	use A\AInjected;
-	use Nette\DI\Attributes\Inject;
 
 	trait BTrait
 	{
-		#[Inject]
-		public AInjected $varA;
+		/** @var AInjected @inject */
+		public $varA;
 	}
 }
 

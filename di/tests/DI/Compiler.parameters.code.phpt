@@ -31,7 +31,6 @@ parameters:
 		expr: %expr%
 	arrayDynamic:
 		dynamic: %dynamic%
-		inner: %arrayDynamic.dynamic.foo%
 	arrayMix:
 		expr: %expr%
 		dynamic: %dynamic%
@@ -39,25 +38,21 @@ parameters:
 	refDynamic: %dynamic%
 	refDynamic2: %dynamic.foo%
 	refExpr: %expr%
-	refExpr2: %expr.1%
 	refArrayE1: %arrayExpr%
 	refArrayE2: %arrayExpr.expr%
 	refArrayD1: %arrayDynamic%
 	refArrayD2: %arrayDynamic.dynamic%
-	refArrayD3: %refArrayD2.foo%
 
 services:
 	- Service(
 		%static%
 		%expr%
-		%expr.1%
 		%dynamic%
 		%dynamic.foo%
 		%arrayExpr%
 		%arrayExpr.expr%
 		%arrayDynamic%
 		%arrayDynamic.dynamic%
-		%arrayDynamic.inner%
 	)
 ', 'neon'));
 
@@ -68,5 +63,5 @@ $code = $compiler->addConfig($config)
 
 Assert::matchFile(
 	__DIR__ . '/expected/compiler.parameters.php',
-	$code,
+	$code
 );

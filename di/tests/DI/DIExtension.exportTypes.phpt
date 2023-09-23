@@ -19,7 +19,7 @@ class Foo
 }
 
 
-test('Types are exported when setting is true', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$container = createContainer($compiler, '
@@ -29,7 +29,7 @@ test('Types are exported when setting is true', function () {
 
 	services:
 		one:
-			create: stdClass
+			factory: stdClass
 			autowired: no
 
 		second: stdClass
@@ -40,7 +40,7 @@ test('Types are exported when setting is true', function () {
 });
 
 
-test('Types are not exported when setting is false', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$container = createContainer($compiler, '
@@ -50,7 +50,7 @@ test('Types are not exported when setting is false', function () {
 
 	services:
 		one:
-			create: stdClass
+			factory: stdClass
 			autowired: no
 
 		second: stdClass
@@ -61,7 +61,7 @@ test('Types are not exported when setting is false', function () {
 });
 
 
-test('Mandatory types are exported when setting is false', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedType(stdClass::class);
@@ -72,7 +72,7 @@ test('Mandatory types are exported when setting is false', function () {
 
 	services:
 		one:
-			create: stdClass
+			factory: stdClass
 			autowired: no
 
 		second: stdClass
@@ -83,7 +83,7 @@ test('Mandatory types are exported when setting is false', function () {
 });
 
 
-test('Mandatory types are exported without explicit setting', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedType(stdClass::class);
@@ -94,7 +94,7 @@ test('Mandatory types are exported without explicit setting', function () {
 
 	services:
 		one:
-			create: Foo
+			factory: Foo
 			autowired: no
 
 		second: stdClass
@@ -107,7 +107,7 @@ test('Mandatory types are exported without explicit setting', function () {
 });
 
 
-test('Mandatory and specified types are exported', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedType(stdClass::class);
@@ -119,7 +119,7 @@ test('Mandatory and specified types are exported', function () {
 
 	services:
 		one:
-			create: Foo
+			factory: Foo
 			autowired: no
 
 		second: stdClass

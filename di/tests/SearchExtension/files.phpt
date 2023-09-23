@@ -22,8 +22,6 @@ Assert::same([
 	'Foo\\Bar\\ClassBar',
 	'Foo\\ClassBar',
 	'InterfaceOk1',
-	'InterfaceOk2',
-	'stdClass',
 ], array_keys($services));
 
 
@@ -41,8 +39,6 @@ Assert::same([
 	'CountableClass',
 	'ExtendsStdClass',
 	'InterfaceOk1',
-	'InterfaceOk2',
-	'stdClass',
 ], array_keys($services));
 
 
@@ -64,27 +60,4 @@ Assert::same([
 	'Foo\\Bar\\ClassBar',
 	'Foo\\ClassBar',
 	'InterfaceOk1',
-	'InterfaceOk2',
-	'stdClass',
-], array_keys($services));
-
-
-
-$services = check('
-search:
-	in: fixtures
-	exclude:
-		files:
-			- Foo*.*
-			- ./subdir/*
-');
-
-Assert::same([
-	'ClassOk1',
-	'ClassOk2',
-	'CountableClass',
-	'ExtendsStdClass',
-	'InterfaceOk1',
-	'InterfaceOk2',
-	'stdClass',
 ], array_keys($services));

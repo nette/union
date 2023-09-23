@@ -21,7 +21,7 @@ class MyExtension extends Nette\DI\CompilerExtension
 $config = '
 services:
 	one:
-		create: Ipsum
+		factory: Ipsum
 ';
 $ext = new MyExtension;
 $ext->setCompiler(new DI\Compiler, 'my');
@@ -29,7 +29,7 @@ $res = $ext->loadFromFile(Tester\FileMock::create($config, 'neon'));
 Assert::equal([
 	'services' => [
 		'one' => [
-			'create' => 'Ipsum',
+			'factory' => 'Ipsum',
 		],
 	],
 ], $res);

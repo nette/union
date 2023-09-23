@@ -6,6 +6,24 @@ class Container extends Nette\DI\Container
 	public function __construct(array $params = [])
 	{
 		parent::__construct($params);
+		$this->parameters += [
+			'static' => 123,
+			'expr' => null,
+			'dynamic' => null,
+			'dynamicArray' => null,
+			'arrayExpr' => ['expr' => null],
+			'arrayExpr2' => ['expr' => null],
+			'arrayDynamic' => ['dynamic' => null],
+			'arrayMix' => ['expr' => null, 'dynamic' => null],
+			'refStatic' => 123,
+			'refDynamic' => null,
+			'refDynamic2' => null,
+			'refExpr' => null,
+			'refArrayE1' => ['expr' => null],
+			'refArrayE2' => null,
+			'refArrayD1' => ['dynamic' => null],
+			'refArrayD2' => null,
+		];
 	}
 
 
@@ -14,65 +32,14 @@ class Container extends Nette\DI\Container
 		return new Service(
 			123,
 			trim(' a '),
-			(trim(' a '))['1'],
-			$this->getParameter('dynamic'),
-			$this->getParameter('dynamic')['foo'],
+			($this->parameters['dynamic'] ?? 123),
+			($this->parameters['dynamic'] ?? 123)['foo'],
 			['expr' => trim(' a ')],
 			trim(' a '),
-			['dynamic' => $this->getParameter('dynamic'), 'inner' => $this->getParameter('dynamic')['foo']],
-			$this->getParameter('dynamic'),
-			$this->getParameter('dynamic')['foo'],
+			['dynamic' => ($this->parameters['dynamic'] ?? 123)],
+			($this->parameters['dynamic'] ?? 123)%a?%
 		);
 	}
 
 %A%
-
-	protected function getStaticParameters(): array
-	{
-		return ['static' => 123, 'refStatic' => 123];
-	}
-
-
-	protected function getDynamicParameter(string|int $key): mixed
-	{
-		return match($key) {
-			'dynamic' => 123,
-			'dynamicArray' => [
-			'dynamic' => $this->getParameter('dynamic'),
-			'inner' => $this->getParameter('dynamic')['foo'],
-			'expr' => trim(' a '),
-		],
-			'expr' => trim(' a '),
-			'arrayExpr' => ['expr' => trim(' a ')],
-			'arrayExpr2' => ['expr' => trim(' a ')],
-			'arrayDynamic' => ['dynamic' => $this->getParameter('dynamic'), 'inner' => $this->getParameter('dynamic')['foo']],
-			'arrayMix' => ['expr' => trim(' a '), 'dynamic' => $this->getParameter('dynamic')],
-			'refDynamic' => $this->getParameter('dynamic'),
-			'refDynamic2' => $this->getParameter('dynamic')['foo'],
-			'refExpr' => trim(' a '),
-			'refExpr2' => (trim(' a '))['1'],
-			'refArrayE1' => ['expr' => trim(' a ')],
-			'refArrayE2' => trim(' a '),
-			'refArrayD1' => ['dynamic' => $this->getParameter('dynamic'), 'inner' => $this->getParameter('dynamic')['foo']],
-			'refArrayD2' => $this->getParameter('dynamic'),
-			'refArrayD3' => $this->getParameter('dynamic')['foo'],
-			default => parent::getDynamicParameter($key),
-		};
-	}
-
-
-	public function getParameters(): array
-	{
-		array_map($this->getParameter(...), [
-			'dynamic',
-			'dynamicArray',
-			'arrayDynamic',
-			'refDynamic',
-			'refDynamic2',
-			'refArrayD1',
-			'refArrayD2',
-			'refArrayD3',
-		]);
-		return parent::getParameters();
-	}
 }

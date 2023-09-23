@@ -17,20 +17,30 @@ use Nette;
  */
 class ContainerLoader
 {
-	public function __construct(
-		private readonly string $tempDirectory,
-		private readonly bool $autoRebuild = false,
-	) {
+	use Nette\SmartObject;
+
+	/** @var bool */
+	private $autoRebuild = false;
+
+	/** @var string */
+	private $tempDirectory;
+
+
+	public function __construct(string $tempDirectory, bool $autoRebuild = false)
+	{
+		$this->tempDirectory = $tempDirectory;
+		$this->autoRebuild = $autoRebuild;
 	}
 
 
 	/**
 	 * @param  callable  $generator  function (Nette\DI\Compiler $compiler): string|null
+	 * @param  mixed  $key
 	 */
-	public function load(callable $generator, mixed $key = null): string
+	public function load(callable $generator, $key = null): string
 	{
 		$class = $this->getClassName($key);
-		if (!class_exists($class, autoload: false)) {
+		if (!class_exists($class, false)) {
 			$this->loadFile($class, $generator);
 		}
 
@@ -38,7 +48,10 @@ class ContainerLoader
 	}
 
 
-	public function getClassName(mixed $key): string
+	/**
+	 * @param  mixed  $key
+	 */
+	public function getClassName($key): string
 	{
 		return 'Container_' . substr(md5(serialize($key)), 0, 10);
 	}
@@ -72,7 +85,7 @@ class ContainerLoader
 					@unlink("$name.tmp"); // @ - file may not exist
 					throw new Nette\IOException(sprintf("Unable to create file '%s'.", $name));
 				} elseif (function_exists('opcache_invalidate')) {
-					@opcache_invalidate($name, force: true); // @ can be restricted
+					@opcache_invalidate($name, true); // @ can be restricted
 				}
 			}
 		}

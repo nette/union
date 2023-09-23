@@ -42,10 +42,10 @@ services:
 	three: @\Lorem
 
 	one:
-		create: Lorem(@\Ipsum)
+		factory: Lorem(@\Ipsum)
 
 	two:
-		create: Ipsum(1)
+		factory: Ipsum(1)
 		setup:
 			- @\Ipsum::foo()
 

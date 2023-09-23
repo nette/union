@@ -44,7 +44,7 @@ services:
 	s3: ServiceChild
 	s4: stdClass
 	s5:
-		create: Service
+		factory: Service
 		autowired: no
 ');
 

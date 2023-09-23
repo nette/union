@@ -18,41 +18,43 @@ use Nette;
 final class LocatorDefinition extends Definition
 {
 	/** @var Reference[] */
-	private array $references = [];
-	private ?string $tagged = null;
+	private $references = [];
+
+	/** @var string|null */
+	private $tagged;
 
 
-	public function setImplement(string $interface): static
+	/** @return static */
+	public function setImplement(string $interface)
 	{
 		if (!interface_exists($interface)) {
-			throw new Nette\InvalidArgumentException(sprintf("[%s]\nInterface '%s' not found.", $this->getDescriptor(), $interface));
+			throw new Nette\InvalidArgumentException(sprintf("Service '%s': Interface '%s' not found.", $this->getName(), $interface));
 		}
 
 		$methods = (new \ReflectionClass($interface))->getMethods();
 		if (!$methods) {
-			throw new Nette\InvalidArgumentException(sprintf("[%s]\nInterface %s must have at least one method.", $this->getDescriptor(), $interface));
+			throw new Nette\InvalidArgumentException(sprintf("Service '%s': Interface %s must have at least one method.", $this->getName(), $interface));
 		}
 
 		foreach ($methods as $method) {
 			if ($method->isStatic() || !(
-				($method->name === 'get' && $method->getNumberOfParameters() === 1)
+				(preg_match('#^(get|create)$#', $method->name) && $method->getNumberOfParameters() === 1)
 				|| (preg_match('#^(get|create)[A-Z]#', $method->name) && $method->getNumberOfParameters() === 0)
 			)) {
 				throw new Nette\InvalidArgumentException(sprintf(
-					"[%s]\nMethod %s::%s() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.",
-					$this->getDescriptor(),
+					"Service '%s': Method %s::%s() does not meet the requirements: is create(\$name), get(\$name), create*() or get*() and is non-static.",
+					$this->getName(),
 					$interface,
-					$method->name,
+					$method->name
 				));
 			}
 
-			if ($method->name !== 'get') {
-				Nette\DI\Helpers::ensureClassType(
-					Nette\Utils\Type::fromReflection($method),
-					"return type of $interface::$method->name()",
-					$this->getDescriptor(),
-					allowNullable: true,
-				);
+			if ($method->getNumberOfParameters() === 0) {
+				try {
+					Nette\DI\Helpers::ensureClassType(Nette\Utils\Type::fromReflection($method), "return type of $interface::$method->name()", true);
+				} catch (Nette\DI\ServiceCreationException $e) {
+					trigger_error($e->getMessage(), E_USER_DEPRECATED);
+				}
 			}
 		}
 
@@ -66,11 +68,12 @@ final class LocatorDefinition extends Definition
 	}
 
 
-	public function setReferences(array $references): static
+	/** @return static */
+	public function setReferences(array $references)
 	{
 		$this->references = [];
 		foreach ($references as $name => $ref) {
-			$this->references[$name] = str_starts_with($ref, '@')
+			$this->references[$name] = substr($ref, 0, 1) === '@'
 				? new Reference(substr($ref, 1))
 				: Reference::fromType($ref);
 		}
@@ -86,7 +89,8 @@ final class LocatorDefinition extends Definition
 	}
 
 
-	public function setTagged(?string $tagged): static
+	/** @return static */
+	public function setTagged(?string $tagged)
 	{
 		$this->tagged = $tagged;
 		return $this;
@@ -111,11 +115,11 @@ final class LocatorDefinition extends Definition
 			foreach ($resolver->getContainerBuilder()->findByTag($this->tagged) as $name => $tag) {
 				if (isset($this->references[$tag])) {
 					trigger_error(sprintf(
-						"[%s]\nDuplicated tag '%s' with value '%s'.",
-						$this->getDescriptor(),
+						"Service '%s': duplicated tag '%s' with value '%s'.",
+						$this->getName(),
 						$this->tagged,
-						$tag,
-					));
+						$tag
+					), E_USER_NOTICE);
 				}
 
 				$this->references[$tag] = new Reference($name);
@@ -133,10 +137,13 @@ final class LocatorDefinition extends Definition
 		$class = (new Nette\PhpGenerator\ClassType)
 			->addImplement($this->getType());
 
+		$class->addProperty('container')
+			->setPrivate();
+
 		$class->addMethod('__construct')
-			->addPromotedParameter('container')
-				->setPrivate()
-				->setType($generator->getClassName());
+			->addBody('$this->container = $container;')
+			->addParameter('container')
+			->setType($generator->getClassName());
 
 		foreach ((new \ReflectionClass($this->getType()))->getMethods() as $rm) {
 			preg_match('#^(get|create)(.*)#', $rm->name, $m);
@@ -147,13 +154,13 @@ final class LocatorDefinition extends Definition
 				->setReturnType((string) Nette\Utils\Type::fromReflection($rm));
 
 			if (!$name) {
-				$class->addProperty('mapping', array_map(fn($item) => $item->getValue(), $this->references))
+				$class->addProperty('mapping', array_map(function ($item) { return $item->getValue(); }, $this->references))
 					->setPrivate();
 
 				$methodInner->setBody('if (!isset($this->mapping[$name])) {
 	' . ($nullable ? 'return null;' : 'throw new Nette\DI\MissingServiceException("Service \'$name\' is not defined.");') . '
 }
-return $this->container->getService($this->mapping[$name]);')
+return $this->container->' . $m[1] . 'Service($this->mapping[$name]);')
 					->addParameter('name');
 
 			} elseif (isset($this->references[$name])) {

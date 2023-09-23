@@ -23,7 +23,10 @@ use Nette\Schema\Schema;
  */
 class DefinitionSchema implements Schema
 {
-	private Nette\DI\ContainerBuilder $builder;
+	use Nette\SmartObject;
+
+	/** @var Nette\DI\ContainerBuilder */
+	private $builder;
 
 
 	public function __construct(Nette\DI\ContainerBuilder $builder)
@@ -48,6 +51,7 @@ class DefinitionSchema implements Schema
 			}
 		}
 
+		$def = $this->expandParameters($def);
 		$type = $this->sniffType(end($context->path), $def);
 		$def = $this->getSchema($type)->complete($def, $context);
 		if ($def) {
@@ -94,18 +98,45 @@ class DefinitionSchema implements Schema
 		} elseif (!is_array($def) || isset($def[0], $def[1])) {
 			return ['create' => $def];
 
-		} else {
+		} elseif (is_array($def)) {
 			// back compatibility
 			if (isset($def['factory']) && !isset($def['create'])) {
 				$def['create'] = $def['factory'];
 				unset($def['factory']);
 			}
-			if (isset($def['class']) && !isset($def['type']) && !isset($def['imported'])) {
-				$def[isset($def['create']) ? 'type' : 'create'] = $def['class'];
+
+			if (
+				isset($def['class'])
+				&& !isset($def['type'])
+				&& !isset($def['create'])
+				&& !isset($def['dynamic'])
+				&& !isset($def['imported'])
+			) {
+				$def['create'] = $def['class'];
 				unset($def['class']);
 			}
 
+			foreach (['class' => 'type', 'dynamic' => 'imported'] as $alias => $original) {
+				if (array_key_exists($alias, $def)) {
+					if (array_key_exists($original, $def)) {
+						throw new Nette\DI\InvalidConfigurationException(sprintf(
+							"Options '%s' and '%s' are aliases, use only '%s'.",
+							$alias,
+							$original,
+							$original
+						));
+					}
+
+					trigger_error(sprintf("Service '%s': option '$alias' should be changed to '$original'.", end($context->path)), E_USER_DEPRECATED);
+					$def[$original] = $def[$alias];
+					unset($def[$alias]);
+				}
+			}
+
 			return $def;
+
+		} else {
+			throw new Nette\DI\InvalidConfigurationException('Unexpected format of service definition');
 		}
 	}
 
@@ -119,7 +150,7 @@ class DefinitionSchema implements Schema
 	{
 		if (is_string($key)) {
 			$name = preg_match('#^@[\w\\\\]+$#D', $key)
-				? $this->builder->getByType(substr($key, 1))
+				? $this->builder->getByType(substr($key, 1), false)
 				: $key;
 
 			if ($name && $this->builder->hasDefinition($name)) {
@@ -147,6 +178,20 @@ class DefinitionSchema implements Schema
 	}
 
 
+	private function expandParameters(array $config): array
+	{
+		$params = $this->builder->parameters;
+		if (isset($config['parameters'])) {
+			foreach ((array) $config['parameters'] as $k => $v) {
+				$v = explode(' ', is_int($k) ? $v : $k);
+				$params[end($v)] = $this->builder::literal('$' . end($v));
+			}
+		}
+
+		return Nette\DI\Helpers::expand($config, $params);
+	}
+
+
 	private static function getSchema(string $type): Schema
 	{
 		static $cache;
@@ -165,7 +210,7 @@ class DefinitionSchema implements Schema
 	{
 		return Expect::structure([
 			'type' => Expect::type('string'),
-			'create' => Expect::type('callable|Nette\DI\Definitions\Statement|Nette\DI\Definitions\Reference'),
+			'create' => Expect::type('callable|Nette\DI\Definitions\Statement'),
 			'arguments' => Expect::array(),
 			'setup' => Expect::listOf('callable|Nette\DI\Definitions\Statement|array:1'),
 			'inject' => Expect::bool(),
@@ -197,6 +242,7 @@ class DefinitionSchema implements Schema
 			'implement' => Expect::string(),
 			'arguments' => Expect::array(),
 			'setup' => Expect::listOf('callable|Nette\DI\Definitions\Statement|array:1'),
+			'parameters' => Expect::array(),
 			'references' => Expect::array(),
 			'tagged' => Expect::string(),
 			'inject' => Expect::bool(),

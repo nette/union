@@ -18,10 +18,17 @@ use Tracy;
  */
 final class DIExtension extends Nette\DI\CompilerExtension
 {
-	public array $exportedTags = [];
-	public array $exportedTypes = [];
-	private bool $debugMode;
-	private float $time;
+	/** @var array */
+	public $exportedTags = [];
+
+	/** @var array */
+	public $exportedTypes = [];
+
+	/** @var bool */
+	private $debugMode;
+
+	/** @var float */
+	private $time;
 
 
 	public function __construct(bool $debugMode = false)
@@ -30,39 +37,52 @@ final class DIExtension extends Nette\DI\CompilerExtension
 		$this->time = microtime(true);
 
 		$this->config = new class {
-			public ?bool $debugger = null;
+			/** @var ?bool */
+			public $debugger;
 
 			/** @var string[] */
-			public array $excluded = [];
-			public ?string $parentClass = null;
-			public object $export;
+			public $excluded = [];
+
+			/** @var ?string */
+			public $parentClass;
+
+			/** @var object */
+			public $export;
 		};
 		$this->config->export = new class {
-			public bool $parameters = true;
+			/** @var bool */
+			public $parameters = true;
 
 			/** @var string[]|bool|null */
-			public array|bool|null $tags = true;
+			public $tags = true;
 
 			/** @var string[]|bool|null */
-			public array|bool|null $types = true;
+			public $types = true;
 		};
 	}
 
 
-	public function loadConfiguration(): void
+	public function loadConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
 		$builder->addExcludedClasses($this->config->excluded);
 	}
 
 
-	public function afterCompile(Nette\PhpGenerator\ClassType $class): void
+	public function beforeCompile()
+	{
+		if (!$this->config->export->parameters) {
+			$this->getContainerBuilder()->parameters = [];
+		}
+	}
+
+
+	public function afterCompile(Nette\PhpGenerator\ClassType $class)
 	{
 		if ($this->config->parentClass) {
 			$class->setExtends($this->config->parentClass);
 		}
 
-		$this->restrictParameters($class);
 		$this->restrictTags($class);
 		$this->restrictTypes($class);
 
@@ -71,15 +91,6 @@ final class DIExtension extends Nette\DI\CompilerExtension
 			($this->config->debugger ?? $this->getContainerBuilder()->getByType(Tracy\Bar::class))
 		) {
 			$this->enableTracyIntegration();
-		}
-	}
-
-
-	private function restrictParameters(Nette\PhpGenerator\ClassType $class): void
-	{
-		if (!$this->config->export->parameters) {
-			$class->removeMethod('getParameters');
-			$class->removeMethod('getStaticParameters');
 		}
 	}
 
@@ -106,7 +117,7 @@ final class DIExtension extends Nette\DI\CompilerExtension
 		$prop = $class->getProperty('wiring');
 		$prop->setValue(array_intersect_key(
 			$prop->getValue(),
-			$this->exportedTypes + (is_array($option) ? array_flip($option) : []),
+			$this->exportedTypes + (is_array($option) ? array_flip($option) : [])
 		));
 	}
 
@@ -115,10 +126,7 @@ final class DIExtension extends Nette\DI\CompilerExtension
 	{
 		Nette\Bridges\DITracy\ContainerPanel::$compilationTime = $this->time;
 		$this->initialization->addBody($this->getContainerBuilder()->formatPhp('?;', [
-			new Nette\DI\Definitions\Statement(
-				'@Tracy\Bar::addPanel',
-				[new Nette\DI\Definitions\Statement(Nette\Bridges\DITracy\ContainerPanel::class)],
-			),
+			new Nette\DI\Definitions\Statement('@Tracy\Bar::addPanel', [new Nette\DI\Definitions\Statement(Nette\Bridges\DITracy\ContainerPanel::class)]),
 		]));
 	}
 }
