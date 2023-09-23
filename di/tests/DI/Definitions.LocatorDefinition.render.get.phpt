@@ -37,28 +37,30 @@ test('', function () {
 
 	Assert::match(
 		<<<'XX'
-			public function createServiceAbc(): Good
-			{
-				return new class ($this) implements Good {
-					private $mapping = ['first' => 'a', 'second' => 'a'];
+public function createServiceAbc(): Good
+{
+	return new class ($this) implements Good {
+		private $container;%A?%
+		private $mapping = ['first' => 'a', 'second' => 'a'];
 
 
-					public function __construct(
-						private $container,
-					) {
-					}
+		public function __construct($container)
+		{
+			$this->container = $container;
+		}
 
 
-					public function get($name): stdClass
-					{
-						if (!isset($this->mapping[$name])) {
-							throw new Nette\DI\MissingServiceException("Service '$name' is not defined.");
-						}
-						return $this->container->getService($this->mapping[$name]);
-					}
-				};
+		public function get($name): stdClass
+		{
+			if (!isset($this->mapping[$name])) {
+				throw new Nette\DI\MissingServiceException("Service '$name' is not defined.");
 			}
-			XX,
-		$method->__toString(),
+			return $this->container->getService($this->mapping[$name]);
+		}
+	};
+}
+XX
+		,
+		$method->__toString()
 	);
 });

@@ -18,7 +18,8 @@ use Nette\DI\PhpGenerator;
  */
 final class ImportedDefinition extends Definition
 {
-	public function setType(?string $type): static
+	/** @return static */
+	public function setType(?string $type)
 	{
 		return parent::setType($type);
 	}
@@ -39,7 +40,15 @@ final class ImportedDefinition extends Definition
 		$method->setReturnType('void')
 			->setBody(
 				'throw new Nette\\DI\\ServiceCreationException(?);',
-				["Unable to create imported service '{$this->getName()}', it must be added using addService()"],
+				["Unable to create imported service '{$this->getName()}', it must be added using addService()"]
 			);
+	}
+
+
+	/** @deprecated use '$def instanceof ImportedDefinition' */
+	public function isDynamic(): bool
+	{
+		trigger_error(sprintf('Service %s: %s() is deprecated, use "instanceof ImportedDefinition".', $this->getName(), __METHOD__), E_USER_DEPRECATED);
+		return true;
 	}
 }

@@ -14,7 +14,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('Parameters are exported when setting is true', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$container = createContainer($compiler, '
@@ -27,11 +27,10 @@ test('Parameters are exported when setting is true', function () {
 	');
 
 	Assert::same(['key' => 'val'], $container->parameters);
-	Assert::same(['key' => 'val'], $container->getParameters());
 });
 
 
-test('Parameters are not exported when setting is false', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$container = createContainer($compiler, '
@@ -44,11 +43,10 @@ test('Parameters are not exported when setting is false', function () {
 	');
 
 	Assert::same([], $container->parameters);
-	Assert::same([], $container->getParameters());
 });
 
 
-test('Dynamic parameters are correctly exported when export setting is true', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$compiler->addExtension('di', new DIExtension);
@@ -61,12 +59,11 @@ test('Dynamic parameters are correctly exported when export setting is true', fu
 			parameters: true
 	', ['dynamic' => 123]);
 
-	Assert::same(['dynamic' => 123], $container->parameters);
-	Assert::same(['dynamic' => 123, 'key' => 123], $container->getParameters());
+	Assert::same(['dynamic' => 123, 'key' => null], $container->parameters);
 });
 
 
-test('Dynamic parameters remain even when export setting is false', function () {
+test('', function () {
 	$compiler = new DI\Compiler;
 	$compiler->setDynamicParameterNames(['dynamic']);
 	$compiler->addExtension('di', new DIExtension);
@@ -80,5 +77,4 @@ test('Dynamic parameters remain even when export setting is false', function () 
 	', ['dynamic' => 123]);
 
 	Assert::same(['dynamic' => 123], $container->parameters);
-	Assert::same(['dynamic' => 123, 'key' => 123], $container->getParameters());
 });

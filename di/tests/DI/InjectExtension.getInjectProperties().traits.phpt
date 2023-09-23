@@ -19,8 +19,8 @@ namespace B
 
 	trait BTrait
 	{
-		/** @inject */
-		public AInjected $varA;
+		/** @var AInjected @inject */
+		public $varA;
 	}
 }
 

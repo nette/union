@@ -14,13 +14,12 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-testException('Unknown type', function () {
+Assert::exception(function () {
 	$def = new ServiceDefinition;
 	$def->setType('Foo');
-}, Nette\InvalidArgumentException::class, "[Service ?]
-Class or interface 'Foo' not found.");
+}, Nette\InvalidArgumentException::class, "Service '': Class or interface 'Foo' not found.");
 
-test('type versus entity I.', function () {
+test('', function () {
 	$def = new ServiceDefinition;
 	$def->setType(stdClass::class);
 	Assert::same(stdClass::class, $def->getType());
@@ -31,7 +30,7 @@ test('type versus entity I.', function () {
 	Assert::null($def->getEntity());
 });
 
-test('type versus entity II.', function () {
+test('', function () {
 	$def = new ServiceDefinition;
 	$def->setCreator(stdClass::class);
 	Assert::null($def->getType());
@@ -59,28 +58,28 @@ test('Test with factory being previously set.', function () {
 	Assert::equal(new Statement(null, [1 => 'new', 2 => 'bar']), $def2->getCreator());
 });
 
-test('Setting a creator with array arguments', function () {
+test('', function () {
 	$def = new ServiceDefinition;
 	$def->setCreator(stdClass::class, [1, 2]);
 	Assert::null($def->getType());
 	Assert::equal(new Statement(stdClass::class, [1, 2]), $def->getCreator());
 });
 
-test('Setting a creator with statement arguments', function () {
+test('', function () {
 	$def = new ServiceDefinition;
 	$def->setCreator(new Statement(stdClass::class, [1, 2]));
 	Assert::null($def->getType());
 	Assert::equal(new Statement(stdClass::class, [1, 2]), $def->getCreator());
 });
 
-test('Setting a creator with statement and additional arguments', function () {
+test('', function () {
 	$def = new ServiceDefinition;
 	$def->setCreator(new Statement(stdClass::class, [1, 2]), [99]); // 99 is ignored
 	Assert::null($def->getType());
 	Assert::equal(new Statement(stdClass::class, [1, 2]), $def->getCreator());
 });
 
-test('Setting setups with arguments/statements', function () {
+test('', function () {
 	$def = new ServiceDefinition;
 	$def->addSetup(stdClass::class, [1, 2]);
 	$def->addSetup(new Statement(stdClass::class, [1, 2]));
@@ -92,7 +91,7 @@ test('Setting setups with arguments/statements', function () {
 	], $def->getSetup());
 });
 
-test('Tag management functionality', function () {
+test('', function () {
 	$def = new ServiceDefinition;
 	$def->addTag('tag1');
 	$def->addTag('tag2', [1, 2]);

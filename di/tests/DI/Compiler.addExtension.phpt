@@ -7,6 +7,7 @@
 declare(strict_types=1);
 
 use Nette\DI;
+use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
@@ -21,21 +22,21 @@ class FooExtension extends DI\CompilerExtension
 }
 
 
-testException('', function () {
+Assert::exception(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('foo', new FooExtension);
 	$container = createContainer($compiler);
 }, Nette\DeprecatedException::class, "Extensions 'bar' were added while container was being compiled.");
 
 
-testException('', function () {
+Assert::exception(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('foo', new FooExtension);
 	$compiler->addExtension('foo', new FooExtension);
 }, Nette\InvalidArgumentException::class, "Name 'foo' is already used or reserved.");
 
 
-testException('', function () {
+Assert::exception(function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('foo', new FooExtension);
 	$compiler->addExtension('Foo', new FooExtension);

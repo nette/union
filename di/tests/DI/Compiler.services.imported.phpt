@@ -18,6 +18,18 @@ class Service
 }
 
 
+$container = @createContainer(new DI\Compiler, '
+services:
+	one:
+		type: Service
+		dynamic: true
+');
+
+Assert::exception(function () use ($container) {
+	$container->getService('one');
+}, Nette\DI\ServiceCreationException::class, "Unable to create imported service 'one', it must be added using addService()");
+
+
 $container = createContainer(new DI\Compiler, '
 services:
 	one:
@@ -25,8 +37,18 @@ services:
 		imported: true
 ');
 
-Assert::exception(
-	fn() => $container->getService('one'),
-	Nette\DI\ServiceCreationException::class,
-	"Unable to create imported service 'one', it must be added using addService()",
-);
+Assert::exception(function () use ($container) {
+	$container->getService('one');
+}, Nette\DI\ServiceCreationException::class, "Unable to create imported service 'one', it must be added using addService()");
+
+
+$container = @createContainer(new DI\Compiler, '
+services:
+	one:
+		class: Service
+		dynamic: true
+');
+
+Assert::exception(function () use ($container) {
+	$container->getService('one');
+}, Nette\DI\ServiceCreationException::class, "Unable to create imported service 'one', it must be added using addService()");

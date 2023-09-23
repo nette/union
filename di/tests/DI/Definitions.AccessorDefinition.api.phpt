@@ -40,11 +40,6 @@ interface Bad5
 	public function get($arg);
 }
 
-interface Bad6
-{
-	public function get();
-}
-
 interface Good1
 {
 	public function get(): stdClass;
@@ -53,63 +48,55 @@ interface Good1
 
 Assert::exception(function () {
 	$def = new AccessorDefinition;
+	$def->setType('Foo');
+}, Nette\MemberAccessException::class);
+
+
+Assert::exception(function () {
+	$def = new AccessorDefinition;
 	$def->setImplement('Foo');
-}, Nette\InvalidArgumentException::class, "[Service ?]
-Interface 'Foo' not found.");
+}, Nette\InvalidArgumentException::class, "Service '': Interface 'Foo' not found.");
 
 
 Assert::exception(function () {
 	$def = new AccessorDefinition;
 	$def->setImplement(stdClass::class);
-}, Nette\InvalidArgumentException::class, "[Service ?]
-Interface 'stdClass' not found.");
+}, Nette\InvalidArgumentException::class, "Service '': Interface 'stdClass' not found.");
 
 
 Assert::exception(function () {
 	$def = new AccessorDefinition;
 	$def->setImplement(Bad1::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Interface Bad1 must have just one non-static method get().');
+}, Nette\InvalidArgumentException::class, "Service '': Interface Bad1 must have just one non-static method get().");
 
 
 Assert::exception(function () {
 	$def = new AccessorDefinition;
 	$def->setImplement(Bad2::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Interface Bad2 must have just one non-static method get().');
+}, Nette\InvalidArgumentException::class, "Service '': Interface Bad2 must have just one non-static method get().");
 
 
 Assert::exception(function () {
 	$def = new AccessorDefinition;
 	$def->setImplement(Bad3::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Interface Bad3 must have just one non-static method get().');
+}, Nette\InvalidArgumentException::class, "Service '': Interface Bad3 must have just one non-static method get().");
 
 
 Assert::exception(function () {
 	$def = new AccessorDefinition;
 	$def->setImplement(Bad4::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Interface Bad4 must have just one non-static method get().');
+}, Nette\InvalidArgumentException::class, "Service '': Interface Bad4 must have just one non-static method get().");
 
 
 Assert::exception(function () {
 	$def = new AccessorDefinition;
 	$def->setImplement(Bad5::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Method Bad5::get() must have no parameters.');
-
-
-Assert::exception(function () {
-	$def = new AccessorDefinition;
-	$def->setImplement(Bad6::class);
-}, Nette\DI\ServiceCreationException::class, '[Service ?]
-Return type of Bad6::get() is not declared.');
+}, Nette\InvalidArgumentException::class, "Service '': Method Bad5::get() must have no parameters.");
 
 
 Assert::noError(function () {
 	$def = new AccessorDefinition;
-	$def->setImplement(Good1::class);
+	@$def->setImplement(Good1::class); // missing type triggers warning
 	Assert::same(Good1::class, $def->getImplement());
 	Assert::same(Good1::class, $def->getType());
 });

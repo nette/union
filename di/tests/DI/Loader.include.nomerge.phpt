@@ -14,7 +14,7 @@ require __DIR__ . '/../bootstrap.php';
 
 
 $config = new Config\Loader;
-$data = $config->load('files/loader.includes.neon', merge: false);
+$data = $config->load('files/loader.includes.neon', false);
 
 Assert::same([
 	'files/loader.includes.neon',

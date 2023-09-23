@@ -21,5 +21,4 @@ services:
 	bad:
 		alteration: yes
 	');
-}, Nette\DI\InvalidConfigurationException::class, "[Service 'bad']
-Missing original definition for alteration.");
+}, Nette\DI\InvalidConfigurationException::class, "Service 'bad': missing original definition for alteration.");
