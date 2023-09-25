@@ -17,5 +17,4 @@ use Nette;
  */
 abstract class PdoDriver implements Nette\Database\Driver
 {
-	use Nette\SmartObject;
 }
