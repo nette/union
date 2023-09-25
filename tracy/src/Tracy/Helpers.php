@@ -91,12 +91,6 @@ class Helpers
 	}
 
 
-	public static function htmlToText(string $s): string
-	{
-		return htmlspecialchars_decode(strip_tags($s), ENT_QUOTES | ENT_HTML5);
-	}
-
-
 	public static function findTrace(array $trace, array|string $method, ?int &$index = null): ?array
 	{
 		$m = is_array($method) ? $method : explode('::', $method);
@@ -475,28 +469,6 @@ class Helpers
 
 
 	/** @internal */
-	public static function htmlToAnsi(string $s, array $colors): string
-	{
-		$stack = ['0'];
-		$s = preg_replace_callback(
-			'#<\w+(?: class=["\']tracy-(?:dump-)?([\w-]+)["\'])?[^>]*>|</\w+>#',
-			function ($m) use ($colors, &$stack): string {
-				if ($m[0][1] === '/') {
-					array_pop($stack);
-				} else {
-					$stack[] = isset($m[1], $colors[$m[1]]) ? $colors[$m[1]] : '0';
-				}
-				return "\e[" . end($stack) . 'm';
-			},
-			$s,
-		);
-		$s = preg_replace('/\e\[0m( *)(?=\e)/', '$1', $s);
-		$s = self::htmlToText($s);
-		return $s;
-	}
-
-
-	/** @internal */
 	public static function minifyJs(string $s): string
 	{
 		// author: Jakub Vrana https://php.vrana.cz/minifikace-javascriptu.php
@@ -544,7 +516,6 @@ class Helpers
 	/** @internal */
 	public static function minifyCss(string $s): string
 	{
-		return $s;
 		$last = '';
 		return preg_replace_callback(
 			<<<'XX'

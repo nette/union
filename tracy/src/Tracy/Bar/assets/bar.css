@@ -4,7 +4,6 @@
 
 /* common styles */
 #tracy-debug {
-	--tracy-space: 10px;
 	display: none;
 	direction: ltr;
 }
@@ -31,20 +30,9 @@ body#tracy-debug { /* in popup window */
 }
 
 #tracy-debug h2,
-#tracy-debug h3 {
-	font-weight: bold;
-}
-
-#tracy-debug :where(:is(
-	h1, h2, h3, h4, h5, h6,
-	p,
-	ol, ul, dl,
-	pre, table, hr,
-	.tracy-inner,
-	.tracy-inner-container,
-	.tracy-inner-container > *
-):not(:first-child)) {
-	margin-top: var(--tracy-space);
+#tracy-debug h3,
+#tracy-debug p {
+	margin: .4em 0;
 }
 
 #tracy-debug table {
@@ -119,7 +107,6 @@ body#tracy-debug { /* in popup window */
 #tracy-debug-bar .tracy-row {
 	list-style: none none;
 	display: flex;
-	margin: 0;
 }
 
 #tracy-debug-bar .tracy-row:not(:first-child) {
@@ -195,9 +182,9 @@ body#tracy-debug .tracy-panel { /* in popup window */
 
 #tracy-debug h1 {
 	font: normal normal 23px/1.4 Tahoma, sans-serif;
-	line-height: 1;
 	color: #575753;
-	margin: 0;
+	margin: -5px -5px 5px;
+	padding: 0 5px 0 5px;
 	word-wrap: break-word;
 }
 
@@ -226,7 +213,7 @@ body#tracy-debug .tracy-panel { /* in popup window */
 #tracy-debug .tracy-mode-float {
 	position: fixed;
 	flex-direction: column;
-	padding: var(--tracy-space);
+	padding: 10px;
 	min-width: 200px;
 	min-height: 80px;
 	border-radius: 5px;
@@ -280,7 +267,7 @@ body#tracy-debug .tracy-panel { /* in popup window */
 }
 
 #tracy-debug .tracy-mode-window {
-	padding: var(--tracy-space);
+	padding: 10px;
 }
 
 #tracy-debug .tracy-icons a {

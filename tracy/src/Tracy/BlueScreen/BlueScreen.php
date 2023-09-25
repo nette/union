@@ -312,8 +312,8 @@ class BlueScreen
 		}
 
 		$source = $php
-			? CodeHighlighter::highlightPhp($source, $line, $column)
-			: '<pre class=tracy-code><div>' . CodeHighlighter::highlightLine(htmlspecialchars($source, ENT_IGNORE, 'UTF-8'), $line, $column) . '</div></pre>';
+			? static::highlightPhp($source, $line, $lines, $column)
+			: '<pre class=tracy-code><div>' . static::highlightLine(htmlspecialchars($source, ENT_IGNORE, 'UTF-8'), $line, $lines, $column) . '</div></pre>';
 
 		if ($editor = Helpers::editorUri($file, $line)) {
 			$source = substr_replace($source, ' title="Ctrl-Click to open in editor" data-tracy-href="' . Helpers::escapeHtml($editor) . '"', 4, 0);
@@ -328,7 +328,23 @@ class BlueScreen
 	 */
 	public static function highlightPhp(string $source, int $line, int $lines = 15, int $column = 0): string
 	{
-		return CodeHighlighter::highlightPhp($source, $line, $column);
+		if (function_exists('ini_set')) {
+			ini_set('highlight.comment', '#998; font-style: italic');
+			ini_set('highlight.default', '#000');
+			ini_set('highlight.html', '#06B');
+			ini_set('highlight.keyword', '#D24; font-weight: bold');
+			ini_set('highlight.string', '#080');
+		}
+
+		$source = preg_replace('#(__halt_compiler\s*\(\)\s*;).*#is', '$1', $source);
+		$source = str_replace(["\r\n", "\r"], "\n", $source);
+		$source = preg_replace('#/\*sensitive\{\*/.*?/\*\}\*/#s', Dumper\Describer::HiddenValue, $source);
+		$source = explode("\n", highlight_string($source, true));
+		$out = $source[0]; // <code><span color=highlight.html>
+		$source = str_replace('<br />', "\n", $source[1]);
+		$out .= static::highlightLine($source, $line, $lines, $column);
+		$out = str_replace('&nbsp;', ' ', $out);
+		return "<pre class='tracy-code'><div>$out</div></pre>";
 	}
 
 
@@ -337,7 +353,93 @@ class BlueScreen
 	 */
 	public static function highlightLine(string $html, int $line, int $lines = 15, int $column = 0): string
 	{
-		return CodeHighlighter::highlightLine($html, $line, $column);
+		$source = explode("\n", "\n" . str_replace("\r\n", "\n", $html));
+		$out = '';
+		$spans = 1;
+		$start = $i = max(1, min($line, count($source) - 1) - (int) floor($lines * 2 / 3));
+		while (--$i >= 1) { // find last highlighted block
+			if (preg_match('#.*(</?span[^>]*>)#', $source[$i], $m)) {
+				if ($m[1] !== '</span>') {
+					$spans++;
+					$out .= $m[1];
+				}
+
+				break;
+			}
+		}
+
+		$source = array_slice($source, $start, $lines, true);
+		end($source);
+		$numWidth = strlen((string) key($source));
+
+		foreach ($source as $n => $s) {
+			$spans += substr_count($s, '<span') - substr_count($s, '</span');
+			$s = str_replace(["\r", "\n"], ['', ''], $s);
+			preg_match_all('#<[^>]+>#', $s, $tags);
+			if ($n == $line) {
+				$s = strip_tags($s);
+				if ($column) {
+					$s = preg_replace(
+						'#((?:&.*?;|[^&]){' . ($column - 1) . '})(&.*?;|.)#u',
+						'\1<span class="tracy-column-highlight">\2</span>',
+						$s . ' ',
+						1,
+					);
+				}
+				$out .= sprintf(
+					"<span class='tracy-line-highlight'>%{$numWidth}s:    %s\n</span>%s",
+					$n,
+					$s,
+					implode('', $tags[0]),
+				);
+			} else {
+				$out .= sprintf("<span class='tracy-line'>%{$numWidth}s:</span>    %s\n", $n, $s);
+			}
+		}
+
+		$out .= str_repeat('</span>', $spans) . '</code>';
+		return $out;
+	}
+
+
+	/**
+	 * Returns syntax highlighted source code to Terminal.
+	 */
+	public static function highlightPhpCli(string $file, int $line, int $lines = 15, int $column = 0): ?string
+	{
+		$source = @file_get_contents($file); // @ file may not exist
+		if ($source === false) {
+			return null;
+		}
+
+		$s = self::highlightPhp($source, $line, $lines);
+
+		$colors = [
+			'color: ' . ini_get('highlight.comment') => '1;30',
+			'color: ' . ini_get('highlight.default') => '1;36',
+			'color: ' . ini_get('highlight.html') => '1;35',
+			'color: ' . ini_get('highlight.keyword') => '1;37',
+			'color: ' . ini_get('highlight.string') => '1;32',
+			'tracy-line' => '1;30',
+			'tracy-line-highlight' => "1;37m\e[41",
+		];
+
+		$stack = ['0'];
+		$s = preg_replace_callback(
+			'#<\w+(?: (class|style)=["\'](.*?)["\'])?[^>]*>|</\w+>#',
+			function ($m) use ($colors, &$stack): string {
+				if ($m[0][1] === '/') {
+					array_pop($stack);
+				} else {
+					$stack[] = isset($m[2], $colors[$m[2]]) ? $colors[$m[2]] : '0';
+				}
+
+				return "\e[0m\e[" . end($stack) . 'm';
+			},
+			$s,
+		);
+		$s = htmlspecialchars_decode(strip_tags($s), ENT_QUOTES | ENT_HTML5);
+		return $s;
 	}
 
 
@@ -493,10 +595,13 @@ class BlueScreen
 		};
 
 		foreach ($this->fibers as $k => $v) {
-			$add($k);
+			$add($this->fibers instanceof \WeakMap ? $k : $v);
 		}
 
-		Helpers::traverseValue($object, $add);
+		if (PHP_VERSION_ID >= 80000) {
+			Helpers::traverseValue($object, $add);
+		}
+
 		return [$generators, $fibers];
 	}
 }

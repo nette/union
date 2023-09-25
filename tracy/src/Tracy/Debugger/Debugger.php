@@ -17,7 +17,7 @@ use ErrorException;
  */
 class Debugger
 {
-	public const Version = '3.0-dev';
+	public const Version = '2.10.3';
 
 	/** server modes for Debugger::enable() */
 	public const
@@ -235,7 +235,6 @@ class Debugger
 			'Bar/Bar',
 			'Bar/DefaultBarPanel',
 			'BlueScreen/BlueScreen',
-			'BlueScreen/CodeHighlighter',
 			'Dumper/Describer',
 			'Dumper/Dumper',
 			'Dumper/Exposer',
