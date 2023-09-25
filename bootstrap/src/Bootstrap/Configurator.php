@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Nette\Bootstrap;
 
 use Composer\Autoload\ClassLoader;
-use Composer\InstalledVersions;
 use Latte;
 use Nette;
 use Nette\DI;
@@ -28,12 +27,12 @@ class Configurator
 	public const COOKIE_SECRET = self::CookieSecret;
 
 
-	/** @var array<callable(self, DI\Compiler): void>  Occurs after the compiler is created */
+	/** @var callable[]  function (Configurator $sender, DI\Compiler $compiler); Occurs after the compiler is created */
 	public array $onCompile = [];
 
 	public array $defaultExtensions = [
 		'application' => [Nette\Bridges\ApplicationDI\ApplicationExtension::class, ['%debugMode%', ['%appDir%'], '%tempDir%/cache/nette.application']],
-		'cache' => [Nette\Bridges\CacheDI\CacheExtension::class, ['%tempDir%/cache']],
+		'cache' => [Nette\Bridges\CacheDI\CacheExtension::class, ['%tempDir%']],
 		'constants' => Extensions\ConstantsExtension::class,
 		'database' => [Nette\Bridges\DatabaseDI\DatabaseExtension::class, ['%debugMode%']],
 		'decorator' => Nette\DI\Extensions\DecoratorExtension::class,
@@ -72,13 +71,6 @@ class Configurator
 	public function __construct()
 	{
 		$this->staticParameters = $this->getDefaultParameters();
-
-		if (class_exists(InstalledVersions::class) // back compatibility
-			&& InstalledVersions::isInstalled('nette/caching')
-			&& version_compare(InstalledVersions::getVersion('nette/caching'), '3.3.0', '<')
-		) {
-			$this->defaultExtensions['cache'][1][0] = '%tempDir%';
-		}
 	}
 
 
@@ -169,14 +161,10 @@ class Configurator
 		$loaderRc = class_exists(ClassLoader::class)
 			? new \ReflectionClass(ClassLoader::class)
 			: null;
-		$rootDir = class_exists(InstalledVersions::class) && ($tmp = InstalledVersions::getRootPackage()['install_path'] ?? null)
-			? rtrim(Nette\Utils\FileSystem::normalizePath($tmp), '\\/')
-			: null;
 		return [
 			'appDir' => isset($trace[1]['file']) ? dirname($trace[1]['file']) : null,
 			'wwwDir' => isset($last['file']) ? dirname($last['file']) : null,
 			'vendorDir' => $loaderRc ? dirname($loaderRc->getFileName(), 2) : null,
-			'rootDir' => $rootDir,
 			'debugMode' => $debugMode,
 			'productionMode' => !$debugMode,
 			'consoleMode' => PHP_SAPI === 'cli',
