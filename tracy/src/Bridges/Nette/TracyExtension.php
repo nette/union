@@ -60,7 +60,7 @@ class TracyExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function loadConfiguration(): void
+	public function loadConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
 
@@ -76,7 +76,7 @@ class TracyExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function afterCompile(Nette\PhpGenerator\ClassType $class): void
+	public function afterCompile(Nette\PhpGenerator\ClassType $class)
 	{
 		$initialize = $this->initialization ?? new Nette\PhpGenerator\Closure;
 		$initialize->addBody('if (!Tracy\Debugger::isEnabled()) { return; }');
@@ -130,7 +130,7 @@ class TracyExtension extends Nette\DI\CompilerExtension
 		if ($this->debugMode) {
 			foreach ($this->config->bar as $item) {
 				if (is_string($item) && substr($item, 0, 1) === '@') {
-					$item = new Statement(['@' . $builder::ThisContainer, 'getService'], [substr($item, 1)]);
+					$item = new Statement(['@' . $builder::THIS_CONTAINER, 'getService'], [substr($item, 1)]);
 				} elseif (is_string($item)) {
 					$item = new Statement($item);
 				}

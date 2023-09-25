@@ -57,8 +57,8 @@ final class DevelopmentStrategy
 			header("X-Tracy-Error-Log: $logFile", replace: false);
 		}
 
-		if (Helpers::detectColors() && @is_file($exception->getFile())) {
-			echo "\n\n" . CodeHighlighter::highlightPhpCli(file_get_contents($exception->getFile()), $exception->getLine()) . "\n";
+		if (Helpers::detectColors()) {
+			echo "\n\n" . $this->blueScreen->highlightPhpCli($exception->getFile(), $exception->getLine()) . "\n";
 		}
 
 		echo "$exception\n" . ($logFile ? "\n(stored in $logFile)\n" : '');
@@ -89,8 +89,8 @@ final class DevelopmentStrategy
 			exit(255);
 		}
 
-		$message = Helpers::errorTypeToString($severity) . ': ' . Helpers::improveError($message);
-		$count = &$this->bar->getPanel('Tracy:warnings')->data["$file|$line|$message"];
+		$message = 'PHP ' . Helpers::errorTypeToString($severity) . ': ' . Helpers::improveError($message);
+		$count = &$this->bar->getPanel('Tracy:errors')->data["$file|$line|$message"];
 
 		if (!$count++ && !Helpers::isHtmlMode() && !Helpers::isAjax()) {
 			echo "\n$message in $file on line $line\n";

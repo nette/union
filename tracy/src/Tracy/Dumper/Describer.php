@@ -38,10 +38,10 @@ final class Describer
 
 	public bool $location = false;
 
-	/** @var array<string, callable(resource): array> */
+	/** @var callable[] */
 	public array $resourceExposers = [];
 
-	/** @var array<string, callable(object, Value, self): ?array> */
+	/** @var array<string,callable> */
 	public array $objectExposers = [];
 
 	/** @var array<string, array{bool, string[]}> */

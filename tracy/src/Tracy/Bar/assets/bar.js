@@ -166,7 +166,7 @@ class Panel
 			doc.title = this.elem.querySelector('h1').textContent;
 		}
 
-		win.addEventListener('pagehide', () => {
+		win.addEventListener('beforeunload', () => {
 			this.toPeek();
 			win.close(); // forces closing, can be invoked by F5
 		});
@@ -469,7 +469,7 @@ class Debug
 			size = newSize;
 		});
 
-		window.addEventListener('pagehide', () => {
+		window.addEventListener('unload', () => {
 			for (let id in Debug.panels) {
 				Debug.panels[id].savePosition();
 			}
