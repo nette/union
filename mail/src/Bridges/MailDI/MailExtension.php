@@ -45,7 +45,7 @@ class MailExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function loadConfiguration(): void
+	public function loadConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
 
