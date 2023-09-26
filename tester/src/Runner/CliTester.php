@@ -94,7 +94,7 @@ class CliTester
 		echo <<<'XX'
 			 _____ ___  ___ _____ ___  ___
 			|_   _/ __)( __/_   _/ __)| _ )
-			  |_| \___ /___) |_| \___ |_|_\  v2.5.2
+			  |_| \___ /___) |_| \___ |_|_\  v2.5.1
 
 
 			XX;
@@ -112,7 +112,7 @@ class CliTester
 				    -s                           Show information about skipped tests.
 				    --stop-on-fail               Stop execution upon the first failure.
 				    -j <num>                     Run <num> jobs in parallel (default: 8).
-				    -o <console|console-lines|tap|junit|log|none>  (e.g. -o junit:output.xml)
+				    -o <console|tap|junit|log|none>  (e.g. -o junit:output.xml)
 				                                 Specify one or more output formats with optional file name.
 				    -w | --watch <path>          Watch directory.
 				    -i | --info                  Show tests environment info and exit.
@@ -230,13 +230,7 @@ class CliTester
 		foreach ($this->options['-o'] as $output) {
 			[$format, $file] = $output;
 			match ($format) {
-				'console', 'console-lines' => $runner->outputHandlers[] = new Output\ConsolePrinter(
-					$runner,
-					(bool) $this->options['-s'],
-					$file,
-					(bool) $this->options['--cider'],
-					$format === 'console-lines',
-				),
+				'console' => $runner->outputHandlers[] = new Output\ConsolePrinter($runner, (bool) $this->options['-s'], $file, (bool) $this->options['--cider']),
 				'tap' => $runner->outputHandlers[] = new Output\TapPrinter($file),
 				'junit' => $runner->outputHandlers[] = new Output\JUnitPrinter($file),
 				'log' => $runner->outputHandlers[] = new Output\Logger($runner, $file),

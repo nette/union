@@ -27,7 +27,7 @@ class TestCase
 
 
 	/**
-	 * Runs all test methods in this test case or a specific test method if provided.
+	 * Runs the test case.
 	 */
 	public function run(): void
 	{
@@ -69,8 +69,8 @@ class TestCase
 
 
 	/**
-	 * Executes a specified test method within this test case, handling data providers and errors.
-	 * @param  ?array  $args  arguments provided for the test method, bypassing data provider if provided.
+	 * Runs the test method.
+	 * @param  array  $args  test method parameters (dataprovider bypass)
 	 */
 	public function runTest(string $method, ?array $args = null): void
 	{
@@ -165,7 +165,7 @@ class TestCase
 
 
 	/**
-	 * Setup logic to be executed before each test method. Override in subclasses for specific behaviors.
+	 * This method is called before a test is executed.
 	 * @return void
 	 */
 	protected function setUp()
@@ -174,7 +174,7 @@ class TestCase
 
 
 	/**
-	 * Teardown logic to be executed after each test method. Override in subclasses to release resources.
+	 * This method is called after a test is executed.
 	 * @return void
 	 */
 	protected function tearDown()
@@ -182,9 +182,6 @@ class TestCase
 	}
 
 
-	/**
-	 * Executes the tearDown method and suppresses any errors, ensuring clean teardown in all cases.
-	 */
 	private function silentTearDown(): void
 	{
 		set_error_handler(fn() => null);
@@ -198,7 +195,7 @@ class TestCase
 
 
 	/**
-	 * Skips the current test, optionally providing a reason for skipping.
+	 * Skips the test.
 	 */
 	protected function skip(string $message = ''): void
 	{
@@ -206,9 +203,6 @@ class TestCase
 	}
 
 
-	/**
-	 * Outputs a list of all test methods in the current test case. Used for Runner.
-	 */
 	private function sendMethodList(array $methods): void
 	{
 		Environment::$checkAssertions = false;
@@ -236,9 +230,6 @@ class TestCase
 	}
 
 
-	/**
-	 * Prepares test data from specified data providers or default method parameters if no provider is specified.
-	 */
 	private function prepareTestData(\ReflectionMethod $method, array $dataprovider): array
 	{
 		$data = $defaultParams = [];
@@ -279,16 +270,12 @@ class TestCase
 	}
 }
 
-/**
- * Errors specific to TestCase operations.
- */
+
 class TestCaseException extends \Exception
 {
 }
 
-/**
- * Exception thrown when a test case or a test method is skipped.
- */
+
 class TestCaseSkippedException extends \Exception
 {
 }

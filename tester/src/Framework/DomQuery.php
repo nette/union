@@ -15,9 +15,6 @@ namespace Tester;
  */
 class DomQuery extends \SimpleXMLElement
 {
-	/**
-	 * Creates a DomQuery object from an HTML string.
-	 */
 	public static function fromHtml(string $html): self
 	{
 		if (!str_contains($html, '<')) {
@@ -51,9 +48,6 @@ class DomQuery extends \SimpleXMLElement
 	}
 
 
-	/**
-	 * Creates a DomQuery object from an XML string.
-	 */
 	public static function fromXml(string $xml): self
 	{
 		return simplexml_load_string($xml, self::class);
@@ -61,18 +55,17 @@ class DomQuery extends \SimpleXMLElement
 
 
 	/**
-	 * Finds descendants of current element that match the given CSS selector.
+	 * Returns array of descendants filtered by a selector.
 	 * @return DomQuery[]
 	 */
 	public function find(string $selector): array
 	{
-		$base = str_starts_with($selector, '>') ? 'self' : 'descendant';
-		return $this->xpath($base . '::' . self::css2xpath($selector));
+		return $this->xpath(self::css2xpath($selector));
 	}
 
 
 	/**
-	 * Checks if any descendant of current element matches the given selector.
+	 * Check the current document against a selector.
 	 */
 	public function has(string $selector): bool
 	{
@@ -81,20 +74,11 @@ class DomQuery extends \SimpleXMLElement
 
 
 	/**
-	 * Determines if the current element matches the specified CSS selector.
-	 */
-	public function matches(string $selector): bool
-	{
-		return (bool) $this->xpath('self::' . self::css2xpath($selector));
-	}
-
-
-	/**
-	 * Converts a CSS selector into an XPath expression.
+	 * Transforms CSS expression to XPath.
 	 */
 	public static function css2xpath(string $css): string
 	{
-		$xpath = '*';
+		$xpath = '//*';
 		preg_match_all(<<<'XX'
 			/
 				([#.:]?)([a-z][a-z0-9_-]*)|               # id, class, pseudoclass (1,2)
