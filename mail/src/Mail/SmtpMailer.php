@@ -213,26 +213,14 @@ class SmtpMailer implements Mailer
 	 */
 	protected function read(): string
 	{
-		$data = '';
-		$endtime = $this->timeout > 0 ? time() + $this->timeout : 0;
-
-		while (is_resource($this->connection) && !feof($this->connection)) {
-			$line = @fgets($this->connection); // @ is escalated to exception
-			if ($line === '' || $line === false) {
-				$info = stream_get_meta_data($this->connection);
-				if ($info['timed_out'] || ($endtime && time() > $endtime)) {
-					throw new SmtpException('Connection timed out.');
-				} elseif ($info['eof']) {
-					throw new SmtpException('Connection has been closed unexpectedly.');
-				}
-			}
-
-			$data .= $line;
-			if (preg_match('#^.{3}(?:[ \r\n]|$)#D', $line)) {
+		$s = '';
+		while (($line = fgets($this->connection, 1000)) != null) { // intentionally ==
+			$s .= $line;
+			if (substr($line, 3, 1) === ' ') {
 				break;
 			}
 		}
 
-		return $data;
+		return $s;
 	}
 }
