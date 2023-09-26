@@ -135,9 +135,9 @@ class RobotLoader
 	}
 
 
-	public function reportParseErrors(bool $state = true): static
+	public function reportParseErrors(bool $on = true): static
 	{
-		$this->reportParseErrors = $state;
+		$this->reportParseErrors = $on;
 		return $this;
 	}
 
@@ -385,9 +385,9 @@ class RobotLoader
 	/**
 	 * Sets auto-refresh mode.
 	 */
-	public function setAutoRefresh(bool $state = true): static
+	public function setAutoRefresh(bool $on = true): static
 	{
-		$this->autoRebuild = $state;
+		$this->autoRebuild = $on;
 		return $this;
 	}
 
@@ -397,9 +397,6 @@ class RobotLoader
 	 */
 	public function setTempDirectory(string $dir): static
 	{
-		if (!FileSystem::isAbsolute($dir)) {
-			throw new Nette\InvalidArgumentException("Temporary directory must be absolute, '$dir' given.");
-		}
 		FileSystem::createDir($dir);
 		$this->tempDirectory = $dir;
 		return $this;
@@ -503,7 +500,7 @@ class RobotLoader
 			throw new \LogicException('Set path to temporary directory using setTempDirectory().');
 		}
 
-		return $this->tempDirectory . '/' . hash(PHP_VERSION_ID < 80100 ? 'md5' : 'xxh128', serialize($this->generateCacheKey())) . '.php';
+		return $this->tempDirectory . '/' . md5(serialize($this->generateCacheKey())) . '.php';
 	}
 
 
