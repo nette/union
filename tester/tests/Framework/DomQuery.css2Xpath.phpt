@@ -81,15 +81,17 @@ test('complex', function () {
 });
 
 
-testException(
-	'pseudoclass',
-	fn() => DomQuery::css2xpath('a:first-child'),
-	InvalidArgumentException::class,
-);
+test('pseudoclass', function () {
+	Assert::exception(
+		fn() => DomQuery::css2xpath('a:first-child'),
+		InvalidArgumentException::class,
+	);
+});
 
 
-testException(
-	'adjacent sibling combinator',
-	fn() => DomQuery::css2xpath('div + span'),
-	InvalidArgumentException::class,
-);
+test('adjacent sibling combinator', function () {
+	Assert::exception(
+		fn() => DomQuery::css2xpath('div + span'),
+		InvalidArgumentException::class,
+	);
+});
