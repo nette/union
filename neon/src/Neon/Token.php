@@ -19,19 +19,11 @@ final class Token
 	public const Comment = 3;
 	public const Newline = 4;
 	public const Whitespace = 5;
-	public const End = -1;
 
 
 	public function __construct(
+		public string $value,
 		public int|string $type,
-		public string $text,
-		public Position $position,
 	) {
-	}
-
-
-	public function is(int|string ...$kind): bool
-	{
-		return in_array($this->type, $kind, strict: true);
 	}
 }

@@ -13,59 +13,60 @@ namespace Nette\Neon;
 /** @internal */
 final class TokenStream
 {
-	private int $index = 0;
+	private int $pos = 0;
 
 
 	public function __construct(
 		/** @var Token[] */
-		public /*readonly*/ array $tokens,
+		public array $tokens,
 	) {
 	}
 
 
-	public function getIndex(): int
+	public function getPos(): int
 	{
-		return $this->index;
+		return $this->pos;
 	}
 
 
-	public function seek(int $index): void
+	public function seek(int $position): void
 	{
-		$this->index = $index;
+		$this->pos = $position;
 	}
 
 
-	/**
-	 * Tells whether the token at current position is of given kind.
-	 */
-	public function is(int|string ...$kind): bool
+	/** @return Token[] */
+	public function getTokens(): array
 	{
-		while ($this->tokens[$this->index]->is(Token::Comment, Token::Whitespace)) {
-			$this->index++;
+		return $this->tokens;
+	}
+
+
+	public function isNext(int|string ...$types): bool
+	{
+		while (in_array($this->tokens[$this->pos]->type ?? null, [Token::Comment, Token::Whitespace], strict: true)) {
+			$this->pos++;
 		}
 
-		return $kind
-			? $this->tokens[$this->index]->is(...$kind)
-			: $this->tokens[$this->index]->type !== Token::End;
+		return $types
+			? in_array($this->tokens[$this->pos]->type ?? null, $types, strict: true)
+			: isset($this->tokens[$this->pos]);
 	}
 
 
-	/**
-	 * Consumes the current token of given kind or returns null.
-	 */
-	public function tryConsume(int|string ...$kind): ?Token
+	public function consume(int|string ...$types): ?Token
 	{
-		return $this->is(...$kind)
-			? $this->tokens[$this->index++]
+		return $this->isNext(...$types)
+			? $this->tokens[$this->pos++]
 			: null;
 	}
 
 
 	public function getIndentation(): string
 	{
-		return in_array($this->tokens[$this->index - 2]->type ?? null, [Token::Newline, null], strict: true)
-			&& ($this->tokens[$this->index - 1]->type ?? null) === Token::Whitespace
-			? $this->tokens[$this->index - 1]->text
+		return in_array($this->tokens[$this->pos - 2]->type ?? null, [Token::Newline, null], strict: true)
+			&& ($this->tokens[$this->pos - 1]->type ?? null) === Token::Whitespace
+			? $this->tokens[$this->pos - 1]->value
 			: '';
 	}
 
@@ -73,11 +74,22 @@ final class TokenStream
 	/** @return never */
 	public function error(?string $message = null, ?int $pos = null): void
 	{
-		$pos ??= $this->index;
-		$token = $this->tokens[$pos];
-		$message ??= 'Unexpected ' . ($token->type === Token::End
+		$pos ??= $this->pos;
+		$input = '';
+		foreach ($this->tokens as $i => $token) {
+			if ($i >= $pos) {
+				break;
+			}
+
+			$input .= $token->value;
+		}
+
+		$line = substr_count($input, "\n") + 1;
+		$col = strlen($input) - strrpos("\n" . $input, "\n") + 1;
+		$token = $this->tokens[$pos] ?? null;
+		$message ??= 'Unexpected ' . ($token === null
 			? 'end'
-			: "'" . str_replace("\n", '<new line>', substr($token->text, 0, 40)) . "'");
-		throw new Exception($message, $token->position);
+			: "'" . str_replace("\n", '<new line>', substr($this->tokens[$pos]->value, 0, 40)) . "'");
+		throw new Exception("$message on line $line, column $col.");
 	}
 }

@@ -57,14 +57,14 @@ Assert::matchFile(
 $traverser = new Traverser;
 $traverser->traverse($node, function (Node $node) use ($stream) {
 	@$node->code = ''; // dynamic property is deprecated
-	foreach (array_slice($stream->tokens, $node->startTokenPos, $node->endTokenPos - $node->startTokenPos + 1) as $token) {
-		$node->code .= $token->text;
+	foreach (array_slice($stream->getTokens(), $node->startTokenPos, $node->endTokenPos - $node->startTokenPos + 1) as $token) {
+		$node->code .= $token->value;
 	}
 
 	unset($node->startTokenPos, $node->endTokenPos);
 });
 
-Assert::same(
-	strtr(file_get_contents(__DIR__ . '/fixtures/Parser.nodes.txt'), ["\r\n" => "\n"]),
+Assert::matchFile(
+	__DIR__ . '/fixtures/Parser.nodes.txt',
 	Dumper::toText($node, [Dumper::HASH => false, Dumper::DEPTH => 20]),
 );
