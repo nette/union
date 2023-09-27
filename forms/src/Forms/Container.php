@@ -405,6 +405,33 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 
 	/**
+	 * Adds input for date selection.
+	 */
+	public function addDate(string $name, string|object|null $label = null): Controls\DateTimeControl
+	{
+		return $this[$name] = new Controls\DateTimeControl($label, Controls\DateTimeControl::Date);
+	}
+
+
+	/**
+	 * Adds input for time selection.
+	 */
+	public function addTime(string $name, string|object|null $label = null, bool $withSeconds = false): Controls\DateTimeControl
+	{
+		return $this[$name] = new Controls\DateTimeControl($label, Controls\DateTimeControl::Time, $withSeconds);
+	}
+
+
+	/**
+	 * Adds input for date and time selection.
+	 */
+	public function addDateTime(string $name, string|object|null $label = null, bool $withSeconds = false): Controls\DateTimeControl
+	{
+		return $this[$name] = new Controls\DateTimeControl($label, Controls\DateTimeControl::DateTime, $withSeconds);
+	}
+
+
+	/**
 	 * Adds control that allows the user to upload files.
 	 */
 	public function addUpload(string $name, string|Stringable|null $label = null): Controls\UploadControl

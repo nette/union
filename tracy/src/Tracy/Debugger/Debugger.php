@@ -17,7 +17,7 @@ use ErrorException;
  */
 class Debugger
 {
-	public const Version = '2.10.3';
+	public const Version = '3.0-dev';
 
 	/** server modes for Debugger::enable() */
 	public const
@@ -235,6 +235,7 @@ class Debugger
 			'Bar/Bar',
 			'Bar/DefaultBarPanel',
 			'BlueScreen/BlueScreen',
+			'BlueScreen/CodeHighlighter',
 			'Dumper/Describer',
 			'Dumper/Dumper',
 			'Dumper/Exposer',
@@ -332,7 +333,7 @@ class Debugger
 		} catch (\Throwable $e) {
 			try {
 				self::log($e, self::EXCEPTION);
-			} catch (\Throwable $e) {
+			} catch (\Throwable) {
 			}
 		}
 	}

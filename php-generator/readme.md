@@ -515,6 +515,8 @@ class MyPrinter extends Nette\PhpGenerator\Printer
 	public bool $bracesOnNextLine = true;
 	// place one parameter in one line, even if it has an attribute or is promoted
 	public bool $singleParameterOnOneLine = false;
+	// omits namespaces that do not contain any class or function
+	public bool $omitEmptyNamespaces = true;
 	// separator between the right parenthesis and return type of functions and methods
 	public string $returnTypeColon = ': ';
 }
@@ -536,7 +538,9 @@ Each type or union/intersection type can be passed as a string, you can also use
 use Nette\PhpGenerator\Type;
 
 $member->setType('array'); // or Type::Array;
-$member->setType('array|string'); // or Type::union('array', 'string')
+$member->setType('?array'); // or Type::nullable(Type::Array);
+$member->setType('array|string'); // or Type::union(Type::Array, Type::String)
+$member->setType('array|string|null'); // or Type::nullable(Type::union(Type::Array, Type::String))
 $member->setType('Foo&Bar'); // or Type::intersection(Foo::class, Bar::class)
 $member->setType(null); // removes type
 ```

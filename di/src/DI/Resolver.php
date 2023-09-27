@@ -28,22 +28,13 @@ use ReflectionClass;
  */
 class Resolver
 {
-	use Nette\SmartObject;
+	private ContainerBuilder $builder;
+	private ?Definition $currentService = null;
+	private ?string $currentServiceType = null;
+	private bool $currentServiceAllowed = false;
 
-	/** @var ContainerBuilder */
-	private $builder;
-
-	/** @var Definition|null */
-	private $currentService;
-
-	/** @var string|null */
-	private $currentServiceType;
-
-	/** @var bool */
-	private $currentServiceAllowed = false;
-
-	/** @var \SplObjectStorage  circular reference detector */
-	private $recursive;
+	/** circular reference detector */
+	private \SplObjectStorage $recursive;
 
 
 	public function __construct(ContainerBuilder $builder)
@@ -62,7 +53,7 @@ class Resolver
 	public function resolveDefinition(Definition $def): void
 	{
 		if ($this->recursive->contains($def)) {
-			$names = array_map(function ($item) { return $item->getName(); }, iterator_to_array($this->recursive));
+			$names = array_map(fn($item) => $item->getName(), iterator_to_array($this->recursive));
 			throw new ServiceCreationException(sprintf('Circular reference detected for services: %s.', implode(', ', $names)));
 		}
 
@@ -130,16 +121,10 @@ class Resolver
 
 			$this->addDependency($reflection);
 
-			$type = Nette\Utils\Type::fromReflection($reflection) ?? ($annotation = Helpers::getReturnTypeAnnotation($reflection));
-			if ($type && !in_array($type->getSingleName(), ['object', 'mixed'], true)) {
-				if (isset($annotation)) {
-					trigger_error('Annotation @return should be replaced with native return type at ' . Callback::toString($entity), E_USER_DEPRECATED);
-				}
-
-				return Helpers::ensureClassType($type, sprintf('return type of %s()', Callback::toString($entity)), true);
-			}
-
-			return null;
+			$type = Nette\Utils\Type::fromReflection($reflection);
+			return $type && !in_array($type->getSingleName(), ['object', 'mixed'], strict: true)
+				? Helpers::ensureClassType($type, sprintf('return type of %s()', Callback::toString($entity)), allowNullable: true)
+				: null;
 
 		} elseif ($entity instanceof Reference) { // alias or factory
 			return $this->resolveReferenceType($entity);
@@ -150,7 +135,7 @@ class Resolver
 					interface_exists($entity)
 						? "Interface %s can not be used as 'create' or 'factory', did you mean 'implement'?"
 						: "Class '%s' not found.",
-					$entity
+					$entity,
 				));
 			}
 
@@ -163,7 +148,7 @@ class Resolver
 
 	public function completeDefinition(Definition $def): void
 	{
-		$this->currentService = in_array($def, $this->builder->getDefinitions(), true)
+		$this->currentService = in_array($def, $this->builder->getDefinitions(), strict: true)
 			? $def
 			: null;
 		$this->currentServiceType = $def->getType();
@@ -188,24 +173,15 @@ class Resolver
 		$this->currentServiceAllowed = $currentServiceAllowed;
 		$entity = $this->normalizeEntity($statement);
 		$arguments = $this->convertReferences($statement->arguments);
-		$getter = function (string $type, bool $single) {
-			return $single
+		$getter = fn(string $type, bool $single) => $single
 				? $this->getByType($type)
-				: array_values(array_filter($this->builder->findAutowired($type), function ($obj) { return $obj !== $this->currentService; }));
-		};
+				: array_values(array_filter($this->builder->findAutowired($type), fn($obj) => $obj !== $this->currentService));
 
 		switch (true) {
 			case is_string($entity) && Strings::contains($entity, '?'): // PHP literal
 				break;
 
 			case $entity === 'not':
-				if (count($arguments) !== 1) {
-					throw new ServiceCreationException(sprintf('Function %s() expects 1 parameter, %s given.', $entity, count($arguments)));
-				}
-
-				$entity = ['', '!'];
-				break;
-
 			case $entity === 'bool':
 			case $entity === 'int':
 			case $entity === 'float':
@@ -213,9 +189,6 @@ class Resolver
 				if (count($arguments) !== 1) {
 					throw new ServiceCreationException(sprintf('Function %s() expects 1 parameter, %s given.', $entity, count($arguments)));
 				}
-
-				$arguments = [$arguments[0], $entity];
-				$entity = [Helpers::class, 'convertType'];
 				break;
 
 			case is_string($entity): // create class
@@ -231,7 +204,7 @@ class Resolver
 				} elseif ($arguments) {
 					throw new ServiceCreationException(sprintf(
 						'Unable to pass arguments, class %s has no constructor.',
-						$entity
+						$entity,
 					));
 				}
 
@@ -242,10 +215,10 @@ class Resolver
 				break;
 
 			case is_array($entity):
-				if (!preg_match('#^\$?(\\\\?' . PhpHelpers::PHP_IDENT . ')+(\[\])?$#D', $entity[1])) {
+				if (!preg_match('#^\$?(\\\\?' . PhpHelpers::ReIdentifier . ')+(\[\])?$#D', $entity[1])) {
 					throw new ServiceCreationException(sprintf(
 						"Expected function, method or property name, '%s' given.",
-						$entity[1]
+						$entity[1],
 					));
 				}
 
@@ -254,7 +227,7 @@ class Resolver
 						if (!Arrays::isList($arguments)) {
 							throw new ServiceCreationException(sprintf(
 								'Unable to pass specified arguments to %s.',
-								$entity[0]
+								$entity[0],
 							));
 						} elseif (!function_exists($entity[1])) {
 							throw new ServiceCreationException(sprintf("Function %s doesn't exist.", $entity[1]));
@@ -273,7 +246,7 @@ class Resolver
 					case $entity[0] instanceof Reference:
 						if ($entity[1][0] === '$') { // property getter, setter or appender
 							Validators::assert($arguments, 'list:0..1', "setup arguments for '" . Callback::toString($entity) . "'");
-							if (!$arguments && substr($entity[1], -2) === '[]') {
+							if (!$arguments && str_ends_with($entity[1], '[]')) {
 								throw new ServiceCreationException(sprintf('Missing argument for %s.', $entity[1]));
 							}
 						} elseif (
@@ -300,9 +273,21 @@ class Resolver
 
 		try {
 			$arguments = $this->completeArguments($arguments);
+
 		} catch (ServiceCreationException $e) {
-			if (!strpos($e->getMessage(), ' (used in')) {
-				$e->setMessage($e->getMessage() . " (used in {$this->entityToString($entity)})");
+			if (!str_contains($e->getMessage(), "\nRelated to")) {
+				if (is_string($entity)) {
+					$desc = $entity . '::__construct()';
+				} else {
+					$desc = Helpers::entityToString($entity);
+					$desc = preg_replace('~@self::~A', '', $desc);
+				}
+
+				if ($currentServiceAllowed) {
+					$desc .= ' in setup';
+				}
+
+				$e->setMessage($e->getMessage() . "\nRelated to $desc.");
 			}
 
 			throw $e;
@@ -342,8 +327,8 @@ class Resolver
 	}
 
 
-	/** @return string|array|Reference  literal, Class, Reference, [Class, member], [, globalFunc], [Reference, member], [Statement, member] */
-	private function normalizeEntity(Statement $statement)
+	/** Returns literal, Class, Reference, [Class, member], [, globalFunc], [Reference, member], [Statement, member] */
+	private function normalizeEntity(Statement $statement): string|array|Reference|null
 	{
 		$entity = $statement->getEntity();
 		if (is_array($entity)) {
@@ -353,7 +338,7 @@ class Resolver
 		}
 
 		if ($item instanceof Definition) {
-			$name = current(array_keys($this->builder->getDefinitions(), $item, true));
+			$name = current(array_keys($this->builder->getDefinitions(), $item, strict: true));
 			if ($name === false) {
 				throw new ServiceCreationException(sprintf("Service '%s' not found in definitions.", $item->getName()));
 			}
@@ -413,12 +398,12 @@ class Resolver
 		if (
 			$this->currentService
 			&& $this->currentServiceAllowed
-			&& is_a($this->currentServiceType, $type, true)
+			&& is_a($this->currentServiceType, $type, allow_string: true)
 		) {
 			return new Reference(Reference::Self);
 		}
 
-		$name = $this->builder->getByType($type, true);
+		$name = $this->builder->getByType($type, throw: true);
 		if (
 			!$this->currentServiceAllowed
 			&& $this->currentService === $this->builder->getDefinition($name)
@@ -432,10 +417,8 @@ class Resolver
 
 	/**
 	 * Adds item to the list of dependencies.
-	 * @param  \ReflectionClass|\ReflectionFunctionAbstract|string  $dep
-	 * @return static
 	 */
-	public function addDependency($dep)
+	public function addDependency(\ReflectionClass|\ReflectionFunctionAbstract|string $dep): static
 	{
 		$this->builder->addDependency($dep);
 		return $this;
@@ -444,58 +427,20 @@ class Resolver
 
 	private function completeException(\Throwable $e, Definition $def): ServiceCreationException
 	{
-		if ($e instanceof ServiceCreationException && Strings::startsWith($e->getMessage(), "Service '")) {
+		$message = $e->getMessage();
+		if ($e instanceof ServiceCreationException && str_starts_with($message, '[Service ')) {
 			return $e;
 		}
 
-		$name = $def->getName();
-		$type = $def->getType();
-		if ($name && !ctype_digit($name)) {
-			$message = "Service '$name'" . ($type ? " (type of $type)" : '') . ': ';
-		} elseif ($type) {
-			$message = "Service of type $type: ";
-		} elseif ($def instanceof Definitions\ServiceDefinition && $def->getEntity()) {
-			$message = 'Service (' . $this->entityToString($def->getEntity()) . '): ';
-		} else {
-			$message = '';
+		if ($tmp = $def->getType()) {
+			$message = str_replace(" $tmp::", ' ' . preg_replace('~.*\\\\~', '', $tmp) . '::', $message);
 		}
 
-		$message .= $type
-			? str_replace("$type::", preg_replace('~.*\\\\~', '', $type) . '::', $e->getMessage())
-			: $e->getMessage();
+		$message = '[' . $def->getDescriptor() . "]\n" . $message;
 
 		return $e instanceof ServiceCreationException
 			? $e->setMessage($message)
 			: new ServiceCreationException($message, 0, $e);
-	}
-
-
-	private function entityToString($entity): string
-	{
-		$referenceToText = function (Reference $ref): string {
-			return $ref->isSelf() && $this->currentService
-				? '@' . $this->currentService->getName()
-				: '@' . $ref->getValue();
-		};
-		if (is_string($entity)) {
-			return $entity . '::__construct()';
-		} elseif ($entity instanceof Reference) {
-			$entity = $referenceToText($entity);
-		} elseif (is_array($entity)) {
-			if (strpos($entity[1], '$') === false) {
-				$entity[1] .= '()';
-			}
-
-			if ($entity[0] instanceof Reference) {
-				$entity[0] = $referenceToText($entity[0]);
-			} elseif (!is_string($entity[0])) {
-				return $entity[1];
-			}
-
-			return implode('::', $entity);
-		}
-
-		return (string) $entity;
 	}
 
 
@@ -511,7 +456,7 @@ class Resolver
 				} else { // @service::property
 					$val = new Statement([new Reference($pair[0]), '$' . $pair[1]]);
 				}
-			} elseif (is_string($val) && substr($val, 0, 2) === '@@') { // escaped text @@
+			} elseif (is_string($val) && str_starts_with($val, '@@')) { // escaped text @@
 				$val = substr($val, 1);
 			}
 		});
@@ -527,10 +472,9 @@ class Resolver
 	public static function autowireArguments(
 		\ReflectionFunctionAbstract $method,
 		array $arguments,
-		callable $getter
+		callable $getter,
 	): array
 	{
-		$optCount = 0;
 		$useName = false;
 		$num = -1;
 		$res = [];
@@ -539,58 +483,54 @@ class Resolver
 			$paramName = $param->name;
 
 			if ($param->isVariadic()) {
-				if ($useName && Arrays::some($arguments, function ($val, $key) { return is_int($key); })) {
+				if ($useName && Arrays::some($arguments, fn($val, $key) => is_int($key))) {
 					throw new ServiceCreationException(sprintf(
 						'Cannot use positional argument after named or omitted argument in %s.',
-						Reflection::toString($param)
+						Reflection::toString($param),
 					));
+
+				} elseif (array_key_exists($paramName, $arguments)) {
+					if (!is_array($arguments[$paramName])) {
+						throw new ServiceCreationException(sprintf(
+							'Parameter %s must be array, %s given.',
+							Reflection::toString($param),
+							gettype($arguments[$paramName]),
+						));
+					}
+
+					$res = array_merge($res, $arguments[$paramName]);
+					unset($arguments[$paramName]);
+
+				} else {
+					$res = array_merge($res, $arguments);
+					$arguments = [];
 				}
 
-				$res = array_merge($res, $arguments);
-				$arguments = [];
-				$optCount = 0;
-				break;
-
 			} elseif (array_key_exists($key = $paramName, $arguments) || array_key_exists($key = $num, $arguments)) {
-				$res[$useName ? $paramName : $num] = $arguments[$key];
+				$val = $arguments[$key];
+				$res[$useName ? $paramName : $num] = is_scalar($val) && $param->getAttributes(\SensitiveParameter::class)
+					? ContainerBuilder::literal('/*sensitive{*/?/*}*/', [$val])
+					: $val;
 				unset($arguments[$key], $arguments[$num]); // unset $num to enable overwriting in configuration
 
 			} elseif (($aw = self::autowireArgument($param, $getter)) !== null) {
 				$res[$useName ? $paramName : $num] = $aw;
 
-			} elseif (PHP_VERSION_ID >= 80000) {
-				if ($param->isOptional()) {
-					$useName = true;
-				} else {
-					$res[$num] = null;
-					trigger_error(sprintf(
-						'The parameter %s should have a declared value in the configuration.',
-						Reflection::toString($param)
-					), E_USER_DEPRECATED);
-				}
+			} elseif ($param->isOptional()) {
+				$useName = true;
 
 			} else {
-				$res[$num] = $param->isDefaultValueAvailable()
-					? Reflection::getParameterDefaultValue($param)
-					: null;
+				$res[$num] = null;
 
-				if (!$param->isOptional()) {
-					trigger_error(sprintf(
-						'The parameter %s should have a declared value in the configuration.',
-						Reflection::toString($param)
-					), E_USER_DEPRECATED);
-				}
-			}
-
-			if (PHP_VERSION_ID < 80000) {
-				$optCount = $param->isOptional() && $res[$num] === ($param->isDefaultValueAvailable() ? Reflection::getParameterDefaultValue($param) : null)
-					? $optCount + 1
-					: 0;
+				trigger_error(sprintf(
+					'The parameter %s should have a declared value in the configuration.',
+					Reflection::toString($param),
+				), E_USER_DEPRECATED);
 			}
 		}
 
 		// extra parameters
-		while (!$useName && !$optCount && array_key_exists(++$num, $arguments)) {
+		while (!$useName && array_key_exists(++$num, $arguments)) {
 			$res[$num] = $arguments[$num];
 			unset($arguments[$num]);
 		}
@@ -598,10 +538,8 @@ class Resolver
 		if ($arguments) {
 			throw new ServiceCreationException(sprintf(
 				'Unable to pass specified arguments to %s.',
-				Reflection::toString($method)
+				Reflection::toString($method),
 			));
-		} elseif ($optCount) {
-			$res = array_slice($res, 0, -$optCount);
 		}
 
 		return $res;
@@ -612,58 +550,49 @@ class Resolver
 	 * Resolves missing argument using autowiring.
 	 * @param  (callable(string $type, bool $single): (object|object[]|null))  $getter
 	 * @throws ServiceCreationException
-	 * @return mixed
 	 */
-	private static function autowireArgument(\ReflectionParameter $parameter, callable $getter)
+	private static function autowireArgument(\ReflectionParameter $parameter, callable $getter): mixed
 	{
 		$desc = Reflection::toString($parameter);
 		$type = Nette\Utils\Type::fromReflection($parameter);
 
-		if ($type && $type->isClass()) {
+		if ($type?->isClass()) {
 			$class = $type->getSingleName();
 			try {
 				$res = $getter($class, true);
-			} catch (MissingServiceException $e) {
+			} catch (MissingServiceException) {
 				$res = null;
 			} catch (ServiceCreationException $e) {
-				throw new ServiceCreationException("{$e->getMessage()} (required by $desc)", 0, $e);
+				throw new ServiceCreationException(sprintf("%s\nRequired by %s.", $e->getMessage(), $desc), 0, $e);
 			}
 
 			if ($res !== null || $parameter->allowsNull()) {
 				return $res;
 			} elseif (class_exists($class) || interface_exists($class)) {
 				throw new ServiceCreationException(sprintf(
-					'Service of type %s required by %s not found. Did you add it to configuration file?',
+					"Service of type %s required by %s not found.\nDid you add it to configuration file?",
 					$class,
-					$desc
+					$desc,
 				));
 			} else {
 				throw new ServiceCreationException(sprintf(
-					"Class '%s' required by %s not found. Check the parameter type and 'use' statements.",
+					"Class '%s' required by %s not found.\nCheck the parameter type and 'use' statements.",
 					$class,
-					$desc
+					$desc,
 				));
 			}
 
 		} elseif ($itemType = self::isArrayOf($parameter, $type)) {
 			return $getter($itemType, false);
 
-		} elseif (
-			($type && $parameter->allowsNull())
-			|| $parameter->isOptional()
-			|| $parameter->isDefaultValueAvailable()
-		) {
-			// !optional + defaultAvailable, !optional + !defaultAvailable since 8.1.0 = func($a = null, $b)
-			// optional + !defaultAvailable, optional + defaultAvailable since 8.0.0 = i.e. Exception::__construct, mysqli::mysqli, ...
-			// optional + !defaultAvailable = variadics
-			// in other cases the optional and defaultAvailable are identical
+		} elseif ($parameter->isOptional()) {
 			return null;
 
 		} else {
 			throw new ServiceCreationException(sprintf(
 				'Parameter %s has %s, so its value must be specified.',
 				$desc,
-				$type && !$type->isSingle() ? 'complex type and no default value' : 'no class type or default value'
+				$type && !$type->isSimple() ? 'complex type and no default value' : 'no class type or default value',
 			));
 		}
 	}
@@ -673,12 +602,11 @@ class Resolver
 	{
 		$method = $parameter->getDeclaringFunction();
 		return $method instanceof \ReflectionMethod
-			&& $type
-			&& $type->getSingleName() === 'array'
+			&& $type?->getSingleName() === 'array'
 			&& preg_match(
-				'#@param[ \t]+(?|([\w\\\\]+)\[\]|array<int,\s*([\w\\\\]+)>)[ \t]+\$' . $parameter->name . '#',
+				'#@param[ \t]+(?|([\w\\\\]+)\[\]|list<([\w\\\\]+)>|array<int,\s*([\w\\\\]+)>)[ \t]+\$' . $parameter->name . '#',
 				(string) $method->getDocComment(),
-				$m
+				$m,
 			)
 			&& ($itemType = Reflection::expandClassName($m[1], $method->getDeclaringClass()))
 			&& (class_exists($itemType) || interface_exists($itemType))

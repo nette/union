@@ -87,7 +87,7 @@ class User
 	public function login(
 		string|IIdentity $user,
 		#[\SensitiveParameter]
-		?string $password = null
+		?string $password = null,
 	): void
 	{
 		$this->logout(true);

@@ -43,23 +43,29 @@ $container = createContainer($builder);
 
 Assert::type(Service::class, $container->getByType(Service::class));
 
-Assert::null($container->getByType(Child::class, false));
+Assert::null($container->getByType(Child::class, throw: false));
 
 Assert::type(Service2::class, $container->getByType(Service2::class));
 
-Assert::exception(function () use ($container) {
-	$container->getByType(stdClass::class);
-}, Nette\DI\MissingServiceException::class, 'Multiple services of type stdClass found: one, two.');
+Assert::exception(
+	fn() => $container->getByType(stdClass::class),
+	Nette\DI\MissingServiceException::class,
+	'Multiple services of type stdClass found: one, two.',
+);
 
-Assert::null($container->getByType('unknown', false));
+Assert::null($container->getByType('unknown', throw: false));
 
-Assert::exception(function () use ($container) {
-	$container->getByType('unknown');
-}, Nette\DI\MissingServiceException::class, "Service of type 'unknown' not found. Check the class name because it cannot be found.");
+Assert::exception(
+	fn() => $container->getByType('unknown'),
+	Nette\DI\MissingServiceException::class,
+	"Service of type 'unknown' not found. Check the class name because it cannot be found.",
+);
 
-Assert::exception(function () use ($container) {
-	$container->getByType('Exception');
-}, Nette\DI\MissingServiceException::class, 'Service of type Exception not found. Did you add it to configuration file?');
+Assert::exception(
+	fn() => $container->getByType('Exception'),
+	Nette\DI\MissingServiceException::class,
+	'Service of type Exception not found. Did you add it to configuration file?',
+);
 
 
 Assert::same(['one', 'child'], $container->findByType(Service::class));

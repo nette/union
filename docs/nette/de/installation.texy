@@ -2,68 +2,66 @@ Installation von Nette
 **********************
 
 .[perex]
-Nette ist eine Familie von fortschrittlichen Bibliotheken für PHP, die Sie komplett eigenständig verwenden können. Nette ist auch ein Full-Stack-Framework. Diese Seite zeigt Ihnen, wie Sie die einzelnen Bibliotheken oder das gesamte Framework installieren können.
+Möchten Sie die Vorteile von Nette in Ihrem bestehenden Projekt nutzen oder planen Sie, ein neues Projekt auf der Basis von Nette zu erstellen? Diese Anleitung wird Sie Schritt für Schritt durch die Installation führen.
 
 
-.[note]
-Sind Sie neu bei Nette? Dann empfehlen wir Ihnen auch [das Tutorial Erstellen Sie Ihre erste Anwendung |quickstart:].
+Wie Sie Nette zu Ihrem Projekt hinzufügen .[#toc-how-to-add-nette-to-your-project]
+----------------------------------------------------------------------------------
 
+Nette bietet eine Sammlung von nützlichen und anspruchsvollen Paketen (Bibliotheken) für PHP. Um sie in Ihr Projekt einzubinden, folgen Sie diesen Schritten:
 
-Wie man Pakete installiert .[#toc-how-to-install-packages]
-----------------------------------------------------------
+1) **Set up [Composer |best-practices:composer]:** Dieses Tool ist für die einfache Installation, Aktualisierung und Verwaltung der für Ihr Projekt benötigten Bibliotheken unerlässlich.
 
-Die einzelnen [Pakete |www:packages] der Nette-Familie werden mit dem [Composer-Tool |best-practices:composer] installiert. Wenn Sie damit nicht vertraut sind, sollten Sie unbedingt damit beginnen. Es ist ein sehr nützliches Werkzeug.
+2) **Wählen Sie ein [Paket |www:packages]:** Nehmen wir an, Sie müssen im Dateisystem navigieren, was der [Finder |utils:finder] aus dem Paket `nette/utils` hervorragend kann. Den Namen des Pakets finden Sie in der rechten Spalte der Dokumentation.
 
-Müssen Sie zum Beispiel das Dateisystem in Ihrem Code durchsuchen? Der [Finder |utils:finder], der im Paket `nette/utils` (siehe rechte Spalte) enthalten ist, ist dafür hervorragend geeignet. Sie können ihn von der Kommandozeile aus installieren:
+3) **Installieren Sie das Paket:** Führen Sie diesen Befehl im Stammverzeichnis Ihres Projekts aus:
 
 ```shell
 composer require nette/utils
 ```
 
-Dadurch werden auch alle anderen Pakete installiert.
-
-Eine andere Möglichkeit ist, alle Pakete auf einmal hinzuzufügen, indem Sie `nette/nette` installieren:
-
-```shell
-composer require nette/nette
-```
+Bevorzugen Sie eine grafische Oberfläche? Sehen Sie sich die [Anleitung |https://www.jetbrains.com/help/phpstorm/using-the-composer-dependency-manager.html] zur Installation von Paketen in der PhpStrom-Umgebung an.
 
 
-Wie man ein neues Projekt erstellt .[#toc-how-to-create-a-new-project]
-----------------------------------------------------------------------
+Wie man ein neues Projekt mit Nette startet .[#toc-how-to-start-a-new-project-with-nette]
+-----------------------------------------------------------------------------------------
 
-Möchten Sie ein neues Projekt auf Nette erstellen? Der einfachste Weg, damit zu beginnen, ist der Download des Grundgerüsts für Webanwendungen, genannt [Webprojekt |https://github.com/nette/web-project].
+Wenn Sie ein völlig neues Projekt auf der Nette-Plattform erstellen möchten, empfehlen wir Ihnen, das voreingestellte [Skelett-Webprojekt |https://github.com/nette/web-project] zu verwenden:
 
-Auch hier hilft Ihnen der Composer beim Einrichten Ihres Projekts. Suchen Sie das Stammverzeichnis Ihres Webservers (z. B. `/var/www` oder `C:\InetPub`). Führen Sie den folgenden Befehl an der Eingabeaufforderung aus, wobei Sie `my-project` durch den Namen des zu erstellenden Verzeichnisses ersetzen:
+1) [**Composer |best-practices:composer] einrichten.**
+
+2) **Öffnen Sie die Befehlszeile** und navigieren Sie zum Stammverzeichnis Ihres Webservers, z. B. `/etc/var/www`, `C:/xampp/htdocs`, `/Library/WebServer/Documents`.
+
+3) **Erstellen Sie das Projekt** mit diesem Befehl:
 
 ```shell
-composer create-project nette/web-project my-project
+composer create-project nette/web-project PROJECT_NAME
 ```
 
-(Wenn Sie den Composer nicht verwenden möchten, [laden Sie das Archiv herunter |https://github.com/nette/web-project/archive/preloaded.zip], entpacken Sie es und kopieren Sie es in das Stammverzeichnis des Webservers).
+4) **Sie verwenden den Composer nicht?** Laden Sie einfach das [Webprojekt im ZIP-Format |https://github.com/nette/web-project/archive/preloaded.zip] herunter und entpacken Sie es. Aber vertrauen Sie uns, Composer ist es wert!
 
-Wenn Sie auf macOS oder Linux (oder einem anderen Unix-basierten System) entwickeln, müssen Sie trotzdem [Schreibrechte festlegen |nette:troubleshooting#setting-directory-permissions].
+5) **Zugriffsrechte festlegen:** Auf macOS- oder Linux-Systemen müssen Sie [Schreibrechte |nette:troubleshooting#Setting directory permissions] für Verzeichnisse festlegen.
 
-Das Tolle an Nette ist, dass Sie nichts Kompliziertes konfigurieren oder einrichten müssen. Jetzt sollte die Webprojekt-Homepage funktionieren. Sie können dies testen, indem Sie Ihren Browser unter der folgenden URL öffnen:
+6) **Öffnen Sie das Projekt in einem Browser:** Geben Sie die URL `http://localhost/PROJECT_NAME/www/` ein. Sie sehen die Landing Page des Skeletts:
 
-```
-http://localhost/my-project/www/
-```
+[* qs-welcome.webp .{url: http://localhost/PROJECT_NAME/www/} *]
 
-und Sie sollten die Nette Framework Willkommensseite sehen:
+Herzlichen Glückwunsch! Ihre Website ist nun bereit für die Entwicklung. Sie können die Willkommensvorlage entfernen und mit der Entwicklung Ihrer Anwendung beginnen.
 
-[* qs-welcome.webp .{url: http://localhost/my-project/www/} *]
-
-Hurra, das Skelett funktioniert! Löschen Sie die Willkommensvorlage und Sie können mit dem Schreiben einer großartigen neuen Anwendung beginnen.
+Einer der Vorteile von Nette ist, dass das Projekt sofort funktioniert, ohne dass eine Konfiguration erforderlich ist. Wenn Sie jedoch auf Probleme stoßen, sollten Sie sich die [allgemeinen Problemlösungen |nette:troubleshooting#nette-is-not-working-white-page-is-displayed] ansehen.
 
 .[note]
-Wenn es ein Problem gibt, [versuchen Sie diese Tipps |nette:troubleshooting#Nette Is Not Working, White Page Is Displayed].
+Wenn Sie mit Nette beginnen, empfehlen wir Ihnen, mit dem [Tutorial "Ihre erste Anwendung erstellen |quickstart:]" fortzufahren.
 
 
-Werkzeuge .[#toc-tools]
------------------------
+Tools und Empfehlungen .[#toc-tools-and-recommendations]
+--------------------------------------------------------
 
-Wir empfehlen die Verwendung einer [qualitativ hochwertigen IDE und aller notwendigen Plugins |best-practices:editors-and-tools], die Sie extrem effizient machen werden.
+Für eine effiziente Arbeit mit Nette empfehlen wir die folgenden Tools:
+
+- [Hochwertige IDE mit Plugins für Nette |best-practices:editors-and-tools]
+- Versionskontrollsystem Git
+- [Komponist |best-practices:composer]
 
 
 {{leftbar: www:@menu-common}}

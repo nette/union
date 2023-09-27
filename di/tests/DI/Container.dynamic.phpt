@@ -20,7 +20,7 @@ class Service
 
 $container = new Container;
 
-test('', function () use ($container) {
+test('basic', function () use ($container) {
 	$one = new Service;
 	$two = new Service;
 	$container->addService('one', $one);
@@ -40,9 +40,7 @@ test('', function () use ($container) {
 
 
 test('closure', function () use ($container) {
-	@$container->addService('four', function () { // @ triggers service should be defined as "imported"
-		return new Service;
-	});
+	@$container->addService('four', fn() => new Service);
 
 	Assert::true($container->hasService('four'));
 	Assert::false($container->isCreated('four'));
@@ -55,16 +53,19 @@ test('closure', function () use ($container) {
 
 
 test('closure with typehint', function () use ($container) {
-	@$container->addService('five', function (): Service { // @ triggers service should be defined as "imported"
-		return new Service;
-	});
+	@$container->addService('five', fn(): Service => new Service);
 
 	Assert::same(Service::class, $container->getServiceType('five'));
 });
 
 
-// bad closure
-Assert::exception(function () use ($container) {
+testException('bad closure', function () use ($container) {
 	@$container->addService('six', function () {}); // @ triggers service should be defined as "imported"
 	$container->getService('six');
 }, Nette\UnexpectedValueException::class, "Unable to create service 'six', value returned by closure is not object.");
+
+
+testException('union type', function () use ($container) {
+	@$container->addService('six', function (): stdClass|Closure {}); // @ triggers service should be defined as "imported"
+	$container->getService('six');
+}, Nette\InvalidStateException::class, "Return type of closure is expected to not be nullable/built-in/complex, 'stdClass|Closure' given.");

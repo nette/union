@@ -2,68 +2,66 @@ Namestitev sistema Nette
 ************************
 
 .[perex]
-Nette je družina naprednih knjižnic za PHP, ki jih lahko uporabljate popolnoma samostojno. Nette je tudi ogrodje za celovito gradnjo. Na tej strani je prikazano, kako namestiti posamezno knjižnico ali celotno ogrodje.
+Ali želite izkoristiti prednosti sistema Nette v obstoječem projektu ali nameravate ustvariti nov projekt, ki bo temeljil na sistemu Nette? Ta vodnik vas bo po korakih popeljal skozi namestitev.
 
 
-.[note]
-Ste novi v sistemu Nette? Priporočamo vam, da si ogledate tudi [vadnico Ustvarite svojo prvo aplikacijo |quickstart:].
+Kako dodati Nette v svoj projekt .[#toc-how-to-add-nette-to-your-project]
+-------------------------------------------------------------------------
 
+Nette ponuja zbirko uporabnih in izpopolnjenih paketov (knjižnic) za PHP. Če jih želite vključiti v svoj projekt, sledite naslednjim korakom:
 
-Kako namestiti pakete .[#toc-how-to-install-packages]
------------------------------------------------------
+1) **Nastavi [program Composer |best-practices:composer]:** To orodje je nujno za enostavno namestitev, posodabljanje in upravljanje knjižnic, potrebnih za vaš projekt.
 
-Posamezni [paketi |www:packages] iz družine Nette se namestijo z orodjem [Composer |best-practices:composer]. Če ga še ne poznate, morate vsekakor začeti z njim. Je zelo uporabno orodje.
+2) **Izbira [paketa |www:packages]:** Recimo, da morate krmariti po datotečnem sistemu, kar odlično počne [Finder |utils:finder] iz paketa `nette/utils`. Ime paketa lahko najdete v desnem stolpcu njegove dokumentacije.
 
-Ali morate na primer v svoji kodi prečkati datotečni sistem? [Iskalnik |utils:finder], ki je vključen v paket `nette/utils` (glejte desni stolpec), je za to odličen. Namestite ga lahko iz ukazne vrstice:
+3) **Ustanovite paket:** Ta ukaz zaženite v korenskem imeniku svojega projekta:
 
 ```shell
 composer require nette/utils
 ```
 
-To bo namestilo tudi vse druge pakete.
-
-Druga možnost je, da vse pakete dodate naenkrat z namestitvijo `nette/nette`:
-
-```shell
-composer require nette/nette
-```
+Ali imate raje grafični vmesnik? Oglejte si [vodnik za |https://www.jetbrains.com/help/phpstorm/using-the-composer-dependency-manager.html] nameščanje paketov v okolje PhpStrom.
 
 
-Kako ustvariti nov projekt .[#toc-how-to-create-a-new-project]
---------------------------------------------------------------
+Kako začeti nov projekt z Nette .[#toc-how-to-start-a-new-project-with-nette]
+-----------------------------------------------------------------------------
 
-Boste ustvarili nov projekt na Nette? Najlažje boste začeli tako, da prenesete osnovno ogrodje spletne aplikacije, imenovano [Spletni projekt |https://github.com/nette/web-project].
+Če želite ustvariti popolnoma nov projekt na platformi Nette, vam priporočamo, da uporabite prednastavljeno ogrodje [spletnega projekta |https://github.com/nette/web-project]:
 
-Tudi v tem primeru vam bo program Composer pomagal pri vzpostavitvi projekta. Poiščite korenski imenik svojega spletnega strežnika (npr. `/var/www` ali `C:\InetPub`). V ukazni vrstici zaženite naslednji ukaz, vendar `my-project` zamenjajte z imenom imenika, ki ga želite ustvariti:
+1) **Nastavi [program Composer |best-practices:composer].**
+
+2) **Odprite ukazno vrstico** in se pomaknite v korenski imenik spletnega strežnika, npr. `/etc/var/www`, `C:/xampp/htdocs`, `/Library/WebServer/Documents`.
+
+3) **S tem ukazom ustvarite projekt**:
 
 ```shell
-composer create-project nette/web-project my-project
+composer create-project nette/web-project PROJECT_NAME
 ```
 
-(Če ne želite uporabiti programa Composer, [prenesite arhiv |https://github.com/nette/web-project/archive/preloaded.zip], ga razpakirajte in kopirajte v korenski imenik spletnega strežnika.)
+4) **Ne uporabljate programa Composer?** Prenesite [spletni projekt v formatu ZIP |https://github.com/nette/web-project/archive/preloaded.zip] in ga razpršite. Vendar nam zaupajte, Composer je vreden tega!
 
-Če razvijate v operacijskem sistemu MacOS ali Linux (ali katerem koli drugem sistemu, ki temelji na Unixu), boste še vedno morali [nastaviti dovoljenja za pisanje |nette:troubleshooting#setting-directory-permissions].
+5) **Nastavitev dovoljenj:** V sistemih macOS ali Linux nastavite [dovoljenja za pisanje v |nette:troubleshooting#Setting directory permissions] imenike.
 
-Odlična stvar pri Nette je, da vam ni treba konfigurirati ali nastavljati ničesar zapletenega. Na tej točki bi torej domača stran spletnega projekta že morala delovati. To lahko preverite tako, da odprete brskalnik na naslednjem naslovu URL:
+6) **Odprite projekt v brskalniku:** Vnesite naslov URL `http://localhost/PROJECT_NAME/www/`. Videli boste pristajalno stran ogrodja:
 
-```
-http://localhost/my-project/www/
-```
+[* qs-welcome.webp .{url: http://localhost/PROJECT_NAME/www/} *]
 
-in prikazana bo pozdravna stran ogrodja Nette:
+Čestitamo! Vaše spletno mesto je zdaj pripravljeno za razvoj. Odstranite predlogo dobrodošlice in začnite graditi svojo aplikacijo.
 
-[* qs-welcome.webp .{url: http://localhost/my-project/www/} *]
-
-Hura, okostje deluje! Izbrišite pozdravno predlogo in lahko začnete pisati odlično novo aplikacijo.
+Ena od prednosti Nette je, da projekt deluje takoj, brez potrebe po konfiguraciji. Če pa naletite na kakršne koli težave, razmislite o [pogostih rešitvah težav |nette:troubleshooting#nette-is-not-working-white-page-is-displayed].
 
 .[note]
-Če se pojavi težava, [poskusite z nekaj nasveti |nette:troubleshooting#Nette Is Not Working, White Page Is Displayed].
+Če začenjate z aplikacijo Nette, priporočamo, da nadaljujete z [učnim gradivom Ustvarite svojo prvo aplikacijo |quickstart:].
 
 
-Orodja .[#toc-tools]
---------------------
+Orodja in priporočila .[#toc-tools-and-recommendations]
+-------------------------------------------------------
 
-Priporočamo uporabo [kakovostnega IDE in vseh potrebnih vtičnikov |best-practices:editors-and-tools], saj boste tako izjemno učinkoviti.
+Za učinkovito delo z Nette priporočamo naslednja orodja:
+
+- [Visokokakovostne IDE z vtičniki za Nette |best-practices:editors-and-tools]
+- Sistem za nadzor različic Git
+- [Composer |best-practices:composer]
 
 
 {{leftbar: www:@menu-common}}

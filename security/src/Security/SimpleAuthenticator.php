@@ -41,7 +41,7 @@ class SimpleAuthenticator implements Authenticator
 	public function authenticate(
 		string $username,
 		#[\SensitiveParameter]
-		string $password
+		string $password,
 	): IIdentity
 	{
 		foreach ($this->passwords as $name => $pass) {
