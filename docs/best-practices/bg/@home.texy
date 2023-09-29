@@ -17,6 +17,8 @@
 - [Как да се върнете към предишна страница |restore-request]
 - [Страница на резултатите от базата данни |Pagination]
 - [Динамични фрагменти |dynamic-snippets]
+- [Как да използвате атрибута #Requires |attribute-requires]
+- [Как да използвате правилно POST връзки |post-links]
 
 </div>
 <div>
@@ -26,6 +28,7 @@
 ---------
 - [Повторна употреба на формуляри |form-reuse]
 - [Формуляр за създаване и редактиране на запис |creating-editing-form]
+- [Да създадем формуляр за контакт |lets-create-contact-form]
 - [Зависими полета за избор |https://blog.nette.org/bg/zavisimi-selektirasi-poleta-elegantno-v-nette-i-cist-js]
 
 </div>
@@ -35,10 +38,12 @@
 Обща
 ----
 - [Как да заредим конфигурационен файл |bootstrap:]
+- [Как да пишем микросайтове |microsites]
 - [Защо Nette използва константна нотация PascalCase? |https://blog.nette.org/bg/za-po-malko-kresene-v-koda]
 - [Защо Nette не използва суфикса Interface? |https://blog.nette.org/bg/prefiksite-i-sufiksite-ne-prinadlezat-na-imenata-na-interfejsite]
 - [Съвети за използване на Composer |composer]
 - [Съвети за редактори и инструменти |editors-and-tools]
+- [Въведение в обектно-ориентираното програмиране |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

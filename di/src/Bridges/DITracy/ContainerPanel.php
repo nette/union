@@ -19,16 +19,9 @@ use Tracy;
  */
 class ContainerPanel implements Tracy\IBarPanel
 {
-	use Nette\SmartObject;
-
-	/** @var float|null */
-	public static $compilationTime;
-
-	/** @var Nette\DI\Container */
-	private $container;
-
-	/** @var float|null */
-	private $elapsedTime;
+	public static ?float $compilationTime = null;
+	private Nette\DI\Container $container;
+	private ?float $elapsedTime;
 
 
 	public function __construct(Container $container)
@@ -57,37 +50,33 @@ class ContainerPanel implements Tracy\IBarPanel
 	 */
 	public function getPanel(): string
 	{
-		$rc = new \ReflectionClass($this->container);
-		$tags = [];
-		$types = [];
+		$rc = (new \ReflectionClass($this->container));
+		$services = [];
 		foreach ($rc->getMethods() as $method) {
-			if (preg_match('#^createService(.+)#', $method->name, $m) && $method->getReturnType()) {
-				$types[lcfirst(str_replace('__', '.', $m[1]))] = $method->getReturnType()->getName();
+			if (preg_match('#^createService.#', $method->getName())) {
+				$name = lcfirst(str_replace('__', '.', substr($method->getName(), 13)));
+				$services[$name] = (string) $method->getReturnType();
 			}
 		}
+		ksort($services, SORT_NATURAL);
 
-		$types = $this->getContainerProperty('types') + $types;
-		ksort($types, SORT_NATURAL);
-		foreach ($this->getContainerProperty('tags') as $tag => $tmp) {
+		$propertyTags = (fn() => $this->tags)->bindTo($this->container, $this->container)();
+		$tags = [];
+		foreach ($propertyTags as $tag => $tmp) {
 			foreach ($tmp as $service => $val) {
 				$tags[$service][$tag] = $val;
 			}
 		}
 
-		return Nette\Utils\Helpers::capture(function () use ($tags, $types, $rc) {
+		return Nette\Utils\Helpers::capture(function () use ($rc, $tags, $services) {
 			$container = $this->container;
 			$file = $rc->getFileName();
-			$instances = $this->getContainerProperty('instances');
-			$wiring = $this->getContainerProperty('wiring');
+			$instances = (fn() => $this->instances)->bindTo($this->container, Container::class)();
+			$wiring = (fn() => $this->wiring)->bindTo($this->container, $this->container)();
+			$parameters = $rc->getMethod('getStaticParameters')->getDeclaringClass()->getName() === Container::class
+				? null
+				: $container->getParameters();
 			require __DIR__ . '/templates/ContainerPanel.panel.phtml';
 		});
-	}
-
-
-	private function getContainerProperty(string $name)
-	{
-		$prop = (new \ReflectionClass(Nette\DI\Container::class))->getProperty($name);
-		$prop->setAccessible(true);
-		return $prop->getValue($this->container);
 	}
 }

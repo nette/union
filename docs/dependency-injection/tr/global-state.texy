@@ -1,0 +1,304 @@
+Küresel Durum ve Singletonlar
+*****************************
+
+.[perex]
+Uyarı: Aşağıdaki yapılar kötü tasarlanmış kodun belirtileridir:
+
+- `Foo::getInstance()`
+- `DB::insert(...)`
+- `Article::setDb($db)`
+- `ClassName::$var` veya `static::$var`
+
+Kodunuzda bu yapılardan herhangi biriyle karşılaşıyor musunuz? Eğer öyleyse, onu geliştirmek için bir fırsatınız var demektir. Bunların yaygın yapılar olduğunu, genellikle çeşitli kütüphanelerin ve çerçevelerin örnek çözümlerinde görüldüğünü düşünebilirsiniz. Eğer durum buysa, kod tasarımları kusurludur.
+
+Burada akademik bir saflıktan bahsetmiyoruz. Tüm bu yapıların ortak bir noktası var: küresel durum kullanıyorlar. Ve bunun kod kalitesi üzerinde yıkıcı bir etkisi vardır. Sınıflar bağımlılıkları konusunda aldatıcıdır. Kod öngörülemez hale gelir. Geliştiricilerin kafasını karıştırır ve verimliliklerini azaltır.
+
+Bu bölümde, bunun neden böyle olduğunu ve küresel durumdan nasıl kaçınılacağını açıklayacağız.
+
+
+Küresel Bağlantı .[#toc-global-interlinking]
+--------------------------------------------
+
+İdeal bir dünyada, bir nesne yalnızca [kendisine doğrudan aktarılan |passing-dependencies] nesnelerle iletişim kurmalıdır. İki nesne yaratırsam `A` ve `B` ve aralarında hiçbir zaman bir referans geçmezsem, o zaman ne `A` ne de `B` diğerinin durumuna erişemez veya değiştiremez. Bu, kodun oldukça arzu edilen bir özelliğidir. Bu, bir pil ve bir ampule sahip olmaya benzer; ampul, siz onu bir kabloyla pile bağlamadan yanmaz.
+
+Ancak bu durum global (statik) değişkenler veya tekil değişkenler için geçerli değildir. `A` nesnesi `C` nesnesine *kablosuz* olarak erişebilir ve `C::changeSomething()` adresini çağırarak herhangi bir referans geçişi olmadan onu değiştirebilir. Eğer `B` nesnesi global `C` nesnesine de erişirse, `A` ve `B` birbirlerini `C` üzerinden etkileyebilir.
+
+Global değişkenlerin kullanılması, dışarıdan görünmeyen yeni bir *kablosuz* bağlantı biçimi ortaya çıkarır. Bu da kodun anlaşılmasını ve kullanılmasını zorlaştıran bir sis perdesi yaratır. Bağımlılıkları gerçekten anlamak için, geliştiricilerin sadece sınıf arayüzlerine aşina olmak yerine kaynak kodun her satırını okumaları gerekir. Üstelik bu karışıklık tamamen gereksizdir. Global durum, her yerden kolayca erişilebildiği ve örneğin global (statik) bir yöntem aracılığıyla bir veritabanına yazmaya izin verdiği için kullanılır `DB::insert()`. Ancak, göreceğimiz gibi, sunduğu fayda minimum düzeydeyken, ortaya çıkardığı komplikasyonlar ciddidir.
+
+.[note]
+Davranış açısından, global ve statik değişken arasında bir fark yoktur. İkisi de eşit derecede zararlıdır.
+
+
+Uzaktaki Ürkütücü Eylem .[#toc-the-spooky-action-at-a-distance]
+---------------------------------------------------------------
+
+"Uzaktaki ürkütücü eylem" - Albert Einstein 1935 yılında kuantum fiziğinde kendisini ürküten bir olguyu böyle adlandırmıştı.
+Bu kuantum dolanıklığıdır ve özelliği, bir parçacık hakkındaki bilgiyi ölçtüğünüzde, milyonlarca ışık yılı uzakta olsalar bile başka bir parçacığı hemen etkilemenizdir.
+Bu da evrenin temel yasası olan hiçbir şeyin ışıktan hızlı gidemeyeceği ilkesini ihlal eder.
+
+Yazılım dünyasında, izole olduğunu düşündüğümüz bir süreci çalıştırdığımız (çünkü ona herhangi bir referans iletmedik), ancak sistemin nesneye söylemediğimiz uzak konumlarında beklenmedik etkileşimlerin ve durum değişikliklerinin meydana geldiği bir durumu "uzaktan ürkütücü eylem" olarak adlandırabiliriz. Bu yalnızca global durum aracılığıyla gerçekleşebilir.
+
+Büyük ve olgun bir kod tabanına sahip bir proje geliştirme ekibine katıldığınızı düşünün. Yeni lideriniz sizden yeni bir özelliği hayata geçirmenizi istiyor ve siz de iyi bir geliştirici gibi işe bir test yazarak başlıyorsunuz. Ancak projede yeni olduğunuz için, "bu yöntemi çağırırsam ne olur" türünde çok sayıda keşif testi yaparsınız. Ve aşağıdaki testi yazmaya çalışıyorsunuz:
+
+```php
+function testCreditCardCharge()
+{
+	$cc = new CreditCard('1234567890123456', 5, 2028); // kart numaranız
+	$cc->charge(100);
+}
+```
+
+Kodu belki birkaç kez çalıştırıyorsunuz ve bir süre sonra telefonunuza bankadan gelen bildirimlerde kodu her çalıştırdığınızda kredi kartınızdan 100 $ çekildiğini fark ediyorsunuz 🤦‍♂️
+
+Test nasıl olur da gerçek bir ücretlendirmeye neden olabilir? Kredi kartı ile işlem yapmak kolay değildir. Üçüncü taraf bir web hizmetiyle etkileşime girmeniz, bu web hizmetinin URL'sini bilmeniz, oturum açmanız vb. gerekir.
+Bu bilgilerin hiçbiri testte yer almıyor. Daha da kötüsü, bu bilgilerin nerede bulunduğunu ve bu nedenle her çalıştırmanın tekrar 100 $ ücretlendirilmesiyle sonuçlanmaması için harici bağımlılıkları nasıl taklit edeceğinizi bile bilmiyorsunuz. Ve yeni bir geliştirici olarak, yapmak üzere olduğunuz şeyin 100 dolar daha fakir olmanıza yol açacağını nereden bilebilirdiniz?
+
+Bu uzaktan ürkütücü bir hareket!
+
+Projedeki bağlantıların nasıl çalıştığını anlayana kadar, daha yaşlı ve daha deneyimli meslektaşlarınıza sorarak çok sayıda kaynak kodu incelemekten başka seçeneğiniz yoktur.
+Bunun nedeni, `CreditCard` sınıfının arayüzüne baktığınızda, başlatılması gereken global durumu belirleyememenizdir. Sınıfın kaynak koduna bakmak bile size hangi ilklendirme yöntemini çağırmanız gerektiğini söylemeyecektir. En iyi ihtimalle, erişilen global değişkeni bulabilir ve buradan nasıl başlatılacağını tahmin etmeye çalışabilirsiniz.
+
+Böyle bir projedeki sınıflar patolojik yalancılardır. Ödeme kartı, sadece onu örnekleyebileceğinizi ve `charge()` yöntemini çağırabileceğinizi iddia eder. Ancak, gizlice başka bir sınıf olan `PaymentGateway` ile etkileşim halindedir. Arayüzü bile bağımsız olarak başlatılabileceğini söylüyor, ancak gerçekte bazı yapılandırma dosyalarından kimlik bilgilerini çekiyor vb.
+Bu kodu yazan geliştiriciler için `CreditCard` 'un `PaymentGateway`'a ihtiyacı olduğu açıktır. Kodu bu şekilde yazmışlardır. Ancak projede yeni olan herkes için bu tam bir gizemdir ve öğrenmeyi engeller.
+
+Bu durum nasıl düzeltilir? Çok kolay. **API'nin bağımlılıkları bildirmesine izin verin.**
+
+```php
+function testCreditCardCharge()
+{
+	$gateway = new PaymentGateway(/* ... */);
+	$cc = new CreditCard('1234567890123456', 5, 2028);
+	$cc->charge($gateway, 100);
+}
+```
+
+Kod içindeki ilişkilerin birdenbire nasıl belirgin hale geldiğine dikkat edin. `charge()` yönteminin `PaymentGateway` adresine ihtiyaç duyduğunu beyan ederek, kodun nasıl birbirine bağlı olduğunu kimseye sormak zorunda kalmazsınız. Bunun bir örneğini oluşturmanız gerektiğini biliyorsunuz ve bunu yapmaya çalıştığınızda erişim parametreleri sağlamanız gerektiği gerçeğiyle karşılaşıyorsunuz. Onlar olmadan kod çalışmaz bile.
+
+Ve en önemlisi, artık ödeme ağ geçidini taklit edebilirsiniz, böylece her test çalıştırdığınızda 100 $ ücretlendirilmezsiniz.
+
+Küresel durum, nesnelerinizin API'lerinde bildirilmeyen şeylere gizlice erişebilmesine neden olur ve sonuç olarak API'lerinizi patolojik yalancılar haline getirir.
+
+Daha önce bu şekilde düşünmemiş olabilirsiniz, ancak global state kullandığınızda gizli kablosuz iletişim kanalları oluşturmuş olursunuz. Ürkütücü uzaktan eylem, geliştiricileri potansiyel etkileşimleri anlamak için her kod satırını okumaya zorlar, geliştirici verimliliğini azaltır ve yeni ekip üyelerinin kafasını karıştırır.
+Kodu oluşturan kişi sizseniz, gerçek bağımlılıkları bilirsiniz, ancak sizden sonra gelenlerin hiçbir şeyden haberi olmaz.
+
+Global durum kullanan kod yazmayın, bağımlılıkları aktarmayı tercih edin. Yani, bağımlılık enjeksiyonu.
+
+
+Küresel Devletin Kırılganlığı .[#toc-brittleness-of-the-global-state]
+---------------------------------------------------------------------
+
+Global state ve singleton kullanan kodlarda, bu state'in ne zaman ve kim tarafından değiştirildiği asla kesin değildir. Bu risk başlatma sırasında zaten mevcuttur. Aşağıdaki kodun bir veritabanı bağlantısı oluşturması ve ödeme ağ geçidini başlatması gerekiyor, ancak sürekli bir istisna atıyor ve nedenini bulmak son derece sıkıcı:
+
+```php
+PaymentGateway::init();
+DB::init('mysql:', 'user', 'password');
+```
+
+ `PaymentGateway` nesnesinin diğer nesnelere kablosuz olarak eriştiğini ve bunlardan bazılarının veritabanı bağlantısı gerektirdiğini bulmak için kodu ayrıntılı olarak incelemeniz gerekir. Bu nedenle, `PaymentGateway` adresinden önce veritabanını başlatmanız gerekir. Ancak, global durum sis perdesi bunu sizden gizler. Her sınıfın API'si yalan söylemeseydi ve bağımlılıklarını beyan etseydi ne kadar zaman kazanırdınız?
+
+```php
+$db = new DB('mysql:', 'user', 'password');
+$gateway = new PaymentGateway($db, ...);
+```
+
+Bir veritabanı bağlantısına genel erişim kullanıldığında da benzer bir sorun ortaya çıkar:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+class Article
+{
+	public function save(): void
+	{
+		DB::insert(/* ... */);
+	}
+}
+```
+
+ `save()` yöntemi çağrıldığında, bir veritabanı bağlantısının zaten oluşturulup oluşturulmadığı ve oluşturulmasından kimin sorumlu olduğu kesin değildir. Örneğin, veritabanı bağlantısını anında değiştirmek istersek, belki de test amacıyla, muhtemelen `DB::reconnect(...)` veya `DB::reconnectForTest()` gibi ek yöntemler oluşturmamız gerekecektir.
+
+Bir örnek düşünün:
+
+```php
+$article = new Article;
+// ...
+DB::reconnectForTest();
+Foo::doSomething();
+$article->save();
+```
+
+ `$article->save()` adresini çağırırken test veritabanının gerçekten kullanıldığından nasıl emin olabiliriz? Ya `Foo::doSomething()` yöntemi global veritabanı bağlantısını değiştirdiyse? Bunu öğrenmek için `Foo` sınıfının ve muhtemelen diğer birçok sınıfın kaynak kodunu incelememiz gerekir. Ancak, durum gelecekte değişebileceğinden, bu yaklaşım yalnızca kısa vadeli bir yanıt sağlayacaktır.
+
+Veritabanı bağlantısını `Article` sınıfının içindeki statik bir değişkene taşırsak ne olur?
+
+```php
+class Article
+{
+	private static DB $db;
+
+	public static function setDb(DB $db): void
+	{
+		self::$db = $db;
+	}
+
+	public function save(): void
+	{
+		self::$db->insert(/* ... */);
+	}
+}
+```
+
+Bu hiçbir şeyi değiştirmez. Sorun global bir durumdur ve hangi sınıfta saklandığı önemli değildir. Bu durumda, bir öncekinde olduğu gibi, `$article->save()` yöntemi çağrıldığında hangi veritabanına yazıldığına dair hiçbir ipucumuz yoktur. Uygulamanın uzak ucundaki herhangi biri `Article::setDb()` adresini kullanarak istediği zaman veritabanını değiştirebilir. Elimizin altında.
+
+Küresel durum uygulamamızı **son derece kırılgan** hale getirir.
+
+Ancak bu sorunun üstesinden gelmenin basit bir yolu vardır. Uygun işlevselliği sağlamak için API'nin bağımlılıkları bildirmesi yeterlidir.
+
+```php
+class Article
+{
+	public function __construct(
+		private DB $db,
+	) {
+	}
+
+	public function save(): void
+	{
+		$this->db->insert(/* ... */);
+	}
+}
+
+$article = new Article($db);
+// ...
+Foo::doSomething();
+$article->save();
+```
+
+Bu yaklaşım, veritabanı bağlantılarında gizli ve beklenmedik değişiklikler yapılması endişesini ortadan kaldırır. Artık makalenin nerede saklandığından eminiz ve başka bir ilgisiz sınıfın içindeki hiçbir kod değişikliği artık durumu değiştiremez. Kod artık kırılgan değil, kararlı.
+
+Global durum kullanan kod yazmayın, bağımlılıkları aktarmayı tercih edin. Böylece, bağımlılık enjeksiyonu.
+
+
+Singleton .[#toc-singleton]
+---------------------------
+
+Singleton, ünlü Gang of Four yayınındaki [tanımıyla |https://en.wikipedia.org/wiki/Singleton_pattern], bir sınıfı tek bir örnekle sınırlayan ve ona global erişim sunan bir tasarım modelidir. Bu kalıbın uygulaması genellikle aşağıdaki koda benzer:
+
+```php
+class Singleton
+{
+	private static self $instance;
+
+	public static function getInstance(): self
+	{
+		self::$instance ??= new self;
+		return self::$instance;
+	}
+
+	// ve sınıfın işlevlerini yerine getiren diğer yöntemler
+}
+```
+
+Ne yazık ki, singleton uygulamaya global durum ekler. Ve yukarıda gösterdiğimiz gibi, global durum istenmeyen bir durumdur. Bu yüzden singleton bir antipattern olarak kabul edilir.
+
+Kodunuzda singleton kullanmayın ve bunları başka mekanizmalarla değiştirin. Tekillere gerçekten ihtiyacınız yok. Ancak, tüm uygulama için bir sınıfın tek bir örneğinin varlığını garanti etmeniz gerekiyorsa, bunu [DI konteynerine |container] bırakın.
+Böylece, bir uygulama singletonu veya hizmeti oluşturun. Bu, sınıfın kendi benzersizliğini sağlamasını durduracak (yani, bir `getInstance()` yöntemine ve statik bir değişkene sahip olmayacaktır) ve yalnızca işlevlerini yerine getirecektir. Böylece, tek sorumluluk ilkesini ihlal etmeyi durduracaktır.
+
+
+Testlere Karşı Küresel Durum .[#toc-global-state-versus-tests]
+--------------------------------------------------------------
+
+Testleri yazarken, her testin izole bir birim olduğunu ve hiçbir dış durumun teste girmediğini varsayarız. Ve hiçbir durum testleri terk etmez. Bir test tamamlandığında, testle ilişkili tüm durumlar çöp toplayıcı tarafından otomatik olarak kaldırılmalıdır. Bu, testleri yalıtılmış hale getirir. Bu nedenle testleri istediğimiz sırada çalıştırabiliriz.
+
+Ancak, küresel durumlar/singletonlar mevcutsa, tüm bu güzel varsayımlar bozulur. Bir durum bir teste girebilir ve çıkabilir. Birdenbire, testlerin sırası önemli olabilir.
+
+Tekil öğeleri test etmek için, geliştiricilerin genellikle bir örneğin başka bir örnekle değiştirilmesine izin vererek özelliklerini gevşetmeleri gerekir. Bu tür çözümler, en iyi ihtimalle, bakımı ve anlaşılması zor kodlar üreten hilelerdir. Herhangi bir global durumu etkileyen herhangi bir test veya yöntem `tearDown()` bu değişiklikleri geri almalıdır.
+
+Global durum, birim testindeki en büyük baş ağrısıdır!
+
+Bu durum nasıl düzeltilir? Çok kolay. Singleton kullanan kod yazmayın, bağımlılıkları aktarmayı tercih edin. Yani bağımlılık enjeksiyonu.
+
+
+Küresel Sabitler .[#toc-global-constants]
+-----------------------------------------
+
+Küresel durum tekil ve statik değişkenlerin kullanımıyla sınırlı değildir, aynı zamanda küresel sabitler için de geçerli olabilir.
+
+Değeri bize yeni (`M_PI`) veya faydalı (`PREG_BACKTRACK_LIMIT_ERROR`) bilgi sağlamayan sabitler açıkça tamamdır.
+Tersine, kod içinde *kablosuz* bilgi aktarmanın bir yolu olarak hizmet eden sabitler, gizli bir bağımlılıktan başka bir şey değildir. Aşağıdaki örnekte `LOG_FILE` gibi.
+ `FILE_APPEND` sabitini kullanmak tamamen doğrudur.
+
+```php
+const LOG_FILE = '...';
+
+class Foo
+{
+	public function doSomething()
+	{
+		// ...
+		file_put_contents(LOG_FILE, $message . "\n", FILE_APPEND);
+		// ...
+	}
+}
+```
+
+Bu durumda, API'nin bir parçası haline getirmek için parametreyi `Foo` sınıfının kurucusunda bildirmeliyiz:
+
+```php
+class Foo
+{
+	public function __construct(
+		private string $logFile,
+	) {
+	}
+
+	public function doSomething()
+	{
+		// ...
+		file_put_contents($this->logFile, $message . "\n", FILE_APPEND);
+		// ...
+	}
+}
+```
+
+Artık günlük dosyasının yolu hakkında bilgi aktarabilir ve gerektiğinde kolayca değiştirebiliriz, bu da kodu test etmeyi ve bakımını yapmayı kolaylaştırır.
+
+
+Global İşlevler ve Statik Yöntemler .[#toc-global-functions-and-static-methods]
+-------------------------------------------------------------------------------
+
+Statik yöntemlerin ve global fonksiyonların kullanımının kendi içinde sorunlu olmadığını vurgulamak istiyoruz. `DB::insert()` ve benzeri yöntemlerin kullanılmasının uygunsuzluğunu açıkladık, ancak bu her zaman statik bir değişkende saklanan global durum meselesi olmuştur. `DB::insert()` yöntemi, veritabanı bağlantısını sakladığı için statik bir değişkenin varlığını gerektirir. Bu değişken olmadan yöntemi uygulamak imkansızdır.
+
+ `DateTime::createFromFormat()`, `Closure::fromCallable`, `strlen()` ve diğerleri gibi deterministik statik yöntem ve fonksiyonların kullanımı bağımlılık enjeksiyonu ile tamamen tutarlıdır. Bu fonksiyonlar her zaman aynı girdi parametrelerinden aynı sonuçları döndürür ve bu nedenle öngörülebilirdir. Herhangi bir global durum kullanmazlar.
+
+Ancak, PHP'de deterministik olmayan işlevler de vardır. Bunlara örnek olarak `htmlspecialchars()` fonksiyonu verilebilir. Üçüncü parametresi olan `$encoding` belirtilmezse, varsayılan olarak `ini_get('default_charset')` yapılandırma seçeneğinin değerini alır. Bu nedenle, fonksiyonun olası öngörülemeyen davranışını önlemek için bu parametrenin her zaman belirtilmesi önerilir. Nette bunu sürekli olarak yapar.
+
+ `strtolower()`, `strtoupper()` ve benzerleri gibi bazı fonksiyonlar yakın geçmişte deterministik olmayan davranışlara sahipti ve `setlocale()` ayarına bağlıydı. Bu, çoğunlukla Türkçe diliyle çalışırken birçok komplikasyona neden olmuştur.
+Bunun nedeni, Türkçe dilinin noktalı ve noktasız büyük ve küçük harf `I` arasında ayrım yapmasıdır. Bu yüzden `strtolower('I')`, `ı` karakterini ve `strtoupper('i')`, `İ` karakterini döndürüyordu, bu da uygulamaların bir dizi gizemli hataya neden olmasına yol açıyordu.
+Ancak, bu sorun PHP 8.2 sürümünde düzeltilmiştir ve işlevler artık yerel ayara bağlı değildir.
+
+Bu, küresel durumun dünyanın dört bir yanındaki binlerce geliştiriciyi nasıl rahatsız ettiğinin güzel bir örneğidir. Çözüm, bağımlılık enjeksiyonu ile değiştirmekti.
+
+
+Global State Ne Zaman Kullanılabilir? .[#toc-when-is-it-possible-to-use-global-state]
+-------------------------------------------------------------------------------------
+
+Global durumu kullanmanın mümkün olduğu bazı özel durumlar vardır. Örneğin, kodda hata ayıklama yaparken bir değişkenin değerini dökmeniz veya programın belirli bir bölümünün süresini ölçmeniz gerekir. Daha sonra koddan kaldırılacak geçici eylemlerle ilgili olan bu gibi durumlarda, global olarak kullanılabilen bir dumper veya kronometre kullanmak meşrudur. Bu araçlar kod tasarımının bir parçası değildir.
+
+Başka bir örnek, derlenmiş düzenli ifadeleri dahili olarak bellekteki statik bir önbellekte saklayan `preg_*` düzenli ifadelerle çalışma işlevleridir. Aynı düzenli ifadeyi kodun farklı bölümlerinde birden çok kez çağırdığınızda, bu ifade yalnızca bir kez derlenir. Önbellek performans tasarrufu sağlar ve ayrıca kullanıcı için tamamen görünmezdir, bu nedenle bu tür kullanım meşru kabul edilebilir.
+
+
+Özet .[#toc-summary]
+--------------------
+
+Bunun neden mantıklı olduğunu gösterdik
+
+1) Koddan tüm statik değişkenleri kaldırın
+2) Bağımlılıkları beyan edin
+3) Ve bağımlılık enjeksiyonu kullanın
+
+Kod tasarımını düşünürken, her `static $foo` adresinin bir sorunu temsil ettiğini unutmayın. Kodunuzun DI'ya saygılı bir ortam olması için, global durumu tamamen ortadan kaldırmak ve bağımlılık enjeksiyonu ile değiştirmek çok önemlidir.
+
+Bu süreç sırasında, birden fazla sorumluluğu olduğu için bir sınıfı bölmeniz gerektiğini fark edebilirsiniz. Bu konuda endişelenmeyin; tek sorumluluk ilkesi için çaba gösterin.
+
+*[Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/] gibi makaleleri bu bölümün temelini oluşturan Miško Hevery'ye teşekkür ederim.*

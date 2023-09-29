@@ -67,7 +67,7 @@ Kako množično urediti vse storitve določene vrste? Ali morate poklicati dolo�
 ```neon
 decorator:
 	# za vse storitve, ki so primerki tega razreda ali vmesnika.
-	App\Presenters\BasePresenter:
+	App\UI\BasePresenter:
 		setup:
 			- setProjectId(10)       # pokliče to metodo
 			- $absoluteUrls = true   # in nastavi spremenljivko
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Če ne uporabljate polja `$container->parameters`, lahko onemogočite izvoz parametrov. Poleg tega lahko izvozite samo tiste oznake, prek katerih pridobivate storitve z uporabo metode `$container->findByTag(...)`.
+Če ne uporabljate polja `$container->getParameters()`, lahko onemogočite izvoz parametrov. Poleg tega lahko izvozite samo tiste oznake, prek katerih pridobivate storitve z uporabo metode `$container->findByTag(...)`.
 Če metode sploh ne kličete, lahko izvoz značk popolnoma onemogočite z metodo `false`.
 
 Metapodatke za [samodejno vnašanje |autowiring] lahko bistveno zmanjšate tako, da razrede, ki jih uporabljate, določite kot parameter metode `$container->getByType()`.
@@ -191,20 +191,15 @@ Samo določite, v katerih imenikih (in podimenikih) naj se razredi iščejo:
 
 ```neon
 search:
-	# imena razdelkov izberete sami.
-	myForms:
-		in: %appDir%/Forms
-
-	model:
-		in: %appDir%/Model
+	-	in: %appDir%/Forms
+	-	in: %appDir%/Model
 ```
 
 Običajno ne želimo dodati vseh razredov in vmesnikov, zato jih lahko filtriramo:
 
 ```neon
 search:
-	myForms:
-		in: %appDir%/Forms
+	-	in: %appDir%/Forms
 
 		# filtriranje po imenu datoteke (niz|recept[])
 		files:
@@ -220,7 +215,7 @@ Lahko pa izberemo razrede, ki dedujejo ali implementirajo vsaj enega od naslednj
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		extends:
 			- App\*Form
 		implements:
@@ -231,8 +226,9 @@ Določite lahko tudi negativna pravila, tj. maske imen razredov ali prednikov, i
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		exclude:
+datoteke: ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -242,7 +238,7 @@ Za dodane storitve lahko nastavite oznake:
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		tags: ...
 ```
 

@@ -14,6 +14,7 @@ Filtri so funkcije, ki spremenijo ali oblikujejo podatke v želeno obliko. To je
 | `date` | [oblikuje datum |#date]
 | `explode` | [razdeli niz z danim ločilom |#explode]
 | `first` | [vrne prvi element polja ali znak niza |#first]
+| `group` | [združevanje podatkov po različnih merilih |#group]
 | `implode` | [združi polje z nizom |#implode]
 | `indent` | [besedilo z leve strani odriva s številom tabulatorjev |#indent]
 | `join` | [združi polje z nizom |#implode]
@@ -118,8 +119,8 @@ Filtri .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Filter, ki poenostavi navajanje linearnih podatkov v obliki tabele. Vrne polje z danim številom elementov. Če navedete drugi parameter, se ta uporabi za dopolnitev manjkajočih elementov v zadnji vrstici.
 
 ```latte
@@ -151,6 +152,8 @@ Izpisuje:
 	</tr>
 </table>
 ```
+
+Oglejte si tudi oznako [group |#group] in [iterateWhile |tags#iterateWhile].
 
 
 breakLines .[filter]
@@ -203,8 +206,8 @@ Uveljavlja čiščenje URL-jev. Preveri, ali spremenljivka vsebuje spletni naslo
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">checked</a>
-<a data-href="{$link}">unchecked</a>
+<a data-href={$link|checkUrl}>checked</a>
+<a data-href={$link}>unchecked</a>
 ```
 
 Izpisuje:
@@ -217,8 +220,8 @@ Izpisuje:
 Glej tudi [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 Vrne vrednost, ki je omejena na vključujoče območje min in max.
 
 ```latte
@@ -235,7 +238,7 @@ Pretvori vsebino v podatkovno shemo URI. Uporablja se lahko za vstavljanje slik 
 Imejmo sliko v spremenljivki `$img = Image::fromFile('obrazek.gif')`, potem
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 natisne na primer:
@@ -271,8 +274,8 @@ Izbriše spremenljivko, ki se uporabi kot parameter v naslovu URL.
 Glej tudi [poizvedbo |#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Razdeli niz z danim ločilom in vrne polje nizov. Vzdevek za `split`.
 
 ```latte
@@ -294,8 +297,8 @@ Uporabite lahko tudi vzdevek `split`:
 Glej tudi [implode |#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Vrne prvi element polja ali znak niza:
 
 ```latte
@@ -330,6 +333,25 @@ Prvo črko vrednosti pretvori v veliko črko. Zahteva razširitev PHP `mbstring`
 Oglejte si tudi [velika začetnica |#capitalize], [mala |#lower] [začetnica |#capitalize], [velika |#upper] začetnica.
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+Filter razvrsti podatke v skupine glede na različna merila.
+
+V tem primeru so vrstice v tabeli razvrščene po stolpcu `categoryId`. Rezultat je polje polj, kjer je ključ vrednost v stolpcu `categoryId`. Preberite [podrobna navodila |cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+Oglejte si tudi [paket |#batch], funkcijo [group |functions#group] in oznako [iterateWhile |tags#iterateWhile].
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Vrne niz, ki je sestavljen iz nizov v polju. Vzdevek za `join`.
@@ -339,7 +361,7 @@ Vrne niz, ki je sestavljen iz nizov v polju. Vzdevek za `join`.
 {=[1, 2, 3]|implode:'|'}  {* izhodi '1|2|3' *}
 ```
 
-Uporabite lahko tudi vzdevek `join`: .{data-version:2.10.2}
+Uporabite lahko tudi vzdevek `join`:
 
 ```latte
 {=[1, 2, 3]|join}         {* izhodi '123' *}
@@ -367,8 +389,8 @@ Natisne:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Vrne zadnji element polja ali znak niza:
 
 ```latte
@@ -416,8 +438,8 @@ Preprečuje samodejno prečiščevanje URL. Latte [samodejno preveri, |safety-fi
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">checked</a>
-<a href="{$link|nocheck}">unchecked</a>
+<a href={$link}>checked</a>
+<a href={$link|nocheck}>unchecked</a>
 ```
 
 Izpisi:
@@ -481,8 +503,8 @@ Podloži niz na določeno dolžino z drugim nizom z desne.
 ```
 
 
-query  .[filter]{data-version:2.10}
------------------------------------
+query  .[filter]
+----------------
 Dinamično ustvari poizvedbeni niz v naslovu URL:
 
 ```latte
@@ -502,8 +524,8 @@ Ključi z vrednostjo `null` so izpuščeni.
 Glej tudi [escapeUrl |#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Vrne naključni element polja ali znak niza:
 
 ```latte
@@ -531,7 +553,7 @@ Zamenja vse pojavitve iskanega niza z nadomestnim nizom.
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Izvede se lahko več zamenjav naenkrat: .{data-version:2.10.2}
+Izvede se lahko več zamenjav naenkrat:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* izhodi 'lehho worhd' *}
@@ -573,8 +595,8 @@ Zaokroži število na določeno natančnost.
 Glej tudi [strop |#ceil], [dno |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Izvleče rezino polja ali niza.
 
 ```latte
@@ -591,9 +613,9 @@ Filter rezine deluje kot funkcija PHP `array_slice` za polja in `mb_substr` za n
 Filter bo privzeto spremenil vrstni red in ponastavil ključe celoštevilskega polja. To obnašanje lahko spremenite z nastavitvijo vrednosti preserveKeys na true. Vrstični ključi se vedno ohranijo, ne glede na ta parameter.
 
 
-sort  .[filter]{data-version:2.9}
----------------------------------
-Filter, ki razvrsti polje in ohrani povezavo indeksov.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+Filter se uporablja za razvrščanje elementov v polju ali iteratorju, pri čemer se ohranijo ključi asociacij:
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +631,41 @@ Polje je razvrščeno v obratnem vrstnem redu.
 {/foreach}
 ```
 
-Kot parameter lahko posredujete svojo primerjalno funkcijo: .{data-version:2.10.2}
+Za razvrščanje lahko določite primerjalno funkcijo po meri (primer prikazuje, kako obrniti razvrščanje od največjega do najmanjšega):
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+Filter `|sort` omogoča tudi razvrščanje elementov po ključu:
 
-spaceless  .[filter]{data-version:2.10.2}
------------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+Če želite tabelo razvrstiti po določenem stolpcu, lahko uporabite parameter `by`. Vrednost `'name'` v primeru določa, da se razvrščanje opravi po `$row->name` ali `$row['name']`, odvisno od tega, ali je `$row` polje ali objekt:
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+Določite lahko tudi funkcijo povratnega klica, ki določi vrednost, po kateri se bo razvrščalo:
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+Na enak način lahko uporabite tudi parameter `byKey`.
+
+
+spaceless  .[filter]
+--------------------
 Odstrani nepotrebne bele lise iz izpisa. Uporabite lahko tudi vzdevek `strip`.
 
 ```latte
@@ -655,8 +703,8 @@ Izvleče rezino niza. Ta filter je bil nadomeščen s filtrom za [rezine |#slice
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 Prevaja izraze v druge jezike. Če želite, da je filter na voljo, morate [nastaviti prevajalnik |develop#TranslatorExtension]. Za [prevajanje |tags#Translation] lahko uporabite tudi [oznake |tags#Translation].
 
 ```latte

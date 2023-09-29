@@ -30,11 +30,11 @@ Il modulo nel presentatore è un oggetto della classe `Nette\Application\UI\Form
 
 Dal punto di vista del presentatore, il modulo è un componente comune. Pertanto, viene trattato come un componente e incorporato nel presentatore con il [metodo factory |application:components#Factory Methods]. L'aspetto sarà il seguente:
 
-```php .{file:app/Presenters/HomepagePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	protected function createComponentRegistrationForm(): Form
 	{
@@ -52,14 +52,14 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 		// $data->name contiene nome
 		// $data->password contiene la password
 		$this->flashMessage('Ti sei iscritto con successo.');
-		$this->redirect('Homepage:');
+		$this->redirect('Home:');
 	}
 }
 ```
 
 E il rendering nel template viene effettuato utilizzando il tag `{control}`:
 
-```latte .{file:app/Presenters/templates/Homepage/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ Il modulo viene sempre convalidato sul lato server, ma viene generata anche una 
 Inserirlo nel modello di layout:
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
 ```
 
 Se si guarda nel codice sorgente della pagina con il modulo, si può notare che Nette inserisce i campi obbligatori in elementi con una classe CSS `required`. Provate ad aggiungere il seguente stile al modello e l'etichetta "Nome" diventerà rossa. In modo elegante, contrassegniamo i campi obbligatori per gli utenti:
@@ -293,6 +293,8 @@ La mappatura sa quindi dal tipo di proprietà `$person` che deve mappare il cont
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
+
+È possibile generare una proposta per la classe di dati di un modulo utilizzando il metodo `Nette\Forms\Blueprint::dataClass($form)`, che la stamperà nella pagina del browser. È quindi sufficiente fare clic per selezionare e copiare il codice nel progetto. .{data-version:3.1.15}
 
 
 Pulsanti di invio multipli .[#toc-multiple-submit-buttons]

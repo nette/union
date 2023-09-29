@@ -15,7 +15,7 @@ require __DIR__ . '/../bootstrap.php';
 
 class Translator implements ITranslator
 {
-	public $counter = [];
+	public array $counter = [];
 
 
 	public function translate($message, ...$parameters): string
@@ -42,7 +42,7 @@ $form->addPassword('password', 'Password')
 $form->addSubmit('submit', 'Send');
 
 
-Assert::matchFile(__DIR__ . '/Forms.renderer.translate.expect', $form->__toString(true));
+Assert::matchFile(__DIR__ . '/expected/Forms.renderer.translate.expect', $form->__toString(true));
 
 
 // Checking whether translation is not duplicated

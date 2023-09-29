@@ -14,10 +14,14 @@ application:
 	debugger: ...           # (bool) alapértelmezett értéke true
 
 	# error-presenter meghívásra kerül hiba esetén?
-	catchExceptions: ...    # (bool) alapértelmezés szerint true termelési üzemmódban.
+	# csak fejlesztői módban van hatása
+	catchExceptions: ...    # (bool) alapértelmezés szerint true
 
 	# error-presenter neve
-	errorPresenter: Error   # (string) alapértelmezett értéke 'Nette:Error'.
+	errorPresenter: Error   # (string|array) alapértelmezett értéke 'Nette:Error'.
+
+	# aliasokat definiál az előadókhoz és eseményekhez
+	aliases: ...
 
 	# meghatározza a prezenter nevének egy osztályra való feloldására vonatkozó szabályokat.
 	mapping: ...
@@ -27,9 +31,18 @@ application:
 	silentLinks: ...        # (bool) alapértelmezett értéke false
 ```
 
-Mivel a hiba-bemutatókat alapértelmezés szerint nem hívja meg a program fejlesztési módban, és a hibákat a Tracy jeleníti meg, a `catchExceptions` érték `true` -re történő módosítása segít ellenőrizni, hogy a hiba-bemutatók helyesen működnek-e a fejlesztés során.
+A `nette/application` 3.2-es verziójától kezdve lehetőség van hiba-bemutatók párjának definiálására:
+
+```neon
+application:
+	errorPresenter:
+		4xx: Error4xx   # Nette\Application\BadRequestException esetében
+		5xx: Error5xx   # egyéb kivételek esetén
+```
 
 A `silentLinks` opció határozza meg, hogy a Nette hogyan viselkedjen fejlesztői módban, ha a linkgenerálás sikertelen (például mert nincs prezenter stb.). Az alapértelmezett `false` érték azt jelenti, hogy a Nette a `E_USER_WARNING` opciót váltja ki. A `true` beállítása elnyomja ezt a hibaüzenetet. Gyártási környezetben a `E_USER_WARNING` mindig meghívásra kerül. Ezt a viselkedést a [$invalidLinkMode |creating-links#Invalid Links] prezenter változó beállításával is befolyásolhatjuk.
+
+Az [álnevek leegyszerűsítik a |creating-links#aliases] gyakran használt [előadókra való hivatkozást |creating-links#aliases].
 
 A [leképezés meghatározza azokat a szabályokat |modules#mapping], amelyek alapján az osztály neve a prezenter nevéből származik.
 
@@ -75,6 +88,12 @@ latte:
 
 	# generálja a sablonokat declare(strict_types=1)-el.
 	strictTypes: ...     # (bool) alapértelmezés szerint false
+
+	# engedélyezi a [szigorú elemző módot |latte:develop#strict mode]
+	strictParsing: ...   # (bool) alapértelmezett értéke false
+
+	# engedélyezi a [generált kód ellenőrzését |latte:develop#Checking Generated Code]
+	phpLinter: ...       # (string) alapértelmezett a null
 
 	# $this->template osztálya
 	templateClass:       # alapértelmezett értéke Nette\Bridges\ApplicationLatte\DefaultTemplate
@@ -152,3 +171,18 @@ PHP irányelveket állíthat be. Az összes direktíva áttekintése megtalálha
 php:
 	date.timezone: Europe/Prague
 ```
+
+
+DI szolgáltatások .[#toc-di-services]
+=====================================
+
+Ezek a szolgáltatások hozzáadódnak a DI konténerhez:
+
+| Név | Típus | Leírás
+|----------------------------------------------------------
+| `application.application` | [api:Nette\Application\Application] | [Teljes alkalmazásindító |how-it-works#Nette Application]
+| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerátor |creating-links#LinkGenerator]
+| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | presenter factory
+| `application.###` | [api:Nette\Application\UI\Presenter] | egyéni előadók
+| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | factory for `Latte\Engine`
+| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | factory for [`$this->template` |templates]

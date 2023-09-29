@@ -32,7 +32,7 @@ echo $url; // https://nette.org/en/documentation?action=edit
 echo $url->getHost(); // nette.org
 ```
 
-Браузери не надсилають фрагмент на сервер, тому `$url->getFragment()` поверне порожній рядок.
+Попередження: Браузери не надсилають фрагмент на сервер, тому `$url->getFragment()` поверне порожній рядок.
 
 
 getQuery(string $key=null): string|array|null .[method]
@@ -139,11 +139,6 @@ getHeaders(): array .[method]
 $headers = $httpRequest->getHeaders();
 echo $headers['Content-Type'];
 ```
-
-
-getReferer(): ?Nette\Http\UrlImmutable .[method]
-------------------------------------------------
-З якого URL прийшов користувач? Остерігайтеся, це зовсім не надійно.
 
 
 isSecured(): bool .[method]
@@ -356,6 +351,17 @@ getUntrustedName(): string .[method]
 getSanitizedName(): string .[method]
 ------------------------------------
 Повертає саніроване ім'я файлу. Воно містить тільки символи ASCII `[a-zA-Z0-9.-]`. Якщо ім'я не містить таких символів, повертається 'unknown'. Якщо файл є зображенням JPEG, PNG, GIF або WebP, повертається правильне розширення файлу.
+
+.[caution]
+Потрібне розширення PHP `fileinfo`.
+
+
+getSuggestedExtension(): ?string .[method]{data-version:3.2.4}
+--------------------------------------------------------------
+Повертає відповідне розширення файлу (без крапки), що відповідає виявленому MIME-типу.
+
+.[caution]
+Вимагає розширення PHP `fileinfo`.
 
 
 getUntrustedFullPath(): string .[method]

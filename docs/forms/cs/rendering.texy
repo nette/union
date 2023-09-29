@@ -1,15 +1,17 @@
 Vykreslování formulářů
 **********************
 
-Vzhled formulářů může být velmi různorodý. V praxi můžeme narazit na dva extrémy. Na jedné straně stojí potřeba v aplikaci vykreslovat řadu formulářů, které jsou si vizuálně podobné jako vejce vejci, a oceníme snadné vykreslení pomocí `$form->render()`. Jde obvykle o případ administračních rozhraní.
+Vzhled formulářů může být velmi různorodý. V praxi můžeme narazit na dva extrémy. Na jedné straně stojí potřeba v aplikaci vykreslovat řadu formulářů, které jsou si vizuálně podobné jako vejce vejci, a oceníme snadné vykreslení bez šablony pomocí `$form->render()`. Jde obvykle o případ administračních rozhraní.
 
-Na druhé straně tu jsou rozmanité formuláře, kde platí: co kus, to originál. Jejich podobu nejlépe popíšeme jazykem HTML. A samozřejmě kromě obou zmíněných extrémů narazíme na spoustu formulářů, které se pohybují někde mezi.
+Na druhé straně tu jsou rozmanité formuláře, kde platí: co kus, to originál. Jejich podobu nejlépe popíšeme jazykem HTML v šabloně formuláře. A samozřejmě kromě obou zmíněných extrémů narazíme na spoustu formulářů, které se pohybují někde mezi.
 
 
-Latte
-=====
+Vykreslení pomocí Latte
+=======================
 
 [Šablonovací sytém Latte|latte:] zásadně usnadňuje vykreslení formulářů a jejich prvků. Nejprve si ukážeme, jak formuláře vykreslovat ručně po jednotlivých prvcích a tím získat plnou kontrolu nad kódem. Později si ukážeme, jak lze takové vykreslování [zautomatizovat |#Automatické vykreslování].
+
+Návrh Latte šablony formuláře si můžete nechat vygenerovat pomocí metody `Nette\Forms\Blueprint::latte($form)`, která jej vypíše do stránky prohlížeče. Kód pak stačí kliknutím označit a zkopírovat do projektu. .{data-version:3.1.15}
 
 
 `{control}`
@@ -88,12 +90,6 @@ Složitější formulářové prvky, jako je RadioList nebo CheckboxList, lze ta
 ```
 
 
-Návrh kódu `{formPrint}` .[#toc-formprint]
-------------------------------------------
-
-Podobný Latte kód pro formulář si můžete nechat vygenerovat pomocí značky `{formPrint}`. Pokud ji umístíte do šablony, místo běžného vykreslení se zobrazí návrh kódu. Ten pak stačí označit a zkopírovat do projektu.
-
-
 `{label}` `{input}`
 -------------------
 
@@ -150,6 +146,12 @@ Přítomnost chyby můžeme zjistit metodou `hasErrors()` a podle toho nastavit 
 	{inputError username}
 </div>
 ```
+
+
+`{form}`
+--------
+
+Značky `{form signInForm}...{/form}` jsou alternativou k `<form n:name="signInForm">...</form>`.
 
 
 Automatické vykreslování
@@ -231,15 +233,15 @@ Blok přitom stačí importovat na jediném místě a to na začátku šablony l
 Speciální případy
 -----------------
 
-Pokud potřebujete vykreslit jen vnitřní část formuláře bez HTML značek `<form>` & `</form>`, například při AJAXovém požadavku, můžete formulář otevří a uzavřít do `{formContext} … {/formContext}`. Funguje podobně jako `<form n:form>` či `{form}` v logickém smyslu, tady umožní používat ostatní značky pro kreslení prvků formuláře, ale přitom nic nevykreslí.
+Pokud potřebujete vykreslit jen vnitřní část formuláře bez HTML značek `<form>`, například při posílání snippetů, skryjte je pomocí atributu `n:tag-if`:
 
 ```latte
-{formContext signForm}
+<form n:name=signInForm n:tag-if=false>
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-{/formContext}
+</form>
 ```
 
 S vykreslením prvků uvnitř formulářového kontejneru pomůže tag `{formContainer}`.
@@ -256,8 +258,8 @@ S vykreslením prvků uvnitř formulářového kontejneru pomůže tag `{formCon
 ```
 
 
-Bez Latte
-=========
+Vykreslení bez Latte
+====================
 
 Nejjednodušší způsob, jak vykreslit formulář, je zavolat:
 
@@ -321,13 +323,13 @@ Pokud nenastavíme vlastní renderer, bude použit výchozí vykreslovač [api:N
 <tr class="required">
 	<th><label class="required" for="frm-name">Jméno:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Věk:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
 </tr>
 
 <tr>
@@ -357,12 +359,12 @@ Výsledkem je tento HTML kód:
 <dl>
 	<dt><label class="required" for="frm-name">Jméno:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Věk:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
 
 
 	<dt><label>Pohlaví:</label></dt>
@@ -428,6 +430,8 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
+Renderer nejprve vykresluje skupiny a teprve poté prvky, které do žádné skupiny nepatří.
+
 
 Podpora pro Bootstrap
 ---------------------
@@ -438,7 +442,7 @@ Podpora pro Bootstrap
 HTML atributy
 =============
 
-Formulářovým prvkům můžeme nastavovat libovolné HTML atributy pomocí `setHtmlAttribute(string $name, $value = true)`:
+Pro nastavení libovolných HTML atributů formulářových prvků použijeme metodu `setHtmlAttribute(string $name, $value = true)`:
 
 ```php
 $form->addInteger('number', 'Číslo:')
@@ -448,17 +452,20 @@ $form->addSelect('rank', 'Řazení dle:', ['ceny', 'názvu'])
 	->setHtmlAttribute('onchange', 'submit()'); // při změně odeslat
 
 
-// chceme-li to samé udělat pro <form>
+// Pro nastavení atributů samotného <form>
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Nastavení typu:
+Specifikace typu prvku:
 
 ```php
 $form->addText('tel', 'Váš telefon:')
 	->setHtmlType('tel')
 	->setHtmlAttribute('placeholder', 'napište telefon');
 ```
+
+.[warning]
+Nastavení typu a dalších atributů slouží jen pro vizuální účely. Ověření správnosti vstupů musí probíhat na serveru, což zajístíte volbou vhodného [formulářového prvku|controls] a uvedením [validačních pravidel|validation].
 
 Jednotlivým položkám v radio nebo checkbox listech můžeme nastavit HTML atribut s rozdílnými hodnotami pro každou z nich.
 Povšimněte si dvojtečky za `style:`, která zajistí volbu hodnoty podle klíče:
@@ -478,10 +485,9 @@ Vypíše:
 <label><input type="checkbox" name="colors[]" value="b">modrá</label>
 ```
 
-Pokud jde o logický HTML atribut (který nemá hodnotu, např. `readonly`), můžeme použít zápis s otazníkem:
+Pro nastavení logických atributů, jako je `readonly`, můžeme použít zápis s otazníkem:
 
 ```php
-$colors = ['r' => 'červená', 'g' => 'zelená', 'b' => 'modrá'];
 $form->addCheckboxList('colors', 'Barvy:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // pro více klíču použijte pole, např. ['r', 'g']
 ```
@@ -535,9 +541,6 @@ U prvků Checkbox, CheckboxList a RadioList můžete ovlivnit předlohu elementu
 
 ```php
 $input = $form->addCheckbox('send');
-echo $input->getControl();
-// <label><input type="checkbox" name="send"></label>
-
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">
@@ -573,7 +576,7 @@ U [validačních pravidel|validation] se translatoru předávají i specifické 
 
 ```php
 $form->addPassword('password', 'Heslo:')
-	->addCondition($form::MinLength, 'Heslo musí mít alespoň %d znaků', 8);
+	->addRule($form::MinLength, 'Heslo musí mít alespoň %d znaků', 8);
 ```
 
 se volá translator s těmito parametry:

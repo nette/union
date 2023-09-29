@@ -132,7 +132,7 @@ Voici quelques conseils pour travailler avec l'héritage de mise en page :
 
 - Si vous utilisez `{layout}` dans un modèle, il doit s'agir de la première balise de modèle de ce modèle.
 
-- La mise en page peut être [recherchée automatiquement |develop#automatic-layout-lookup] (comme dans les [présentateurs |application:templates#search-for-templates]). Dans ce cas, si le modèle ne doit pas avoir de mise en page, il l'indiquera avec la balise `{layout none}`.
+- La mise en page peut être [recherchée automatiquement |develop#automatic-layout-lookup] (comme dans les [présentateurs |application:templates#Template Lookup]). Dans ce cas, si le modèle ne doit pas avoir de mise en page, il l'indiquera avec la balise `{layout none}`.
 
 - La balise `{layout}` a un alias `{extends}`.
 
@@ -149,8 +149,7 @@ Voir aussi anonyme [`{block}` |tags#block]
 
 Un bloc permet de modifier la façon dont une certaine partie d'un modèle est rendue, mais il n'interfère en aucune façon avec la logique qui l'entoure. Prenons l'exemple suivant pour illustrer comment un bloc fonctionne et, surtout, comment il ne fonctionne pas :
 
-```latte
-{* parent.Latte *}
+```latte .{file: parent.latte}
 {foreach $posts as $post}
 {block post}
 	<h1>{$post->title}</h1>
@@ -161,8 +160,7 @@ Un bloc permet de modifier la façon dont une certaine partie d'un modèle est r
 
 Si vous rendez ce modèle, le résultat sera exactement le même avec ou sans les balises de bloc. Les blocs ont accès aux variables des scopes externes. Il s'agit simplement d'un moyen de les rendre surmontables par un modèle enfant :
 
-```latte
-{* child.Latte *}
+```latte .{file: child.latte}
 {layout 'parent.Latte'}
 
 {block post}
@@ -212,8 +210,8 @@ La balise peut aussi être écrite comme [n:attribute |syntax#n:attributes]:
 ```
 
 
-Blocs locaux .{data-version:2.9}[#toc-local-blocks]
----------------------------------------------------
+Blocs locaux .[#toc-local-blocks]
+---------------------------------
 
 Chaque bloc remplace le contenu du bloc parent du même nom. Sauf pour les blocs locaux. Ils sont un peu comme les méthodes privées d'une classe. Vous pouvez créer un modèle sans craindre que - en raison de la coïncidence des noms des blocs - ils soient écrasés par le second modèle.
 
@@ -246,14 +244,10 @@ Vous pouvez également afficher le bloc à partir d'un autre modèle :
 
 Les blocs imprimés n'ont pas accès aux variables du contexte actif, sauf si le bloc est défini dans le même fichier où il est inclus. Cependant, ils ont accès aux variables globales.
 
-Vous pouvez passer des variables de cette manière :
+Vous pouvez transmettre des variables au bloc de la manière suivante :
 
 ```latte
-{* depuis Latte 2.9 *}
 {include footer, foo: bar, id: 123}
-
-{* avant Latte 2.9 *}
-{include footer, foo => bar, id => 123}
 ```
 
 Vous pouvez utiliser une variable ou toute expression en PHP comme nom de bloc. Dans ce cas, ajoutez le mot-clé `block` devant la variable, afin que l'on sache à la compilation qu'il s'agit d'un bloc, et non d'un [modèle d'insertion |tags#include], dont le nom pourrait également se trouver dans la variable :
@@ -309,11 +303,11 @@ Définitions `{define}` .{toc: Definitions}
 
 En plus des blocs, il existe également des "définitions" dans Latte. Elles sont comparables aux fonctions dans les langages de programmation ordinaires. Elles sont utiles pour réutiliser des fragments de modèles afin de ne pas se répéter.
 
-Latte essaie de faire les choses facilement, donc fondamentalement les définitions sont les mêmes que les blocs, et **tout ce qui est dit sur les blocs s'applique également aux définitions**. Il ne diffère des blocs que de trois façons :
+Latte essaie de garder les choses simples, donc les définitions sont les mêmes que les blocs, et **tout ce qui est dit à propos des blocs s'applique également aux définitions**. Elles diffèrent des blocs en ce sens que
 
-1) ils peuvent accepter des arguments
-2) ils ne peuvent pas avoir de [filtres |syntax#filters]
-3) elles sont enfermées dans des balises `{define}` et le contenu de ces balises n'est pas envoyé en sortie tant que vous ne les avez pas incluses. Grâce à cela, vous pouvez les créer n'importe où :
+1) elles sont entourées de balises `{define}`
+2) elles ne sont rendues que lorsqu'elles sont insérées par l'intermédiaire d'une balise `{include}`
+3) elles peuvent être paramétrées comme des fonctions en PHP
 
 ```latte
 {block foo}<p>Hello</p>{/block}
@@ -326,10 +320,9 @@ Latte essaie de faire les choses facilement, donc fondamentalement les définiti
 {* prints: <p>World</p> *}
 ```
 
-Imaginez que vous disposez d'un modèle d'aide générique qui définit la manière de rendre les formulaires HTML via des définitions :
+Imaginez que vous disposiez d'un modèle d'aide contenant un ensemble de définitions sur la manière de dessiner des formulaires HTML.
 
-```latte
-{* forms.latte *}
+```latte .{file: forms.latte}
 {define input, $name, $value, $type = 'text'}
 	<input type={$type} name={$name} value={$value}>
 {/define}
@@ -339,16 +332,16 @@ Imaginez que vous disposez d'un modèle d'aide générique qui définit la mani�
 {/define}
 ```
 
-Les arguments d'une définition sont toujours optionnels avec une valeur par défaut `null`, à moins que la valeur par défaut ne soit spécifiée (ici `text` est la valeur par défaut pour `$type`, possible depuis Latte 2.9.1). À partir de Latte 2.7, les types de paramètres peuvent également être déclarés : `{define input, string $name, ...}`.
+Les arguments d'une définition sont toujours facultatifs et ont une valeur par défaut : `null`, sauf si une valeur par défaut est spécifiée (ici, `'text'` est la valeur par défaut de `$type`). Les types de paramètres peuvent également être déclarés : `{define input, string $name, ...}`.
 
-Les définitions n'ont pas accès aux variables du contexte actif, mais elles ont accès aux variables globales.
-
-Elles sont incluses de la [même manière que les blocs |#Printing Blocks]:
+Le modèle contenant les définitions est chargé à l'aide de la commande [`{import}` |#horizontal-reuse]. Les définitions elles-mêmes sont rendues de la même [manière que les blocs |#Printing Blocks]:
 
 ```latte
 <p>{include input, 'password', null, 'password'}</p>
 <p>{include textarea, 'comment'}</p>
 ```
+
+Les définitions n'ont pas accès aux variables du contexte actif, mais elles ont accès aux variables globales.
 
 
 Noms de blocs dynamiques .[#toc-dynamic-block-names]
@@ -356,8 +349,7 @@ Noms de blocs dynamiques .[#toc-dynamic-block-names]
 
 Latte permet une grande flexibilité dans la définition des blocs car le nom du bloc peut être n'importe quelle expression PHP. Cet exemple définit trois blocs nommés `hi-Peter`, `hi-John` et `hi-Mary`:
 
-```latte
-{* parent.latte *}
+```latte .{file: parent.latte}
 {foreach [Pierre, Jean, Marie] as $name}
 	{block "hi-$name"}Hi, je suis {$name}.{/block}
 {/foreach}
@@ -365,8 +357,7 @@ Latte permet une grande flexibilité dans la définition des blocs car le nom du
 
 Par exemple, nous ne pouvons redéfinir qu'un seul bloc dans un modèle enfant :
 
-```latte
-{* child.latte *}
+```latte .{file: child.latte}
 {block hi-Jean}Bonjour. Je suis {$name}.{/block}
 ```
 
@@ -405,6 +396,14 @@ Vous pouvez utiliser une variable ou toute expression en PHP comme nom de bloc. 
 {/ifset}
 ```
 
+L'existence de blocs est également renvoyée par la fonction [`hasBlock()` |functions#hasBlock]:
+
+```latte
+{if hasBlock(header) || hasBlock(footer)}
+	...
+{/if}
+```
+
 
 Conseils .[#toc-tips]
 ---------------------
@@ -426,37 +425,27 @@ Réutilisation horizontale `{import}` .{toc: Horizontal Reuse}
 
 La réutilisation horizontale est un troisième mécanisme de réutilisation et d'héritage dans Latte. Elle vous permet de charger des blocs à partir d'autres modèles. C'est similaire à la création d'un fichier PHP avec des fonctions d'aide ou un trait.
 
-Bien que l'héritage de modèles soit l'une des fonctionnalités les plus puissantes de Latte, il est limité à un seul héritage ; un modèle ne peut étendre qu'un seul autre modèle. Cette limitation rend l'héritage de modèles simple à comprendre et facile à déboguer :
+Bien que l'héritage de modèles soit l'une des fonctionnalités les plus puissantes de Latte, il est limité à l'héritage simple - un modèle ne peut étendre qu'un seul autre modèle. La réutilisation horizontale est un moyen d'obtenir un héritage multiple.
 
-```latte
-{layout 'layout.latte'}
+Prenons un ensemble de définitions de blocs :
 
-{block title}...{/block}
-{block content}...{/block}
+```latte .{file: blocks.latte}
+{block sidebar}...{/block}
+
+{block menu}...{/block}
 ```
 
-La réutilisation horizontale est un moyen d'atteindre le même objectif que l'héritage multiple, mais sans la complexité associée :
+À l'aide de la commande `{import}`, importez tous les blocs et [définitions |#definitions] définis dans `blocks.latte` dans un autre modèle :
 
-```latte
-{layout 'layout.latte'}
-
+```latte .{file: child.latte}
 {import 'blocks.latte'}
 
-{block title}...{/block}
-{block content}...{/block}
+{* les blocs sidebar et menu peuvent maintenant être utilisés *}
 ```
 
-L'instruction `{import}` indique à Latte d'importer tous les blocs et [définitions |#definitions] définis dans `blocks.latte` dans le modèle actuel.
+Si vous importez les blocs dans le modèle parent (c'est-à-dire si vous utilisez `{import}` dans `layout.latte`), les blocs seront également disponibles dans tous les modèles enfants, ce qui est très pratique.
 
-```latte
-{* blocks.latte *}
-
-{block sidebar}...{/block}
-```
-
-Dans cet exemple, l'instruction `{import}` importe le bloc `sidebar` dans le modèle principal.
-
-Le modèle importé ne doit pas [étendre |#Layout Inheritance] un autre modèle, et son corps doit être vide. Toutefois, le modèle importé peut importer d'autres modèles.
+Le modèle destiné à être importé (par exemple `blocks.latte`) ne doit pas [étendre |#Layout Inheritance] un autre modèle, c'est-à-dire utiliser `{layout}`. Toutefois, il peut importer d'autres modèles.
 
 La balise `{import}` doit être la première balise de modèle après `{layout}`. Le nom du modèle peut être une expression PHP quelconque :
 
@@ -469,7 +458,7 @@ Vous pouvez utiliser autant d'instructions `{import}` que vous le souhaitez dans
 Tous les blocs remplacés peuvent être inclus progressivement en les insérant comme [bloc parent |#parent block]:
 
 ```latte
-{layout 'base.latte'}
+{layout 'layout.latte'}
 
 {import 'blocks.latte'}
 
@@ -484,8 +473,8 @@ Tous les blocs remplacés peuvent être inclus progressivement en les insérant 
 Dans cet exemple, `{include parent}` appellera correctement le bloc `sidebar` à partir du modèle `blocks.latte`.
 
 
-Héritage des unités `{embed}` .{toc: Unit Inheritance}{data-version:2.9}
-========================================================================
+Héritage des unités `{embed}` .{toc: Unit Inheritance}
+======================================================
 
 L'héritage des unités reprend l'idée de l'héritage des mises en page au niveau des fragments de contenu. Alors que l'héritage de la mise en page fonctionne avec des "squelettes de documents", qui prennent vie grâce à des modèles enfants, l'héritage des unités vous permet de créer des squelettes pour de plus petites unités de contenu et de les réutiliser où vous le souhaitez.
 
@@ -560,7 +549,7 @@ Les blocs à l'intérieur des balises d'intégration forment une couche distinct
 
 Les modèles intégrés n'ont pas accès aux variables du contexte actif, mais ils ont accès aux variables globales.
 
-Avec `{embed}` vous pouvez insérer non seulement des modèles mais aussi d'autres blocs, ainsi l'exemple précédent pourrait être écrit comme ceci : .{data-version:2.10}
+Avec `{embed}` vous pouvez insérer non seulement des modèles mais aussi d'autres blocs, ainsi l'exemple précédent pourrait être écrit comme ceci :
 
 ```latte
 {define collapsible}
@@ -603,7 +592,7 @@ Il existe différents types d'héritage et de réutilisation du code dans Latte.
 
 ```latte
 <nav>
-   <div>Homepage</div>
+   <div>Home</div>
    <div>About</div>
 </nav>
 ```

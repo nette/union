@@ -98,7 +98,7 @@ Zostanie wydrukowany:
 Możesz też użyć przedrostka `tag-`, aby zastosować tę funkcjonalność do samych znaczników HTML:
 
 ```latte
-<p><a href="{$url}" n:tag-if="$url">Title</a></p>
+<p><a href={$url} n:tag-if="$url">Title</a></p>
 ```
 
 Która wychodzi w zależności od zmiennej `$url`:
@@ -153,6 +153,20 @@ Lub bezpośrednio na wartość (w połączeniu z tagiem [`{=expr}` | https://lat
 ```latte
 <h1>{='  Hello world  '|trim}<h1>
 ```
+
+
+Dynamiczne znaczniki HTML .[#toc-dynamic-html-tags]
+===================================================
+
+Latte obsługuje dynamiczne znaczniki HTML, które są przydatne, gdy potrzebujesz elastyczności w nazwach znaczników:
+
+```latte
+<h{$level}>Heading</h{$level}>
+```
+
+Na przykład, powyższy kod może wygenerować `<h1>Heading</h1>` lub `<h2>Heading</h2>` w zależności od wartości zmiennej `$level`. Dynamiczne znaczniki HTML w Latte muszą być zawsze sparowane. Ich alternatywą jest [n:tag |tags#n:tag].
+
+Ponieważ Latte jest bezpiecznym systemem szablonów, sprawdza, czy wynikowa nazwa tagu jest prawidłowa i nie zawiera niepożądanych lub złośliwych wartości. Zapewnia również, że końcowa nazwa tagu jest zawsze taka sama jak nazwa tagu otwierającego.
 
 
 Uwagi .[#toc-comments]
@@ -238,35 +252,19 @@ Operator `in` może być użyty do zastąpienia funkcji `in_array()` Porównanie
 ```
 
 
-.{data-version:2.9}
-Opcjonalne łączenie łańcuchów z operatorem undefined-safe .[#toc-optional-chaining-with-undefined-safe-operator]
-----------------------------------------------------------------------------------------------------------------
-
-Operator undefined-safe `??->` jest podobny do operatora nullsafe `?->`, ale nie spowoduje błędu, jeśli zmienna, właściwość lub indeks w ogóle nie istnieje w tablicy.
-
-```latte
-{$order??->id}
-```
-
-Mówimy, że jeśli `$order` istnieje i nie jest null, `$order->id` będzie wyjściem, ale jeśli `$order` jest null lub nie istnieje, przestanie oceniać i po prostu zwróci null.
-
-```latte
-{$user??->address??->street}
-// znamená cca isset($user) && isset($user->address) ? $user->address->street : null
-```
-
-
 Okno historyczne .[#toc-a-window-into-history]
 ----------------------------------------------
 
 Latte w ciągu swojej historii wymyśliło kilka syntaktycznych sugar daddies, które kilka lat później pojawiły się w samym PHP. Na przykład w Latte można było napisać pola typu `[1, 2, 3]` zamiast `array(1, 2, 3)` lub używać operatora nullsafe `$obj?->foo` na długo przed tym, jak było to możliwe w samym PHP. Latte wprowadził również operator rozszerzenia tablicy `(expand) $arr`, który jest odpowiednikiem dzisiejszego operatora `...$arr` z PHP.
 
+Operator undefined-safe `??->`, który jest podobny do operatora nullsafe `?->`, ale nie powoduje błędu, jeśli zmienna nie istnieje, został stworzony z powodów historycznych i obecnie zalecamy używanie standardowego operatora PHP `?->`.
+
 
 Ograniczenia PHP w Latte .[#toc-php-limitations-in-latte]
 =========================================================
 
-W Latte można pisać tylko wyrażenia PHP. To znaczy, nie można deklarować klas ani używać [struktur kontrolnych |https://www.php.net/manual/en/language.control-structures.php], takich jak `if`, `foreach`, `switch`, `return`, `try`, `throw` i innych, zamiast których Latte oferuje własne [znaczniki |tags].
-Nie można też używać [atrybutów |https://www.php.net/manual/en/language.attributes.php], [backticków |https://www.php.net/manual/en/language.operators.execution.php] czy [magicznych stałych |https://www.php.net/manual/en/language.constants.magic.php], bo to nie miałoby sensu.
-Nie możesz też użyć `unset`, `echo`, `include`, `require`, `exit`, `eval`, ponieważ nie są to funkcje, lecz specjalne konstrukcje języka PHP, a więc nie są wyrażeniami.
+W Latte można pisać tylko wyrażenia PHP. Oznacza to, że nie można używać wyrażeń kończących się średnikiem. Nie można deklarować klas ani używać [struktur kontrolnych |https://www.php.net/manual/en/language.control-structures.php], takich jak `if`, `foreach`, `switch`, `return`, `try`, `throw` i innych, zamiast których Latte oferuje swoje [znaczniki |tags].
+Nie można również używać [atrybutów |https://www.php.net/manual/en/language.attributes.php], [backticków |https://www.php.net/manual/en/language.operators.execution.php] ani żadnych [magicznych stałych |https://www.php.net/manual/en/language.constants.magic.php].
+Nie można nawet używać `unset`, `echo`, `include`, `require`, `exit`, `eval`, ponieważ nie są one funkcjami, ale specjalnymi konstrukcjami języka PHP, a zatem nie są wyrażeniami. Obsługiwane są tylko komentarze wielowierszowe `/* ... */`.
 
 Można jednak obejść te ograniczenia aktywując [RawPhpExtension |develop#RawPhpExtension], które pozwala wtedy na użycie dowolnego kodu PHP w tagu `{php ...}` na ryzyko autora szablonu.

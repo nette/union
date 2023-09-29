@@ -14,13 +14,14 @@ use Nette;
 
 /**
  * Implementation of \ArrayAccess for IContainer.
+ * @template T of IComponent
  */
 trait ArrayAccess
 {
 	/**
 	 * Adds the component to the container.
 	 * @param  string|int  $name
-	 * @param  IComponent  $component
+	 * @param  T  $component
 	 */
 	public function offsetSet($name, $component): void
 	{
@@ -32,6 +33,7 @@ trait ArrayAccess
 	/**
 	 * Returns component specified by name. Throws exception if component doesn't exist.
 	 * @param  string|int  $name
+	 * @return T
 	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetGet($name): IComponent
@@ -48,7 +50,7 @@ trait ArrayAccess
 	public function offsetExists($name): bool
 	{
 		$name = is_int($name) ? (string) $name : $name;
-		return $this->getComponent($name, false) !== null;
+		return $this->getComponent($name, throw: false) !== null;
 	}
 
 
@@ -59,7 +61,7 @@ trait ArrayAccess
 	public function offsetUnset($name): void
 	{
 		$name = is_int($name) ? (string) $name : $name;
-		if ($component = $this->getComponent($name, false)) {
+		if ($component = $this->getComponent($name, throw: false)) {
 			$this->removeComponent($component);
 		}
 	}

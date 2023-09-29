@@ -3,36 +3,43 @@ AJAX ve Snippet'ler
 
 <div class=perex>
 
-Günümüzde modern web uygulamalarının yarısı sunucuda, yarısı da tarayıcıda çalışmaktadır. AJAX hayati bir birleştirici faktördür. Nette Framework ne gibi destekler sunuyor?
-- Şablon parçaları gönderme (*snippet* olarak adlandırılır)
+İşlevselliğin genellikle sunucu ve tarayıcı arasında yayıldığı modern web uygulamaları çağında, AJAX önemli bir bağlantı unsurudur. Nette Framework bu alanda hangi seçenekleri sunuyor?
+- Şablonun snippet olarak adlandırılan parçalarını gönderme
 - PHP ve JavaScript arasında değişken aktarımı
-- AJAX uygulamaları hata ayıklama
+- AJAX isteklerinde hata ayıklama araçları
 
 </div>
 
-Bir AJAX isteği, `$httpRequest->isAjax()` [HTTP isteğini kapsülleyen |http:request] bir hizmet yöntemi kullanılarak algılanabilir ( `X-Requested-With` HTTP başlığına göre algılar). Ayrıca presenter'da steno bir yöntem de vardır: `$this->isAjax()`.
 
-Bir AJAX isteği normal bir istekten farklı değildir - bir sunucu belirli bir görünüm ve parametrelerle çağrılır. Nasıl tepki vereceği de sunucuya bağlıdır: rutinlerini bir HTML kodu parçası (snippet), bir XML belgesi, bir JSON nesnesi veya bir Javascript kodu parçası döndürmek için kullanabilir.
+AJAX İsteği .[#toc-ajax-request]
+================================
 
-JSON'da tarayıcıya veri göndermeye adanmış `payload` adında önceden işlenmiş bir nesne vardır.
+Bir AJAX isteği temelde klasik bir HTTP isteğinden farklı değildir. Bir sunucu belirli parametrelerle çağrılır. İsteğe nasıl yanıt verileceği sunucuya bağlıdır - JSON biçiminde veri döndürebilir, HTML kodunun bir bölümünü, bir XML belgesini vb. gönderebilir.
+
+Tarayıcı tarafında, `fetch()` işlevini kullanarak bir AJAX isteği başlatıyoruz:
+
+```js
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
+.then(response => response.json())
+.then(payload => {
+	// yanıtın işlenmesi
+});
+```
+
+Sunucu tarafında, bir AJAX isteği, [HTTP isteğini kapsülleyen |http:request] hizmetin `$httpRequest->isAjax()` yöntemi tarafından tanınır. Bu yöntem `X-Requested-With` HTTP başlığını kullanır, bu yüzden bunu göndermek çok önemlidir. Sunucu içinde `$this->isAjax()` yöntemini kullanabilirsiniz.
+
+Verileri JSON biçiminde göndermek istiyorsanız [`sendJson()` |presenters#Sending a response] yöntemi. Yöntem ayrıca sunum yapan kişinin etkinliğini de sonlandırır.
 
 ```php
-public function actionDelete(int $id): void
+public function actionExport(): void
 {
-	if ($this->isAjax()) {
-		$this->payload->message = 'Success';
-	}
-	// ...
+	$this->sendJson($this->model->getData);
 }
 ```
 
-JSON çıktınız üzerinde tam kontrol sahibi olmak için sunumunuzda `sendJson` yöntemini kullanın. Sunucuyu hemen sonlandırır ve şablon olmadan yaparsınız:
-
-```php
-$this->sendJson(['key' => 'value', /* ... */]);
-```
-
-HTML göndermek istiyorsak, AJAX istekleri için özel bir şablon ayarlayabiliriz:
+AJAX için tasarlanmış özel bir şablonla yanıt vermeyi planlıyorsanız, bunu aşağıdaki şekilde yapabilirsiniz:
 
 ```php
 public function handleClick($param): void
@@ -40,79 +47,79 @@ public function handleClick($param): void
 	if ($this->isAjax()) {
 		$this->template->setFile('path/to/ajax.latte');
 	}
-	// ...
+	//...
 }
-```
-
-
-Naja .[#toc-naja]
-=================
-
-[Naja kütüphanesi |https://naja.js.org], tarayıcı tarafında AJAX isteklerini işlemek için kullanılır. Bir node.js paketi olarak [yükleyin |https://naja.js.org/#/guide/01-install-setup-naja] (Webpack, Rollup, Vite, Parcel ve daha fazlası ile kullanmak için):
-
-```shell
-npm install naja
-```
-
-...veya doğrudan sayfa şablonuna ekleyin:
-
-```html
-<script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
 ```
 
 
 Parçacıklar .[#toc-snippets]
 ============================
 
-Yerleşik AJAX desteğinin çok daha güçlü bir aracı vardır - snippet'ler. Bunları kullanmak, normal bir uygulamayı yalnızca birkaç satır kod kullanarak bir AJAX uygulamasına dönüştürmeyi mümkün kılar. Tüm bunların nasıl çalıştığı, koduna derlemede veya [GitHub'da |https://github.com/nette-examples/fifteen] da erişilebilen Fifteen örneğinde gösterilmiştir.
+Sunucuyu istemciye bağlamak için Nette tarafından sunulan en güçlü araç snippet'lerdir. Bunlarla, sıradan bir uygulamayı minimum çaba ve birkaç satır kodla bir AJAX uygulamasına dönüştürebilirsiniz. Fifteen örneği tüm bunların nasıl çalıştığını göstermektedir ve kodu [GitHub |https://github.com/nette-examples/fifteen]'da bulunabilir.
 
-Snippet'lerin çalışma şekli, ilk (yani AJAX olmayan) istek sırasında tüm sayfanın aktarılması ve ardından her AJAX [alt |components#signal] isteğinde (aynı sunucunun aynı görünümünün isteği) yalnızca değiştirilen parçaların kodunun daha önce bahsedilen `payload` deposuna aktarılmasıdır.
+Parçacıklar veya kırpmalar, tüm sayfayı yeniden yüklemek yerine sayfanın yalnızca bazı bölümlerini güncellemenize olanak tanır. Bu daha hızlı ve daha verimlidir ve ayrıca daha rahat bir kullanıcı deneyimi sağlar. Snippet'ler size Ruby on Rails için Hotwire veya Symfony UX Turbo'yu hatırlatabilir. İlginç bir şekilde, Nette snippet'leri 14 yıl önce tanıtmıştı.
 
-Snippet'ler size Ruby on Rails için Hotwire veya Symfony UX Turbo'yu hatırlatabilir, ancak Nette bunları on dört yıl önce buldu.
+Parçacıklar nasıl çalışır? Sayfa ilk yüklendiğinde (AJAX olmayan bir istek), tüm snippet'ler dahil olmak üzere sayfanın tamamı yüklenir. Kullanıcı sayfayla etkileşime girdiğinde (örneğin, bir düğmeye tıkladığında, bir form gönderdiğinde vb.), sayfanın tamamını yüklemek yerine bir AJAX isteği yapılır. Sunucudaki kod eylemi gerçekleştirir ve hangi parçacıkların güncellenmesi gerektiğine karar verir. Nette bu parçacıkları işler ve bir JSON dizisi şeklinde gönderir. Tarayıcıdaki işleme kodu daha sonra alınan parçacıkları sayfaya geri ekler. Bu nedenle, yalnızca değiştirilen parçacıkların kodu aktarılır, bant genişliğinden tasarruf edilir ve tüm sayfa içeriğinin aktarılmasına kıyasla yükleme hızlandırılır.
 
 
-Snippet'lerin Geçersiz Kılınması .[#toc-invalidation-of-snippets]
-=================================================================
+Naja .[#toc-naja]
+-----------------
 
-[Control |components] sınıfının her bir torunu (ki bir Presenter da öyledir), bir istek sırasında yeniden oluşturmasını gerektiren herhangi bir değişiklik olup olmadığını hatırlayabilir. Bunu işlemek için bir çift yöntem vardır: `redrawControl()` ve `isControlInvalid()`. Bir örnek:
+Tarayıcı tarafında snippet'leri işlemek için [Naja kütüphanesi |https://naja.js.org] kullanılır. [Bunu |https://naja.js.org/#/guide/01-install-setup-naja] bir node.js paketi olarak [yükleyin |https://naja.js.org/#/guide/01-install-setup-naja] (Webpack, Rollup, Vite, Parcel ve diğerleri gibi uygulamalarla kullanmak için):
+
+```shell
+npm install naja
+```
+
+... veya doğrudan sayfa şablonuna ekleyin:
+
+```html
+<script src="https://unpkg.com/naja@2/dist/Naja.min.js"></script>
+```
+
+Sıradan bir bağlantıyı (sinyal) veya form gönderimini AJAX isteği haline getirmek için ilgili bağlantıyı, formu veya düğmeyi `ajax` sınıfıyla işaretlemeniz yeterlidir:
+
+```html
+<a n:href="go!" class="ajax">Go</a>
+
+<form n:name="form" class="ajax">
+    <input n:name="submit">
+</form>
+
+or
+
+<form n:name="form">
+    <input n:name="submit" class="ajax">
+</form>
+```
+
+
+Parçacıkları Yeniden Çizme .[#toc-redrawing-snippets]
+-----------------------------------------------------
+
+ [Control |components] sınıfının her nesnesi (Presenter'ın kendisi de dahil olmak üzere) yeniden çizilmesini gerektirecek değişikliklerin olup olmadığının kaydını tutar. Bu amaç için `redrawControl()` yöntemi kullanılır.
 
 ```php
 public function handleLogin(string $user): void
 {
-	// Nesne, kullanıcı giriş yaptıktan sonra yeniden oluşturulmalıdır
+	// giriş yaptıktan sonra ilgili kısmı yeniden çizmek gerekir
 	$this->redrawControl();
-	// ...
+	//...
 }
 ```
-Ancak Nette, tüm bileşenlerden daha da ince bir çözünürlük sunar. Listelenen yöntemler, isteğe bağlı bir parametre olarak "snippet" olarak adlandırılan bir ismi kabul eder. Bir "snippet" temel olarak şablonunuzdaki bir Latte makrosu tarafından bu amaç için işaretlenmiş bir öğedir, daha sonra bu konuda daha fazla bilgi verilecektir. Böylece bir bileşenden şablonunun sadece *parçalarını* yeniden çizmesini istemek mümkündür. Bileşenin tamamı geçersiz kılınırsa, tüm parçacıkları yeniden oluşturulur. Bir bileşen, alt bileşenlerinden herhangi birinin geçersiz olması durumunda da "geçersiz" olur.
+
+Nette ayrıca nelerin yeniden çizilmesi gerektiğinin daha iyi kontrol edilmesini sağlar. Yukarıda bahsedilen yöntem, snippet adını bir argüman olarak alabilir. Böylece, şablon parçası düzeyinde geçersiz kılmak (yani yeniden çizmeye zorlamak) mümkündür. Bileşenin tamamı geçersiz kılınırsa, her parçacığı da yeniden çizilir:
 
 ```php
-$this->isControlInvalid(); // -> false
-
-$this->redrawControl('header'); // 'header' adlı parçacığı geçersiz kılar
-$this->isControlInvalid('header'); // -> true
-$this->isControlInvalid('footer'); // -> false
-$this->isControlInvalid(); // -> true, en az bir snippet geçersiz
-
-$this->redrawControl(); // tüm bileşeni, her parçacığı geçersiz kılar
-$this->isControlInvalid('footer'); // -> true
+// 'header' parçacığını geçersiz kılar
+$this->redrawControl('header');
 ```
 
-Sinyal alan bir bileşen otomatik olarak yeniden çizilmek üzere işaretlenir.
 
-Snippet yeniden çizimi sayesinde hangi öğelerin hangi kısımlarının yeniden işlenmesi gerektiğini tam olarak biliyoruz.
+Latte'de Parçacıklar .[#toc-snippets-in-latte]
+----------------------------------------------
 
-
-Etiket `{snippet} … {/snippet}` .{toc: Tag snippet}
-===================================================
-
-Sayfanın oluşturulması normal bir istekle çok benzer şekilde ilerler: aynı şablonlar yüklenir, vb. Ancak önemli olan, çıktıya ulaşmaması gereken kısımların dışarıda bırakılmasıdır; diğer kısımlar bir tanımlayıcı ile ilişkilendirilmeli ve bir JavaScript işleyicisi için anlaşılabilir bir biçimde kullanıcıya gönderilmelidir.
-
-
-Sözdizimi .[#toc-syntax]
-------------------------
-
-Şablonda bir kontrol veya snippet varsa, bunu `{snippet} ... {/snippet}` pair etiketini kullanarak sarmalıyız - bu, işlenen snippet'in "kesilip çıkarılmasını" ve tarayıcıya gönderilmesini sağlayacaktır. Ayrıca onu bir yardımcı içine alacaktır `<div>` etiketi (farklı bir etiket kullanmak mümkündür). Aşağıdaki örnekte `header` adında bir snippet tanımlanmıştır. Bir bileşenin şablonunu da temsil edebilir:
+Latte'de snippet'leri kullanmak son derece kolaydır. Şablonun bir bölümünü snippet olarak tanımlamak için, onu `{snippet}` ve `{/snippet}` etiketlerine sarmanız yeterlidir:
 
 ```latte
 {snippet header}
@@ -120,7 +127,9 @@ Sözdizimi .[#toc-syntax]
 {/snippet}
 ```
 
-dışındaki bir türden bir snippet `<div>` veya ek HTML öznitelikleri içeren bir snippet, öznitelik varyantı kullanılarak elde edilir:
+Kod parçacığı bir öğe oluşturur `<div>` HTML sayfasında özel olarak oluşturulmuş bir `id`. Bir snippet yeniden çizilirken, bu öğenin içeriği güncellenir. Bu nedenle, sayfa ilk kez render edildiğinde, başlangıçta boş olsalar bile tüm snippet'ler de render edilmelidir.
+
+dışında bir öğe ile de bir snippet oluşturabilirsiniz `<div>` bir n:özniteliği kullanarak:
 
 ```latte
 <article n:snippet="header" class="foo bar">
@@ -129,138 +138,106 @@ dışındaki bir türden bir snippet `<div>` veya ek HTML öznitelikleri içeren
 ```
 
 
-Dinamik Parçacıklar .[#toc-dynamic-snippets]
-============================================
+Snippet Alanları .[#toc-snippet-areas]
+--------------------------------------
 
-Nette'de ayrıca bir çalışma zamanı parametresine dayalı olarak dinamik bir adla snippet'ler tanımlayabilirsiniz. Bu, sadece bir satırı değiştirmemiz gereken ancak tüm listeyi onunla birlikte aktarmak istemediğimiz çeşitli listeler için en uygun olanıdır. Bunun bir örneği şöyle olabilir:
+Snippet adları ifadeler de olabilir:
 
 ```latte
-<ul n:snippet="itemsContainer">
-	{foreach $list as $id => $item}
-		<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
+{foreach $items as $id => $item}
+	<li n:snippet="item-{$id}">{$item}</li>
+{/foreach}
+```
+
+Bu şekilde, `item-0`, `item-1`, vb. gibi birkaç snippet elde edeceğiz. Dinamik bir snippet'i (örneğin, `item-1`) doğrudan geçersiz kılacak olursak, hiçbir şey yeniden çizilmeyecektir. Bunun nedeni, snippet'lerin gerçek alıntılar olarak işlev görmesi ve yalnızca kendilerinin doğrudan render edilmesidir. Ancak, şablonda teknik olarak `item-1` adında bir snippet yoktur. Yalnızca snippet'in çevresindeki kod, bu durumda foreach döngüsü çalıştırıldığında ortaya çıkar. Bu nedenle, şablonun çalıştırılması gereken kısmını `{snippetArea}` etiketiyle işaretleyeceğiz:
+
+```latte
+<ul n:snippetArea="itemsContainer">
+	{foreach $items as $id => $item}
+		<li n:snippet="item-{$id}">{$item}</li>
 	{/foreach}
 </ul>
 ```
 
-Birkaç dinamik snippet içeren `itemsContainer` adında bir statik snippet vardır: `item-0`, `item-1` ve benzeri.
-
-Dinamik bir snippet'i doğrudan yeniden çizemezsiniz ( `item-1` adresinin yeniden çizilmesinin hiçbir etkisi yoktur), üst snippet'ini yeniden çizmeniz gerekir (bu örnekte `itemsContainer`). Bu, üst snippet'in kodunun yürütülmesine neden olur, ancak daha sonra tarayıcıya yalnızca alt snippet'leri gönderilir. Alt snippet'lerden yalnızca birini göndermek istiyorsanız, diğer alt snippet'leri oluşturmamak için ana snippet'in girdisini değiştirmeniz gerekir.
-
-Yukarıdaki örnekte, bir AJAX isteği için `$list` dizisine yalnızca bir öğe ekleneceğinden emin olmanız gerekir, bu nedenle `foreach` döngüsü yalnızca bir dinamik parçacık yazdıracaktır.
+Ve hem bireysel parçacığı hem de tüm alanı yeniden çizeceğiz:
 
 ```php
-class HomepagePresenter extends Nette\Application\UI\Presenter
-{
-	/**
-	 * This method returns data for the list.
-	 * Usually this would just request the data from a model.
-	 * For the purpose of this example, the data is hard-coded.
-	 */
-	private function getTheWholeList(): array
-	{
-		return [
-			'First',
-			'Second',
-			'Third',
-		];
-	}
-
-	public function renderDefault(): void
-	{
-		if (!isset($this->template->list)) {
-			$this->template->list = $this->getTheWholeList();
-		}
-	}
-
-	public function handleUpdate(int $id): void
-	{
-		$this->template->list = $this->isAjax()
-				? []
-				: $this->getTheWholeList();
-		$this->template->list[$id] = 'Updated item';
-		$this->redrawControl('itemsContainer');
-	}
-}
+$this->redrawControl('itemsContainer');
+$this->redrawControl('item-1');
 ```
 
+Ayrıca `$items` dizisinin yalnızca yeniden çizilmesi gereken öğeleri içerdiğinden emin olmak da önemlidir.
 
-Dahil Edilen Bir Şablondaki Parçacıklar .[#toc-snippets-in-an-included-template]
-================================================================================
-
-Snippet, farklı bir şablondan dahil edilen bir şablonda olabilir. Bu durumda, ikinci şablondaki dahil etme kodunu `snippetArea` makrosuyla sarmamız gerekir, ardından hem snippetArea'yı hem de gerçek snippet'i yeniden çizeriz.
-
-Makro `snippetArea`, içindeki kodun yürütülmesini sağlar, ancak tarayıcıya yalnızca dahil edilen şablondaki gerçek parçacık gönderilir.
+Parçacıkları olan `{include}` etiketini kullanarak ana şablona başka bir şablon eklerken, dahil edilen şablonu tekrar bir `snippetArea` içine sarmak ve hem parçacığı hem de alanı birlikte geçersiz kılmak gerekir:
 
 ```latte
-{* parent.latte *}
-{snippetArea wrapper}
-	{include 'child.latte'}
+{snippetArea include}
+	{include 'included.latte'}
 {/snippetArea}
 ```
+
 ```latte
-{* child.latte *}
+{* dahil.latte *}
 {snippet item}
-...
+	...
 {/snippet}
 ```
+
 ```php
-$this->redrawControl('wrapper');
+$this->redrawControl('include');
 $this->redrawControl('item');
 ```
 
-Ayrıca dinamik snippet'lerle de birleştirebilirsiniz.
 
+Bileşenlerdeki Snippet'ler .[#toc-snippets-in-components]
+---------------------------------------------------------
 
-Ekleme ve Silme .[#toc-adding-and-deleting]
-===========================================
-
-Listeye yeni bir öğe ekler ve `itemsContainer` adresini geçersiz kılarsanız, AJAX isteği yenisini de içeren parçacıkları döndürür, ancak javascript işleyicisi bunu işleyemez. Bunun nedeni, yeni oluşturulan ID'ye sahip bir HTML öğesi olmamasıdır.
-
-Bu durumda, en basit yol tüm listeyi bir parçacığa daha sarmak ve hepsini geçersiz kılmaktır:
+ [Bileşenler |components] içinde parçacıklar oluşturabilirsiniz ve Nette bunları otomatik olarak yeniden çizer. Bununla birlikte, belirli bir sınırlama vardır: parçacıkları yeniden çizmek için, herhangi bir parametre olmadan `render()` yöntemini çağırır. Bu nedenle, şablonda parametre geçmek işe yaramayacaktır:
 
 ```latte
-{snippet wholeList}
-<ul n:snippet="itemsContainer">
-	{foreach $list as $id => $item}
-	<li n:snippet="item-$id">{$item} <a class="ajax" n:href="update! $id">update</a></li>
-	{/foreach}
-</ul>
-{/snippet}
-<a class="ajax" n:href="add!">Add</a>
+OK
+{control productGrid}
+
+will not work:
+{control productGrid $arg, $arg}
+{control productGrid:paginator}
 ```
 
+
+Kullanıcı Verilerinin Gönderilmesi .[#toc-sending-user-data]
+------------------------------------------------------------
+
+Parçacıkların yanı sıra, istemciye herhangi bir ek veri gönderebilirsiniz. Bunları `payload` nesnesine yazmanız yeterlidir:
+
 ```php
-public function handleAdd(): void
+public function actionDelete(int $id): void
 {
-	$this->template->list = $this->getTheWholeList();
-	$this->template->list[] = 'New one';
-	$this->redrawControl('wholeList');
+	//...
+	if ($this->isAjax()) {
+		$this->payload->message = 'Success';
+	}
 }
 ```
 
-Aynı şey bir öğeyi silmek için de geçerlidir. Boş snippet göndermek mümkün olabilir, ancak genellikle listeler sayfalandırılabilir ve bir öğeyi silip diğerini (sayfalandırılmış listenin farklı bir sayfasında bulunan) yüklemek karmaşık olacaktır.
 
-
-Bileşene Parametre Gönderme .[#toc-sending-parameters-to-component]
-===================================================================
+Parametreleri Gönderme .[#toc-sending-parameters]
+=================================================
 
 AJAX isteği aracılığıyla bileşene parametreler gönderdiğimizde, ister sinyal parametreleri ister kalıcı parametreler olsun, bileşenin adını da içeren global adlarını sağlamalıyız. Parametrenin tam adı `getParameterId()` yöntemini döndürür.
 
 ```js
-$.getJSON(
-	{link changeCountBasket!},
-	{
-		{$control->getParameterId('id')}: id,
-		{$control->getParameterId('count')}: count
-	}
-});
+let url = new URL({link //foo!});
+url.searchParams.set({$control->getParameterId('bar')}, bar);
+
+fetch(url, {
+	headers: {'X-Requested-With': 'XMLHttpRequest'},
+})
 ```
 
-Ve bileşende karşılık gelen parametrelerle yöntemi işleyin.
+Bileşende ilgili parametreleri içeren bir tutamaç yöntemi:
 
 ```php
-public function handleChangeCountBasket(int $id, int $count): void
+public function handleFoo(int $bar): void
 {
-
 }
 ```

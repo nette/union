@@ -66,9 +66,9 @@ Conexão com o banco de dados .[#toc-connecting-to-the-database]
 
 Agora, quando o banco de dados é criado e temos alguns posts nele, é o momento certo para exibi-los em nossa nova página brilhante.
 
-Em primeiro lugar, precisamos informar nossa aplicação sobre qual banco de dados utilizar. A configuração da conexão do banco de dados é armazenada em `config/local.neon`. Defina a conexão DSN((Data Source Name)) e suas credenciais. Deve ter este aspecto:
+Em primeiro lugar, precisamos informar nossa aplicação sobre qual banco de dados utilizar. A configuração da conexão do banco de dados é armazenada em `config/common.neon`. Defina a conexão DSN((Data Source Name)) e suas credenciais. Deve ter este aspecto:
 
-```neon .{file:config/local.neon}
+```neon .{file:config/common.neon}
 database:
 	dsn: 'mysql:host=127.0.0.1;dbname=quickstart'
 	user: *enter user name*
@@ -78,22 +78,19 @@ database:
 .[note]
 Esteja atento à indentação durante a edição deste arquivo. [O formato NEON |neon:format] aceita ambos os espaços e abas, mas não ambos juntos! O arquivo de configuração no Projeto Web utiliza abas como padrão.
 
-Toda a configuração inclusive é armazenada em `config/` nos arquivos `common.neon` e `local.neon`. O arquivo `common.neon` contém a configuração global da aplicação e `local.neon` contém apenas os parâmetros específicos do ambiente (por exemplo, a diferença entre servidor de desenvolvimento e de produção).
-
 
 Injetando a conexão do banco de dados .[#toc-injecting-the-database-connection]
 ===============================================================================
 
-O apresentador `HomepagePresenter`, que listará os artigos, precisa de uma conexão de banco de dados. Para recebê-la, escreva um construtor como este:
+O apresentador `HomePresenter`, que listará os artigos, precisa de uma conexão de banco de dados. Para recebê-la, escreva um construtor como este:
 
-```php .{file:app/Presenters/HomepagePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 <?php
-namespace App\Presenters;
+namespace App\UI\Home;
 
 use Nette;
-use Nette\Application\UI\Form;
 
-final class HomepagePresenter extends Nette\Application\UI\Presenter
+final class HomePresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private Nette\Database\Explorer $database,
@@ -110,7 +107,7 @@ Carregamento de postes a partir do banco de dados .[#toc-loading-posts-from-the-
 
 Agora vamos buscar os posts no banco de dados e passá-los para o template, que então renderizará o código HTML. É para isso que serve o chamado método *render*:
 
-```php .{file:app/Presenters/HomepagePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 public function renderDefault(): void
 {
 	$this->template->posts = $this->database
@@ -120,7 +117,7 @@ public function renderDefault(): void
 }
 ```
 
-O apresentador agora tem um método de renderização `renderDefault()` que passa dados para uma visualização chamada `default`. Os modelos do apresentador podem ser encontrados em `app/Presenters/templates/{PresenterName}/{viewName}.latte`, então neste caso o modelo será localizado em `app/Presenters/templates/Homepage/default.latte`. No modelo, uma variável chamada `$posts` está agora disponível, que contém os posts do banco de dados.
+O apresentador agora tem um método de renderização `renderDefault()` que passa dados para uma visualização chamada `default`. Os modelos do apresentador podem ser encontrados em `app/UI/{PresenterName}/{viewName}.latte`, então neste caso o modelo será localizado em `app/UI/Home/default.latte`. No modelo, uma variável chamada `$posts` está agora disponível, que contém os posts do banco de dados.
 
 
 Modelo .[#toc-template]
@@ -128,17 +125,17 @@ Modelo .[#toc-template]
 
 Há um modelo genérico para toda a página (chamado *layout*, com cabeçalho, folhas de estilo, rodapé, ...) e depois modelos específicos para cada visualização (por exemplo, para exibir a lista de posts do blog), que podem substituir algumas das peças do modelo de layout.
 
-Por padrão, o modelo de layout está localizado em `templates/@layout.latte`, que contém:
+Por padrão, o modelo de layout está localizado em `app/UI/@layout.latte`, que contém:
 
-```latte .{file:app/Presenters/templates/@layout.latte}
+```latte .{file:app/UI/@layout.latte}
 ...
 {include content}
 ...
 ```
 
-`{include content}` insere um bloco chamado `content` no modelo principal. Você pode defini-lo nos gabaritos de cada vista. Neste caso, editaremos o arquivo `Homepage/default.latte` desta forma:
+`{include content}` insere um bloco chamado `content` no modelo principal. Você pode defini-lo nos gabaritos de cada vista. Neste caso, editaremos o arquivo `Home/default.latte` desta forma:
 
-```latte .{file:app/Presenters/templates/Homepage/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 {block content}
 	Hello World
 {/block}
@@ -148,7 +145,7 @@ Ele define o [bloco |latte:tags#block]*content*, que será inserido no layout. S
 
 Vamos exibir os posts do blog - editaremos o modelo desta forma:
 
-```latte .{file:app/Presenters/templates/Homepage/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 {block content}
 	<h1>My blog</h1>
 
@@ -166,7 +163,7 @@ Vamos exibir os posts do blog - editaremos o modelo desta forma:
 
 Se você atualizar seu navegador, você verá a lista de seus posts no blog. A lista não é muito chique ou colorida, portanto, sinta-se à vontade para adicionar algum [CSS brilhante |https://github.com/nette-examples/quickstart/blob/v4.0/www/css/style.css] a `www/css/style.css` e vinculá-lo em um layout:
 
-```latte .{file:app/Presenters/templates/@layout.latte}
+```latte .{file:app/UI/@layout.latte}
 	...
 	<link rel="stylesheet" href="{$basePath}/css/style.css">
 </head>
@@ -179,7 +176,7 @@ A coisa `|date` é chamada de filtro. Os filtros são usados para formatar a sa�
 
 Mais uma coisa. Podemos tornar o código um pouco mais curto e, portanto, mais simples. Podemos substituir as *etiquetas* por *n:atributos* desta forma:
 
-```latte .{file:app/Presenters/templates/Homepage/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 {block content}
 	<h1>My blog</h1>
 

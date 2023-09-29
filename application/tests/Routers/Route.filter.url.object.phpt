@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Test: Nette\Application\Routers\Route with FILTER_IN & FILTER_OUT using string <=> object conversion
+ * Test: Nette\Application\Routers\Route with FilterIn & FilterOut using string <=> object conversion
  */
 
 declare(strict_types=1);
@@ -24,12 +24,8 @@ $identityMap[2] = new RouterObject(2);
 $route = new Route('<parameter>', [
 	'presenter' => 'presenter',
 	'parameter' => [
-		Route::FILTER_IN => function ($s) use ($identityMap) {
-			return $identityMap[$s] ?? null;
-		},
-		Route::FILTER_OUT => function ($obj) {
-			return $obj instanceof RouterObject ? $obj->getId() : null;
-		},
+		Route::FilterIn => fn($s) => $identityMap[$s] ?? null,
+		Route::FilterOut => fn($obj) => $obj instanceof RouterObject ? $obj->getId() : null,
 	],
 ]);
 
@@ -58,8 +54,7 @@ Assert::null(testRouteOut($route, [
 
 class RouterObject
 {
-	/** @var int */
-	private $id;
+	private int $id;
 
 
 	public function __construct($id)

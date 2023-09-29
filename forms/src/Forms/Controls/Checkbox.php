@@ -11,6 +11,7 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
+use Stringable;
 
 
 /**
@@ -18,14 +19,10 @@ use Nette\Utils\Html;
  */
 class Checkbox extends BaseControl
 {
-	/** @var Html  wrapper element template */
-	private $container;
+	private Html $container;
 
 
-	/**
-	 * @param  string|object  $label
-	 */
-	public function __construct($label = null)
+	public function __construct(string|Stringable|null $label = null)
 	{
 		parent::__construct($label);
 		$this->control->type = 'checkbox';
@@ -36,13 +33,12 @@ class Checkbox extends BaseControl
 
 	/**
 	 * Sets control's value.
-	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue($value): static
 	{
 		if (!is_scalar($value) && $value !== null) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", gettype($value), $this->name));
+			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->getName()));
 		}
 
 		$this->value = (bool) $value;
@@ -65,7 +61,7 @@ class Checkbox extends BaseControl
 	/**
 	 * Bypasses label generation.
 	 */
-	public function getLabel($caption = null)
+	public function getLabel($caption = null): Html|string|null
 	{
 		return null;
 	}
@@ -95,6 +91,7 @@ class Checkbox extends BaseControl
 	/** @deprecated  use getContainerPrototype() */
 	public function getSeparatorPrototype(): Html
 	{
+		trigger_error(__METHOD__ . '() was renamed to getContainerPrototype()', E_USER_DEPRECATED);
 		return $this->container;
 	}
 }

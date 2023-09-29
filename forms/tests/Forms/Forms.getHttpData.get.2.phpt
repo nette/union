@@ -13,7 +13,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-before(function () {
+setUp(function () {
 	$_SERVER['REQUEST_METHOD'] = 'GET';
 	$_GET = $_POST = $_FILES = [];
 });
@@ -29,5 +29,5 @@ test('', function () {
 
 	Assert::truthy($form->isSubmitted());
 	Assert::same(['item'], $form->getHttpData());
-	Assert::same([], $form->getValues(true));
+	Assert::same([], $form->getValues('array'));
 });

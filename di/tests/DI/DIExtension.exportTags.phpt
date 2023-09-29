@@ -14,7 +14,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('', function () {
+test('Tag are exported when setting is true', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$container = createContainer($compiler, '
@@ -24,7 +24,7 @@ test('', function () {
 
 	services:
 		-
-			factory: stdClass
+			create: stdClass
 			tags:
 				first: a
 				second: b
@@ -35,7 +35,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test('Tags are not exported when setting is false', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedTag('first');
@@ -46,7 +46,7 @@ test('', function () {
 
 	services:
 		-
-			factory: stdClass
+			create: stdClass
 			tags:
 				first: a
 				second: b
@@ -57,7 +57,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test('Default tag export behavior without explicit setting', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedTag('first');
@@ -68,7 +68,7 @@ test('', function () {
 
 	services:
 		-
-			factory: stdClass
+			create: stdClass
 			tags:
 				first: a
 				second: b
@@ -79,7 +79,7 @@ test('', function () {
 });
 
 
-test('', function () {
+test('Specific tag export when listed', function () {
 	$compiler = new DI\Compiler;
 	$compiler->addExtension('di', new DIExtension);
 	$compiler->addExportedTag('second');
@@ -91,7 +91,7 @@ test('', function () {
 
 	services:
 		-
-			factory: stdClass
+			create: stdClass
 			tags:
 				first: a
 				second: b

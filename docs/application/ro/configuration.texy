@@ -13,11 +13,15 @@ application:
 	# afișează panoul "Nette Application" în Tracy BlueScreen?
 	debugger: ...           # (bool) valoarea implicită este true
 
-	# error-presenter va fi apelat în caz de eroare?
-	catchExceptions: ...    # (bool) implicit la true în modul de producție
+	# va fi apelat error-presenter la eroare?
+	# are efect numai în modul dezvoltator
+	catchExceptions: ...    # (bool) implicit la true
 
 	# numele prezentatorului de erori
-	errorPresenter: Error   # (string) valoarea implicită este "Nette:Error" (Nette:Error)
+	errorPresenter: Error   # (string|array) valoarea implicită este "Nette:Error" (Nette:Error)
+
+	# definește pseudonimele pentru prezentatori și evenimente
+	aliases: ...
 
 	# definește regulile de rezolvare a numelui prezentatorului la o clasă
 	mapping: ...
@@ -27,9 +31,18 @@ application:
 	silentLinks: ...        # (bool) valoarea implicită este false
 ```
 
-Deoarece error-presenters nu este apelat în mod implicit în modul de dezvoltare, iar erorile sunt afișate de Tracy, schimbarea valorii `catchExceptions` în `true` ajută la verificarea funcționării corecte a error-presenters în timpul dezvoltării.
+Începând cu `nette/application` versiunea 3.2, este posibilă definirea unei perechi de prezentatori de erori:
+
+```neon
+application:
+	errorPresenter:
+		4xx: Error4xx   # pentru Nette\Application\BadRequestException
+		5xx: Error5xx   # pentru alte excepții
+```
 
 Opțiunea `silentLinks` determină modul în care se comportă Nette în modul de dezvoltare atunci când generarea legăturilor eșuează (de exemplu, pentru că nu există un prezentator etc.). Valoarea implicită `false` înseamnă că Nette declanșează `E_USER_WARNING`. Setarea la `true` suprimă acest mesaj de eroare. Într-un mediu de producție, `E_USER_WARNING` este întotdeauna invocat. De asemenea, putem influența acest comportament prin setarea variabilei presenter [$invalidLinkMode |creating-links#Invalid Links].
+
+[Pseudonimele simplifică trimiterea |creating-links#aliases] la prezentatorii utilizați frecvent.
 
  [Cartografierea definește regulile |modules#mapping] prin care numele clasei este derivat din numele prezentatorului.
 
@@ -75,6 +88,12 @@ latte:
 
 	# generează șabloane cu declare(strict_types=1)
 	strictTypes: ...     # (bool) valoarea implicită este false
+
+	# activează [modul strict parser |latte:develop#strict mode]
+	strictParsing: ...   # (bool) valoarea implicită este false
+
+	# activează [verificarea codului generat |latte:develop#Checking Generated Code]
+	phpLinter: ...       # (string) implicit este null
 
 	# clasa lui $this->template
 	templateClass: App\MyTemplateClass # valoarea implicită este Nette\Bridges\ApplicationLatte\DefaultTemplate
@@ -152,3 +171,18 @@ Puteți seta directive PHP. O prezentare generală a tuturor directivelor poate 
 php:
 	date.timezone: Europe/Prague
 ```
+
+
+Servicii DI .[#toc-di-services]
+===============================
+
+Aceste servicii sunt adăugate la containerul DI:
+
+Nume | Tip | Tip | Descriere
+|----------------------------------------------------------
+| `application.application` | [api:Nette\Application\Application] | [Lansator de aplicații complete |how-it-works#Nette Application]
+| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | | [LinkGenerator |creating-links#LinkGenerator]
+| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | | Fabrica de prezentări
+| `application.###` | [api:Nette\Application\UI\Presenter] | prezentatori individuali
+| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | fabrică pentru `Latte\Engine`
+| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | fabrica pentru [`$this->template` |templates]

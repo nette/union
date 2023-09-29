@@ -10,61 +10,77 @@ declare(strict_types=1);
 namespace Nette\Database\Drivers;
 
 use Nette;
+use Nette\Database\Type;
 
 
 /**
  * Supplemental MySQL database driver.
  */
-class MySqlDriver implements Nette\Database\Driver
+class MySqlDriver extends PdoDriver
 {
-	use Nette\SmartObject;
+	public const ErrorAccessDenied = 1045;
+	public const ErrorDuplicateEntry = 1062;
+	public const ErrorDataTruncated = 1265;
 
-	public const
-		ERROR_ACCESS_DENIED = 1045,
-		ERROR_DUPLICATE_ENTRY = 1062,
-		ERROR_DATA_TRUNCATED = 1265;
+	/** @deprecated use MySqlDriver::ErrorAccessDenied */
+	public const ERROR_ACCESS_DENIED = self::ErrorAccessDenied;
 
-	/** @var Nette\Database\Connection */
-	private $connection;
+	/** @deprecated use MySqlDriver::ErrorDuplicateEntry */
+	public const ERROR_DUPLICATE_ENTRY = self::ErrorDuplicateEntry;
+
+	/** @deprecated use MySqlDriver::ErrorDataTruncated */
+	public const ERROR_DATA_TRUNCATED = self::ErrorDataTruncated;
+
+
+	private bool $supportBooleans;
 
 
 	/**
 	 * Driver options:
 	 *   - charset => character encoding to set (default is utf8 or utf8mb4 since MySQL 5.5.3)
 	 *   - sqlmode => see http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html
+	 *   - supportBooleans => converts INT(1) to boolean
 	 */
-	public function initialize(Nette\Database\Connection $connection, array $options): void
+	public function connect(
+		string $dsn,
+		?string $user = null,
+		#[\SensitiveParameter]
+		?string $password = null,
+		?array $options = null,
+	): void
 	{
-		$this->connection = $connection;
+		parent::connect($dsn, $user, $password, $options);
 		$charset = $options['charset']
-			?? (version_compare($connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION), '5.5.3', '>=') ? 'utf8mb4' : 'utf8');
+			?? (version_compare($this->pdo->getAttribute(\PDO::ATTR_SERVER_VERSION), '5.5.3', '>=') ? 'utf8mb4' : 'utf8');
 		if ($charset) {
-			$connection->query('SET NAMES ?', $charset);
+			$this->pdo->query('SET NAMES ' . $this->pdo->quote($charset));
 		}
 
 		if (isset($options['sqlmode'])) {
-			$connection->query('SET sql_mode=?', $options['sqlmode']);
+			$this->pdo->query('SET sql_mode=' . $this->pdo->quote($options['sqlmode']));
 		}
+
+		$this->supportBooleans = (bool) ($options['supportBooleans'] ?? false);
 	}
 
 
-	public function convertException(\PDOException $e): Nette\Database\DriverException
+	public function detectExceptionClass(\PDOException $e): ?string
 	{
 		$code = $e->errorInfo[1] ?? null;
-		if (in_array($code, [1216, 1217, 1451, 1452, 1701], true)) {
-			return Nette\Database\ForeignKeyConstraintViolationException::from($e);
+		if (in_array($code, [1216, 1217, 1451, 1452, 1701], strict: true)) {
+			return Nette\Database\ForeignKeyConstraintViolationException::class;
 
-		} elseif (in_array($code, [1062, 1557, 1569, 1586], true)) {
-			return Nette\Database\UniqueConstraintViolationException::from($e);
+		} elseif (in_array($code, [1062, 1557, 1569, 1586], strict: true)) {
+			return Nette\Database\UniqueConstraintViolationException::class;
 
 		} elseif ($code >= 2001 && $code <= 2028) {
-			return Nette\Database\ConnectionException::from($e);
+			return Nette\Database\ConnectionException::class;
 
-		} elseif (in_array($code, [1048, 1121, 1138, 1171, 1252, 1263, 1566], true)) {
-			return Nette\Database\NotNullConstraintViolationException::from($e);
+		} elseif (in_array($code, [1048, 1121, 1138, 1171, 1252, 1263, 1566], strict: true)) {
+			return Nette\Database\NotNullConstraintViolationException::class;
 
 		} else {
-			return Nette\Database\DriverException::from($e);
+			return null;
 		}
 	}
 
@@ -94,7 +110,7 @@ class MySqlDriver implements Nette\Database\Driver
 	public function formatLike(string $value, int $pos): string
 	{
 		$value = str_replace('\\', '\\\\', $value);
-		$value = addcslashes(substr($this->connection->quote($value), 1, -1), '%_');
+		$value = addcslashes(substr($this->pdo->quote($value), 1, -1), '%_');
 		return ($pos <= 0 ? "'%" : "'") . $value . ($pos >= 0 ? "%'" : "'");
 	}
 
@@ -118,7 +134,7 @@ class MySqlDriver implements Nette\Database\Driver
 	public function getTables(): array
 	{
 		$tables = [];
-		foreach ($this->connection->query('SHOW FULL TABLES') as $row) {
+		foreach ($this->pdo->query('SHOW FULL TABLES') as $row) {
 			$tables[] = [
 				'name' => $row[0],
 				'view' => ($row[1] ?? null) === 'VIEW',
@@ -132,19 +148,26 @@ class MySqlDriver implements Nette\Database\Driver
 	public function getColumns(string $table): array
 	{
 		$columns = [];
-		foreach ($this->connection->query('SHOW FULL COLUMNS FROM ' . $this->delimite($table)) as $row) {
-			$row = array_change_key_case((array) $row, CASE_LOWER);
-			$type = explode('(', $row['type']);
+		foreach ($this->pdo->query('SHOW FULL COLUMNS FROM ' . $this->delimite($table), \PDO::FETCH_ASSOC) as $row) {
+			$row = array_change_key_case($row, CASE_LOWER);
+			$pair = explode('(', $row['type']);
+			$type = match (true) {
+				$pair[0] === 'decimal' && str_ends_with($pair[1], ',0)') => Type::Integer,
+				$row['type'] === 'tinyint(1)' && $this->supportBooleans => Type::Bool,
+				$row['type'] === 'time' => Type::TimeInterval,
+				default => Nette\Database\Helpers::detectType($pair[0]),
+			};
 			$columns[] = [
 				'name' => $row['field'],
 				'table' => $table,
-				'nativetype' => strtoupper($type[0]),
-				'size' => isset($type[1]) ? (int) $type[1] : null,
+				'type' => $type,
+				'nativetype' => strtoupper($pair[0]),
+				'size' => isset($pair[1]) ? (int) $pair[1] : null,
 				'nullable' => $row['null'] === 'YES',
 				'default' => $row['default'],
 				'autoincrement' => $row['extra'] === 'auto_increment',
 				'primary' => $row['key'] === 'PRI',
-				'vendor' => (array) $row,
+				'vendor' => $row,
 			];
 		}
 
@@ -155,7 +178,7 @@ class MySqlDriver implements Nette\Database\Driver
 	public function getIndexes(string $table): array
 	{
 		$indexes = [];
-		foreach ($this->connection->query('SHOW INDEX FROM ' . $this->delimite($table)) as $row) {
+		foreach ($this->pdo->query('SHOW INDEX FROM ' . $this->delimite($table)) as $row) {
 			$id = $row['Key_name'];
 			$indexes[$id]['name'] = $id;
 			$indexes[$id]['unique'] = !$row['Non_unique'];
@@ -170,14 +193,18 @@ class MySqlDriver implements Nette\Database\Driver
 	public function getForeignKeys(string $table): array
 	{
 		$keys = [];
-		$query = 'SELECT CONSTRAINT_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE '
-			. 'WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL AND TABLE_NAME = ' . $this->connection->quote($table);
-
-		foreach ($this->connection->query($query) as $id => $row) {
-			$keys[$id]['name'] = $row['CONSTRAINT_NAME'];
-			$keys[$id]['local'] = $row['COLUMN_NAME'];
+		foreach ($this->pdo->query(<<<X
+			SELECT CONSTRAINT_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+			FROM information_schema.KEY_COLUMN_USAGE
+			WHERE TABLE_SCHEMA = DATABASE()
+			  AND REFERENCED_TABLE_NAME IS NOT NULL
+			  AND TABLE_NAME = {$this->pdo->quote($table)}
+			X) as $row) {
+			$id = $row['CONSTRAINT_NAME'];
+			$keys[$id]['name'] = $id;
+			$keys[$id]['local'][] = $row['COLUMN_NAME'];
 			$keys[$id]['table'] = $row['REFERENCED_TABLE_NAME'];
-			$keys[$id]['foreign'] = $row['REFERENCED_COLUMN_NAME'];
+			$keys[$id]['foreign'][] = $row['REFERENCED_COLUMN_NAME'];
 		}
 
 		return array_values($keys);
@@ -191,10 +218,12 @@ class MySqlDriver implements Nette\Database\Driver
 		for ($col = 0; $col < $count; $col++) {
 			$meta = $statement->getColumnMeta($col);
 			if (isset($meta['native_type'])) {
-				$types[$meta['name']] = $type = Nette\Database\Helpers::detectType($meta['native_type']);
-				if ($type === Nette\Database\IStructure::FIELD_TIME) {
-					$types[$meta['name']] = Nette\Database\IStructure::FIELD_TIME_INTERVAL;
-				}
+				$types[$meta['name']] = match (true) {
+					$meta['native_type'] === 'NEWDECIMAL' && $meta['precision'] === 0 => Type::Integer,
+					$meta['native_type'] === 'TINY' && $meta['len'] === 1 && $this->supportBooleans => Type::Bool,
+					$meta['native_type'] === 'TIME' => Type::TimeInterval,
+					default => Nette\Database\RowNormalizer::detectType($meta['native_type']),
+				};
 			}
 		}
 
@@ -208,6 +237,6 @@ class MySqlDriver implements Nette\Database\Driver
 		// - http://bugs.mysql.com/bug.php?id=31188
 		// - http://bugs.mysql.com/bug.php?id=35819
 		// and more.
-		return $item === self::SUPPORT_SELECT_UNGROUPED_COLUMNS || $item === self::SUPPORT_MULTI_COLUMN_AS_OR_COND;
+		return $item === self::SupportSelectUngroupedColumns || $item === self::SupportMultiColumnAsOrCond;
 	}
 }

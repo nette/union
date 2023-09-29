@@ -36,4 +36,6 @@ Assert::same([
 	'Foo\\Bar\\ClassBar' => ['foo' => true],
 	'Foo\\ClassBar' => ['foo' => true],
 	'InterfaceOk1' => ['ok' => true],
+	'InterfaceOk2' => ['ok' => true],
+	'stdClass' => [],
 ], $services);

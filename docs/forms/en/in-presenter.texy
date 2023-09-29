@@ -30,11 +30,11 @@ The form in the presenter is an object of the class `Nette\Application\UI\Form`,
 
 From the presenter's point of view, the form is a common component. Therefore, it is treated as a component and incorporated into the presenter using [factory method |application:components#Factory Methods]. It will look like this:
 
-```php .{file:app/Presenters/HomepagePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	protected function createComponentRegistrationForm(): Form
 	{
@@ -52,14 +52,14 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 		// $data->name contains name
 		// $data->password contains password
 		$this->flashMessage('You have successfully signed up.');
-		$this->redirect('Homepage:');
+		$this->redirect('Home:');
 	}
 }
 ```
 
 And render in template is done using `{control}` tag:
 
-```latte .{file:app/Presenters/templates/Homepage/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ The form is always validated on the server side, but JavaScript validation is al
 Insert it into the layout template:
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
 ```
 
 If you look in the source code of the page with form, you may notice that Nette inserts the required fields into elements with a CSS class `required`. Try adding the following style to the template, and the "Name" label will be red. Elegantly, we mark the required fields for the users:
@@ -293,6 +293,8 @@ The mapping then knows from the `$person` property type that it should map the c
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
+
+You can generate a proposal for the data class of a form using the method `Nette\Forms\Blueprint::dataClass($form)`, which will print it out to the browser page. You can then simply click to select and copy the code into your project. .{data-version:3.1.15}
 
 
 Multiple Submit Buttons

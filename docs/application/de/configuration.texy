@@ -13,11 +13,15 @@ Anwendung:
 	# zeigt das Feld "Nette Anwendung" in Tracy BlueScreen?
 	debugger: ...           # (bool) standardmäßig true
 
-	# wird der error-presenter im Fehlerfall aufgerufen?
-	catchExceptions: ...    # (bool) steht im Produktionsmodus standardmäßig auf true
+	# wird error-presenter im Fehlerfall aufgerufen?
+	# hat nur im Entwicklermodus Auswirkungen
+	catchExceptions: ...    # (bool) ist standardmäßig true
 
 	# Name des Fehlermelders
-	errorPresenter: Error   # (string) Standardwert ist 'Nette:Error'
+	errorPresenter: Error   # (string|array) Standardwert ist 'Nette:Error'
+
+	# definiert Aliase für Moderatoren und Veranstaltungen
+	aliases: ...
 
 	# definiert die Regeln für die Auflösung des Presenter-Namens in eine Klasse
 	mapping: ...
@@ -27,9 +31,18 @@ Anwendung:
 	silentLinks: ...        # (bool) ist standardmäßig auf false eingestellt
 ```
 
-Da Fehlerpräsenter im Entwicklungsmodus standardmäßig nicht aufgerufen werden und die Fehler von Tracy angezeigt werden, hilft das Ändern des Wertes `catchExceptions` in `true` dabei, zu überprüfen, ob die Fehlerpräsenter während der Entwicklung korrekt funktionieren.
+Ab `nette/application` Version 3.2 ist es möglich, ein Paar von Fehlerpräsentern zu definieren:
+
+```neon
+application:
+	errorPresenter:
+		4xx: Error4xx   # für Nette\Application\BadRequestException
+		5xx: Error5xx   # für andere Ausnahmen
+```
 
 Die Option `silentLinks` legt fest, wie sich Nette im Entwicklermodus verhält, wenn die Link-Generierung fehlschlägt (z. B. weil kein Presenter vorhanden ist usw.). Der Standardwert `false` bedeutet, dass Nette `E_USER_WARNING` auslöst. Die Einstellung `true` unterdrückt diese Fehlermeldung. In einer Produktionsumgebung wird immer `E_USER_WARNING` aufgerufen. Wir können dieses Verhalten auch beeinflussen, indem wir die Presenter-Variable [$invalidLinkMode |creating-links#Invalid Links] setzen.
+
+[Aliasnamen vereinfachen das Aufsuchen |creating-links#aliases] häufig verwendeter Moderatoren.
 
 Das [Mapping definiert die Regeln |modules#mapping], nach denen der Klassenname aus dem Presenter-Namen abgeleitet wird.
 
@@ -75,6 +88,12 @@ Latte:
 
 	# erzeugt Vorlagen mit declare(strict_types=1)
 	strictTypes: ...     # (bool) ist standardmäßig false
+
+	# aktiviert den [strengen Parser-Modus |latte:develop#strict mode]
+	strictParsing: ...   # (bool) Standard ist false
+
+	# aktiviert die [Überprüfung von generiertem Code |latte:develop#Checking Generated Code]
+	phpLinter: ...       # (string) Voreinstellung ist null
 
 	# Klasse von $this->template
 	templateClass: App\MyTemplateClass # Standardwert ist Nette\Bridges\ApplicationLatte\DefaultTemplate
@@ -152,3 +171,18 @@ Sie können PHP-Direktiven setzen. Eine Übersicht über alle Direktiven finden 
 php:
 	date.timezone: Europe/Prague
 ```
+
+
+DI-Dienste .[#toc-di-services]
+==============================
+
+Diese Dienste werden dem DI-Container hinzugefügt:
+
+| Name | Typ | Beschreibung
+|----------------------------------------------------------
+| `application.application` | [api:Nette\Application\Application] | [Vollständiger Anwendungsstarter |how-it-works#Nette Application]
+| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
+| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | Presenter-Fabrik
+| `application.###` | [api:Nette\Application\UI\Presenter] | einzelne Referenten
+| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | Fabrik für `Latte\Engine`
+| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | Fabrik für [`$this->template` |templates]

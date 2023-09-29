@@ -1,0 +1,257 @@
+Tout ce que vous avez toujours voulu savoir sur le regroupement
+***************************************************************
+
+.[perex]
+Lorsque vous travaillez avec des données dans des modèles, vous rencontrez souvent le besoin de les grouper ou de les afficher spécifiquement selon certains critères. Latte propose à cet effet plusieurs outils puissants.
+
+Le filtre et la fonction `|group` permettent de regrouper efficacement les données sur la base de critères spécifiques, tandis que le filtre `|batch` facilite la division des données en lots fixes et que la balise `{iterateWhile}` offre la possibilité d'un contrôle de cycle plus complexe à l'aide de conditions.
+Chacune de ces balises offre des options spécifiques pour travailler avec les données, ce qui en fait des outils indispensables pour l'affichage dynamique et structuré des informations dans les modèles Latte.
+
+
+Filtre et fonction `group` .[#toc-filter-and-function-group]
+============================================================
+
+Imaginez une table de base de données `items` avec des articles divisés en catégories :
+
+| id | categoryId | name
+|------------------
+| 1 | 1 | Pomme
+| 2 | 1 | Banane
+| 3 | 2 | PHP
+| 4 | 3 | Vert
+| 5 | 3 | Rouge
+| 6 | 3 | Bleu
+
+Une liste simple de tous les éléments utilisant un modèle Latte ressemblerait à ceci :
+
+```latte
+<ul>
+{foreach $items as $item}
+	<li>{$item->name}</li>
+{/foreach}
+</ul>
+```
+
+Toutefois, si nous voulons que les articles soient organisés en groupes par catégorie, nous devons les diviser de manière à ce que chaque catégorie ait sa propre liste. Le résultat serait alors le suivant :
+
+```latte
+<ul>
+	<li>Apple</li>
+	<li>Banana</li>
+</ul>
+
+<ul>
+	<li>PHP</li>
+</ul>
+
+<ul>
+	<li>Green</li>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+Cette tâche peut être facilement et élégamment résolue en utilisant `|group`. Nous spécifions `categoryId` comme paramètre, ce qui signifie que les éléments seront divisés en tableaux plus petits en fonction de la valeur de `$item->categoryId` (si `$item` était un tableau, nous utiliserions `$item['categoryId']`) :
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+	<ul>
+		{foreach $categoryItems as $item}
+			<li>{$item->name}</li>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+Le filtre peut également être utilisé comme une fonction dans Latte, ce qui nous donne une syntaxe alternative : `{foreach group($items, categoryId) ...}`.
+
+Si vous souhaitez regrouper des éléments selon des critères plus complexes, vous pouvez utiliser une fonction dans le paramètre du filtre. Par exemple, le regroupement des éléments en fonction de la longueur de leur nom ressemblerait à ceci :
+
+```latte
+{foreach ($items|group: fn($item) => strlen($item->name)) as $items}
+	...
+{/foreach}
+```
+
+Il est important de noter que `$categoryItems` n'est pas un tableau ordinaire, mais un objet qui se comporte comme un itérateur. Pour accéder au premier élément du groupe, vous pouvez utiliser la fonction [`first()` |latte:functions#first] pour accéder au premier élément du groupe.
+
+Cette flexibilité dans le regroupement des données fait de `group` un outil exceptionnellement utile pour présenter les données dans les modèles Latte.
+
+
+Boucles imbriquées .[#toc-nested-loops]
+---------------------------------------
+
+Supposons que nous ayons une table de base de données avec une autre colonne `subcategoryId` qui définit les sous-catégories pour chaque article. Nous voulons afficher chaque catégorie principale dans une liste distincte et chaque sous-catégorie dans une boucle imbriquée distincte. `<ul>` distincte et chaque sous-catégorie dans une liste imbriquée distincte `<ol>` imbriquée :
+
+```latte
+{foreach ($items|group: categoryId) as $categoryItems}
+	<ul>
+		{foreach ($categoryItems|group: subcategoryId) as $subcategoryItems}
+			<ol>
+				{foreach $subcategoryItems as $item}
+					<li>{$item->name}
+				{/foreach}
+			</ol>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+
+Connexion avec la base de données Nette .[#toc-connection-with-nette-database]
+------------------------------------------------------------------------------
+
+Montrons comment utiliser efficacement le regroupement de données en combinaison avec Nette Database. Supposons que nous travaillions avec la table `items` de l'exemple initial, qui est connectée par la colonne `categoryId` à cette table `categories`:
+
+| CatégorieId | Nom |
+|------------|------------|
+| 1 | Fruits |
+| 2 | Langues |
+| 3 | Couleurs |
+
+Nous chargeons les données de la table `items` à l'aide de la commande Nette Database Explorer `$items = $db->table('items')`. Au cours de l'itération sur ces données, nous avons la possibilité non seulement d'accéder à des attributs tels que `$item->name` et `$item->categoryId`, mais aussi, grâce à la connexion avec la table `categories`, à la ligne correspondante de cette table via `$item->category`. Cette connexion peut donner lieu à des utilisations intéressantes :
+
+```latte
+{foreach ($items|group: category) as $category => $categoryItems}
+	<h1>{$category->name}</h1>
+	<ul>
+		{foreach $categoryItems as $item}
+			<li>{$item->name}</li>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+Dans ce cas, nous utilisons le filtre `|group` pour regrouper les données en fonction de la ligne connectée `$item->category`, et pas seulement en fonction de la colonne `categoryId`. Nous obtenons ainsi le site `ActiveRow` de la catégorie donnée dans la clé variable, ce qui nous permet d'afficher directement son nom à l'aide de `{$category->name}`. Il s'agit d'un exemple pratique de la manière dont le regroupement peut simplifier les modèles et faciliter la manipulation des données.
+
+
+Filtre `|batch` .[#toc-filter-batch]
+====================================
+
+Le filtre vous permet de diviser une liste d'éléments en groupes avec un nombre prédéterminé d'éléments. Ce filtre est idéal pour les situations où vous souhaitez présenter des données en plusieurs groupes plus petits, par exemple pour une meilleure clarté ou une meilleure organisation visuelle sur la page.
+
+Imaginons que nous ayons une liste d'éléments et que nous souhaitions les afficher dans des listes contenant chacune un maximum de trois éléments. L'utilisation du filtre `|batch` est très pratique dans ce cas :
+
+```latte
+<ul>
+{foreach ($items|batch: 3) as $batch}
+	{foreach $batch as $item}
+		<li>{$item->name}</li>
+	{/foreach}
+{/foreach}
+</ul>
+```
+
+Dans cet exemple, la liste `$items` est divisée en groupes plus petits, chaque groupe (`$batch`) contenant jusqu'à trois éléments. Chaque groupe est ensuite affiché dans une liste `<ul>` liste séparée.
+
+Si le dernier groupe ne contient pas suffisamment d'éléments pour atteindre le nombre souhaité, le deuxième paramètre du filtre vous permet de définir ce qui viendra compléter ce groupe. Ceci est idéal pour aligner esthétiquement les éléments là où une ligne incomplète pourrait paraître désordonnée.
+
+```latte
+{foreach ($items|batch: 3, '—') as $batch}
+	...
+{/foreach}
+```
+
+
+Étiquette `{iterateWhile}` .[#toc-tag-iteratewhile]
+===================================================
+
+Nous allons démontrer les mêmes tâches que nous avons abordées avec le filtre `|group` en utilisant la balise `{iterateWhile}`. La principale différence entre les deux approches est que `group` traite et regroupe d'abord toutes les données d'entrée, tandis que `{iterateWhile}` contrôle la progression des cycles avec des conditions, de sorte que l'itération se produit de manière séquentielle.
+
+Tout d'abord, nous dessinons un tableau avec des catégories en utilisant iterateWhile :
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<li>{$item->name}</li>
+		{/iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+	</ul>
+{/foreach}
+```
+
+Alors que `{foreach}` marque la partie extérieure du cycle, c'est-à-dire l'établissement de listes pour chaque catégorie, la balise `{iterateWhile}` marque la partie intérieure, c'est-à-dire les éléments individuels.
+La condition de la balise end indique que la répétition se poursuivra tant que l'élément actuel et l'élément suivant appartiennent à la même catégorie (`$iterator->nextValue` est l'[élément suivant |/tags#$iterator]).
+
+Si la condition était toujours remplie, tous les éléments seraient dessinés dans le cycle interne :
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<li>{$item->name}
+		{/iterateWhile true}
+	</ul>
+{/foreach}
+```
+
+Le résultat sera le suivant :
+
+```latte
+<ul>
+	<li>Apple</li>
+	<li>Banana</li>
+	<li>PHP</li>
+	<li>Green</li>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+Quelle est l'utilité de iterateWhile dans ce cas ? Lorsque le tableau est vide et ne contient pas d'éléments, le message empty `<ul></ul>` n'est imprimée.
+
+Si nous spécifions la condition dans la balise d'ouverture `{iterateWhile}`, le comportement change : la condition (et la transition vers l'élément suivant) est exécutée au début du cycle interne, et non à la fin.
+Ainsi, alors que vous entrez toujours dans `{iterateWhile}` sans condition, vous n'entrez dans `{iterateWhile $cond}` que lorsque la condition `$cond` est remplie. Au même moment, l'élément suivant est écrit dans `$item`.
+
+Ceci est utile, par exemple, dans une situation où nous voulons rendre le premier élément de chaque catégorie différemment, comme ceci :
+
+```latte
+<h1>Apple</h1>
+<ul>
+	<li>Banana</li>
+</ul>
+
+<h1>PHP</h1>
+<ul>
+</ul>
+
+<h1>Green</h1>
+<ul>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+Nous modifions le code original de manière à rendre d'abord le premier élément, puis, dans le cycle interne `{iterateWhile}`, les autres éléments de la même catégorie :
+
+```latte
+{foreach $items as $item}
+	<h1>{$item->name}</h1>
+	<ul>
+		{iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+			<li>{$item->name}</li>
+		{/iterateWhile}
+	</ul>
+{/foreach}
+```
+
+Au sein d'un cycle, nous pouvons créer plusieurs boucles internes et même les imbriquer. De cette manière, les sous-catégories peuvent être regroupées, par exemple.
+
+Supposons que le tableau comporte une autre colonne `subcategoryId`, et que, outre le fait que chaque catégorie se trouve dans une colonne distincte, chaque sous-catégorie se trouve dans une colonne distincte. `<ul>`chaque sous-catégorie dans une colonne distincte `<ol>`:
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<ol>
+				{iterateWhile}
+					<li>{$item->name}
+				{/iterateWhile $item->subcategoryId === $iterator->nextValue->subcategoryId}
+			</ol>
+		{/iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+	</ul>
+{/foreach}
+```
+
+
+{{leftbar: /@left-menu}}

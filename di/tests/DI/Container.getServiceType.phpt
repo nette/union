@@ -15,7 +15,7 @@ require __DIR__ . '/../bootstrap.php';
 
 class MyContainer extends Container
 {
-	protected $aliases = [
+	protected array $aliases = [
 		'three' => 'one',
 	];
 
@@ -37,6 +37,8 @@ Assert::same('One', $container->getServiceType('one'));
 Assert::same('Two', $container->getServiceType('two'));
 Assert::same('One', $container->getServiceType('three'));
 
-Assert::exception(function () use ($container) {
-	$container->getServiceType('four');
-}, Nette\DI\MissingServiceException::class, "Service 'four' not found.");
+Assert::exception(
+	fn() => $container->getServiceType('four'),
+	Nette\DI\MissingServiceException::class,
+	"Type of service 'four' not known.",
+);

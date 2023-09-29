@@ -1,0 +1,841 @@
+Introduction à la programmation orientée objet
+**********************************************
+
+.[perex]
+Le terme "POO" signifie programmation orientée objet, c'est-à-dire une façon d'organiser et de structurer le code. La POO nous permet de considérer un programme comme une collection d'objets qui communiquent entre eux, plutôt que comme une séquence de commandes et de fonctions.
+
+Dans la POO, un "objet" est une unité qui contient des données et des fonctions qui opèrent sur ces données. Les objets sont créés sur la base de "classes", qui peuvent être considérées comme des plans ou des modèles d'objets. Une fois que nous disposons d'une classe, nous pouvons créer son "instance", qui est un objet spécifique fabriqué à partir de cette classe.
+
+Voyons comment créer une classe simple en PHP. Pour définir une classe, on utilise le mot-clé "class", suivi du nom de la classe, puis des accolades qui entourent les fonctions de la classe (appelées "méthodes") et les variables de la classe (appelées "propriétés" ou "attributs") :
+
+```php
+class Car
+{
+	function honk()
+	{
+		echo 'Beep beep!';
+	}
+}
+```
+
+Dans cet exemple, nous avons créé une classe nommée `Car` avec une fonction (ou "méthode") appelée `honk`.
+
+Chaque classe ne doit résoudre qu'une seule tâche principale. Si une classe fait trop de choses, il peut être judicieux de la diviser en classes plus petites et spécialisées.
+
+Les classes sont généralement stockées dans des fichiers distincts afin que le code reste organisé et facile à parcourir. Le nom du fichier doit correspondre au nom de la classe. Ainsi, pour la classe `Car`, le nom du fichier sera `Car.php`.
+
+Pour nommer les classes, il est conseillé de suivre la convention "PascalCase", ce qui signifie que chaque mot du nom commence par une majuscule et qu'il n'y a pas de soulignement ou d'autres séparateurs. Les méthodes et les propriétés suivent la convention "camelCase", c'est-à-dire qu'elles commencent par une lettre minuscule.
+
+Certaines méthodes en PHP ont des rôles spéciaux et sont préfixées par `__` (deux underscores). L'une des méthodes spéciales les plus importantes est le "constructeur", désigné par `__construct`. Le constructeur est une méthode qui est automatiquement appelée lors de la création d'une nouvelle instance d'une classe.
+
+Nous utilisons souvent le constructeur pour définir l'état initial d'un objet. Par exemple, lors de la création d'un objet représentant une personne, vous pouvez utiliser le constructeur pour définir son âge, son nom ou d'autres attributs.
+
+Voyons comment utiliser un constructeur en PHP :
+
+```php
+class Person
+{
+	private $age;
+
+	function __construct($age)
+	{
+		$this->age = $age;
+	}
+
+	function howOldAreYou()
+	{
+		return $this->age;
+	}
+}
+
+$person = new Person(25);
+echo $person->howOldAreYou(); // Outputs: 25
+```
+
+Dans cet exemple, la classe `Person` possède une propriété (variable) `$age` et un constructeur qui définit cette propriété. La méthode `howOldAreYou()` permet ensuite d'accéder à l'âge de la personne.
+
+La pseudo-variable `$this` est utilisée à l'intérieur de la classe pour accéder aux propriétés et aux méthodes de l'objet.
+
+Le mot-clé `new` est utilisé pour créer une nouvelle instance d'une classe. Dans l'exemple ci-dessus, nous avons créé une nouvelle personne âgée de 25 ans.
+
+Vous pouvez également définir des valeurs par défaut pour les paramètres du constructeur s'ils ne sont pas spécifiés lors de la création d'un objet. Par exemple :
+
+```php
+class Person
+{
+	private $age;
+
+	function __construct($age = 20)
+	{
+		$this->age = $age;
+	}
+
+	function howOldAreYou()
+	{
+		return $this->age;
+	}
+}
+
+$person = new Person;  // if no argument is passed, parentheses can be omitted
+echo $person->howOldAreYou(); // Outputs: 20
+```
+
+Dans cet exemple, si vous ne spécifiez pas d'âge lors de la création d'un objet `Person`, la valeur par défaut de 20 sera utilisée.
+
+L'avantage est que la définition de la propriété avec son initialisation via le constructeur peut être raccourcie et simplifiée comme suit :
+
+```php
+class Person
+{
+	function __construct(
+		private $age = 20,
+	) {
+	}
+}
+```
+
+Pour être complet, outre les constructeurs, les objets peuvent avoir des destructeurs (méthode `__destruct`) qui sont appelés avant que l'objet ne soit libéré de la mémoire.
+
+
+Espaces nominatifs .[#toc-namespaces]
+-------------------------------------
+
+Les espaces de nommage nous permettent d'organiser et de regrouper des classes, des fonctions et des constantes apparentées tout en évitant les conflits de noms. Ils sont comparables aux dossiers d'un ordinateur, où chaque dossier contient des fichiers liés à un projet ou à un sujet spécifique.
+
+Les espaces de noms sont particulièrement utiles dans les grands projets ou lors de l'utilisation de bibliothèques tierces où des conflits de noms de classes peuvent survenir.
+
+Imaginez que vous ayez une classe nommée `Car` dans votre projet et que vous souhaitiez la placer dans un espace de noms appelé `Transport`. Voici comment procéder :
+
+```php
+namespace Transport;
+
+class Car
+{
+	function honk()
+	{
+		echo 'Beep beep!';
+	}
+}
+```
+
+Si vous souhaitez utiliser la classe `Car` dans un autre fichier, vous devez spécifier l'espace de noms d'où provient la classe :
+
+```php
+$car = new Transport\Car;
+```
+
+Pour simplifier, vous pouvez indiquer au début du fichier quelle classe d'un espace de noms particulier vous souhaitez utiliser, ce qui vous permet de créer des instances sans mentionner le chemin d'accès complet :
+
+```php
+use Transport\Car;
+
+$car = new Car;
+```
+
+
+Héritage .[#toc-inheritance]
+----------------------------
+
+L'héritage est un outil de la programmation orientée objet qui permet de créer de nouvelles classes basées sur des classes existantes, d'hériter de leurs propriétés et de leurs méthodes, et de les étendre ou de les redéfinir si nécessaire. L'héritage garantit la réutilisation du code et la hiérarchie des classes.
+
+En d'autres termes, si nous disposons d'une classe et que nous souhaitons en créer une autre dérivée, mais avec quelques modifications, nous pouvons "hériter" la nouvelle classe de la classe d'origine.
+
+En PHP, l'héritage est mis en œuvre à l'aide du mot-clé `extends`.
+
+Notre classe `Person` stocke des informations sur l'âge. Nous pouvons avoir une autre classe, `Student`, qui étend `Person` et ajoute des informations sur le domaine d'études.
+
+Prenons un exemple :
+
+```php
+class Person
+{
+	private $age;
+
+	function __construct($age)
+	{
+		$this->age = $age;
+	}
+
+	function printInformation()
+	{
+		echo "Age: {$this->age} years\n";
+	}
+}
+
+class Student extends Person
+{
+	private $fieldOfStudy;
+
+	function __construct($age, $fieldOfStudy)
+	{
+		parent::__construct($age);
+		$this->fieldOfStudy = $fieldOfStudy;
+	}
+
+	function printInformation()
+	{
+		parent::printInformation();
+		echo "Field of study: {$this->fieldOfStudy} \n";
+	}
+}
+
+$student = new Student(20, 'Computer Science');
+$student->printInformation();
+```
+
+Comment fonctionne ce code ?
+
+- Nous avons utilisé le mot-clé `extends` pour étendre la classe `Person`, ce qui signifie que la classe `Student` hérite de toutes les méthodes et propriétés de `Person`.
+
+- Le mot-clé `parent::` nous permet d'appeler les méthodes de la classe mère. Dans ce cas, nous avons appelé le constructeur de la classe `Person` avant d'ajouter notre propre fonctionnalité à la classe `Student`. De même, nous avons appelé la méthode de l'ancêtre `printInformation()` avant d'énumérer les informations sur les étudiants.
+
+L'héritage est destiné aux situations où il existe une relation "est un" entre les classes. Par exemple, un `Student` est un `Person`. Un chat est un animal. Il nous permet, dans les cas où nous attendons un objet (par exemple, "Personne") dans le code, d'utiliser un objet dérivé à la place (par exemple, "Étudiant").
+
+Il est essentiel de comprendre que l'objectif premier de l'héritage **n'est pas** d'empêcher la duplication du code. Au contraire, une mauvaise utilisation de l'héritage peut conduire à un code complexe et difficile à maintenir. S'il n'y a pas de relation "is a" entre les classes, nous devrions envisager la composition plutôt que l'héritage.
+
+Notez que les méthodes `printInformation()` des classes `Person` et `Student` produisent des informations légèrement différentes. Nous pouvons également ajouter d'autres classes (telles que `Employee`) qui fourniront d'autres implémentations de cette méthode. La capacité des objets de différentes classes à répondre à la même méthode de différentes manières est appelée polymorphisme :
+
+```php
+$people = [
+	new Person(30),
+	new Student(20, 'Computer Science'),
+	new Employee(45, 'Director'),
+];
+
+foreach ($people as $person) {
+	$person->printInformation();
+}
+```
+
+
+La composition .[#toc-composition]
+----------------------------------
+
+La composition est une technique par laquelle, au lieu d'hériter des propriétés et des méthodes d'une autre classe, nous utilisons simplement son instance dans notre classe. Cela nous permet de combiner les fonctionnalités et les propriétés de plusieurs classes sans créer de structures d'héritage complexes.
+
+Par exemple, nous avons une classe `Engine` et une classe `Car`. Au lieu de dire "Une voiture est un moteur", nous disons "Une voiture a un moteur", ce qui est une relation de composition typique.
+
+```php
+class Engine
+{
+	function start()
+	{
+		echo 'Engine is running.';
+	}
+}
+
+class Car
+{
+	private $engine;
+
+	function __construct()
+	{
+		$this->engine = new Engine;
+	}
+
+	function start()
+	{
+		$this->engine->start();
+		echo 'The car is ready to drive!';
+	}
+}
+
+$car = new Car;
+$car->start();
+```
+
+Ici, la classe `Car` ne possède pas toutes les propriétés et méthodes de la classe `Engine`, mais elle y a accès par l'intermédiaire de la propriété `$engine`.
+
+L'avantage de la composition est une plus grande souplesse de conception et une meilleure adaptabilité aux changements futurs.
+
+
+Visibilité .[#toc-visibility]
+-----------------------------
+
+En PHP, vous pouvez définir la "visibilité" des propriétés, méthodes et constantes des classes. La visibilité détermine l'endroit où vous pouvez accéder à ces éléments.
+
+1. **Public:** Si un élément est marqué comme `public`, cela signifie que vous pouvez y accéder de n'importe où, même en dehors de la classe.
+
+2. **Protégé:** Un élément marqué comme `protected` n'est accessible qu'au sein de la classe et de toutes ses descendantes (classes qui en héritent).
+
+3. **Privé:** Si un élément est marqué `private`, il n'est accessible qu'à l'intérieur de la classe dans laquelle il a été défini.
+
+Si vous ne spécifiez pas la visibilité, PHP la définira automatiquement à `public`.
+
+Voyons un exemple de code :
+
+```php
+class VisibilityExample
+{
+	public $publicProperty = 'Public';
+	protected $protectedProperty = 'Protected';
+	private $privateProperty = 'Private';
+
+	public function printProperties()
+	{
+		echo $this->publicProperty;     // Works
+		echo $this->protectedProperty;  // Works
+		echo $this->privateProperty;    // Works
+	}
+}
+
+$object = new VisibilityExample;
+$object->printProperties();
+echo $object->publicProperty;        // Works
+// echo $object->protectedProperty;   // Throws an error
+// echo $object->privateProperty;     // Throws an error
+```
+
+Poursuite de l'héritage des classes :
+
+```php
+class ChildClass extends VisibilityExample
+{
+	public function printProperties()
+	{
+		echo $this->publicProperty;     // Works
+		echo $this->protectedProperty;  // Works
+		// echo $this->privateProperty;   // Throws an error
+	}
+}
+```
+
+Dans ce cas, la méthode `printProperties()` de la classe `ChildClass` peut accéder aux propriétés publiques et protégées, mais ne peut pas accéder aux propriétés privées de la classe mère.
+
+Les données et les méthodes doivent être aussi cachées que possible et accessibles uniquement par l'intermédiaire d'une interface définie. Cela permet de modifier l'implémentation interne de la classe sans affecter le reste du code.
+
+
+Mot-clé final .[#toc-final-keyword]
+-----------------------------------
+
+En PHP, nous pouvons utiliser le mot-clé `final` si nous voulons empêcher une classe, une méthode ou une constante d'être héritée ou surchargée. Lorsqu'une classe est marquée comme `final`, elle ne peut pas être étendue. Lorsqu'une méthode est marquée comme `final`, elle ne peut pas être remplacée dans une sous-classe.
+
+Le fait de savoir qu'une certaine classe ou méthode ne sera plus modifiée nous permet d'apporter des changements plus facilement sans nous soucier des conflits potentiels. Par exemple, nous pouvons ajouter une nouvelle méthode sans craindre qu'un descendant ait déjà une méthode portant le même nom, ce qui entraînerait une collision. Nous pouvons également modifier les paramètres d'une méthode, toujours sans risquer de provoquer une incohérence avec une méthode surchargée dans un descendant.
+
+```php
+final class FinalClass
+{
+}
+
+// The following code will throw an error because we cannot inherit from a final class.
+class ChildOfFinalClass extends FinalClass
+{
+}
+```
+
+Dans cet exemple, tenter d'hériter de la classe finale `FinalClass` entraînera une erreur.
+
+
+Propriétés et méthodes statiques .[#toc-static-properties-and-methods]
+----------------------------------------------------------------------
+
+Lorsque nous parlons d'éléments "statiques" d'une classe en PHP, nous parlons de méthodes et de propriétés qui appartiennent à la classe elle-même, et non à une instance spécifique de la classe. Cela signifie que vous n'avez pas besoin de créer une instance de la classe pour y accéder. Au lieu de cela, vous les appelez ou y accédez directement par l'intermédiaire du nom de la classe.
+
+N'oubliez pas qu'étant donné que les éléments statiques appartiennent à la classe et non à ses instances, vous ne pouvez pas utiliser la pseudo-variable `$this` à l'intérieur des méthodes statiques.
+
+L'utilisation de propriétés statiques conduit à un [code obscurci et plein d'embûches |dependency-injection:global-state], vous ne devriez donc jamais les utiliser, et nous ne montrerons pas d'exemple ici. En revanche, les méthodes statiques sont utiles. En voici un exemple :
+
+```php
+class Calculator
+{
+	public static function add($a, $b)
+	{
+		return $a + $b;
+	}
+
+	public static function subtract($a, $b)
+	{
+		return $a - $b;
+	}
+}
+
+// Using the static method without creating an instance of the class
+echo Calculator::add(5, 3); // Output: 8
+echo Calculator::subtract(5, 3); // Output: 2
+```
+
+Dans cet exemple, nous avons créé une classe `Calculator` avec deux méthodes statiques. Nous pouvons appeler ces méthodes directement sans créer une instance de la classe à l'aide de l'opérateur `::`. Les méthodes statiques sont particulièrement utiles pour les opérations qui ne dépendent pas de l'état d'une instance de classe spécifique.
+
+
+Constantes de classe .[#toc-class-constants]
+--------------------------------------------
+
+Au sein des classes, nous avons la possibilité de définir des constantes. Les constantes sont des valeurs qui ne changent jamais pendant l'exécution du programme. Contrairement aux variables, la valeur d'une constante reste inchangée.
+
+```php
+class Car
+{
+	public const NumberOfWheels = 4;
+
+	public function displayNumberOfWheels(): int
+	{
+		echo self::NumberOfWheels;
+	}
+}
+
+echo Car::NumberOfWheels;  // Output: 4
+```
+
+Dans cet exemple, nous avons une classe `Car` avec la constante `NumberOfWheels`. Lorsque nous accédons à la constante à l'intérieur de la classe, nous pouvons utiliser le mot-clé `self` au lieu du nom de la classe.
+
+
+Interfaces d'objets .[#toc-object-interfaces]
+---------------------------------------------
+
+Les interfaces d'objets agissent comme des "contrats" pour les classes. Si une classe doit implémenter une interface objet, elle doit contenir toutes les méthodes définies par l'interface. C'est un excellent moyen de s'assurer que certaines classes adhèrent au même "contrat" ou à la même structure.
+
+En PHP, les interfaces sont définies à l'aide du mot-clé `interface`. Toutes les méthodes définies dans une interface sont publiques (`public`). Lorsqu'une classe implémente une interface, elle utilise le mot-clé `implements`.
+
+```php
+interface Animal
+{
+	function makeSound();
+}
+
+class Cat implements Animal
+{
+	public function makeSound()
+	{
+		echo 'Meow';
+	}
+}
+
+$cat = new Cat;
+$cat->makeSound();
+```
+
+Si une classe implémente une interface, mais que toutes les méthodes attendues ne sont pas définies, PHP lèvera une erreur.
+
+Une classe peut implémenter plusieurs interfaces à la fois, ce qui est différent de l'héritage, où une classe ne peut hériter que d'une seule classe :
+
+```php
+interface Guardian
+{
+	function guardHouse();
+}
+
+class Dog implements Animal, Guardian
+{
+	public function makeSound()
+	{
+		echo 'Bark';
+	}
+
+	public function guardHouse()
+	{
+		echo 'Dog diligently guards the house';
+	}
+}
+```
+
+
+Classes abstraites .[#toc-abstract-classes]
+-------------------------------------------
+
+Les classes abstraites servent de modèles de base pour d'autres classes, mais vous ne pouvez pas créer leurs instances directement. Elles contiennent un mélange de méthodes complètes et de méthodes abstraites dont le contenu n'est pas défini. Les classes qui héritent de classes abstraites doivent fournir des définitions pour toutes les méthodes abstraites du parent.
+
+Nous utilisons le mot-clé `abstract` pour définir une classe abstraite.
+
+```php
+abstract class AbstractClass
+{
+	public function regularMethod()
+	{
+		echo 'This is a regular method';
+	}
+
+	abstract public function abstractMethod();
+}
+
+class Child extends AbstractClass
+{
+	public function abstractMethod()
+	{
+		echo 'This is the implementation of the abstract method';
+	}
+}
+
+$instance = new Child;
+$instance->regularMethod();
+$instance->abstractMethod();
+```
+
+Dans cet exemple, nous avons une classe abstraite avec une méthode ordinaire et une méthode abstraite. Nous avons ensuite une classe `Child` qui hérite de `AbstractClass` et fournit une implémentation pour la méthode abstraite.
+
+En quoi les interfaces et les classes abstraites sont-elles différentes ? Les classes abstraites peuvent contenir des méthodes abstraites et concrètes, tandis que les interfaces définissent uniquement les méthodes que la classe doit implémenter, mais ne fournissent aucune implémentation. Une classe ne peut hériter que d'une seule classe abstraite, mais peut implémenter un nombre quelconque d'interfaces.
+
+
+Vérification du type .[#toc-type-checking]
+------------------------------------------
+
+En programmation, il est crucial de s'assurer que les données avec lesquelles nous travaillons sont du bon type. En PHP, nous avons des outils qui fournissent cette assurance. Vérifier que les données sont du bon type est appelé "vérification de type".
+
+Les types que nous pouvons rencontrer en PHP :
+
+1. **Types de base** : Ils comprennent `int` (entiers), `float` (nombres à virgule flottante), `bool` (valeurs booléennes), `string` (chaînes de caractères), `array` (tableaux) et `null`.
+2. **Classes** : Lorsque nous voulons qu'une valeur soit une instance d'une classe spécifique.
+3. **Interfaces** : Définit un ensemble de méthodes qu'une classe doit implémenter. Une valeur qui répond à une interface doit posséder ces méthodes.
+4. **Types mixtes** : Nous pouvons spécifier qu'une variable peut avoir plusieurs types autorisés.
+5. **Void** : Ce type spécial indique qu'une fonction ou une méthode ne renvoie aucune valeur.
+
+Voyons comment modifier le code pour inclure les types :
+
+```php
+class Person
+{
+	private int $age;
+
+	public function __construct(int $age)
+	{
+		$this->age = $age;
+	}
+
+	public function printAge(): void
+	{
+		echo "This person is {$this->age} years old.";
+	}
+}
+
+/**
+ * A function that accepts a Person object and prints the person's age.
+ */
+function printPersonAge(Person $person): void
+{
+	$person->printAge();
+}
+```
+
+De cette manière, nous nous assurons que notre code s'attend à ce que les données soient du bon type et qu'il fonctionne avec elles, ce qui nous permet d'éviter les erreurs potentielles.
+
+Certains types ne peuvent pas être écrits directement en PHP. Dans ce cas, ils sont listés dans le commentaire phpDoc, qui est le format standard de documentation du code PHP, commençant par `/**` et se terminant par `*/`. Il vous permet d'ajouter des descriptions de classes, de méthodes, etc. Il permet également d'énumérer des types complexes à l'aide des annotations `@var`, `@param` et `@return`. Ces types sont ensuite utilisés par les outils d'analyse statique du code, mais ne sont pas vérifiés par PHP lui-même.
+
+```php
+class Registry
+{
+	/** @var array<Person>  indicates that it's an array of Person objects */
+	private array $persons = [];
+
+	public function addPerson(Person $person): void
+	{
+		$this->persons[] = $person;
+	}
+}
+```
+
+
+Comparaison et identité .[#toc-comparison-and-identity]
+-------------------------------------------------------
+
+En PHP, vous pouvez comparer des objets de deux manières :
+
+1. Comparaison de valeurs `==`: Vérifie si les objets sont de la même classe et ont les mêmes valeurs dans leurs propriétés.
+2. Comparaison d'identité `===`: vérifie s'il s'agit de la même instance de l'objet.
+
+```php
+class Car
+{
+	public string $brand;
+
+	public function __construct(string $brand)
+	{
+		$this->brand = $brand;
+	}
+}
+
+$car1 = new Car('Skoda');
+$car2 = new Car('Skoda');
+$car3 = $car1;
+
+var_dump($car1 == $car2);   // true, because they have the same value
+var_dump($car1 === $car2);  // false, because they are not the same instance
+var_dump($car1 === $car3);  // true, because $car3 is the same instance as $car1
+```
+
+
+L'opérateur `instanceof` .[#toc-the-instanceof-operator]
+--------------------------------------------------------
+
+L'opérateur `instanceof` permet de déterminer si un objet donné est une instance d'une classe spécifique, un descendant de cette classe ou s'il implémente une certaine interface.
+
+Imaginons que nous ayons une classe `Person` et une autre classe `Student`, qui est un descendant de `Person`:
+
+```php
+class Person
+{
+	private int $age;
+
+	public function __construct(int $age)
+	{
+		$this->age = $age;
+	}
+}
+
+class Student extends Person
+{
+	private string $major;
+
+	public function __construct(int $age, string $major)
+	{
+		parent::__construct($age);
+		$this->major = $major;
+	}
+}
+
+$student = new Student(20, 'Computer Science');
+
+// Check if $student is an instance of the Student class
+var_dump($student instanceof Student);  // Output: bool(true)
+
+// Check if $student is an instance of the Person class (because Student is a descendant of Person)
+var_dump($student instanceof Person);   // Output: bool(true)
+```
+
+D'après les résultats, il est évident que l'objet `$student` est considéré comme une instance des classes `Student` et `Person`.
+
+
+Interfaces fluides .[#toc-fluent-interfaces]
+--------------------------------------------
+
+Une "interface fluide" est une technique de la POO qui permet d'enchaîner des méthodes en un seul appel. Cela permet souvent de simplifier et de clarifier le code.
+
+L'élément clé d'une interface fluide est que chaque méthode de la chaîne renvoie une référence à l'objet actuel. Pour ce faire, on utilise `return $this;` à la fin de la méthode. Ce style de programmation est souvent associé à des méthodes appelées "setters", qui fixent les valeurs des propriétés d'un objet.
+
+Voyons à quoi pourrait ressembler une interface fluide pour l'envoi de courriers électroniques :
+
+```php
+public function sendMessage()
+{
+	$email = new Email;
+	$email->setFrom('sender@example.com')
+		  ->setRecipient('admin@example.com')
+		  ->setMessage('Hello, this is a message.')
+		  ->send();
+}
+```
+
+Dans cet exemple, les méthodes `setFrom()`, `setRecipient()`, et `setMessage()` sont utilisées pour définir les valeurs correspondantes (expéditeur, destinataire, contenu du message). Après avoir défini chacune de ces valeurs, les méthodes renvoient l'objet courant (`$email`), ce qui nous permet d'enchaîner une autre méthode après celle-ci. Enfin, nous appelons la méthode `send()`, qui envoie effectivement le courrier électronique.
+
+Grâce aux interfaces fluides, nous pouvons écrire un code intuitif et facilement lisible.
+
+
+Copier avec `clone` .[#toc-copying-with-clone]
+----------------------------------------------
+
+En PHP, nous pouvons créer une copie d'un objet en utilisant l'opérateur `clone`. De cette manière, nous obtenons une nouvelle instance avec un contenu identique.
+
+Si nous devons modifier certaines propriétés lors de la copie d'un objet, nous pouvons définir une méthode spéciale `__clone()` dans la classe. Cette méthode est automatiquement appelée lorsque l'objet est cloné.
+
+```php
+class Sheep
+{
+	public string $name;
+
+	public function __construct(string $name)
+	{
+		$this->name = $name;
+	}
+
+	public function __clone()
+	{
+		$this->name = 'Clone of ' . $this->name;
+	}
+}
+
+$original = new Sheep('Dolly');
+echo $original->name . "\n";  // Outputs: Dolly
+
+$clone = clone $original;
+echo $clone->name . "\n";     // Outputs: Clone of Dolly
+```
+
+Dans cet exemple, nous avons une classe `Sheep` avec une propriété `$name`. Lorsque nous clonons une instance de cette classe, la méthode `__clone()` veille à ce que le nom du mouton cloné reçoive le préfixe "Clone de".
+
+
+Traits .[#toc-traits]
+---------------------
+
+Les traits en PHP sont un outil qui permet de partager des méthodes, des propriétés et des constantes entre les classes et d'éviter la duplication du code. Vous pouvez les considérer comme un mécanisme de "copier-coller" (Ctrl-C et Ctrl-V), où le contenu d'un trait est "collé" dans les classes. Cela vous permet de réutiliser le code sans avoir à créer des hiérarchies de classes compliquées.
+
+Voyons un exemple simple d'utilisation des traits en PHP :
+
+```php
+trait Honking
+{
+	public function honk()
+	{
+		echo 'Beep beep!';
+	}
+}
+
+class Car
+{
+	use Honking;
+}
+
+class Truck
+{
+	use Honking;
+}
+
+$car = new Car;
+$car->honk(); // Outputs 'Beep beep!'
+
+$truck = new Truck;
+$truck->honk(); // Also outputs 'Beep beep!'
+```
+
+Dans cet exemple, nous avons un trait nommé `Honking` qui contient une méthode `honk()`. Nous avons ensuite deux classes : `Car` et `Truck`, qui utilisent toutes deux le trait `Honking`. Par conséquent, les deux classes "possèdent" la méthode `honk()` et nous pouvons l'appeler sur des objets des deux classes.
+
+Les traits vous permettent de partager facilement et efficacement le code entre les classes. Ils n'entrent pas dans la hiérarchie de l'héritage, c'est-à-dire que `$car instanceof Honking` renverra `false`.
+
+
+Exceptions
+----------
+
+Les exceptions dans la POO nous permettent de gérer gracieusement les erreurs et les situations inattendues dans notre code. Il s'agit d'objets qui contiennent des informations sur une erreur ou une situation inhabituelle.
+
+En PHP, nous avons une classe intégrée `Exception`, qui sert de base à toutes les exceptions. Cette classe possède plusieurs méthodes qui nous permettent d'obtenir plus d'informations sur l'exception, comme le message d'erreur, le fichier et la ligne où l'erreur s'est produite, etc.
+
+Lorsqu'une erreur survient dans le code, nous pouvons "lancer" l'exception à l'aide du mot-clé `throw`.
+
+```php
+function division(float $a, float $b): float
+{
+	if ($b === 0) {
+		throw new Exception('Division by zero!');
+	}
+	return $a / $b;
+}
+```
+
+Lorsque la fonction `division()` reçoit null comme deuxième argument, elle lance une exception avec le message d'erreur `'Division by zero!'`. Pour éviter que le programme ne se bloque lorsque l'exception est levée, nous la bloquons dans le bloc `try/catch`:
+
+```php
+try {
+	echo division(10, 0);
+} catch (Exception $e) {
+	echo 'Exception caught: '. $e->getMessage();
+}
+```
+
+Le code qui peut lancer une exception est enveloppé dans un bloc `try`. Si l'exception est levée, l'exécution du code passe à un bloc `catch`, où nous pouvons gérer l'exception (par exemple, écrire un message d'erreur).
+
+Après les blocs `try` et `catch`, nous pouvons ajouter un bloc optionnel `finally`, qui est toujours exécuté, que l'exception ait été levée ou non (même si nous utilisons `return`, `break`, ou `continue` dans le bloc `try` ou `catch` ) :
+
+```php
+try {
+	echo division(10, 0);
+} catch (Exception $e) {
+	echo 'Exception caught: '. $e->getMessage();
+} finally {
+	// Code that is always executed whether the exception has been thrown or not
+}
+```
+
+Nous pouvons également créer nos propres classes d'exception (hiérarchie) qui héritent de la classe Exception. Prenons l'exemple d'une application bancaire simple qui permet d'effectuer des dépôts et des retraits :
+
+```php
+class BankingException extends Exception {}
+class InsufficientFundsException extends BankingException {}
+class ExceededLimitException extends BankingException {}
+
+class BankAccount
+{
+	private int $balance = 0;
+	private int $dailyLimit = 1000;
+
+	public function deposit(int $amount): int
+	{
+		$this->balance += $amount;
+		return $this->balance;
+	}
+
+	public function withdraw(int $amount): int
+	{
+		if ($amount > $this->balance) {
+			throw new InsufficientFundsException('Not enough funds in the account.');
+		}
+
+		if ($amount > $this->dailyLimit) {
+			throw new ExceededLimitException('Daily withdrawal limit exceeded.');
+		}
+
+		$this->balance -= $amount;
+		return $this->balance;
+	}
+}
+```
+
+Plusieurs blocs `catch` peuvent être spécifiés pour un seul bloc `try` si vous vous attendez à différents types d'exceptions.
+
+```php
+$account = new BankAccount;
+$account->deposit(500);
+
+try {
+	$account->withdraw(1500);
+} catch (ExceededLimitException $e) {
+	echo $e->getMessage();
+} catch (InsufficientFundsException $e) {
+	echo $e->getMessage();
+} catch (BankingException $e) {
+	echo 'An error occurred during the operation.';
+}
+```
+
+Dans cet exemple, il est important de noter l'ordre des blocs `catch`. Étant donné que toutes les exceptions héritent de `BankingException`, si nous avions ce bloc en premier, toutes les exceptions seraient capturées dans ce bloc sans que le code n'atteigne les blocs `catch` suivants. Par conséquent, il est important que les exceptions plus spécifiques (c'est-à-dire celles qui héritent d'autres exceptions) soient placées plus haut dans l'ordre du bloc `catch` que leurs exceptions parentales.
+
+
+Itérations .[#toc-iterations]
+-----------------------------
+
+En PHP, vous pouvez parcourir des objets en utilisant la boucle `foreach`, de la même manière que vous parcourez un tableau. Pour que cela fonctionne, l'objet doit implémenter une interface spéciale.
+
+La première option consiste à implémenter l'interface `Iterator`, qui possède des méthodes `current()` renvoyant la valeur courante, `key()` renvoyant la clé, `next()` passant à la valeur suivante, `rewind()` passant au début, et `valid()` vérifiant si nous sommes déjà à la fin.
+
+L'autre option consiste à mettre en œuvre une interface `IteratorAggregate`, qui ne comporte qu'une seule méthode `getIterator()`. Celle-ci renvoie un objet de remplacement qui assurera la traversée, ou peut être un générateur, c'est-à-dire une fonction spéciale qui utilise `yield` pour renvoyer les clés et les valeurs de manière séquentielle :
+
+```php
+class Person
+{
+	public function __construct(
+		public int $age,
+	) {
+	}
+}
+
+class Registry implements IteratorAggregate
+{
+	private array $people = [];
+
+	public function addPerson(Person $person): void
+	{
+		$this->people[] = $person;
+	}
+
+	public function getIterator(): Generator
+	{
+		foreach ($this->people as $person) {
+			yield $person;
+		}
+	}
+}
+
+$list = new Registry;
+$list->addPerson(new Person(30));
+$list->addPerson(new Person(25));
+
+foreach ($list as $person) {
+	echo "Age: {$person->age} years\n";
+}
+```
+
+
+Meilleures pratiques .[#toc-best-practices]
+-------------------------------------------
+
+Une fois que vous avez assimilé les principes de base de la programmation orientée objet, il est essentiel de vous concentrer sur les meilleures pratiques de la POO. Celles-ci vous aideront à écrire un code non seulement fonctionnel, mais aussi lisible, compréhensible et facile à maintenir.
+
+1) **Séparation des préoccupations** : Chaque classe doit avoir une responsabilité clairement définie et ne doit s'occuper que d'une seule tâche principale. Si une classe fait trop de choses, il peut être judicieux de la diviser en classes spécialisées plus petites.
+2) **Encapsulation** : Les données et les méthodes doivent être aussi cachées que possible et accessibles uniquement par l'intermédiaire d'une interface définie. Cela permet de modifier l'implémentation interne d'une classe sans affecter le reste du code.
+3) **Injection de dépendances** : Au lieu de créer des dépendances directement dans une classe, vous devriez les "injecter" depuis l'extérieur. Pour une compréhension plus approfondie de ce principe, nous recommandons les [chapitres sur l'injection de dépendances |dependency-injection:introduction].

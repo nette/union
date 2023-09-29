@@ -22,6 +22,8 @@ Assert::same([
 	'Foo\\Bar\\ClassBar',
 	'Foo\\ClassBar',
 	'InterfaceOk1',
+	'InterfaceOk2',
+	'stdClass',
 ], array_keys($services));
 
 
@@ -51,6 +53,8 @@ Assert::same([
 	'Foo\\Bar\\ClassBar',
 	'Foo\\ClassBar',
 	'InterfaceOk1',
+	'InterfaceOk2',
+	'stdClass',
 ], array_keys($services));
 
 
@@ -99,4 +103,6 @@ Assert::same([
 	'CountableClass',
 	'ExtendsStdClass',
 	'InterfaceOk1',
+	'InterfaceOk2',
+	'stdClass',
 ], array_keys($services));

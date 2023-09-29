@@ -18,15 +18,14 @@ interface Control
 	/**
 	 * Sets control's value.
 	 * @param  mixed  $value
-	 * @return static
 	 */
-	function setValue($value);
+	function setValue(mixed $value): static;
 
 	/**
 	 * Returns control's value.
 	 * @return mixed
 	 */
-	function getValue();
+	function getValue(): mixed;
 
 	function validate(): void;
 
@@ -40,6 +39,3 @@ interface Control
 	 */
 	function isOmitted(): bool;
 }
-
-
-interface_exists(IControl::class);

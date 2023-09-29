@@ -22,6 +22,8 @@ Assert::same([
 	'Foo\\Bar\\ClassBar',
 	'Foo\\ClassBar',
 	'InterfaceOk1',
+	'InterfaceOk2',
+	'stdClass',
 ], array_keys($services));
 
 
@@ -71,13 +73,15 @@ Assert::same([], $services);
 
 
 
-Assert::exception(function () {
-	check('
+Assert::exception(
+	fn() => check('
 	search:
 		in: fixtures
 		extends: unknown
-	');
-}, ReflectionException::class, 'Class %a?%unknown%a?% does not exist');
+	'),
+	ReflectionException::class,
+	'Class %a?%unknown%a?% does not exist',
+);
 
 
 
@@ -95,4 +99,6 @@ Assert::same([
 	'CountableClass',
 	'Foo\\ClassBar',
 	'InterfaceOk1',
+	'InterfaceOk2',
+	'stdClass',
 ], array_keys($services));

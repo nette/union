@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-use Nette\Utils\DateTime;
+use Nette\Database\DateTime;
 use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
@@ -30,7 +30,7 @@ Assert::equal([
 	'money' => 0.0,
 	'bool' => true,
 	'date' => new DateTime('2012-10-13'),
-	'time' => new DateTime('10:10:10'),
+	'time' => new DateTime('0001-01-01 10:10:10'),
 	'timestamp' => new DateTime('2012-10-13 10:10:10'),
 	'timestampZone' => new DateTime('2012-10-13 09:10:10+00'),
 	'interval' => '1 year',
@@ -131,3 +131,12 @@ $res = $connection->query('SELECT "integer" AS a, "text" AS a FROM types');
 Assert::same([
 	'a' => 'a',
 ], (array) @$res->fetch());
+
+
+$res = $connection->query('SELECT SUM("integer") AS int_sum, AVG("integer") AS int_avg, SUM("double") AS float_sum, AVG("double") AS float_avg FROM types WHERE "integer" = 1 GROUP BY "integer"');
+Assert::equal([
+	'int_sum' => 1,
+	'int_avg' => 1.0,
+	'float_sum' => 1.11,
+	'float_avg' => 1.11,
+], (array) $res->fetch());

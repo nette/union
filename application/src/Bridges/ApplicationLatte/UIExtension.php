@@ -10,7 +10,10 @@ declare(strict_types=1);
 namespace Nette\Bridges\ApplicationLatte;
 
 use Latte;
+use Latte\Compiler\Nodes\Php\Expression\AuxiliaryNode;
 use Latte\Compiler\Nodes\TemplateNode;
+use Latte\Compiler\Tag;
+use Latte\Essential\Nodes\ExtendsNode;
 use Nette;
 use Nette\Application\UI;
 
@@ -21,8 +24,18 @@ use Nette\Application\UI;
 final class UIExtension extends Latte\Extension
 {
 	public function __construct(
-		private ?UI\Control $control,
+		private readonly ?UI\Control $control,
 	) {
+	}
+
+
+	public function getFilters(): array
+	{
+		return [
+			'modifyDate' => fn($time, $delta, $unit = null) => $time
+				? Nette\Utils\DateTime::from($time)->modify($delta . $unit)
+				: null,
+		];
 	}
 
 
@@ -30,8 +43,8 @@ final class UIExtension extends Latte\Extension
 	{
 		if ($presenter = $this->control?->getPresenterIfExists()) {
 			return [
-				'isLinkCurrent' => [$presenter, 'isLinkCurrent'],
-				'isModuleCurrent' => [$presenter, 'isModuleCurrent'],
+				'isLinkCurrent' => $presenter->isLinkCurrent(...),
+				'isModuleCurrent' => $presenter->isModuleCurrent(...),
 			];
 		}
 		return [];
@@ -43,10 +56,10 @@ final class UIExtension extends Latte\Extension
 		$presenter = $this->control?->getPresenterIfExists();
 		$httpResponse = $presenter?->getHttpResponse();
 		return [
-			'coreParentFinder' => [$this, 'findLayoutTemplate'],
+			'coreParentFinder' => $this->findLayoutTemplate(...),
 			'uiControl' => $this->control,
 			'uiPresenter' => $presenter,
-			'snippetDriver' => $this->control ? new SnippetDriver($this->control) : null,
+			'snippetDriver' => $this->control ? new SnippetRuntime($this->control) : null,
 			'uiNonce' => $httpResponse ? $this->findNonce($httpResponse) : null,
 		];
 	}
@@ -55,15 +68,17 @@ final class UIExtension extends Latte\Extension
 	public function getTags(): array
 	{
 		return [
-			'n:href' => [Nodes\LinkNode::class, 'create'],
-			'n:nonce' => [Nodes\NNonceNode::class, 'create'],
-			'control' => [Nodes\ControlNode::class, 'create'],
-			'plink' => [Nodes\LinkNode::class, 'create'],
-			'link' => [Nodes\LinkNode::class, 'create'],
-			'ifCurrent' => [Nodes\IfCurrentNode::class, 'create'],
-			'templatePrint' => [Nodes\TemplatePrintNode::class, 'create'],
-			'snippet' => [Nodes\SnippetNode::class, 'create'],
-			'snippetArea' => [Nodes\SnippetAreaNode::class, 'create'],
+			'n:href' => Nodes\LinkNode::create(...),
+			'n:nonce' => Nodes\NNonceNode::create(...),
+			'control' => Nodes\ControlNode::create(...),
+			'plink' => Nodes\LinkNode::create(...),
+			'link' => Nodes\LinkNode::create(...),
+			'ifCurrent' => Nodes\IfCurrentNode::create(...),
+			'templatePrint' => Nodes\TemplatePrintNode::create(...),
+			'snippet' => Nodes\SnippetNode::create(...),
+			'snippetArea' => Nodes\SnippetAreaNode::create(...),
+			'layout' => $this->createExtendsNode(...),
+			'extends' => $this->createExtendsNode(...),
 		];
 	}
 
@@ -71,7 +86,7 @@ final class UIExtension extends Latte\Extension
 	public function getPasses(): array
 	{
 		return [
-			'snippetRendering' => [$this, 'snippetRenderingPass'],
+			'snippetRendering' => $this->snippetRenderingPass(...),
 		];
 	}
 
@@ -105,5 +120,16 @@ final class UIExtension extends Latte\Extension
 		$header = $httpResponse->getHeader('Content-Security-Policy')
 			?: $httpResponse->getHeader('Content-Security-Policy-Report-Only');
 		return preg_match('#\s\'nonce-([\w+/]+=*)\'#', (string) $header, $m) ? $m[1] : null;
+	}
+
+
+	public static function createExtendsNode(Tag $tag): ExtendsNode
+	{
+		$auto = $tag->parser->stream->is('auto');
+		$node = ExtendsNode::create($tag);
+		if ($auto) {
+			$node->extends = new AuxiliaryNode(fn() => '$this->global->uiPresenter->findLayoutTemplateFile()');
+		}
+		return $node;
 	}
 }

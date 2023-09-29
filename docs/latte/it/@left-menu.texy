@@ -1,23 +1,24 @@
 - [Per iniziare |Guide]
-- Concetti
+- [Perché usare i modelli? |why-use]
+- Concetti ⚗️
 	- La [sicurezza prima di tutto |Safety First]
 	- [Ereditarietà dei template |Template Inheritance]
 	- [Sistema di tipi |Type System]
 	- [Sandbox |Sandbox]
 
-- Per i progettisti
+- Per i progettisti 🎨
 	- [Sintassi |Syntax]
 	- [Tag |Tags]
 	- [Filtri |Filters]
 	- [Funzioni |Functions]
 	- [Suggerimenti e trucchi |recipes]
 
-- Per gli sviluppatori
+- Per gli sviluppatori 🧮
 	- [Pratiche per gli sviluppatori|develop]
 	- [Estensione di Latte |Extending Latte]
 	- [Creare un'estensione |creating-extension]
 
-- [Libro di cucina |cookbook/@home]
+- [Libro di cucina 💡|cookbook/@home]
 	- [Migrazione da Twig |cookbook/migration-from-twig]
 	- [... altro |cookbook/@home]
 

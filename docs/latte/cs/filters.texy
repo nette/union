@@ -14,6 +14,7 @@ V šablonách můžeme používat funkce, které pomáhají upravit nebo přefor
 | `date`       | [formátuje datum |#date]
 | `explode`    | [rozdělí řetězec na pole podle oddělovače |#explode]
 | `first`      | [vrací první prvek pole nebo znak řetězce |#first]
+| `group`      | [seskupí data podle různých kritérií |#group]
 | `implode`    | [spojí pole do řetězce |#implode]
 | `indent`     | [odsadí text zleva o daný počet tabulátorů |#indent]
 | `join`       | [spojí pole do řetězce |#implode]
@@ -118,8 +119,8 @@ Filtry
 ======
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Filtr, který zjednodušuje výpis lineárních dat do podoby tabulky. Vrací pole polí se zadaným počtem položek. Pokud zadáte druhý parametr, použije se k doplnění chybějících položek na posledním řádku.
 
 ```latte
@@ -151,6 +152,8 @@ Vypíše:
 	</tr>
 </table>
 ```
+
+Viz také [#group] a značka [iterateWhile|tags#iterateWhile].
 
 
 breakLines .[filter]
@@ -203,8 +206,8 @@ Vynutí ošetření URL adresy. Kontroluje, zda proměnná obsahuje webovou URL 
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">kontrolované</a>
-<a data-href="{$link}">nekontrolované</a>
+<a data-href={$link|checkUrl}>kontrolované</a>
+<a data-href={$link}>nekontrolované</a>
 ```
 
 Vypíše:
@@ -217,8 +220,8 @@ Vypíše:
 Viz také [#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 Ohraničí hodnotu do daného inkluzivního rozsahu min a max.
 
 ```latte
@@ -235,7 +238,7 @@ Konvertuje obsah do data URI scheme. Pomocí něj lze do HTML nebo CSS vkládat 
 Mějme v proměnné obrázek `$img = Image::fromFile('obrazek.gif')`, poté
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 Vypíše například:
@@ -271,8 +274,8 @@ Escapuje proměnnou pro použití jakožto parametru v URL.
 Viz také [#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Rozdělí řetězec na pole podle oddělovače. Alias pro `split`.
 
 ```latte
@@ -294,8 +297,8 @@ Můžete také použít alias `split`:
 Viz také [#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Vrací první prvek pole nebo znak řetězce:
 
 ```latte
@@ -330,6 +333,25 @@ Převede první písmeno na velká. Vyžaduje PHP rozšíření `mbstring`.
 Viz také [#capitalize], [#lower], [#upper].
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+Filtr seskupí data podle různých kritérií.
+
+V tomto příkladu se řádky v tabulce seskupují podle sloupce `categoryId`. Výstupem je pole polí, kde klíčem je hodnota ve sloupci `categoryId`. [Přečtěte si podrobný návod|cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+Viz také [#batch], funkce [group|functions#group] a značka [iterateWhile|tags#iterateWhile].
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Vrátí řetězec, který je zřetězením položek sekvence. Alias pro `join`.
@@ -339,7 +361,7 @@ Vrátí řetězec, který je zřetězením položek sekvence. Alias pro `join`.
 {=[1, 2, 3]|implode:'|'}  {* vypíše '1|2|3' *}
 ```
 
-Můžete také použít alias `join`: .{data-version:2.10.2}
+Můžete také použít alias `join`:
 
 ```latte
 {=[1, 2, 3]|join}         {* vypíše '123' *}
@@ -367,8 +389,8 @@ Vypíše:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Vrací poslední prvek pole nebo znak řetězce:
 
 ```latte
@@ -416,8 +438,8 @@ Pokud odkaz používá jiné schéma, např. `javascript:` nebo `data:`, a jste 
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">kontrolované</a>
-<a href="{$link|nocheck}">nekontrolované</a>
+<a href={$link}>kontrolované</a>
+<a href={$link|nocheck}>nekontrolované</a>
 ```
 
 Vypíše:
@@ -481,8 +503,8 @@ Doplní řetězec do určité délky jiným řetězcem zprava.
 ```
 
 
-query .[filter]{data-version:2.10}
-----------------------------------
+query .[filter]
+---------------
 Dynamicky generuje query string v URL:
 
 ```latte
@@ -502,8 +524,8 @@ Klíče s hodnotou `null` se vynechají.
 Viz také [#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Vrací náhodný prvek pole nebo znak řetězce:
 
 ```latte
@@ -531,7 +553,7 @@ Nahradí všechny výskyty vyhledávacího řetězce náhradním řetězcem.
 {='hello world'|replace: 'world', 'friend'}  {* vypíše 'hello friend' *}
 ```
 
-Lze provést i více záměn najednou: .{data-version:2.10.2}
+Lze provést i více záměn najednou:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* vypíše 'lehho worhd' *}
@@ -573,8 +595,8 @@ Zaokrouhlí číslo na danou přesnost.
 Viz také [#ceil], [#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Extrahuje část pole nebo řetězce.
 
 ```latte
@@ -591,9 +613,9 @@ Pokud je zadaný parametr length a je kladný, posloupnost bude obsahovat tolik 
 Ve výchozím nastavení filtr změní pořadí a resetuje celočíselného klíče pole. Toto chování lze změnit nastavením preserveKeys na true. Řetězcové klíče jsou vždy zachovány, bez ohledu na tento parametr.
 
 
-sort .[filter]{data-version:2.9}
---------------------------------
-Filtr, který seřadí pole. Zachovává asociaci s klíčí.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+Filtr slouží k seřazení prvků v poli nebo iterátoru, přičemž zachovává asociační klíče:
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +631,41 @@ Filtr, který seřadí pole. Zachovává asociaci s klíčí.
 {/foreach}
 ```
 
-Jako parametr lze předat vlastní porovnávací funkci: .{data-version:2.10.2}
+Můžete specifikovat vlastní porovnávací funkci pro řazení (příklad ukazuje, jak obrátit řazení od největší po nejmenší):
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+Filtr `|sort` také umožňuje řadit prvky podle klíčů:
 
-spaceless .[filter]{data-version:2.10.2}
-----------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+Pokud potřebujete seřadit tabulku podle konkrétního sloupce, můžete použít parametr `by`. Hodnota `'name'` v ukázce určuje, že se bude řadit podle `$item->name` nebo `$item['name']`, v závislosti na tom, zda je `$item` pole nebo objekt:
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+Můžete také definovat callback funkci, která určí hodnotu, podle které se má řadit:
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+Stejným způsobem lze využít i parametr `byKey`.
+
+
+spaceless .[filter]
+-------------------
 Odstraní zbytečné bílé místo (mezery) z výstupu. Můžete také použít alias `strip`.
 
 ```latte
@@ -655,8 +703,8 @@ Extrahuje část řetězce. Tento filtr byl nahrazen filtrem [#slice].
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 Překládá výrazy do jiných jazyků. Aby byl filtr k dispozici, je potřeba [nastavit překladač|develop#TranslatorExtension]. Můžete také použít [tagy pro překlad|tags#Překlady].
 
 ```latte

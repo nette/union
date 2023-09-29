@@ -1,0 +1,257 @@
+Všechno, co jste kdy chtěli vědět o seskupování
+***********************************************
+
+.[perex]
+Při práci s daty ve šablonách můžete často narazit na potřebu jejich seskupování nebo specifického zobrazení podle určitých kritérií. Latte pro tento účel nabízí hned několik silných nástrojů.
+
+Filtr a funkce `|group` umožňují efektivní seskupení dat podle zadaného kritéria, filtr `|batch` zase usnadňuje rozdělení dat do pevně daných dávek a značka `{iterateWhile}` poskytuje možnost složitějšího řízení průběhu cyklů s podmínkami.
+Každá z těchto značek nabízí specifické možnosti pro práci s daty, čímž se stávají nepostradatelnými nástroji pro dynamické a strukturované zobrazení informací v Latte šablonách.
+
+
+Filtr a funkce `group` .{data-version:3.0.16}
+=============================================
+
+Představte si databázovou tabulku `items` s položkami rozdělenou do kategorií:
+
+| id  | categoryId | name
+|------------------
+| 1   |      1  | Apple
+| 2   |      1  | Banana
+| 3   |      2  | PHP
+| 4   |      3  | Green
+| 5   |      3  | Red
+| 6   |      3  | Blue
+
+Jednoduchý seznam všech položek pomocí Latte šablony by vypadal takto:
+
+```latte
+<ul>
+{foreach $items as $item}
+	<li>{$item->name}</li>
+{/foreach}
+</ul>
+```
+
+Pokud bychom ale chtěli, aby položky byly uspořádány do skupin podle kategorie, potřebujeme je rozdělit tak, že každá kategorie bude mít svůj vlastní seznam. Výsledek by pak měl vypadat následovně:
+
+```latte
+<ul>
+	<li>Apple</li>
+	<li>Banana</li>
+</ul>
+
+<ul>
+	<li>PHP</li>
+</ul>
+
+<ul>
+	<li>Green</li>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+Úkol se dá snadno a elegantně vyřešit pomocí `|group`. Jako parametr uvedeme `categoryId`, což znamená, že se položky rozdělí do menších polí podle hodnoty `$item->categoryId` (pokud by `$item` bylo pole, použije se `$item['categoryId']`):
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+	<ul>
+		{foreach $categoryItems as $item}
+			<li>{$item->name}</li>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+Filtr lze v Latte použít i jako funkci, což nám dává alternativní syntaxi: `{foreach group($items, categoryId) ...}`.
+
+Chcete-li seskupovat položky podle složitějších kritérií, můžete v parametru filtru použít funkci. Například, seskupení položek podle délky názvu by vypadalo takto:
+
+```latte
+{foreach ($items|group: fn($item) => strlen($item->name)) as $items}
+	...
+{/foreach}
+```
+
+Je důležité si uvědomit, že `$categoryItems` není běžné pole, ale objekt, který se chová jako iterátor. Pro přístup k první položce skupiny můžete použít funkci [`first()`|latte:functions#first].
+
+Tato flexibilita v seskupování dat činí `group` výjimečně užitečným nástrojem pro prezentaci dat v šablonách Latte.
+
+
+Vnořené smyčky
+--------------
+
+Představme si, že máme databázovou tabulku s dalším sloupcem `subcategoryId`, který definuje podkategorie jednotlivých položek. Chceme zobrazit každou hlavní kategorii v samostatném seznamu `<ul>` a každou podkategorii v samostatném vnořeném seznamu `<ol>`:
+
+```latte
+{foreach ($items|group: categoryId) as $categoryItems}
+	<ul>
+		{foreach ($categoryItems|group: subcategoryId) as $subcategoryItems}
+			<ol>
+				{foreach $subcategoryItems as $item}
+					<li>{$item->name}
+				{/foreach}
+			</ol>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+
+Spojení s Nette Database
+------------------------
+
+Pojďme si ukázat, jak efektivně využít seskupování dat v kombinaci s Nette Database. Předpokládejme, že pracujeme s tabulkou `items` z úvodního příkladu, která je prostřednictvím sloupce `categoryId` spojená s touto tabulkou `categories`:
+
+| categoryId | name       |
+|------------|------------|
+| 1          | Fruits     |
+| 2          | Languages  |
+| 3          | Colors     |
+
+Data z tabulky `items` načteme pomocí Nette Database Explorer příkazem `$items = $db->table('items')`. Během iterace nad těmito daty máme možnost přistupovat nejen k atributům jako `$item->name` a `$item->categoryId`, ale díky propojení s tabulkou `categories` také k souvisejícímu řádku v ní přes `$item->category`. Na tomto propojení lze demonstrovat zajímavé využití:
+
+```latte
+{foreach ($items|group: category) as $category => $categoryItems}
+	<h1>{$category->name}</h1>
+	<ul>
+		{foreach $categoryItems as $item}
+			<li>{$item->name}</li>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+V tomto případě používáme filtr `|group` k seskupení podle propojeného řádku `$item->category`, nikoliv jen dle sloupce `categoryId`. Díky tomu v proměnné klíči přímo `ActiveRow` dané kategorie, což nám umožňuje přímo vypisovat její název pomocí `{$category->name}`. Toto je praktický příklad, jak může seskupování zpřehlednit šablony a usnadnit práci s daty.
+
+
+Filtr `|batch`
+==============
+
+Filtr umožňuje rozdělit seznam prvků do skupin s předem určeným počtem prvků. Tento filtr je ideální pro situace, kdy chcete data prezentovat ve více menších skupinách, například pro lepší přehlednost nebo vizuální uspořádání na stránce.
+
+Představme si, že máme seznam položek a chceme je zobrazit v seznamech, kde každý obsahuje maximálně tři položky. Použití filtru `|batch` je v takovém případě velmi praktické:
+
+```latte
+<ul>
+{foreach ($items|batch: 3) as $batch}
+	{foreach $batch as $item}
+		<li>{$item->name}</li>
+	{/foreach}
+{/foreach}
+</ul>
+```
+
+V tomto příkladu je seznam `$items` rozdělen do menších skupin, přičemž každá skupina (`$batch`) obsahuje až tři položky. Každá skupina je poté zobrazena v samostatném `<ul>` seznamu.
+
+Pokud poslední skupina neobsahuje dostatek prvků k dosažení požadovaného počtu, druhý parametr filtru umožňuje definovat, čím bude tato skupina doplněna. To je ideální pro estetické zarovnání prvků tam, kde by neúplná řada mohla působit neuspořádaně.
+
+```latte
+{foreach ($items|batch: 3, '—') as $batch}
+	...
+{/foreach}
+```
+
+
+Značka `{iterateWhile}`
+=======================
+
+Stejné úkoly, jako jsme řešili s filtrem `|group`, si ukážeme s použitím značky `{iterateWhile}`. Hlavní rozdíl mezi oběma přístupy je v tom, že `group` nejprve zpracuje a seskupí všechna vstupní data, zatímco `{iterateWhile}` řídí průběhu cyklů s podmínkami, takže iterace probíhá postupně.
+
+Nejprve vykreslíme tabulku s kategoriemi pomocí iterateWhile:
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<li>{$item->name}</li>
+		{/iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+	</ul>
+{/foreach}
+```
+
+Zatímco `{foreach}` označuje vnější část cyklu, tedy vykreslování seznamů pro každou kategorii, tak značka `{iterateWhile}` označuje vnitřní část, tedy jednotlivé položky.
+Podmínka v koncové značce říká, že opakování bude probíhat do té doby, dokud aktuální i následující prvek patří do stejné kategorie (`$iterator->nextValue` je [následující položka|/tags#$iterator]).
+
+Kdyby podmínka byla splněná vždy, tak se ve vnitřním cyklu vykreslí všechny prvky:
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<li>{$item->name}
+		{/iterateWhile true}
+	</ul>
+{/foreach}
+```
+
+Výsledek bude vypadat takto:
+
+```latte
+<ul>
+	<li>Apple</li>
+	<li>Banana</li>
+	<li>PHP</li>
+	<li>Green</li>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+K čemu je takové použití iterateWhile dobré? Když bude tabulka prázdná a nebude obsahovat žádné prvky, nevypíše se prázdné `<ul></ul>`.
+
+Pokud uvedeme podmínku v otevírací značce `{iterateWhile}`, tak se chování změní: podmínka (a přechod na další prvek) se vykoná už na začátku vnitřního cyklu, nikoliv na konci.
+Tedy zatímco do `{iterateWhile}` bez podmínky se vstoupí vždy, do `{iterateWhile $cond}` jen při splnění podmínky `$cond`. A zároveň se s tím do `$item` zapíše následující prvek.
+
+Což se hodí například v situaci, kdy budeme chtít první prvek v každé kategorii vykreslit jiným způsobem, například takto:
+
+```latte
+<h1>Apple</h1>
+<ul>
+	<li>Banana</li>
+</ul>
+
+<h1>PHP</h1>
+<ul>
+</ul>
+
+<h1>Green</h1>
+<ul>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+Původní kód upravíme tak, že nejprve vykreslíme první položku a poté ve vnitřním cyklu `{iterateWhile}` vykreslíme další položky ze stejné kategorie:
+
+```latte
+{foreach $items as $item}
+	<h1>{$item->name}</h1>
+	<ul>
+		{iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+			<li>{$item->name}</li>
+		{/iterateWhile}
+	</ul>
+{/foreach}
+```
+
+V rámci jednoho cyklu můžeme vytvářet více vnitřních smyček a dokonce je zanořovat. Takto by se daly seskupovat třeba podkategorie atd.
+
+Dejme tomu, že v tabulce bude ještě další sloupec `subcategoryId` a kromě toho, že každá kategorie bude v samostatném `<ul>`, každá každý podkategorie samostatném `<ol>`:
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<ol>
+				{iterateWhile}
+					<li>{$item->name}
+				{/iterateWhile $item->subcategoryId === $iterator->nextValue->subcategoryId}
+			</ol>
+		{/iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+	</ul>
+{/foreach}
+```
+
+
+{{leftbar: /@left-menu}}

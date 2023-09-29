@@ -20,7 +20,7 @@ database:
 	password: ...
 ```
 
-[Veritabanı Gezgini |explorer] katmanı için `Nette\Database\Connection` ve ayrıca `Nette\Database\Explorer` türünde hizmetler oluşturur. Veritabanı bağlantısı genellikle [otomatik kablolama |dependency-injection:autowiring] ile aktarılır, bu mümkün değilse `@database.default.connection` ve `@database.default.explorer` servis adlarını kullanın.
+Genellikle [otomatik kablolama |dependency-injection:autowiring] veya [adlarına |#DI Services] atıfta bulunarak geçirilen `Nette\Database\Connection` ve `Nette\Database\Explorer` hizmetlerini oluşturur.
 
 Diğer ayarlar:
 
@@ -51,6 +51,12 @@ database:
 		# sadece MySQL: SET NAMES setleri
 		charset:      # (string) varsayılan olarak 'utf8mb4' ('utf8' v5.5.3'ten önce)
 
+		# sadece MySQL: TINYINT(1)'i bool'a dönüştürür
+		supportBooleans: # (bool) varsayılan değer false
+
+		# tarih sütunlarını değişmez nesneler olarak döndürür (3.2.1 sürümünden beri)
+		newDateTime:  # (bool) varsayılan değer false
+
 		# sadece Oracle ve SQLite: tarih biçimi
 		formatDateTime: # (string) varsayılan değer 'U'
 ```
@@ -80,9 +86,23 @@ database:
 		dsn: 'sqlite::memory:'
 ```
 
-Tanımlanan her bağlantı, adlarında bölüm adını içeren hizmetler oluşturur, yani `@database.main.connection` & `@database.main.explorer` ve ayrıca `@database.another.connection` & `@database.another.explorer`.
+Otomatik kablolama yalnızca ilk bölümdeki hizmetler için etkinleştirilir. Bu, `autowired: false` veya `autowired: true` kullanılarak değiştirilebilir.
 
-Otomatik bağlantı yalnızca ilk bölümdeki hizmetler için etkinleştirilir. Bu, `autowired: false` veya `autowired: true` ile değiştirilebilir. Otomatik bağlanmayan hizmetler isimle iletilir:
+
+DI Hizmetleri .[#toc-di-services]
+---------------------------------
+
+Bu hizmetler DI konteynerine eklenir, burada `###` bağlantı adını temsil eder:
+
+| Ad | Tür | Açıklama
+|----------------------------------------------------------
+| `database.###.connection` | [api:Nette\Database\Connection] | veritabanı bağlantısı
+| `database.###.explorer` | [api:Nette\Database\Explorer] | [Database Explorer |explorer]
+
+
+Yalnızca bir bağlantı tanımlarsak, hizmet adları `database.default.connection` ve `database.default.explorer` olacaktır. Yukarıdaki örnekte olduğu gibi birden fazla bağlantı tanımlarsak, adlar bölümlere karşılık gelecektir, yani `database.main.connection`, `database.main.explorer` ve ardından `database.another.connection` ve `database.another.explorer`.
+
+Kimliği doğrulanmamış hizmetleri adlarına atıfta bulunarak açıkça iletiriz:
 
 ```neon
 services:

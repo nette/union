@@ -9,30 +9,27 @@ declare(strict_types=1);
 
 namespace Nette\Bridges\FormsLatte;
 
-use Latte;
-use Nette;
+use Nette\Forms\Container;
 use Nette\Forms\Form;
 use Nette\Utils\Html;
 
 
 /**
- * Runtime helpers for Latte v2 & v3.
+ * Runtime helpers for Latte v3.
  * @internal
  */
 class Runtime
 {
-	use Nette\StaticClass;
+	/** @var Container[] */
+	private array $stack = [];
+
 
 	/**
 	 * Renders form begin.
 	 */
-	public static function renderFormBegin(Form $form, array $attrs, bool $withTags = true): string
+	public function renderFormBegin(array $attrs, bool $withTags = true): string
 	{
-		$form->fireRenderEvents();
-		foreach ($form->getControls() as $control) {
-			$control->setOption('rendered', false);
-		}
-
+		$form = $this->current();
 		$el = $form->getElementPrototype();
 		$el->action = (string) $el->action;
 		$el = clone $el;
@@ -48,8 +45,9 @@ class Runtime
 	/**
 	 * Renders form end.
 	 */
-	public static function renderFormEnd(Form $form, bool $withTags = true): string
+	public function renderFormEnd(bool $withTags = true): string
 	{
+		$form = $this->current();
 		$s = '';
 		if ($form->isMethod('get')) {
 			foreach (preg_split('#[;&]#', (string) parse_url($form->getElementPrototype()->action, PHP_URL_QUERY), -1, PREG_SPLIT_NO_EMPTY) as $param) {
@@ -68,59 +66,39 @@ class Runtime
 			}
 		}
 
-		if (iterator_count($form->getComponents(true, Nette\Forms\Controls\TextInput::class)) < 2) {
-			$s .= "<!--[if IE]><input type=IEbug disabled style=\"display:none\"><![endif]-->\n";
-		}
-
 		return $s . ($withTags ? $form->getElementPrototype()->endTag() . "\n" : '');
 	}
 
 
-	/**
-	 * Generates blueprint of form.
-	 */
-	public static function renderFormPrint(Form $form): void
+	public function item($item): object
 	{
-		$blueprint = class_exists(Latte\Runtime\Blueprint::class)
-			? new Latte\Runtime\Blueprint
-			: new Latte\Essential\Blueprint;
-		$end = $blueprint->printCanvas();
-		$blueprint->printHeader('Form ' . $form->getName());
-		$blueprint->printCode((new Nette\Forms\Rendering\LatteRenderer)->render($form), 'latte');
-		echo $end;
+		return is_object($item)
+			? $item
+			: $this->current()[$item];
 	}
 
 
-	/**
-	 * Generates blueprint of form data class.
-	 */
-	public static function renderFormClassPrint(Form $form): void
+	public function begin(Container $form): void
 	{
-		$blueprint = class_exists(Latte\Runtime\Blueprint::class)
-			? new Latte\Runtime\Blueprint
-			: new Latte\Essential\Blueprint;
-		$end = $blueprint->printCanvas();
-		$blueprint->printHeader('Form Data Class ' . $form->getName());
-		$generator = new Nette\Forms\Rendering\DataClassGenerator;
-		$blueprint->printCode($generator->generateCode($form));
-		if (PHP_VERSION_ID >= 80000) {
-			$generator->propertyPromotion = true;
-			$blueprint->printCode($generator->generateCode($form));
-		}
+		$this->stack[] = $form;
 
-		echo $end;
+		if ($form instanceof Form) {
+			$form->fireRenderEvents();
+			foreach ($form->getControls() as $control) {
+				$control->setOption('rendered', false);
+			}
+		}
 	}
 
 
-	public static function item($item, $global): object
+	public function end(): void
 	{
-		if (is_object($item)) {
-			return $item;
-		}
-		$form = end($global->formsStack);
-		if (!$form) {
-			throw new \LogicException('Form declaration is missing, did you use {form} or <form n:name> tag?');
-		}
-		return $form[$item];
+		array_pop($this->stack);
+	}
+
+
+	public function current(): Container
+	{
+		return end($this->stack) ?: throw new \LogicException('Form declaration is missing, did you use {form} or <form n:name> tag?');
 	}
 }

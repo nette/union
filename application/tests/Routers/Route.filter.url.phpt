@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Test: Nette\Application\Routers\Route with FILTER_IN & FILTER_OUT
+ * Test: Nette\Application\Routers\Route with FilterIn & FilterOut
  */
 
 declare(strict_types=1);
@@ -16,12 +16,8 @@ require __DIR__ . '/Route.php';
 
 $route = new Route('<presenter>', [
 	'presenter' => [
-		Route::FILTER_IN => function ($s) {
-			return strrev($s);
-		},
-		Route::FILTER_OUT => function ($s) {
-			return strrev($s);
-		},
+		Route::FilterIn => fn($s) => strrev($s),
+		Route::FilterOut => fn($s) => strrev($s),
 	],
 ]);
 

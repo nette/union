@@ -34,22 +34,18 @@ class FooArticle extends Article
 }
 
 $compiler = new DI\Compiler;
-// parameters are deprecated
-$container = @createContainer($compiler, '
+$container = createContainer($compiler, '
 services:
 	article:
-		factory: Article(%title%)
+		create: Article
 		implement: IArticleFactory
-		parameters: [title]
 
 	article2:
 		implement: IArticleFactory
-		arguments: [%title%]
-		parameters: [title]
 
 	article3:
 		implement: IArticleFactory
-		factory: FooArticle
+		create: FooArticle
 ');
 
 Assert::type(IArticleFactory::class, $container->getService('article'));

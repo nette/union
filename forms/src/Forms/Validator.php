@@ -17,12 +17,11 @@ use Nette\Utils\Validators;
 /**
  * Common validators.
  */
-class Validator
+final class Validator
 {
 	use Nette\StaticClass;
 
-	/** @var array */
-	public static $messages = [
+	public static array $messages = [
 		Controls\CsrfProtection::Protection => 'Your session has expired. Please return to the home page and try again.',
 		Form::Equal => 'Please enter %s.',
 		Form::NotEqual => 'This value should not be %s.',
@@ -48,10 +47,9 @@ class Validator
 
 
 	/**
-	 * @return string|Nette\HtmlStringable
 	 * @internal
 	 */
-	public static function formatMessage(Rule $rule, bool $withValue = true)
+	public static function formatMessage(Rule $rule, bool $withValue = true): string|Nette\HtmlStringable
 	{
 		$message = $rule->message;
 		if ($message instanceof Nette\HtmlStringable) {
@@ -64,7 +62,7 @@ class Validator
 			trigger_error(
 				"Missing validation message for control '{$rule->control->getName()}'"
 				. (is_string($rule->validator) ? " (validator '{$rule->validator}')." : '.'),
-				E_USER_WARNING
+				E_USER_WARNING,
 			);
 		}
 
@@ -92,9 +90,16 @@ class Validator
 				default:
 					$args = is_array($rule->arg) ? $rule->arg : [$rule->arg];
 					$i = (int) $m[1] ? (int) $m[1] - 1 : $i + 1;
-					return isset($args[$i])
-						? ($args[$i] instanceof Control ? ($withValue ? $args[$i]->getValue() : "%$i") : $args[$i])
-						: '';
+					$arg = $args[$i] ?? null;
+					if ($arg === null) {
+						return '';
+					} elseif ($arg instanceof Control) {
+						return $withValue ? $args[$i]->getValue() : "%$i";
+					} elseif ($rule->control instanceof Controls\DateTimeControl) {
+						return $rule->control->formatLocaleText($arg);
+					} else {
+						return $arg;
+					}
 			}
 		}, $message);
 		return $message;
@@ -181,9 +186,10 @@ class Validator
 	 */
 	public static function validateRange(Control $control, array $range): bool
 	{
-		$range = array_map(function ($v) {
-			return $v === '' ? null : $v;
-		}, $range);
+		if ($control instanceof Controls\DateTimeControl) {
+			return $control->validateMinMax($range[0] ?? null, $range[1] ?? null);
+		}
+		$range = array_map(fn($v) => $v === '' ? null : $v, $range);
 		return Validators::isInRange($control->getValue(), $range);
 	}
 
@@ -208,9 +214,8 @@ class Validator
 
 	/**
 	 * Count/length validator. Range is array, min and max length pair.
-	 * @param  array|int  $range
 	 */
-	public static function validateLength(Control $control, $range): bool
+	public static function validateLength(Control $control, array|int $range): bool
 	{
 		if (!is_array($range)) {
 			$range = [$range, $range];
@@ -297,7 +302,7 @@ class Validator
 
 	public static function validatePatternCaseInsensitive(Control $control, string $pattern): bool
 	{
-		return self::validatePattern($control, $pattern, true);
+		return self::validatePattern($control, $pattern, caseInsensitive: true);
 	}
 
 
@@ -367,11 +372,11 @@ class Validator
 	 * Has file specified mime type?
 	 * @param  string|string[]  $mimeType
 	 */
-	public static function validateMimeType(Controls\UploadControl $control, $mimeType): bool
+	public static function validateMimeType(Controls\UploadControl $control, string|array $mimeType): bool
 	{
 		$mimeTypes = is_array($mimeType) ? $mimeType : explode(',', $mimeType);
 		foreach (static::toArray($control->getValue()) as $file) {
-			$type = strtolower($file->getContentType());
+			$type = strtolower($file->getContentType() ?? '');
 			if (!in_array($type, $mimeTypes, true) && !in_array(preg_replace('#/.*#', '/*', $type), $mimeTypes, true)) {
 				return false;
 			}

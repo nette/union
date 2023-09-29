@@ -1,8 +1,10 @@
 Εγχώνευση εξάρτησης
 *******************
 - [Τι είναι η DI; |introduction]
-- [Τι είναι το DI Container; |container]
+- [Παγκόσμια κατάσταση & Singletons |global-state]
 - [Πέρασμα εξαρτήσεων |passing-dependencies]
+- [Τι είναι το DI Container; |container]
+- [Συχνές ερωτήσεις |faq]
 
 
 Nette DI

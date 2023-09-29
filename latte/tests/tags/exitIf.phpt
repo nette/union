@@ -28,6 +28,24 @@ Assert::exception(
 
 
 $template = <<<'XX'
+	{exitIf true}
+	c
+	XX;
+
+Assert::match(
+	<<<'XX'
+		%A%
+			{
+				if (true) /* line 1 */ return;
+				echo 'c';
+			}
+		%A%
+		XX,
+	$latte->compile($template),
+);
+
+
+$template = <<<'XX'
 	a
 	{exitIf true}
 	b
@@ -105,6 +123,25 @@ Assert::match(
 				echo '	c
 		';
 			}
+		%A%
+		XX,
+	$latte->compile($template),
+);
+
+
+$template = <<<'XX'
+	<div>{exitIf true}</div>
+	XX;
+
+Assert::match(
+	<<<'XX'
+		%A%
+				echo '<div>';
+				try {
+					if (true) /* line 1 */ return;
+				} finally {
+					echo '</div>';
+				}
 		%A%
 		XX,
 	$latte->compile($template),

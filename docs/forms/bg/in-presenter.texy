@@ -30,11 +30,11 @@ $form->onSuccess[] = [$this, 'formSucceeded'];
 
 От гледна точка на водещия формулярът е общ компонент. Затова той се третира като компонент и се включва в презентатора чрез [метода factory |application:components#Factory-Methods]. Това ще изглежда по следния начин:
 
-```php .{file:app/Presenters/HomepagePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
-class HomepagePresenter extends Nette\Application\UI\Presenter
+class HomePresenter extends Nette\Application\UI\Presenter
 {
 	protected function createComponentRegistrationForm(): Form
 	{
@@ -52,14 +52,14 @@ class HomepagePresenter extends Nette\Application\UI\Presenter
 		// $data->name съдържа името
 		// $data->password съдържа парола
 		$this->flashMessage('Регистрирахте се успешно.');
-		$this->redirect('Homepage:');
+		$this->redirect('Home:');
 	}
 }
 ```
 
 А визуализирането в шаблона се извършва с помощта на тага `{control}`:
 
-```latte .{file:app/Presenters/templates/Homepage/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 <h1>Регистрация</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ $form->addText('name', 'Имя:')
 Вмъкнете го в шаблона за оформление:
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
 ```
 
 Ако разгледате изходния код на страницата с формуляра, можете да забележите, че Nette вмъква задължителни полета в елементи с клас CSS `required`. Опитайте се да добавите следния стил към шаблона и тагът "Име" ще бъде червен. Елегантно маркираме задължителните полета за потребителите:
@@ -293,6 +293,8 @@ class RegistrationFormData
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
+
+Можете да генерирате предложение за класа данни на формуляра, като използвате метода `Nette\Forms\Blueprint::dataClass($form)`, който ще го отпечата на страницата на браузъра. След това можете просто да щракнете, за да изберете и копирате кода в проекта си. .{data-version:3.1.15}
 
 
 Множество бутони за изпращане .[#toc-multiple-submit-buttons]

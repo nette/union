@@ -1,0 +1,304 @@
+Globalno stanje in singletoni
+*****************************
+
+.[perex]
+Opozorilo: Naslednji konstrukti so simptomi slabo načrtovane kode:
+
+- `Foo::getInstance()`
+- `DB::insert(...)`
+- `Article::setDb($db)`
+- `ClassName::$var` ali `static::$var`
+
+Ali se v svoji kodi srečujete s temi konstrukcijami? Če je tako, jo lahko izboljšate. Morda menite, da so to običajni konstrukti, ki jih pogosto vidimo v vzorčnih rešitvah različnih knjižnic in ogrodij. Če je tako, je njihova zasnova kode pomanjkljiva.
+
+Tukaj ne govorimo o kakšni akademski čistosti. Vsi ti konstrukti imajo eno skupno lastnost: uporabljajo globalno stanje. To pa uničujoče vpliva na kakovost kode. Razredi so zavajajoči glede svojih odvisnosti. Koda postane nepredvidljiva. Razvijalce zmede in zmanjša njihovo učinkovitost.
+
+V tem poglavju bomo pojasnili, zakaj je tako in kako se izogniti globalnemu stanju.
+
+
+Globalno medsebojno povezovanje .[#toc-global-interlinking]
+-----------------------------------------------------------
+
+V idealnem svetu naj bi objekt komuniciral samo z objekti, ki so [mu |passing-dependencies] bili [neposredno posredovani |passing-dependencies]. Če ustvarim dva objekta `A` in `B` in med njima nikoli ne prenesem reference, potem niti `A` niti `B` ne moreta dostopati do stanja drugega objekta ali ga spreminjati. To je zelo zaželena lastnost kode. To je podobno, kot če bi imeli baterijo in žarnico; žarnica se ne bo prižgala, dokler je z žico ne povežete z baterijo.
+
+Vendar to ne velja za globalne (statične) spremenljivke ali singletone. Objekt `A` lahko *brezžično* dostopa do objekta `C` in ga spreminja brez posredovanja referenc, tako da pokliče `C::changeSomething()`. Če objekt `B` prav tako dostopa do globalne spremenljivke `C`, potem lahko `A` in `B` vplivata drug na drugega prek `C`.
+
+Uporaba globalnih spremenljivk uvaja novo obliko *brezžične* povezave, ki ni vidna navzven. Ustvarja dimno zaveso, ki otežuje razumevanje in uporabo kode. Za resnično razumevanje odvisnosti morajo razvijalci prebrati vsako vrstico izvorne kode, namesto da bi se seznanili le z vmesniki razredov. Poleg tega je ta zapletenost povsem nepotrebna. Globalno stanje se uporablja, ker je zlahka dostopno od koder koli in omogoča na primer pisanje v podatkovno zbirko prek globalne (statične) metode `DB::insert()`. Vendar pa je, kot bomo videli, korist, ki jo ponuja, minimalna, zapleti, ki jih prinaša, pa so hudi.
+
+.[note]
+Kar zadeva obnašanje, ni razlike med globalno in statično spremenljivko. So enako škodljive.
+
+
+Strašljivo delovanje na daljavo .[#toc-the-spooky-action-at-a-distance]
+-----------------------------------------------------------------------
+
+"Spooky action at a distance" - tako je Albert Einstein leta 1935 poimenoval pojav v kvantni fiziki, ki ga je spravil ob živce.
+Gre za kvantno prepletenost, katere posebnost je, da ko izmerite informacijo o enem delcu, takoj vplivate na drug delec, tudi če sta med seboj oddaljena na milijone svetlobnih let.
+kar navidezno krši temeljni zakon vesolja, da nič ne more potovati hitreje od svetlobe.
+
+V svetu programske opreme lahko "strašljivo delovanje na daljavo" imenujemo situacijo, ko zaženemo proces, za katerega mislimo, da je izoliran (ker mu nismo posredovali nobenih referenc), vendar se na oddaljenih lokacijah sistema zgodijo nepričakovane interakcije in spremembe stanja, o katerih objektu nismo povedali. To se lahko zgodi le prek globalnega stanja.
+
+Predstavljajte si, da se pridružite skupini za razvoj projekta, ki ima veliko in zrelo bazo kode. Vaš novi vodja vas prosi, da izvedete novo funkcijo, in kot dober razvijalec začnete s pisanjem testa. Ker pa ste novinec v projektu, naredite veliko raziskovalnih testov tipa "kaj se zgodi, če pokličem to metodo". In poskušate napisati naslednji test:
+
+```php
+function testCreditCardCharge()
+{
+	$cc = new CreditCard('1234567890123456', 5, 2028); // številko vaše kartice.
+	$cc->charge(100);
+}
+```
+
+Po določenem času na svojem telefonu opazite obvestila iz banke, da je bilo ob vsakem zagonu na vašo kreditno kartico 🤦‍♂️ zaračunanih 100 dolarjev.
+
+Kako bi lahko test povzročil dejansko obremenitev? S kreditno kartico ni enostavno upravljati. Sodelovati morate s spletno storitvijo tretje osebe, poznati morate naslov URL te spletne storitve, prijaviti se morate in tako naprej.
+Nobena od teh informacij ni vključena v test. Še huje, ne veste niti, kje so te informacije prisotne, in zato ne veste, kako zasmehovati zunanje odvisnosti, da se ob vsakem zagonu ne bi ponovno zaračunalo 100 USD. In kako naj bi kot nov razvijalec vedeli, da bo to, kar boste naredili, privedlo do tega, da boste za 100 dolarjev revnejši?
+
+To je strašljivo delovanje na daljavo!
+
+Ne preostane vam drugega, kot da se prekopate skozi veliko izvorne kode in pri tem sprašujete starejše in izkušenejše kolege, dokler ne razumete, kako delujejo povezave v projektu.
+To je posledica dejstva, da ob pogledu na vmesnik razreda `CreditCard` ne morete določiti globalnega stanja, ki ga je treba inicializirati. Tudi pogled v izvorno kodo razreda vam ne bo povedal, katero metodo za inicializacijo je treba poklicati. V najboljšem primeru lahko poiščete globalno spremenljivko, do katere se dostopa, in na podlagi tega poskušate uganiti, kako jo inicializirati.
+
+Razredi v takem projektu so patološki lažnivci. Plačilna kartica se pretvarja, da jo lahko preprosto instancirate in pokličete metodo `charge()`. Vendar na skrivaj sodeluje z drugim razredom, `PaymentGateway`. Tudi njegov vmesnik pravi, da ga je mogoče inicializirati samostojno, v resnici pa iz neke konfiguracijske datoteke potegne poverilnice in tako naprej.
+Razvijalcem, ki so napisali to kodo, je jasno, da `CreditCard` potrebuje `PaymentGateway`. Zato so kodo napisali na ta način. Toda za vsakogar, ki je novinec v projektu, je to popolna uganka in ovira učenje.
+
+Kako popraviti situacijo? Enostavno. **Pustite, da API razglasi odvisnosti.**
+
+```php
+function testCreditCardCharge()
+{
+	$gateway = new PaymentGateway(/* ... */);
+	$cc = new CreditCard('1234567890123456', 5, 2028);
+	$cc->charge($gateway, 100);
+}
+```
+
+Opazite, kako so odnosi v kodi nenadoma očitni. Z izjavo, da metoda `charge()` potrebuje `PaymentGateway`, vam ni treba nikogar spraševati, kako je koda medsebojno odvisna. Veste, da morate ustvariti njen primerek, in ko to poskušate storiti, naletite na dejstvo, da morate zagotoviti parametre dostopa. Brez njih se koda sploh ne bi mogla zagnati.
+
+In kar je najpomembneje, zdaj lahko zasmehujete plačilni prehod, tako da vam ne bo treba plačati 100 dolarjev vsakič, ko boste zagnali test.
+
+Globalno stanje povzroča, da lahko vaši objekti skrivaj dostopajo do stvari, ki niso deklarirane v njihovih API-jih, in posledično naredi vaše API-je patološke lažnivce.
+
+Morda o tem še niste razmišljali na ta način, toda kadarkoli uporabljate globalno stanje, ustvarjate skrivne brezžične komunikacijske kanale. Strašljivo delovanje na daljavo sili razvijalce, da preberejo vsako vrstico kode, da bi razumeli morebitne interakcije, zmanjšuje produktivnost razvijalcev in zmede nove člane ekipe.
+Če ste kodo ustvarili vi, poznate prave odvisnosti, vsi, ki pridejo za vami, pa so nevedni.
+
+Ne pišite kode, ki uporablja globalno stanje, temveč raje prenašajte odvisnosti. To je vbrizgavanje odvisnosti.
+
+
+Krhkost globalne države .[#toc-brittleness-of-the-global-state]
+---------------------------------------------------------------
+
+V kodi, ki uporablja globalno stanje in singletone, nikoli ni gotovo, kdaj in kdo je to stanje spremenil. To tveganje je prisotno že pri inicializaciji. Naslednja koda naj bi ustvarila povezavo s podatkovno bazo in inicializirala plačilni prehod, vendar vedno znova vrže izjemo, iskanje vzroka pa je izredno zamudno:
+
+```php
+PaymentGateway::init();
+DB::init('mysql:', 'user', 'password');
+```
+
+Podrobno morate pregledati kodo, da ugotovite, da objekt `PaymentGateway` brezžično dostopa do drugih objektov, od katerih nekateri zahtevajo povezavo s podatkovno bazo. Tako morate inicializirati podatkovno zbirko, preden `PaymentGateway`. Vendar vam to skriva dimna zavesa globalnega stanja. Koliko časa bi prihranili, če API vsakega razreda ne bi lagal in deklariral svojih odvisnosti?
+
+```php
+$db = new DB('mysql:', 'user', 'password');
+$gateway = new PaymentGateway($db, ...);
+```
+
+Podobna težava se pojavi pri uporabi globalnega dostopa do povezave s podatkovno bazo:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+class Article
+{
+	public function save(): void
+	{
+		DB::insert(/* ... */);
+	}
+}
+```
+
+Pri klicu metode `save()` ni gotovo, ali je bila povezava s podatkovno bazo že ustvarjena in kdo je odgovoren za njeno ustvarjanje. Če bi na primer želeli spremeniti povezavo s podatkovno bazo sproti, morda za namene testiranja, bi verjetno morali ustvariti dodatne metode, kot sta `DB::reconnect(...)` ali `DB::reconnectForTest()`.
+
+Oglejmo si primer:
+
+```php
+$article = new Article;
+// ...
+DB::reconnectForTest();
+Foo::doSomething();
+$article->save();
+```
+
+Kje se lahko prepričamo, da se testna podatkovna zbirka res uporablja, ko kličemo `$article->save()`? Kaj pa, če je metoda `Foo::doSomething()` spremenila globalno povezavo s podatkovno bazo? Da bi to ugotovili, bi morali pregledati izvorno kodo razreda `Foo` in verjetno še mnogih drugih razredov. Vendar bi takšen pristop zagotovil le kratkoročni odgovor, saj se lahko stanje v prihodnosti spremeni.
+
+Kaj pa, če povezavo s podatkovno bazo prenesemo v statično spremenljivko znotraj razreda `Article`?
+
+```php
+class Article
+{
+	private static DB $db;
+
+	public static function setDb(DB $db): void
+	{
+		self::$db = $db;
+	}
+
+	public function save(): void
+	{
+		self::$db->insert(/* ... */);
+	}
+}
+```
+
+To ne spremeni ničesar. Problem je globalno stanje in ni pomembno, v katerem razredu se skriva. V tem primeru, tako kot v prejšnjem, nimamo pojma, v katero zbirko podatkov se zapiše, ko se kliče metoda `$article->save()`. Kdorkoli na oddaljenem koncu aplikacije lahko kadarkoli spremeni podatkovno zbirko z uporabo metode `Article::setDb()`. Pod našimi rokami.
+
+Zaradi globalnega stanja je naša aplikacija **izjemno občutljiva**.
+
+Vendar obstaja preprost način za reševanje te težave. Preprosto zahtevajte, da API razglasi odvisnosti, da se zagotovi pravilno delovanje.
+
+```php
+class Article
+{
+	public function __construct(
+		private DB $db,
+	) {
+	}
+
+	public function save(): void
+	{
+		$this->db->insert(/* ... */);
+	}
+}
+
+$article = new Article($db);
+// ...
+Foo::doSomething();
+$article->save();
+```
+
+Ta pristop odpravlja skrb zaradi skritih in nepričakovanih sprememb povezav s podatkovno bazo. Zdaj smo prepričani, kje je shranjen članek, in nobena sprememba kode znotraj drugega nepovezanega razreda ne more več spremeniti stanja. Koda ni več krhka, temveč stabilna.
+
+Ne pišite kode, ki uporablja globalno stanje, temveč raje prenašajte odvisnosti. Tako je na voljo vbrizgavanje odvisnosti (dependency injection).
+
+
+Singleton .[#toc-singleton]
+---------------------------
+
+Singleton je oblikovni vzorec, ki po [definiciji |https://en.wikipedia.org/wiki/Singleton_pattern] iz znane publikacije Gang of Four omejuje razred na en primerek in mu omogoča globalni dostop. Izvedba tega vzorca je običajno podobna naslednji kodi:
+
+```php
+class Singleton
+{
+	private static self $instance;
+
+	public static function getInstance(): self
+	{
+		self::$instance ??= new self;
+		return self::$instance;
+	}
+
+	// in druge metode, ki izvajajo funkcije razreda
+}
+```
+
+Na žalost singleton v aplikacijo vnese globalno stanje. Kot smo pokazali zgoraj, je globalno stanje nezaželeno. Zato singleton velja za protivzorec.
+
+V svoji kodi ne uporabljajte singletonov in jih nadomestite z drugimi mehanizmi. Singletonov resnično ne potrebujete. Če pa morate zagotoviti obstoj enega primerka razreda za celotno aplikacijo, to prepustite [vsebniku DI |container].
+Tako ustvarite aplikacijski singleton ali storitev. S tem razred ne bo več zagotavljal svoje edinstvenosti (tj. ne bo imel metode `getInstance()` in statične spremenljivke) in bo izvajal le svoje funkcije. Tako bo prenehal kršiti načelo ene odgovornosti.
+
+
+Globalno stanje v primerjavi s testi .[#toc-global-state-versus-tests]
+----------------------------------------------------------------------
+
+Pri pisanju testov predpostavljamo, da je vsak test izolirana enota in da vanj ne vstopa zunanje stanje. In nobeno stanje ne zapusti testov. Ko se test konča, mora zbiralnik smeti samodejno odstraniti vsako stanje, povezano s testom. S tem so testi izolirani. Zato lahko teste izvajamo v poljubnem vrstnem redu.
+
+Če pa so prisotna globalna stanja/singletoni, se vse te lepe predpostavke porušijo. Stanje lahko vstopi v test in izstopi iz njega. Nenadoma je vrstni red testov lahko pomemben.
+
+Da bi razvijalci sploh lahko testirali singletone, morajo pogosto omiliti njihove lastnosti, morda tako, da dovolijo zamenjavo primerka z drugim. Takšne rešitve so v najboljšem primeru kretnje, ki ustvarjajo kodo, ki jo je težko vzdrževati in razumeti. Vsak test ali metoda `tearDown()`, ki vpliva na katero koli globalno stanje, mora te spremembe razveljaviti.
+
+Globalno stanje je največji glavobol pri testiranju enot!
+
+Kako popraviti situacijo? Enostavno. Ne pišite kode, ki uporablja singletone, ampak raje prenašajte odvisnosti. To je vbrizgavanje odvisnosti.
+
+
+Globalne konstante .[#toc-global-constants]
+-------------------------------------------
+
+Globalno stanje ni omejeno na uporabo singletonov in statičnih spremenljivk, temveč se lahko uporablja tudi za globalne konstante.
+
+Konstante, katerih vrednost nam ne zagotavlja nobenih novih (`M_PI`) ali koristnih (`PREG_BACKTRACK_LIMIT_ERROR`) informacij, so nedvomno v redu.
+Nasprotno pa konstante, ki služijo kot način za *brezžično* posredovanje informacij znotraj kode, niso nič drugega kot skrita odvisnost. Kot je `LOG_FILE` v naslednjem primeru.
+Uporaba konstante `FILE_APPEND` je popolnoma pravilna.
+
+```php
+const LOG_FILE = '...';
+
+class Foo
+{
+	public function doSomething()
+	{
+		// ...
+		file_put_contents(LOG_FILE, $message . "\n", FILE_APPEND);
+		// ...
+	}
+}
+```
+
+V tem primeru moramo parameter deklarirati v konstruktorju razreda `Foo`, da postane del API-ja:
+
+```php
+class Foo
+{
+	public function __construct(
+		private string $logFile,
+	) {
+	}
+
+	public function doSomething()
+	{
+		// ...
+		file_put_contents($this->logFile, $message . "\n", FILE_APPEND);
+		// ...
+	}
+}
+```
+
+Zdaj lahko posredujemo informacije o poti do datoteke za beleženje in jih po potrebi preprosto spremenimo, kar olajša testiranje in vzdrževanje kode.
+
+
+Globalne funkcije in statične metode .[#toc-global-functions-and-static-methods]
+--------------------------------------------------------------------------------
+
+Poudariti želimo, da uporaba statičnih metod in globalnih funkcij sama po sebi ni problematična. Razložili smo neprimernost uporabe `DB::insert()` in podobnih metod, vedno pa je šlo za globalno stanje, shranjeno v statični spremenljivki. Metoda `DB::insert()` zahteva obstoj statične spremenljivke, ker shranjuje povezavo s podatkovno bazo. Brez te spremenljivke metode ne bi bilo mogoče izvesti.
+
+Uporaba determinističnih statičnih metod in funkcij, kot so `DateTime::createFromFormat()`, `Closure::fromCallable`, `strlen()` in številne druge, je popolnoma skladna z vbrizgavanjem odvisnosti. Te funkcije iz istih vhodnih parametrov vedno vrnejo enake rezultate in so zato predvidljive. Ne uporabljajo nobenega globalnega stanja.
+
+Vendar v PHP obstajajo funkcije, ki niso deterministične. Med njimi je na primer funkcija `htmlspecialchars()`. Njen tretji parameter, `$encoding`, če ni določen, je privzeta vrednost konfiguracijske možnosti `ini_get('default_charset')`. Zato je priporočljivo, da ta parameter vedno navedete, da se izognete morebitnemu nepredvidljivemu obnašanju funkcije. Nette to dosledno počne.
+
+Nekatere funkcije, kot so `strtolower()`, `strtoupper()` in podobne, so imele v bližnji preteklosti nedeterministično obnašanje in so bile odvisne od nastavitve `setlocale()`. To je povzročilo številne zaplete, najpogosteje pri delu s turškim jezikom.
+Turški jezik namreč razlikuje med velikimi in malimi črkami `I` s piko in brez nje. Tako je `strtolower('I')` vrnil znak `ı`, `strtoupper('i')` pa znak `İ`, zaradi česar so aplikacije povzročale številne skrivnostne napake.
+Vendar je bila ta težava odpravljena v različici PHP 8.2 in funkcije niso več odvisne od lokalnega jezika.
+
+To je lep primer, kako je globalno stanje prizadelo na tisoče razvijalcev po vsem svetu. Rešitev je bila zamenjava z vbrizgavanjem odvisnosti.
+
+
+Kdaj je mogoče uporabiti globalno stanje? .[#toc-when-is-it-possible-to-use-global-state]
+-----------------------------------------------------------------------------------------
+
+V nekaterih posebnih primerih je mogoče uporabiti globalno stanje. Na primer pri razhroščevanju kode, ko morate izpisati vrednost spremenljivke ali izmeriti trajanje določenega dela programa. V takih primerih, ki zadevajo začasna dejanja, ki bodo pozneje odstranjena iz kode, je upravičena uporaba globalno razpoložljivega odlagalnika ali štoparice. Ta orodja niso del zasnove kode.
+
+Drug primer so funkcije za delo z regularnimi izrazi `preg_*`, ki interno shranjujejo sestavljene regularne izraze v statični predpomnilnik v pomnilniku. Kadar isti regularni izraz večkrat pokličete v različnih delih kode, se sestavi samo enkrat. Predpomnilnik prihrani zmogljivost, poleg tega pa je za uporabnika popolnoma neviden, zato lahko takšno uporabo štejemo za zakonito.
+
+
+Povzetek .[#toc-summary]
+------------------------
+
+Pokazali smo, zakaj je smiselno
+
+1) Odstranite vse statične spremenljivke iz kode
+2) Deklarirajte odvisnosti
+3) In uporabite vbrizgavanje odvisnosti
+
+Ko razmišljate o oblikovanju kode, imejte v mislih, da vsaka stran `static $foo` predstavlja težavo. Če želite, da bo vaša koda okolje, ki spoštuje DI, nujno popolnoma izkoreniniti globalno stanje in ga nadomestiti z vbrizgavanjem odvisnosti.
+
+Med tem postopkom boste morda ugotovili, da morate razred razdeliti, ker ima več kot eno odgovornost. Ne skrbite zaradi tega; prizadevajte si za načelo ene odgovornosti.
+
+*Zahvaljujem se Mišku Heveryju, čigar članki, kot je [Flaw: Brittle Global State & Singletons |https://web.archive.org/web/20230321084133/http://misko.hevery.com/code-reviewers-guide/flaw-brittle-global-state-singletons/], so podlaga za to poglavje.*

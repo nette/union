@@ -17,7 +17,7 @@ use ErrorException;
  */
 class Debugger
 {
-	public const Version = '2.10.3';
+	public const Version = '3.0-dev';
 
 	/** server modes for Debugger::enable() */
 	public const
@@ -182,19 +182,14 @@ class Debugger
 				: !self::detectDebugMode($mode);
 		}
 
-		self::$reserved = str_repeat('t', self::$reservedMemorySize);
-		self::$time = $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true);
-		self::$obLevel = ob_get_level();
-		self::$cpuUsage = !self::$productionMode && function_exists('getrusage') ? getrusage() : null;
+		self::$reserved ??= str_repeat('t', self::$reservedMemorySize);
+		self::$time ??= $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true);
+		self::$obLevel ??= ob_get_level();
+		self::$cpuUsage ??= !self::$productionMode && function_exists('getrusage') ? getrusage() : null;
 
 		// logging configuration
-		if ($email !== null) {
-			self::$email = $email;
-		}
-
-		if ($logDirectory !== null) {
-			self::$logDirectory = $logDirectory;
-		}
+		self::$email = $email ?? self::$email;
+		self::$logDirectory = $logDirectory ?? self::$logDirectory;
 
 		if (self::$logDirectory) {
 			if (!preg_match('#([a-z]+:)?[/\\\\]#Ai', self::$logDirectory)) {
@@ -209,7 +204,7 @@ class Debugger
 		// php configuration
 		if (function_exists('ini_set')) {
 			ini_set('display_errors', '0'); // or 'stderr'
-			ini_set('html_errors', '0');
+			ini_set('html_errors', '0'); // additionally turns off stack trace displaing by xdebug
 			ini_set('log_errors', '0');
 			ini_set('zend.exception_ignore_args', '0');
 		}
@@ -235,6 +230,7 @@ class Debugger
 			'Bar/Bar',
 			'Bar/DefaultBarPanel',
 			'BlueScreen/BlueScreen',
+			'BlueScreen/CodeHighlighter',
 			'Dumper/Describer',
 			'Dumper/Dumper',
 			'Dumper/Exposer',
@@ -288,7 +284,7 @@ class Debugger
 	{
 		$error = error_get_last();
 		if (in_array($error['type'] ?? null, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE, E_RECOVERABLE_ERROR, E_USER_ERROR], true)) {
-			self::exceptionHandler(Helpers::fixStack(new ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line'])));
+			self::exceptionHandler(new ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']));
 		} elseif (($error['type'] ?? null) === E_COMPILE_WARNING) {
 			error_clear_last();
 			self::errorHandler($error['type'], $error['message'], $error['file'], $error['line']);
@@ -332,7 +328,7 @@ class Debugger
 		} catch (\Throwable $e) {
 			try {
 				self::log($e, self::EXCEPTION);
-			} catch (\Throwable $e) {
+			} catch (\Throwable) {
 			}
 		}
 	}
@@ -353,6 +349,7 @@ class Debugger
 	{
 		$error = error_get_last();
 		if (($error['type'] ?? null) === E_COMPILE_WARNING) {
+			// compile-warning does not trigger the handler, so we are testing it now
 			error_clear_last();
 			self::errorHandler($error['type'], $error['message'], $error['file'], $error['line']);
 		}
@@ -414,7 +411,7 @@ class Debugger
 			self::$bar = new Bar;
 			self::$bar->addPanel($info = new DefaultBarPanel('info'), 'Tracy:info');
 			$info->cpuUsage = self::$cpuUsage;
-			self::$bar->addPanel(new DefaultBarPanel('errors'), 'Tracy:errors'); // filled by errorHandler()
+			self::$bar->addPanel(new DefaultBarPanel('warnings'), 'Tracy:warnings'); // filled by errorHandler()
 		}
 
 		return self::$bar;

@@ -14,6 +14,7 @@ Filters are functions that change or format the data to a form we want. This is 
 | `date`       | [formats date |#date]
 | `explode`    | [splits a string by the given delimiter |#explode]
 | `first`      | [returns first element of array or character of string |#first]
+| `group`      | [groups data according to various criteria |#group]
 | `implode`    | [joins an array to a string |#implode]
 | `indent`     | [indents the text from left with number of tabs |#indent]
 | `join`       | [joins an array to a string |#implode]
@@ -118,8 +119,8 @@ Filters
 =======
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Filter that simplifies the listing of linear data in the form of a table. It returns an array of array with the given number of items. If you provide a second parameter this is used to fill up missing items on the last row.
 
 ```latte
@@ -151,6 +152,8 @@ Prints:
 	</tr>
 </table>
 ```
+
+See also [group |#group] and [iterateWhile |tags#iterateWhile] tag.
 
 
 breakLines .[filter]
@@ -203,8 +206,8 @@ Enforces URL sanitization. It checks if the variable contains a web URL (ie. HTT
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">checked</a>
-<a data-href="{$link}">unchecked</a>
+<a data-href={$link|checkUrl}>checked</a>
+<a data-href={$link}>unchecked</a>
 ```
 
 Prints:
@@ -217,8 +220,8 @@ Prints:
 See also [#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 Returns value clamped to the inclusive range of min and max.
 
 ```latte
@@ -235,7 +238,7 @@ Converts the content to data URI scheme. It can be used to insert images into HT
 Lets have an image in a variable `$img = Image::fromFile('obrazek.gif')`, then
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 Prints for example:
@@ -271,8 +274,8 @@ Escapes a variable to be used as a parameter in URL.
 See also [#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Splits a string by the given delimiter and returns an array of strings. Alias for `split`.
 
 ```latte
@@ -294,8 +297,8 @@ You can use also alias `split`:
 See also [#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Returns the first element of array or character of string:
 
 ```latte
@@ -330,6 +333,25 @@ Converts a first letter of value to uppercase. Requires PHP extension `mbstring`
 See also [#capitalize], [#lower], [#upper].
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+The filter groups the data according to different criteria.
+
+In this example, the rows in the table are grouped by the column `categoryId`. The output is an array of arrays where the key is the value in the column `categoryId`. Read the [detailed instructions |cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+See also [batch |#batch], the [group |functions#group] function, and the [iterateWhile |tags#iterateWhile] tag.
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Return a string which is the concatenation of the strings in the array. Alias for `join`.
@@ -339,7 +361,7 @@ Return a string which is the concatenation of the strings in the array. Alias fo
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-You can also use an alias `join`: .{data-version:2.10.2}
+You can also use an alias `join`:
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -367,8 +389,8 @@ Prints:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Returns the last element of array or character of string:
 
 ```latte
@@ -416,8 +438,8 @@ If the link uses a different scheme, such as `javascript:` or `data:`, and you a
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">checked</a>
-<a href="{$link|nocheck}">unchecked</a>
+<a href={$link}>checked</a>
+<a href={$link|nocheck}>unchecked</a>
 ```
 
 Prints:
@@ -481,8 +503,8 @@ Pads a string to a certain length with another string from right.
 ```
 
 
-query  .[filter]{data-version:2.10}
------------------------------------
+query  .[filter]
+----------------
 Dynamically generates a query string in the URL:
 
 ```latte
@@ -502,8 +524,8 @@ Keys with a value of `null` are omitted.
 See also [#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Returns random element of array or character of string:
 
 ```latte
@@ -531,7 +553,7 @@ Replaces all occurrences of the search string with the replacement string.
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Multiple replacements can be made at once: .{data-version:2.10.2}
+Multiple replacements can be made at once:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -573,8 +595,8 @@ Rounds a number to a given precision.
 See also [#ceil], [#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Extracts a slice of an array or a string.
 
 ```latte
@@ -591,9 +613,9 @@ If length is given and is positive, then the sequence will have up to that many 
 Filter will reorder and reset the integer array keys by default. This behaviour can be changed by setting preserveKeys to true. String keys are always preserved, regardless of this parameter.
 
 
-sort  .[filter]{data-version:2.9}
----------------------------------
-Filter that sorts an array and maintain index association.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+The filter is used to sort the elements in an array or iterator while preserving the association keys:
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +631,41 @@ Array sorted in reverse order.
 {/foreach}
 ```
 
-You can pass your own comparison function as a parameter: .{data-version:2.10.2}
+You can specify a custom comparison function for sorting (the example shows how to reverse the sort from largest to smallest):
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+The `|sort` filter also allows you to sort elements by key:
 
-spaceless  .[filter]{data-version:2.10.2}
------------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+If you need to sort a table by a specific column, you can use the `by` parameter. The value `'name'` in the example specifies that sorting will be done by `$row->name` or `$row['name']`, depending on whether `$row` is an array or an object:
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+You can also define a callback function that determines the value to sort by:
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+The `byKey` parameter can be used in the same way.
+
+
+spaceless  .[filter]
+--------------------
 Removes unnecessary whitespace from the output. You can also use alias `strip`.
 
 ```latte
@@ -655,8 +703,8 @@ Extracts a slice of a string. This filter has been replaced by a [#slice] filter
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 It translates expressions into other languages. To make the filter available, you need [set up translator|develop#TranslatorExtension]. You can also use the [tags for translation|tags#Translation].
 
 ```latte

@@ -9,15 +9,11 @@ declare(strict_types=1);
 
 namespace Latte\Compiler;
 
-use Latte;
 use Latte\CompileException;
-use Latte\RegexpException;
 
 
 final class TemplateLexer
 {
-	use Latte\Strict;
-
 	public const
 		StatePlain = 'Plain',
 		StateLatteTag = 'LatteTag',
@@ -39,8 +35,9 @@ final class TemplateLexer
 	/** HTML attribute name/value (\p{C} means \x00-\x1F except space) */
 	private const ReAttrName = '[^\p{C} "\'<>=`/]';
 
-	public string $openDelimiter;
-	public string $closeDelimiter;
+	private string $openDelimiter = '';
+	private string $closeDelimiter = '';
+	private array $delimiters = [];
 	private TagLexer $tagLexer;
 
 	/** @var array<array{name: string, args: mixed[]}> */
@@ -189,7 +186,7 @@ final class TemplateLexer
 			(?<Text>.+?)??
 			(?<Indentation>(?<=\n|^)[ \t]+)?
 			(
-				(?<Html_TagOpen><)(?<Slash>/)(?<Html_Name>' . preg_quote(strtolower($tagName), '~') . ')|  # </tag
+				(?<Html_TagOpen><)(?<Slash>/)(?<Html_Name>' . preg_quote($tagName, '~') . ')|  # </tag
 				(?<Latte_TagOpen>' . $this->openDelimiter . '(?!\*))|                          # {tag
 				(?<Latte_CommentOpen>' . $this->openDelimiter . '\*)|                          # {* comment
 				$
@@ -234,7 +231,7 @@ final class TemplateLexer
 	{
 		preg_match($re, $this->input, $matches, PREG_UNMATCHED_AS_NULL, $this->position->offset);
 		if (preg_last_error()) {
-			throw new RegexpException;
+			throw new CompileException(preg_last_error_msg());
 		}
 
 		$tokens = [];
@@ -282,6 +279,7 @@ final class TemplateLexer
 		$left = '\{(?![\s\'"{}])';
 		$end = $endTag ? '\{/' . preg_quote($endTag, '~') . '\}' : null;
 
+		$this->delimiters[] = [$this->openDelimiter, $this->closeDelimiter];
 		[$this->openDelimiter, $this->closeDelimiter] = match ($type) {
 			null => [$left, '\}'], // {...}
 			'off' => [$endTag ? '(?=' . $end . ')\{' : '(?!x)x', '\}'],
@@ -291,6 +289,12 @@ final class TemplateLexer
 			default => throw new \InvalidArgumentException("Unknown syntax '$type'"),
 		};
 		return $this;
+	}
+
+
+	public function popSyntax(): void
+	{
+		[$this->openDelimiter, $this->closeDelimiter] = array_pop($this->delimiters);
 	}
 
 

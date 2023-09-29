@@ -15,6 +15,7 @@ Knjižnica Tracy je uporaben pomočnik za vsakdanje programerje PHP. Pomaga vam 
 
 
 PHP je odličen jezik za izdelavo težko zaznavnih napak, saj programerjem omogoča veliko prilagodljivost. Tracy\Debugger je zaradi tega še bolj dragocen. Je vrhunsko orodje med diagnostičnimi orodji.
+
 Če se s Tracy srečate prvič, verjemite, da se vaše življenje začne deliti na tisto pred Tracy in tisto z njo. Dobrodošli v dobrem delu!
 
 
@@ -33,20 +34,18 @@ lahko prenesete tudi celoten paket ali datoteko [tracy.phar |https://github.com/
 Uporaba .[#toc-usage]
 =====================
 
-Aktivacija programa Tracy je preprosta. Preprosto dodajte ti dve vrstici kode, po možnosti takoj po nalaganju knjižnice (kot `require 'vendor/autoload.php'`) in preden se v brskalnik pošlje kakršen koli izpis:
+Tracy se aktivira s klicem metode `Tracy\Debugger::enable()' čim prej na začetku programa, preden se pošlje kakršen koli izhod:
 
 ```php
 use Tracy\Debugger;
 
+require 'vendor/autoload.php'; // alternativno tracy.phar
+
 Debugger::enable();
 ```
 
-Prva stvar, ki jo boste opazili na spletnem mestu, je vrstica Tracy.
-
-(Če ne vidite ničesar, to pomeni, da Tracy deluje v produkcijskem načinu. Zaradi varnostnih razlogov je Tracy viden samo na lokalnem gostitelju.
-Tracy lahko prisilite, da teče v razvojnem načinu, tako da kot prvi parameter metode `enable()` posredujete `Debugger::Development` ).
-
-Metoda `enable()` vključuje spremembo ravni poročanja o napakah na E_ALL.
+Prva stvar, ki jo boste opazili na strani, je vrstica Tracy v spodnjem desnem kotu. Če je ne vidite, to lahko pomeni, da Tracy deluje v produkcijskem načinu.
+Tracy je namreč iz varnostnih razlogov viden samo na lokalnem gostitelju. Če želite preizkusiti, ali deluje, ga lahko začasno preklopite v razvojni način z uporabo parametra `Debugger::enable(Debugger::Development)`.
 
 
 Tracy Bar .[#toc-tracy-bar]
@@ -71,7 +70,7 @@ Vizualizacija napak in izjem .[#toc-visualization-of-errors-and-exceptions]
 Zagotovo veste, kako PHP sporoča napake: v izvorni kodi strani je nekaj takega:
 
 /--pre .{font-size: 90%}
-<b>Parse error</b>:  syntax error, unexpected '}' in <b>HomepagePresenter.php</b> on line <b>15</b>
+<b>Parse error</b>:  syntax error, unexpected '}' in <b>HomePresenter.php</b> on line <b>15</b>
 \--
 
 ali nezajeta izjema:
@@ -80,9 +79,9 @@ ali nezajeta izjema:
 <b>Fatal error</b>:  Uncaught Nette\MemberAccessException: Call to undefined method Nette\Application\UI\Form::addTest()? in /sandbox/vendor/nette/utils/src/Utils/ObjectMixin.php:100
 Stack trace:
 #0 /sandbox/vendor/nette/utils/src/Utils/Object.php(75): Nette\Utils\ObjectMixin::call(Object(Nette\Application\UI\Form), 'addTest', Array)
-#1 /sandbox/app/forms/SignFormFactory.php(32): Nette\Object->__call('addTest', Array)
-#2 /sandbox/app/presenters/SignPresenter.php(21): App\Forms\SignFormFactory->create()
-#3 /sandbox/vendor/nette/component-model/src/ComponentModel/Container.php(181): App\Presenters\SignPresenter->createComponentSignInForm('signInForm')
+#1 /sandbox/app/Forms/SignFormFactory.php(32): Nette\Object->__call('addTest', Array)
+#2 /sandbox/app/UI/Sign/SignPresenter.php(21): App\Forms\SignFormFactory->create()
+#3 /sandbox/vendor/nette/component-model/src/ComponentModel/Container.php(181): App\UI\Sign\SignPresenter->createComponentSignInForm('signInForm')
 #4 /sandbox/vendor/nette/component-model/src/ComponentModel/Container.php(139): Nette\ComponentModel\Container->createComponent('signInForm')
 #5 /sandbox/temp/cache/latte/15206b353f351f6bfca2c36cc.php(17): Nette\ComponentModel\Co in <b>/sandbox/vendor/nette/utils/src/Utils/ObjectMixin.php</b> on line <b>100</b><br />
 \--
@@ -110,23 +109,48 @@ Debugger::$strictMode = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED; // vse napak
 
 [* tracy-notice.webp .{url:-} *]
 
-Za odkrivanje pravopisnih napak pri pripisovanju objektu uporabljamo [lastnost Nette\SmartObject |utils:smartobject].
+Opomba: Ko je funkcija Tracy aktivirana, se raven poročanja o napakah spremeni na E_ALL. Če želite to spremeniti, to storite po klicu `enable()`.
 
 
-Produkcijski način in beleženje napak .[#toc-production-mode-and-error-logging]
-===============================================================================
+Razvojni in produkcijski način .[#toc-development-vs-production-mode]
+=====================================================================
 
-Kot lahko vidite, je Tracy zelo zgovoren. V razvojnem okolju je to cenjeno, v produkcijskem strežniku pa bi to povzročilo katastrofo. Tam ni mogoče navesti nobenih informacij o odpravljanju napak. Zato ima Tracy funkcijo samodejnega zaznavanja okolja in beleženja. Namesto da bi se prikazala sama, Tracy informacije shrani v datoteko dnevnika in obiskovalcu prikaže uporabniku nerazumljivo sporočilo o napaki strežnika:
+Kot lahko vidite, je Tracy precej zgovoren, kar je mogoče ceniti v razvojnem okolju, medtem ko bi na produkcijskem strežniku to povzročilo katastrofo. To pa zato, ker se tam ne bi smele prikazati nobene informacije za odpravljanje napak. Tracy ima zato **avtomatsko zaznavanje okolja** in če se primer izvaja na strežniku v živo, se napaka namesto prikaza zabeleži, obiskovalec pa vidi le uporabniku prijazno sporočilo:
 
 [* tracy-error2.webp .{url:-} *]
 
-Način produkcijskega izpisa izključuje vse informacije za odpravljanje napak, ki se pošljejo prek [funkcije dump( |dumper]), in seveda vsa sporočila o napakah, ki jih ustvari PHP. Torej, tudi če v izvorni kodi pozabite na `dump($obj)`, vam za to v produkcijskem strežniku ni treba skrbeti. Nič se ne bo videlo.
+Proizvodni način onemogoči prikaz vseh informacij za odpravljanje napak, poslanih s funkcijo [dump() |dumper], in seveda tudi vseh sporočil o napakah, ki jih ustvari PHP. Če ste v kodi pozabili na kakšen `dump($obj)`, vam ni treba skrbeti, saj se v produkcijskem strežniku ne bo nič prikazalo.
 
-Način izpisa je določen s prvim parametrom `Debugger::enable()`. Določite lahko konstanto `Debugger::Production` ali `Debugger::Development`. Druga možnost je, da ga nastavite tako, da bo razvojni način vklopljen, ko bo aplikacija dostopna z določenega naslova IP z določeno vrednostjo piškotka `tracy-debug`. Sintaksa, ki se uporablja za dosego tega, je `cookie-value@ip-address`.
+Kako deluje samodejno zaznavanje načina? Način je razvojni, če aplikacija teče na lokalnem gostitelju (tj. naslovu IP `127.0.0.1` ali `::1`) in ni posrednika (tj. njegove glave HTTP). V nasprotnem primeru deluje v produkcijskem načinu.
 
-Če ni določena, se uporabi privzeta vrednost `Debugger::Detect`. V tem primeru sistem zazna strežnik po naslovu IP. Produkcijski način se izbere, če je aplikacija dostopna prek javnega naslova IP. Lokalni naslov IP vodi v razvojni način. V večini primerov načina ni treba določiti. Način je pravilno prepoznan, ko zaženete aplikacijo v lokalnem strežniku ali v produkcijskem strežniku.
+Če želite omogočiti razvojni način v drugih primerih, na primer za razvijalce, ki dostopajo z določenega naslova IP, ga lahko določite kot parameter metode `enable()`:
 
-V produkcijskem načinu Tracy samodejno zajame vse napake in izjeme v besedilni dnevnik. Če ne določite drugače, bo shranjen v dnevnik log/error.log. To beleženje napak je izjemno uporabno. Predstavljajte si, da so vsi uporabniki vaše aplikacije pravzaprav betatesterji. Pri lovljenju napak brezplačno opravljajo vrhunsko delo in neumno bi bilo, če bi njihova dragocena poročila neopaženo odvrgli v koš za smeti.
+```php
+Debugger::enable('23.75.345.200'); // zagotovite lahko tudi niz naslovov IP.
+```
+
+Vsekakor priporočamo kombinacijo naslova IP s piškotkom. V piškotek `tracy-debug` shranite tajni žeton, na primer `secret1234`, in na ta način aktivirajte razvojni način samo za razvijalce, ki dostopajo z določenega naslova IP in imajo omenjeni žeton v piškotku:
+
+```php
+Debugger::enable('secret1234@23.75.345.200');
+```
+
+Razvojni/produkcijski način lahko nastavite tudi neposredno z uporabo konstant `Debugger::Development` ali `Debugger::Production` kot parametra metode `enable()`.
+
+.[note]
+Če uporabljate ogrodje Nette Framework, si oglejte, kako [zanj nastaviti način |application:bootstrap#Development vs Production Mode], ki se bo nato uporabljal tudi za Tracy.
+
+
+Beleženje napak .[#toc-error-logging]
+=====================================
+
+V produkcijskem načinu Tracy samodejno beleži vse napake in izjeme v besedilni dnevnik. Da bi se beleženje izvajalo, morate v spremenljivko `$logDirectory` nastaviti absolutno pot do imenika dnevnika ali jo posredovati kot drugi parameter metodi `enable()`:
+
+```php
+Debugger::$logDirectory = __DIR__ . '/log';
+```
+
+Beleženje napak je zelo uporabno. Predstavljajte si, da so vsi uporabniki vaše aplikacije pravzaprav beta testerji, ki brezplačno opravljajo vrhunsko delo pri iskanju napak, in neumno bi bilo, če bi njihova dragocena poročila neopaženo vrgli v koš za smeti.
 
 Če morate zabeležiti svoja sporočila ali ujete izjeme, uporabite metodo `log()`:
 
@@ -142,13 +166,7 @@ try {
 }
 ```
 
-Imenik za beleženje napak lahko nastavite z drugim parametrom metode enable():
-
-```php
-Debugger::enable(Debugger::Detect, __DIR__ . '/mylog');
-```
-
-Če želite, da Tracy beleži napake PHP, kot sta `E_NOTICE` ali `E_WARNING`, s podrobnimi informacijami (poročilo HTML), nastavite `Debugger::$logSeverity`:
+If you want Tracy to log PHP errors like `E_NOTICE` or `E_WARNING` with detailed information (HTML report), set `Debugger::$logSeverity`:
 
 ```php
 Debugger::$logSeverity = E_NOTICE | E_WARNING;
@@ -176,7 +194,7 @@ Podprte različice PHP .[#toc-supported-php-versions]
 
 | Tracy | združljivo s PHP
 |-----------|--------------------
-| Tracy 2.10 – 3.0 | PHP 8.0 - 8.2
+| Tracy 2.10 – 3.0 | PHP 8.0 – 8.3
 | Tracy 2.9 | PHP 7.2 - 8.2
 | Tracy 2.8 | PHP 7.2 - 8.1
 | Tracy 2.6 - 2.7 | PHP 7.1 - 8.0

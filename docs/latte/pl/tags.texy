@@ -16,6 +16,7 @@ Przegląd i opis wszystkich znaczników systemu templatek Latte, które są domy
 | `{ifset}`... `{elseifset}`... `{/ifset}` | [ifset condition |#ifset-elseifset]
 | `{ifchanged}`... `{/ifchanged}` | [test, czy nastąpiła zmiana |#ifchanged]
 | `{switch}` `{case}` `{default}` `{/switch}` | [warunek przełączenia |#switch-case-default]
+| `n:else` | [alternatywna zawartość dla warunków |#n:else]
 
 .[table-latte-tags language-latte]
 |## Cykle
@@ -79,6 +80,7 @@ Przegląd i opis wszystkich znaczników systemu templatek Latte, które są domy
 | `{debugbreak}` | [Umieść punkt przerwania w kodzie |#debugbreak]
 | `{do}` | [Wykonuje kod, ale nic nie drukuje |#do]
 | `{dump}` | [Zrzuca zmienne do Tracy Bar |#dump]
+| `{php}` | [wykonuje dowolny kod PHP |#php]
 | `{spaceless}`... `{/spaceless}` | [usuwa zbędne spacje |#spaceless]
 | `{syntax}` | [zmienić składnię w czasie pracy |#Syntax]
 | `{trace}` | [wyświetla ślad stosu |#trace]
@@ -96,20 +98,18 @@ Przegląd i opis wszystkich znaczników systemu templatek Latte, które są domy
 |</m> `{link}` | [drukuje link |application:creating-links#In-the-Presenter-Template]
 | `{plink}` | [drukuje link do prezentera |application:creating-links#In-the-Presenter-Template]
 | `{control}` | [renderuje komponent |application:components#Rendering]
-| `{snippet}`... `{/snippet}` | [snippet, który może być wysłany przez AJAX |application:ajax#Tag-snippet]
-| `{snippetArea}` | clipping cover
+| `{snippet}`... `{/snippet}` | [snippet, który może być wysłany przez AJAX |application:ajax#snippets-in-latte]
+| `{snippetArea}` | [clipping cover |application:ajax#snippet-areas]
 | `{cache}`... `{/cache}` | [buforuje część szablonu |caching:#Caching-in-Latte]
 
 .[table-latte-tags language-latte]
 |## Dostępne tylko z Nette Forms
-| `{form}`... `{/form}` | [renderuje znaczniki formularzy |forms:rendering#Latte]
+| `{form}`... `{/form}` | [renderuje znaczniki formularzy |forms:rendering#form]
 | `{label}`... `{/label}` | [renderuje etykietę elementu formularza |forms:rendering#label-input]
 | `{input}` | [renderuje element formularza |forms:rendering#label-input]
 | `{inputError}` | [drukuje komunikat o błędzie elementu formularza |forms:rendering#inputError]
 | `n:name` | [animuje element formularza |forms:rendering#n:name]
-| `{formPrint}` | [projekt kod latte dla formularza |forms:rendering#formPrint]
-| `{formPrintClass}` | [zaprojektuj kod PHP dla klasy z danymi formularza |forms:in-presenter#Mapping-to-Classes]
-| `{formContext}`... `{/formContext}` | [częściowy rysunek formy |forms:rendering#special-cases]
+| `{formContainer}`... `{/formContainer}` | [renderowanie pojemnika na formularze |forms:rendering#special-cases]
 
 
 Pisanie .[#toc-printing]
@@ -245,6 +245,20 @@ Czy wiesz, że możesz przedrostek `tag-` do n:atrybutów ? Wtedy warunek będzi
 Boże.
 
 
+`n:else` .{data-version:3.0.11}
+-------------------------------
+
+Jeśli warunek `{if} ... {/if}` zostanie zapisany w postaci [atrybutu n: |syntax#n:attributes], istnieje możliwość określenia alternatywnej gałęzi za pomocą `n:else`:
+
+```latte
+<strong n:if="$count > 0">In stock {$count} items</strong>
+
+<em n:else>not available</em>
+```
+
+Atrybut `n:else` może być również użyty w połączeniu z [`n:ifset` |#ifset-elseifset], [`n:foreach` |#foreach], [`n:try` |#try], [`n:ifcontent` |#n:ifcontent]oraz [`n:ifchanged` |#ifchanged].
+
+
 `{/if $cond}`
 -------------
 
@@ -278,12 +292,12 @@ Zobacz także. [`{ifset block}` |template-inheritance#Checking-Block-Existence]
 Użyj warunku `{ifset $var}`, aby określić, czy zmienna (lub wiele zmiennych) istnieje i ma wartość non-*null*. Właściwie to jest to samo, co `if (isset($var))` w PHP. Jak każdy znacznik par, może być również napisany jako [n:atrybut |syntax#n-attributes], więc weźmy to jako przykład:
 
 ```latte
-<meta name="robots" content="{$robots}" n:ifset="$robots">
+<meta name="robots" content={$robots} n:ifset="$robots">
 ```
 
 
-`{ifchanged}` .{data-version:2.9}
----------------------------------
+`{ifchanged}`
+-------------
 
 `{ifchanged}` sprawdza, czy wartość zmiennej zmieniła się od ostatniej iteracji w pętli (foreach, for lub while).
 
@@ -329,7 +343,7 @@ Jest to więc dokładny odpowiednik struktury `match`, z którą przychodzi PHP 
 		Jinak
 {/switch}
 ```
-.{data-version:2.9}
+
 Klauzula `{case}` może zawierać wiele wartości oddzielonych przecinkami:
 
 ```latte
@@ -390,8 +404,8 @@ Wydrukuje więc coś w rodzaju:
 ```
 
 
-`{else}` .{data-version:2.9}{toc: foreach-else}
------------------------------------------------
+`{else}` .{toc: foreach-else}
+-----------------------------
 
 Wewnątrz pętli `foreach` może zawrzeć klauzulę `{else}`, której zawartość zostanie wyświetlona, jeśli pętla jest pusta:
 
@@ -414,10 +428,10 @@ Wewnątrz pętli `foreach`, Latte tworzy zmienną `$iterator`, którą możemy w
 - `$iterator->first` - czy przechodzi przez cykl po raz pierwszy?
 - `$iterator->last` - czy to już ostatnie przejście?
 - `$iterator->counter` - ile przejść liczy się od jednego?
-- `$iterator->counter0` - ile przejść jest liczonych od zera? .{data-version:2.9}
+- `$iterator->counter0` - ile przejść jest liczonych od zera?
 - `$iterator->odd` - czy to przepustka z numerem nieparzystym?
 - `$iterator->even` - czy jest to przepustka o numerach parzystych?
-- `$iterator->parent` - iterator otaczający bieżący .{data-version:2.9}
+- `$iterator->parent` - iterator otaczający bieżący
 - `$iterator->nextValue` - następny element w pętli
 - `$iterator->nextKey` - klucz następnego elementu w pętli
 
@@ -465,10 +479,10 @@ Zawartość znacznika `{sep}` jest renderowana, jeśli przejście nie jest ostat
 To całkiem poręczne, prawda?
 
 
-`{iterateWhile}` .{data-version:2.10}
--------------------------------------
+`{iterateWhile}`
+----------------
 
-Upraszcza grupowanie danych liniowych podczas iteracji w pętli foreach poprzez iterację w pętli zagnieżdżonej do momentu spełnienia warunku. [Przeczytaj instrukcję |cookbook/iteratewhile].
+Upraszcza grupowanie danych liniowych podczas iteracji w pętli foreach poprzez iterację w pętli zagnieżdżonej do momentu spełnienia warunku. [Przeczytaj szczegółowe instrukcje |cookbook/grouping].
 
 Może również elegancko zastąpić `{first}` i `{last}` w powyższym przykładzie:
 
@@ -486,6 +500,8 @@ Może również elegancko zastąpić `{first}` i `{last}` w powyższym przykład
 	</table>
 {/foreach}
 ```
+
+Zobacz także filtry [wsadowe |filters#batch] i [grupowe |filters#group].
 
 
 `{for}`
@@ -547,7 +563,7 @@ Do sterowania dowolnym cyklem można użyć znaczników `{continueIf ?}` i `{bre
 {/foreach}
 ```
 
-.{data-version:2.9}
+
 Znacznik `{skipIf}` jest bardzo podobny do `{continueIf}`, ale nie inkrementuje licznika `$iterator->counter`, więc jeśli wymienimy go z pominięciem niektórych pozycji, nie będzie dziur w numeracji. Również klauzula `{else}` jest renderowana, gdy pominiemy wszystkie wpisy.
 
 ```latte
@@ -595,14 +611,10 @@ Znacznik `{include}` ładuje i renderuje podany szablon. Jeśli mówimy w język
 
 Szablony zagnieżdżone nie mają dostępu do aktywnych zmiennych kontekstowych, mają tylko dostęp do zmiennych globalnych.
 
-Możesz przekazać inne zmienne w następujący sposób:
+Do wstawionego szablonu można przekazać zmienne w następujący sposób:
 
 ```latte
-{* od Latte 2.9 *}
 {include 'template.latte', foo: 'bar', id: 123}
-
-{* před Latte 2.9 *}
-{include 'template.latte', foo => 'bar', id => 123}
 ```
 
 Nazwa szablonu może być dowolnym wyrażeniem PHP:
@@ -618,7 +630,7 @@ Wstawioną treść można edytować za pomocą [filtrów |syntax#Filters]. Poni�
 <title>{include 'heading.latte' |stripHtml|capitalize}</title>
 ```
 
-Domyślnie [dziedziczenie szablonów |template-inheritance] nie jest w tym przypadku skonfigurowane. Mimo, że możemy używać bloków w zalinkowanym szablonie, odpowiadające im bloki w szablonie, do którego jest zalinkowany, nie zostaną zastąpione. Pomyśl o dołączonych szablonach jako o oddzielnych zacienionych częściach stron lub modułów. To zachowanie można zmienić za pomocą modyfikatora `with blocks` (z wersji Latte 2.9.1):
+Domyślnie [dziedziczenie szablonów |template inheritance] **nie jest w to zaangażowane**. Chociaż można dodawać znaczniki bloków do szablonów, które są dołączone, nie zastąpią one pasujących bloków w szablonie, do którego są dołączone. Należy myśleć o załącznikach jako niezależnych i chronionych częściach stron lub modułów. To zachowanie można zmienić za pomocą modyfikatora `with blocks`:
 
 ```latte
 {include 'template.latte' with blocks}
@@ -627,8 +639,8 @@ Domyślnie [dziedziczenie szablonów |template-inheritance] nie jest w tym przyp
 Związek między nazwą pliku określoną w znaczniku a plikiem na dysku jest sprawą programu [ładującego |extending-latte#Loaders].
 
 
-`{sandbox}` .{data-version:2.8}
--------------------------------
+`{sandbox}`
+-----------
 
 W przypadku wstawiania szablonu utworzonego przez użytkownika końcowego należy rozważyć tryb piaskownicy (więcej informacji w [dokumentacji pias kownicy|sandbox]):
 
@@ -658,8 +670,8 @@ Zarządzanie wyjątkami .[#toc-exception-handling]
 ================================================
 
 
-`{try}` .{data-version:2.9}
----------------------------
+`{try}`
+-------
 
 Marka ta niezwykle ułatwia tworzenie solidnych szablonów.
 
@@ -700,8 +712,8 @@ Znacznik ten może być również użyty jako [n:attribute |syntax#n-attributes]
 Możliwe jest również zdefiniowanie niestandardowego [handler'a wyjątków |develop#Exception-Handler], na przykład dla logowania.
 
 
-`{rollback}` .{data-version:2.9}
---------------------------------
+`{rollback}`
+------------
 
 Blok `{try}` można również zatrzymać i pominąć ręcznie za pomocą `{rollback}`. W ten sposób nie trzeba wcześniej sprawdzać wszystkich danych wejściowych i można w trakcie procesu renderowania zdecydować, że obiekt w ogóle nie będzie renderowany:
 
@@ -742,7 +754,7 @@ Znacznik `{default}` działa podobnie, z tym że tworzy zmienne tylko wtedy, gdy
 {default $lang = 'cs'}
 ```
 
-Od wersji Latte 2.7 można również określić [typy zmiennych |type-system]. Na razie mają one charakter informacyjny i Latte ich nie sprawdza.
+Można również określić [typy zmiennych |type-system]. Na razie mają one charakter informacyjny i Latte ich nie sprawdza.
 
 ```latte
 {var string $name = $article->getTitle()}
@@ -750,8 +762,8 @@ Od wersji Latte 2.7 można również określić [typy zmiennych |type-system]. N
 ```
 
 
-`{parameters}` .{data-version:2.9}
-----------------------------------
+`{parameters}`
+--------------
 
 Podobnie jak funkcja deklaruje swoje parametry, szablon może zadeklarować swoje zmienne na początku:
 
@@ -783,13 +795,15 @@ Przechwytuje dane wyjściowe do zmiennej:
 <p>Captured: {$var}</p>
 ```
 
-Znacznik może być również zapisany jako [n:attribut |syntax#n-attributes]:
+Znacznik może być również zapisany jako [n:attribute |syntax#n:attributes], jak każdy znacznik parami:
 
 ```latte
 <ul n:capture="$var">
 	<li>Hello World</li>
 </ul>
 ```
+
+Dane wyjściowe HTML są przechowywane w zmiennej `$var` jako obiekt `Latte\Runtime\Html`, aby [uniknąć niechcianych ucieczek |develop#disabling-auto-escaping-of-variable] podczas drukowania.
 
 
 Inne .[#toc-others]
@@ -841,13 +855,11 @@ Wskazuje punkt, w którym program jest wstrzymywany i uruchamiany jest debugger,
 `{do}`
 ------
 
-Wykonuje kod i nic nie drukuje.
+Wykonuje kod PHP i niczego nie drukuje. Podobnie jak w przypadku wszystkich innych znaczników, kod PHP jest pojedynczym wyrażeniem, patrz [ograniczenia PHP |syntax#PHP Limitations in Latte].
 
 ```latte
 {do $num++}
 ```
-
-Latte 2.7 i wcześniejsze używały `{php}`.
 
 
 `{dump}`
@@ -863,6 +875,12 @@ Wypisuje zmienną lub bieżący kontekst.
 
 .[caution]
 Wymaga biblioteki [Tracy |tracy:].
+
+
+`{php}`
+-------
+
+Umożliwia wykonanie dowolnego kodu PHP. Tag musi być aktywowany przy użyciu rozszerzenia [RawPhpExtension |develop#RawPhpExtension].
 
 
 `{spaceless}`
@@ -908,8 +926,8 @@ Latte może być również używane bardzo wygodnie wewnątrz JavaScript, wystar
 Jeśli wyłączysz Latte za pomocą `{syntax off}` (tj. za pomocą tagu, a nie atrybutu n:), będzie ona konsekwentnie ignorować wszystkie tagi aż do `{/syntax}`
 
 
-{trace} .{data-version:2.10}
-----------------------------
+{trace}
+-------
 
 Rzuca wyjątek `Latte\RuntimeException`, którego ślad stosu jest zgodny z linią szablonów. To znaczy, zamiast wywoływania funkcji i metod, zawiera wywołania bloków i wstawianie szablonów. Jeśli używasz narzędzia do wyraźnego wyświetlania rzuconych wyjątków, takich jak [Tracy |tracy:], zobaczysz wyraźnie stos wywołań, w tym wszystkie przekazane argumenty.
 
@@ -986,6 +1004,8 @@ Jeśli jest to `$heading === null`, tag jest drukowany bez zmian. `<h1>`. W prze
 ```latte
 <h3 class="main">...</h3>
 ```
+
+Ponieważ Latte jest bezpiecznym systemem szablonów, sprawdza, czy nowa nazwa tagu jest poprawna i nie zawiera żadnych niepożądanych lub złośliwych wartości.
 
 
 n:ifcontent .[#toc-n-ifcontent]

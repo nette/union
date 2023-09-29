@@ -6,30 +6,20 @@ Get to know Nette Framework while creating a simple blog with comments. Let's be
 
 After the first two chapters, you will have your own working blog and you'll be ready to publish your awesome posts, although the features will be pretty much limited after completing these two chapters. To make things nicer for your users, you should also read the following chapters and keep improving your application.
 
-You can find the [complete application on GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
+.[tip]
+This tutorial assumes that you completed the [Installation |nette:installation] document and have successfully set up your tooling. It also assumes that you understand [object-oriented programming in PHP |nette:introduction-to-object-oriented-programming].
 
-Please install [full-featured IDE and all necessary plugins |best-practices:editors-and-tools], it will make you extremely efficient.
-
-This QuickStart was written for Nette Framework 3.1 and PHP 8.0 or newer.
-
-You can download the Nette Framework manually, but the recommended way of starting a new project is using [Composer |best-practices:composer]. If you don't know the Composer, you should definitely start with that. It's a really simple and useful tool, check out [their documentation |https://getcomposer.org/doc/].
-
-With Composer, you can download and install the application skeleton known as Web Project including Nette Framework very easily. To do so, find your webroot directory (e.g. `/var/www` or `C:\InetPub`) in your command line and execute the following command:
-
-```shell
-composer create-project nette/web-project nette-blog
-```
-
-Web Project will be downloaded into `nette-blog` directory.
-
-.[note]
-If you couldn't use Composer, [download |https://github.com/nette/web-project/archive/preloaded.zip] and extract the archive and copy it to the root directory of the webserver and rename to `nette-blog`. The entire framework is located in the `vendor` folder.
-
-If you're developing on macOS or Linux (or any other Unix based system), you need to [configure write privileges|nette:troubleshooting#Setting directory permissions] to the webserver.
+Please use PHP 8.1 or later. You can find the complete application [on GitHub |https://github.com/nette-examples/quickstart/tree/v4.0].
 
 
 The Welcome Page
 ================
+
+Let's start by creating a new project into the `nette-blog` directory:
+
+```shell
+composer create-project nette/web-project nette-blog
+```
 
 At this moment, the welcome page of the Web Project should be running. Try it by opening your browser and going to the following URL:
 
@@ -55,9 +45,9 @@ Web Project has the following structure:
 /--pre
 <b>nette-blog/</b>
 ├── <b>app/</b>              ← application directory
-│   ├── <b>Presenters/</b>   ← presenter classes
-│   │   └── <b>templates/</b>← templates
-│   ├── <b>Router/</b>       ← configuration of URL addresses
+│   ├── <b>Core/</b>         ← basic necessary classes
+│   ├── <b>UI/</b>           ← presenters, templates & co.
+│   │   └── <b>Home/</b>     ← Home presenter directory
 │   └── <b>Bootstrap.php</b> ← booting class Bootstrap
 ├── <b>bin/</b>              ← scripts for the command line
 ├── <b>config/</b>           ← configuration files
@@ -77,7 +67,7 @@ The most important directory for you is `app/`. You can find `Bootstrap.php` fil
 Cleanup
 =======
 
-The Web Project contains a welcome page, which we can remove - feel free to delete the `app/Presenters/templates/Homepage/default.latte` file and replace it with the text "Hello world!".
+The Web Project contains a welcome page, which we can remove - feel free to delete the `app/UI/Home/default.latte` file and replace it with the text "Hello world!".
 
 
 [* qs-hello.webp .{url:-} *]
@@ -86,9 +76,9 @@ The Web Project contains a welcome page, which we can remove - feel free to dele
 Tracy (Debugger)
 ================
 
-An extremely important tool for development is [a debugger called Tracy |tracy:]. Try to make some errors in your `app/Presenters/HomepagePresenter.php` file (e.g. remove a curly bracket from the definition of class HomepagePresenter) and see what happens. A red-screen page will pop up with an understandable error description.
+An extremely important tool for development is [a debugger called Tracy |tracy:]. Try to make some errors in your `app/UI/Home/HomePresenter.php` file (e.g. remove a curly bracket from the definition of class HomePresenter) and see what happens. A red-screen page will pop up with an understandable error description.
 
-[* qs-tracy.webp .{url:-}(debugger screen) *]
+[* qs-tracy.avif .{url:-}(debugger screen) *]
 
 Tracy will significantly help you while hunting down errors. Also note the floating Tracy Bar in the bottom right corner, which informs you about important runtime data.
 

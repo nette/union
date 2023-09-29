@@ -17,22 +17,15 @@ use Nette;
  */
 class Structure implements IStructure
 {
-	use Nette\SmartObject;
+	protected Connection $connection;
+	protected Nette\Caching\Cache $cache;
 
-	/** @var Connection */
-	protected $connection;
-
-	/** @var Nette\Caching\Cache */
-	protected $cache;
-
-	/** @var array */
-	protected $structure;
-
-	/** @var bool */
-	protected $isRebuilt = false;
+	/** @var array{tables: array, columns: array, primary: array, aliases: array, hasMany: array, belongsTo: array} */
+	protected array $structure;
+	protected bool $isRebuilt = false;
 
 
-	public function __construct(Connection $connection, Nette\Caching\IStorage $cacheStorage)
+	public function __construct(Connection $connection, Nette\Caching\Storage $cacheStorage)
 	{
 		$this->connection = $connection;
 		$this->cache = new Nette\Caching\Cache($cacheStorage, 'Nette.Database.Structure.' . md5($this->connection->getDsn()));
@@ -58,7 +51,7 @@ class Structure implements IStructure
 	/**
 	 * @return string|string[]|null
 	 */
-	public function getPrimaryKey(string $table)
+	public function getPrimaryKey(string $table): string|array|null
 	{
 		$this->needStructure();
 		$table = $this->resolveFQTableName($table);
@@ -101,7 +94,7 @@ class Structure implements IStructure
 		$this->needStructure();
 		$table = $this->resolveFQTableName($table);
 
-		if (!$this->connection->getDriver()->isSupported(Driver::SUPPORT_SEQUENCE)) {
+		if (!$this->connection->getDriver()->isSupported(Driver::SupportSequence)) {
 			return null;
 		}
 
@@ -174,11 +167,11 @@ class Structure implements IStructure
 
 	protected function needStructure(): void
 	{
-		if ($this->structure !== null) {
+		if (isset($this->structure)) {
 			return;
 		}
 
-		$this->structure = $this->cache->load('structure', \Closure::fromCallable([$this, 'loadStructure']));
+		$this->structure = $this->cache->load('structure', $this->loadStructure(...));
 	}
 
 
@@ -207,9 +200,7 @@ class Structure implements IStructure
 
 		if (isset($structure['hasMany'])) {
 			foreach ($structure['hasMany'] as &$table) {
-				uksort($table, function ($a, $b): int {
-					return strlen($a) <=> strlen($b);
-				});
+				uksort($table, fn($a, $b): int => strlen($a) <=> strlen($b));
 			}
 		}
 
@@ -219,7 +210,7 @@ class Structure implements IStructure
 	}
 
 
-	protected function analyzePrimaryKey(array $columns)
+	protected function analyzePrimaryKey(array $columns): string|array|null
 	{
 		$primary = [];
 		foreach ($columns as $column) {
@@ -244,25 +235,15 @@ class Structure implements IStructure
 
 		$foreignKeys = $this->connection->getDriver()->getForeignKeys($table);
 
-		$fksColumnsCounts = [];
-		foreach ($foreignKeys as $foreignKey) {
-			$tmp = &$fksColumnsCounts[$foreignKey['name']];
-			$tmp++;
-		}
-
-		usort($foreignKeys, function ($a, $b) use ($fksColumnsCounts): int {
-			return $fksColumnsCounts[$b['name']] <=> $fksColumnsCounts[$a['name']];
-		});
+		usort($foreignKeys, fn($a, $b): int => count($b['local']) <=> count($a['local']));
 
 		foreach ($foreignKeys as $row) {
-			$structure['belongsTo'][$lowerTable][$row['local']] = $row['table'];
-			$structure['hasMany'][strtolower($row['table'])][$table][] = $row['local'];
+			$structure['belongsTo'][$lowerTable][$row['local'][0]] = $row['table'];
+			$structure['hasMany'][strtolower($row['table'])][$table][] = $row['local'][0];
 		}
 
 		if (isset($structure['belongsTo'][$lowerTable])) {
-			uksort($structure['belongsTo'][$lowerTable], function ($a, $b): int {
-				return strlen($a) <=> strlen($b);
-			});
+			uksort($structure['belongsTo'][$lowerTable], fn($a, $b): int => strlen($a) <=> strlen($b));
 		}
 	}
 

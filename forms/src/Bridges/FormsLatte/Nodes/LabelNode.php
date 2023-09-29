@@ -43,7 +43,7 @@ class LabelNode extends StatementNode
 		$tag->outputMode = $tag::OutputKeepIndentation;
 		$tag->expectArguments();
 
-		$node = new static;
+		$node = $tag->node = new static;
 		$node->name = $tag->parser->parseUnquotedStringOrExpression(colon: false);
 		if ($tag->parser->stream->tryConsume(':')) {
 			$node->part = $tag->parser->isEnd() || $tag->parser->stream->is(',')
@@ -63,7 +63,7 @@ class LabelNode extends StatementNode
 	public function print(PrintContext $context): string
 	{
 		return $context->format(
-			'echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(%node, $this->global)->'
+			'echo ($ʟ_label = $this->global->forms->item(%node)->'
 			. ($this->part ? 'getLabelPart(%node)' : 'getLabel()')
 			. ')'
 			. ($this->attributes->items ? '?->addAttributes(%2.node)' : '')

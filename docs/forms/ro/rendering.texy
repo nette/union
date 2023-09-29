@@ -1,15 +1,17 @@
 Redarea formularelor
 ********************
 
-Aspectul formularelor poate fi foarte diferit. De fapt, există două extreme. O parte este necesitatea de a reda din nou un set de formulare foarte asemănătoare, cu un efort redus sau chiar inexistent. De obicei, administrațiile și back-end-urile.
+Aspectul formelor poate fi foarte divers. În practică, putem întâlni două extreme. Pe de o parte, există necesitatea de a reda într-o aplicație o serie de formulare care să fie asemănătoare din punct de vedere vizual, iar noi apreciem redarea ușoară fără șablon cu ajutorul `$form->render()`. Acesta este, de obicei, cazul interfețelor administrative.
 
-Cealaltă parte este reprezentată de formulare mici și dulci, fiecare dintre ele fiind o operă de artă. Aspectul lor poate fi scris cel mai bine în HTML. Bineînțeles, pe lângă aceste extreme, există multe formulare chiar între ele.
+Pe de altă parte, există diverse formulare în care fiecare este unic. Aspectul lor este cel mai bine descris folosind limbajul HTML în șablon. Și, bineînțeles, pe lângă cele două extreme menționate, vom întâlni multe forme care se încadrează undeva la mijloc.
 
 
-Latte .[#toc-latte]
-===================
+Renderizare cu Latte .[#toc-rendering-with-latte]
+=================================================
 
  [Sistemul de modelare Latte |latte:] facilitează în mod fundamental redarea formularelor și a elementelor acestora. În primul rând, vom arăta cum să redăm formularele manual, element cu element, pentru a obține un control total asupra codului. Ulterior vom arăta cum să [automatizăm |#Automatic rendering] această redare.
+
+Puteți obține propunerea unui șablon Latte pentru formularul generat cu ajutorul metodei `Nette\Forms\Blueprint::latte($form)`, care îl va afișa în pagina de browser. Apoi, trebuie doar să selectați codul cu un clic și să îl copiați în proiectul dvs. .{data-version:3.1.15}
 
 
 `{control}`
@@ -88,12 +90,6 @@ Elementele de formular mai complexe, cum ar fi RadioList sau CheckboxList, pot f
 ```
 
 
-Propunere de cod `{formPrint}` .[#toc-formprint]
-------------------------------------------------
-
-Puteți genera un cod Latte similar pentru un formular folosind eticheta `{formPrint}`. Dacă îl plasați într-un șablon, veți vedea proiectul de cod în loc de redarea normală. Apoi, nu trebuie decât să îl selectați și să îl copiați în proiectul dvs.
-
-
 `{label}` `{input}`
 -------------------
 
@@ -150,6 +146,12 @@ Putem detecta prezența unei erori folosind metoda `hasErrors()` și putem seta 
 	{inputError username}
 </div>
 ```
+
+
+`{form}`
+--------
+
+Etichete `{form signInForm}...{/form}` sunt o alternativă la `<form n:name="signInForm">...</form>`.
 
 
 Redare automată .[#toc-automatic-rendering]
@@ -231,15 +233,15 @@ Trebuie doar să importați blocul într-un singur loc, la începutul modelului 
 Cazuri speciale .[#toc-special-cases]
 -------------------------------------
 
-Dacă aveți nevoie doar de redarea conținutului interior al unui formular fără `<form>` & `</form>` HTML, de exemplu, într-o solicitare AJAX, puteți deschide și închide formularul cu `{formContext} … {/formContext}`. Funcționează similar cu `{form}` în sens logic, aici vă permite să utilizați alte etichete pentru a desena elementele formularului, dar în același timp nu desenează nimic.
+Dacă aveți nevoie să redați doar partea interioară a formularului fără etichete HTML `<form>`de exemplu, atunci când trimiteți fragmente, ascundeți-le folosind atributul `n:tag-if`:
 
 ```latte
-{formContext signForm}
+<form n:name=signInForm n:tag-if=false>
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-{/formContext}
+</form>
 ```
 
 Tag-ul `formContainer` ajută la redarea intrărilor în interiorul unui container de formular.
@@ -256,8 +258,8 @@ Tag-ul `formContainer` ajută la redarea intrărilor în interiorul unui contain
 ```
 
 
-Fără Latte .[#toc-without-latte]
-================================
+Rendering fără Latte .[#toc-rendering-without-latte]
+====================================================
 
 Cel mai simplu mod de a reda un formular este de a apela:
 
@@ -321,13 +323,13 @@ Este un obiect care asigură redarea formularului. Acesta poate fi setat prin me
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
 </tr>
 
 <tr>
@@ -357,12 +359,12 @@ Rezultă următorul fragment:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -428,6 +430,8 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
+Dispozitivul de redare desenează mai întâi grupurile și apoi elementele care nu aparțin niciunui grup.
+
 
 Suport Bootstrap .[#toc-bootstrap-support]
 ------------------------------------------
@@ -438,7 +442,7 @@ Puteți găsi [exemple |https://github.com/nette/forms/tree/master/examples] de 
 Atribute HTML .[#toc-html-attributes]
 =====================================
 
-Puteți seta orice atribute HTML pentru controalele de formular folosind `setHtmlAttribute(string $name, $value = true)`:
+Pentru a seta atribute HTML arbitrare pentru elementele de formular, utilizați metoda `setHtmlAttribute(string $name, $value = true)`:
 
 ```php
 $form->addInteger('number', 'Number:')
@@ -448,11 +452,11 @@ $form->addSelect('rank', 'Order by:', ['price', 'name'])
 	->setHtmlAttribute('onchange', 'submit()'); // solicită funcția JS submit() la schimbare
 
 
-// se aplică la <form>
+// Pentru a seta atributele <form> în sine
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Setarea tipului de intrare:
+Specificarea tipului de element:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -460,8 +464,11 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-Putem seta atributul HTML pentru elementele individuale din listele radio sau checkbox cu valori diferite pentru fiecare dintre ele.
-Rețineți două puncte după `style:` pentru a vă asigura că valoarea este selectată prin cheie:
+.[warning]
+Setarea tipului și a altor atribute servește doar în scopuri vizuale. Verificarea corectitudinii intrărilor trebuie să aibă loc pe server, lucru pe care îl puteți asigura prin alegerea unui [control de formular | controls] adecvat și prin specificarea [regulilor de validare | validation].
+
+Pentru elementele individuale din listele de tip radio sau checkbox, putem seta un atribut HTML cu valori diferite pentru fiecare dintre ele.
+Observați cele două puncte după `style:`, care asigură că valoarea este selectată pe baza cheii:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -478,10 +485,9 @@ Redă:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-Pentru un atribut HTML logic (care nu are nicio valoare, cum ar fi `readonly`), puteți utiliza un semn de întrebare:
+Pentru stabilirea atributelor booleene, cum ar fi `readonly`, se poate utiliza notația cu semnul întrebării:
 
 ```php
-$colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // se utilizează matrice pentru mai multe chei, de exemplu ['r', 'g']
 ```
@@ -535,9 +541,6 @@ Pentru elementele Checkbox, CheckboxList și RadioList puteți influența șablo
 
 ```php
 $input = $form->addCheckbox('send');
-echo $input->getControl();
-// <label><input type="checkbox" name="send"></label>
-
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

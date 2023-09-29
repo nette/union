@@ -21,12 +21,12 @@ class FormsExtension extends Nette\DI\CompilerExtension
 	{
 		$this->config = new class {
 			/** @var string[] */
-			public $messages = [];
+			public array $messages = [];
 		};
 	}
 
 
-	public function afterCompile(Nette\PhpGenerator\ClassType $class)
+	public function afterCompile(Nette\PhpGenerator\ClassType $class): void
 	{
 		$initialize = $this->initialization ?? $class->getMethod('initialize');
 

@@ -98,7 +98,7 @@ Imprimă:
 Sau prin utilizarea prefixului `tag-`, funcționalitatea se aplică numai la etichetele HTML:
 
 ```latte
-<p><a href="{$url}" n:tag-if="$url">Title</a></p>
+<p><a href={$url} n:tag-if="$url">Title</a></p>
 ```
 
 În funcție de valoarea variabilei `$url`, se va imprima:
@@ -153,6 +153,20 @@ Sau direct pe valoare (în combinație cu [`{=expr}` | https://latte.nette.org/r
 ```latte
 <h1>{='  Hello world  '|trim}<h1>
 ```
+
+
+Etichete HTML dinamice .[#toc-dynamic-html-tags]
+================================================
+
+Latte acceptă etichete HTML dinamice, care sunt utile atunci când aveți nevoie de flexibilitate în ceea ce privește numele etichetelor:
+
+```latte
+<h{$level}>Heading</h{$level}>
+```
+
+De exemplu, codul de mai sus poate genera `<h1>Heading</h1>` sau `<h2>Heading</h2>` în funcție de valoarea variabilei `$level`. Etichetele HTML dinamice din Latte trebuie să fie întotdeauna asociate. Alternativa lor este [n:tag |tags#n:tag].
+
+Deoarece Latte este un sistem securizat de creare de șabloane, acesta verifică dacă numele tag-ului rezultat este valid și nu conține valori nedorite sau rău intenționate. De asemenea, se asigură că numele tag-ului final este întotdeauna același cu numele tag-ului de deschidere.
 
 
 Comentarii .[#toc-comments]
@@ -238,35 +252,19 @@ Operatorul `in` poate fi utilizat pentru a înlocui funcția `in_array()`. Compa
 ```
 
 
-.{data-version:2.9}
-Încatenarea opțională cu operatorul sigur împotriva definițiilor .[#toc-optional-chaining-with-undefined-safe-operator]
------------------------------------------------------------------------------------------------------------------------
-
-Operatorul undefined-safe `??->` este similar cu operatorul nullsafe `?->`, dar nu generează o eroare dacă o variabilă, o proprietate sau un index nu există deloc.
-
-```latte
-{$order??->id}
-```
-
-acesta este un mod de a spune că, atunci când `$order` este definit și nu este nul, `$order->id` va fi calculat, dar când `$order` este nul sau nu există, ne oprim din ceea ce facem și returnăm pur și simplu null.
-
-```latte
-{$user??->address??->street}
-// roughly means isset($user) && isset($user->address) ? $user->address->street : null
-```
-
-
 O fereastră în istorie .[#toc-a-window-into-history]
 ----------------------------------------------------
 
 Latte a venit cu o serie de bomboane sintactice de-a lungul istoriei sale, care au apărut în PHP însuși câțiva ani mai târziu. De exemplu, în Latte era posibil să se scrie array-uri ca `[1, 2, 3]` în loc de `array(1, 2, 3)` sau de a utiliza operatorul nullsafe `$obj?->foo` cu mult înainte ca acest lucru să fie posibil în PHP. Latte a introdus, de asemenea, operatorul de expansiune a tablourilor `(expand) $arr`, care este echivalentul operatorului `...$arr` de astăzi din PHP.
 
+Operatorul undefined-safe `??->`, care este similar cu operatorul nullsafe `?->`, dar care nu generează o eroare dacă variabila nu există, a fost creat din motive istorice, iar astăzi recomandăm utilizarea operatorului standard PHP `?->`.
+
 
 Limitări ale PHP în Latte .[#toc-php-limitations-in-latte]
 ==========================================================
 
-În Latte pot fi scrise numai expresii PHP. Adică, nu puteți declara clase sau utiliza [structuri de control |https://www.php.net/manual/en/language.control-structures.php], cum ar fi `if`, `foreach`, `switch`, `return`, , `try`, `throw` și altele, în locul cărora Latte oferă [etichetele |tags] sale.
-De asemenea, nu puteți folosi [atribute |https://www.php.net/manual/en/language.attributes.php], [backticks |https://www.php.net/manual/en/language.operators.execution.php] sau [constante magice |https://www.php.net/manual/en/language.constants.magic.php], deoarece nu ar avea sens.
-Nu puteți folosi nici măcar `echo`, `include`, `require`, , `exit`, `eval`, `unset`, pentru că acestea nu sunt funcții, ci construcții speciale ale limbajului PHP, și deci nu sunt expresii.
+În Latte pot fi scrise numai expresii PHP. Adică, nu pot fi folosite expresii care se termină cu punct și virgulă. Nu puteți declara clase sau utiliza [structuri de control |https://www.php.net/manual/en/language.control-structures.php], cum ar fi `if`, `foreach`, `switch`, `return`, `try`, `throw` și altele, în locul cărora Latte oferă [etichetele |tags] sale.
+De asemenea, nu puteți utiliza [atribute |https://www.php.net/manual/en/language.attributes.php], [backticks |https://www.php.net/manual/en/language.operators.execution.php] sau [constante magice |https://www.php.net/manual/en/language.constants.magic.php].
+Nu puteți folosi nici măcar `unset`, `echo`, , `include`, `require`, , `exit`, `eval`, deoarece acestea nu sunt funcții, ci construcții speciale ale limbajului PHP și, prin urmare, nu sunt expresii. Sunt acceptate doar comentariile pe mai multe rânduri `/* ... */`.
 
 Cu toate acestea, puteți ocoli aceste limitări prin activarea extensiei [RawPhpExtension |develop#RawPhpExtension], care vă permite să utilizați orice cod PHP în tag-ul `{php ...}` pe răspunderea autorului șablonului.

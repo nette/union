@@ -4,7 +4,7 @@ NEON formátum
 .[perex]
 A NEON egy ember által olvasható strukturált adatformátum. A Nette-ben konfigurációs fájlokra használják. Strukturált adatok, például beállítások, nyelvi fordítások stb. tárolására is használják. [Próbálja ki a homokozóban |https://ne-on.org].
 
-A NEON a *Nette Object Notation* rövidítése. Kevésbé bonyolult és nehézkes, mint az XML vagy a JSON, de hasonló képességekkel rendelkezik. Nagyon hasonlít a YAML-hez. A fő előnye, hogy a NEON rendelkezik úgynevezett [entitásokkal |#entities], aminek köszönhetően a DI szolgáltatások konfigurálása olyan szexi. És lehetővé teszi a tabulátorokat a behúzáshoz.
+A NEON a *Nette Object Notation* rövidítése. Kevésbé bonyolult és nehézkes, mint az XML vagy a JSON, de hasonló képességekkel rendelkezik. Nagyon hasonlít a YAML-hez. A fő előnye, hogy a NEON rendelkezik úgynevezett [entitásokkal |#entities], amelyeknek köszönhetően a DI szolgáltatások konfigurálása [olyan szexi |https://gist.github.com/dg/26baf3ce8f29d0f751e9dddfaa06504f]. És lehetővé teszi a tabulátorokat a behúzáshoz.
 
 A NEON az alapoktól kezdve úgy lett felépítve, hogy egyszerűen használható legyen.
 
@@ -119,11 +119,11 @@ A leképezések és szekvenciák értékei lehetnek más leképezések és szekv
 
 ```neon
 pets:
- - Cat
- - Dog
+   - Cat
+   - Dog
 cars:
- - Volvo
- - Skoda
+   - Volvo
+   - Skoda
 ```
 
 PHP-ben ugyanezt a struktúrát így írnánk le:
@@ -160,6 +160,28 @@ item: [
 	 - Dog
 ]
 ```
+
+Az előző esetben egy olyan leképezést írtunk, amelynek elemei szekvenciák voltak. Most próbáljuk meg fordítva, és hozzunk létre egy leképezéseket tartalmazó szekvenciát:
+
+```neon
+-
+	name: John
+	age: 35
+-
+	name: Peter
+	age: 28
+```
+
+Nem szükséges, hogy a felsoroláspontok külön sorokban legyenek; így is elhelyezhetjük őket:
+
+```neon
+- name: John
+  age: 35
+- name: Peter
+  age: 28
+```
+
+Öntől függ, hogy a kulcsokat szóközökkel vagy tabulátorral igazítja-e egy oszlopba.
 
 Mivel a PHP ugyanazt a struktúrát használja a leképezéshez és a szekvenciákhoz, azaz a tömböket, mindkettő összevonható. A behúzás ezúttal is ugyanaz:
 

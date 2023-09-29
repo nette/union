@@ -15,17 +15,17 @@ use Nette;
 /**
  * ComponentContainer is default implementation of IContainer.
  *
- * @property-read \Iterator $components
+ * @template T of IComponent
+ * @implements IContainer<T>
+ * @property-read T[] $components
  */
 class Container extends Component implements IContainer
 {
 	private const NameRegexp = '#^[a-zA-Z0-9_]+$#D';
 
 	/** @var IComponent[] */
-	private $components = [];
-
-	/** @var Container|null */
-	private $cloning;
+	private array $components = [];
+	private ?Container $cloning = null;
 
 
 	/********************* interface IContainer ****************d*g**/
@@ -33,10 +33,9 @@ class Container extends Component implements IContainer
 
 	/**
 	 * Adds the component to the container.
-	 * @return static
 	 * @throws Nette\InvalidStateException
 	 */
-	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null)
+	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null): static
 	{
 		if ($name === null) {
 			$name = $component->getName();
@@ -110,6 +109,7 @@ class Container extends Component implements IContainer
 	/**
 	 * Returns component specified by name or path.
 	 * @param  bool  $throw  throw exception if component doesn't exist?
+	 * @return ($throw is true ? IComponent : ?IComponent)
 	 */
 	final public function getComponent(string $name, bool $throw = true): ?IComponent
 	{
@@ -144,7 +144,7 @@ class Container extends Component implements IContainer
 		} elseif ($throw) {
 			$hint = Nette\Utils\ObjectHelpers::getSuggestion(array_merge(
 				array_map('strval', array_keys($this->components)),
-				array_map('lcfirst', preg_filter('#^createComponent([A-Z0-9].*)#', '$1', get_class_methods($this)))
+				array_map('lcfirst', preg_filter('#^createComponent([A-Z0-9].*)#', '$1', get_class_methods($this))),
 			), $name);
 			throw new Nette\InvalidArgumentException("Component with name '$name' does not exist" . ($hint ? ", did you mean '$hint'?" : '.'));
 		}
@@ -179,23 +179,41 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Iterates over descendants components.
-	 * @return \Iterator<int|string,IComponent>
+	 * Returns immediate child components.
+	 * @return array<int|string,IComponent>
 	 */
-	final public function getComponents(bool $deep = false, ?string $filterType = null): \Iterator
+	final public function getComponents(): iterable
 	{
-		$iterator = new RecursiveComponentIterator($this->components);
-		if ($deep) {
+		$filterType = func_get_args()[1] ?? null;
+		if (func_get_args()[0] ?? null) { // back compatibility
+			$iterator = new RecursiveComponentIterator($this->components);
 			$iterator = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::SELF_FIRST);
+			if ($filterType) {
+				$iterator = new \CallbackFilterIterator($iterator, fn($item) => $item instanceof $filterType);
+			}
+			return $iterator;
 		}
 
-		if ($filterType) {
-			$iterator = new \CallbackFilterIterator($iterator, function ($item) use ($filterType) {
-				return $item instanceof $filterType;
-			});
-		}
+		return $filterType
+			? array_filter($this->components, fn($item) => $item instanceof $filterType)
+			: $this->components;
+	}
 
-		return $iterator;
+
+	/**
+	 * Retrieves the entire hierarchy of components, including all nested child components (depth-first).
+	 * @return list<IComponent>
+	 */
+	final public function getComponentTree(): array
+	{
+		$res = [];
+		foreach ($this->components as $component) {
+			$res[] = $component;
+			if ($component instanceof self) {
+				$res = array_merge($res, $component->getComponentTree());
+			}
+		}
+		return $res;
 	}
 
 

@@ -24,8 +24,6 @@ use Latte\SecurityViolationException;
  */
 final class TemplateParserHtml
 {
-	use Latte\Strict;
-
 	/** @var array<string, callable(Tag, TemplateParser): (Node|\Generator|void)> */
 	private array /*readonly*/ $attrParsers;
 	private ?Html\ElementNode $element = null;
@@ -219,13 +217,17 @@ final class TemplateParserHtml
 	private function parseEndTag(): array
 	{
 		$stream = $this->parser->getStream();
+		$lexer = $this->parser->getLexer();
 		$stream->consume(Token::Html_TagOpen);
-		$this->parser->getLexer()->setState(TemplateLexer::StateHtmlTag);
+		$lexer->setState(TemplateLexer::StateHtmlTag);
 		$stream->consume(Token::Slash);
+		if (isset($this->element->nAttributes['syntax'])) {  // hardcoded
+			$lexer->popSyntax();
+		}
 		$name = $this->parseTagName();
 		$stream->tryConsume(Token::Whitespace);
 		$stream->consume(Token::Html_TagClose);
-		$this->parser->getLexer()->setState(TemplateLexer::StateHtmlText);
+		$lexer->setState(TemplateLexer::StateHtmlText);
 		return $name;
 	}
 
@@ -432,7 +434,7 @@ final class TemplateParserHtml
 			prefix: $this->getPrefix($name),
 			inTag: true,
 			htmlElement: $this->element,
-			data: (object) ['node' => $node = new Nodes\TextNode('')], // TODO: better
+			nAttributeNode: $node = new Nodes\TextNode(''),
 		);
 		return $node;
 	}
@@ -512,7 +514,7 @@ final class TemplateParserHtml
 			if ($res instanceof \Generator && $res->valid()) {
 				$toClose[] = [$res, $tag];
 
-			} elseif ($res instanceof Node) {
+			} elseif ($res instanceof AreaNode) {
 				$this->parser->ensureIsConsumed($tag);
 				$res->position = $tag->position;
 				$tag->replaceNAttribute($res);

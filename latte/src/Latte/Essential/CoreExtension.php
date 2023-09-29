@@ -11,10 +11,10 @@ namespace Latte\Essential;
 
 use Latte;
 use Latte\Compiler\Nodes\Php\Scalar;
-use Latte\Compiler\Nodes\TemplateNode;
 use Latte\Compiler\Nodes\TextNode;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
+use Latte\Runtime;
 use Latte\RuntimeException;
 use Nette;
 
@@ -24,16 +24,25 @@ use Nette;
  */
 final class CoreExtension extends Latte\Extension
 {
-	use Latte\Strict;
+	private Latte\Engine $engine;
+	private Filters $filters;
 
-	private array $functions;
-	private bool $strict;
+
+	public function __construct()
+	{
+		$this->filters = new Filters;
+	}
 
 
 	public function beforeCompile(Latte\Engine $engine): void
 	{
-		$this->functions = $engine->getFunctions();
-		$this->strict = $engine->isStrictParsing();
+		$this->engine = $engine;
+	}
+
+
+	public function beforeRender(Runtime\Template $template): void
+	{
+		$this->filters->locale = $template->getEngine()->getLocale();
 	}
 
 
@@ -94,6 +103,7 @@ final class CoreExtension extends Latte\Extension
 			'ifset' => [Nodes\IfNode::class, 'create'],
 			'ifchanged' => [Nodes\IfChangedNode::class, 'create'],
 			'n:ifcontent' => [Nodes\IfContentNode::class, 'create'],
+			'n:else' => [Nodes\NElseNode::class, 'create'],
 			'switch' => [Nodes\SwitchNode::class, 'create'],
 		];
 	}
@@ -102,18 +112,19 @@ final class CoreExtension extends Latte\Extension
 	public function getFilters(): array
 	{
 		return [
-			'batch' => [Filters::class, 'batch'],
-			'breakLines' => [Filters::class, 'breaklines'],
-			'breaklines' => [Filters::class, 'breaklines'],
-			'bytes' => [Filters::class, 'bytes'],
+			'batch' => [$this->filters, 'batch'],
+			'breakLines' => [$this->filters, 'breaklines'],
+			'breaklines' => [$this->filters, 'breaklines'],
+			'bytes' => [$this->filters, 'bytes'],
 			'capitalize' => extension_loaded('mbstring')
-				? [Filters::class, 'capitalize']
-				: function () { throw new RuntimeException('Filter |capitalize requires mbstring extension.'); },
-			'ceil' => [Filters::class, 'ceil'],
-			'clamp' => [Filters::class, 'clamp'],
-			'dataStream' => [Filters::class, 'dataStream'],
-			'datastream' => [Filters::class, 'dataStream'],
-			'date' => [Filters::class, 'date'],
+				? [$this->filters, 'capitalize']
+				: fn() => throw new RuntimeException('Filter |capitalize requires mbstring extension.'),
+			'ceil' => [$this->filters, 'ceil'],
+			'checkUrl' => [Latte\Runtime\Filters::class, 'safeUrl'],
+			'clamp' => [$this->filters, 'clamp'],
+			'dataStream' => [$this->filters, 'dataStream'],
+			'datastream' => [$this->filters, 'dataStream'],
+			'date' => [$this->filters, 'date'],
 			'escape' => [Latte\Runtime\Filters::class, 'nop'],
 			'escapeCss' => [Latte\Runtime\Filters::class, 'escapeCss'],
 			'escapeHtml' => [Latte\Runtime\Filters::class, 'escapeHtml'],
@@ -122,50 +133,50 @@ final class CoreExtension extends Latte\Extension
 			'escapeJs' => [Latte\Runtime\Filters::class, 'escapeJs'],
 			'escapeUrl' => 'rawurlencode',
 			'escapeXml' => [Latte\Runtime\Filters::class, 'escapeXml'],
-			'explode' => [Filters::class, 'explode'],
-			'first' => [Filters::class, 'first'],
+			'explode' => [$this->filters, 'explode'],
+			'first' => [$this->filters, 'first'],
 			'firstUpper' => extension_loaded('mbstring')
-				? [Filters::class, 'firstUpper']
-				: function () { throw new RuntimeException('Filter |firstUpper requires mbstring extension.'); },
-			'floor' => [Filters::class, 'floor'],
-			'checkUrl' => [Latte\Runtime\Filters::class, 'safeUrl'],
-			'implode' => [Filters::class, 'implode'],
-			'indent' => [Filters::class, 'indent'],
-			'join' => [Filters::class, 'implode'],
-			'last' => [Filters::class, 'last'],
-			'length' => [Filters::class, 'length'],
+				? [$this->filters, 'firstUpper']
+				: fn() => throw new RuntimeException('Filter |firstUpper requires mbstring extension.'),
+			'floor' => [$this->filters, 'floor'],
+			'group' => [$this->filters, 'group'],
+			'implode' => [$this->filters, 'implode'],
+			'indent' => [$this->filters, 'indent'],
+			'join' => [$this->filters, 'implode'],
+			'last' => [$this->filters, 'last'],
+			'length' => [$this->filters, 'length'],
 			'lower' => extension_loaded('mbstring')
-				? [Filters::class, 'lower']
-				: function () { throw new RuntimeException('Filter |lower requires mbstring extension.'); },
-			'number' => 'number_format',
-			'padLeft' => [Filters::class, 'padLeft'],
-			'padRight' => [Filters::class, 'padRight'],
-			'query' => [Filters::class, 'query'],
-			'random' => [Filters::class, 'random'],
-			'repeat' => [Filters::class, 'repeat'],
-			'replace' => [Filters::class, 'replace'],
-			'replaceRe' => [Filters::class, 'replaceRe'],
-			'replaceRE' => [Filters::class, 'replaceRe'],
-			'reverse' => [Filters::class, 'reverse'],
-			'round' => [Filters::class, 'round'],
-			'slice' => [Filters::class, 'slice'],
-			'sort' => [Filters::class, 'sort'],
-			'spaceless' => [Filters::class, 'strip'],
-			'split' => [Filters::class, 'explode'],
-			'strip' => [Filters::class, 'strip'], // obsolete
-			'stripHtml' => [Filters::class, 'stripHtml'],
-			'striphtml' => [Filters::class, 'stripHtml'],
-			'stripTags' => [Filters::class, 'stripTags'],
-			'striptags' => [Filters::class, 'stripTags'],
-			'substr' => [Filters::class, 'substring'],
-			'trim' => [Filters::class, 'trim'],
-			'truncate' => [Filters::class, 'truncate'],
+				? [$this->filters, 'lower']
+				: fn() => throw new RuntimeException('Filter |lower requires mbstring extension.'),
+			'number' => [$this->filters, 'number'],
+			'padLeft' => [$this->filters, 'padLeft'],
+			'padRight' => [$this->filters, 'padRight'],
+			'query' => [$this->filters, 'query'],
+			'random' => [$this->filters, 'random'],
+			'repeat' => [$this->filters, 'repeat'],
+			'replace' => [$this->filters, 'replace'],
+			'replaceRe' => [$this->filters, 'replaceRe'],
+			'replaceRE' => [$this->filters, 'replaceRe'],
+			'reverse' => [$this->filters, 'reverse'],
+			'round' => [$this->filters, 'round'],
+			'slice' => [$this->filters, 'slice'],
+			'sort' => [$this->filters, 'sort'],
+			'spaceless' => [$this->filters, 'strip'],
+			'split' => [$this->filters, 'explode'],
+			'strip' => [$this->filters, 'strip'], // obsolete
+			'stripHtml' => [$this->filters, 'stripHtml'],
+			'striphtml' => [$this->filters, 'stripHtml'],
+			'stripTags' => [$this->filters, 'stripTags'],
+			'striptags' => [$this->filters, 'stripTags'],
+			'substr' => [$this->filters, 'substring'],
+			'trim' => [$this->filters, 'trim'],
+			'truncate' => [$this->filters, 'truncate'],
 			'upper' => extension_loaded('mbstring')
-				? [Filters::class, 'upper']
-				: function () { throw new RuntimeException('Filter |upper requires mbstring extension.'); },
+				? [$this->filters, 'upper']
+				: fn() => throw new RuntimeException('Filter |upper requires mbstring extension.'),
 			'webalize' => class_exists(Nette\Utils\Strings::class)
 				? [Nette\Utils\Strings::class, 'webalize']
-				: function () { throw new RuntimeException('Filter |webalize requires nette/utils package.'); },
+				: fn() => throw new RuntimeException('Filter |webalize requires nette/utils package.'),
 		];
 	}
 
@@ -173,24 +184,28 @@ final class CoreExtension extends Latte\Extension
 	public function getFunctions(): array
 	{
 		return [
-			'clamp' => [Filters::class, 'clamp'],
-			'divisibleBy' => [Filters::class, 'divisibleBy'],
-			'even' => [Filters::class, 'even'],
-			'first' => [Filters::class, 'first'],
-			'last' => [Filters::class, 'last'],
-			'odd' => [Filters::class, 'odd'],
-			'slice' => [Filters::class, 'slice'],
+			'clamp' => [$this->filters, 'clamp'],
+			'divisibleBy' => [$this->filters, 'divisibleBy'],
+			'even' => [$this->filters, 'even'],
+			'first' => [$this->filters, 'first'],
+			'group' => [$this->filters, 'group'],
+			'last' => [$this->filters, 'last'],
+			'odd' => [$this->filters, 'odd'],
+			'slice' => [$this->filters, 'slice'],
+			'hasBlock' => fn(Runtime\Template $template, string $name): bool => $template->hasBlock($name),
 		];
 	}
 
 
 	public function getPasses(): array
 	{
+		$passes = new Passes($this->engine);
 		return [
-			'internalVariables' => fn(TemplateNode $node) => Passes::internalVariablesPass($node, $this->strict),
-			'overwrittenVariables' => [Passes::class, 'overwrittenVariablesPass'],
-			'customFunctions' => fn(TemplateNode $node) => Passes::customFunctionsPass($node, $this->functions),
-			'moveTemplatePrintToHead' => [Passes::class, 'moveTemplatePrintToHeadPass'],
+			'internalVariables' => [$passes, 'forbiddenVariablesPass'],
+			'overwrittenVariables' => [Nodes\ForeachNode::class, 'overwrittenVariablesPass'],
+			'customFunctions' => [$passes, 'customFunctionsPass'],
+			'moveTemplatePrintToHead' => [Nodes\TemplatePrintNode::class, 'moveToHeadPass'],
+			'nElse' => [Nodes\NElseNode::class, 'processPass'],
 		];
 	}
 
@@ -224,13 +239,17 @@ final class CoreExtension extends Latte\Extension
 	 */
 	private function parseSyntax(Tag $tag, TemplateParser $parser): \Generator
 	{
+		if ($tag->isNAttribute() && $tag->prefix !== $tag::PrefixNone) {
+			throw new Latte\CompileException("Use n:syntax instead of {$tag->getNotation()}", $tag->position);
+		}
 		$tag->expectArguments();
 		$token = $tag->parser->stream->consume();
 		$lexer = $parser->getLexer();
-		$saved = [$lexer->openDelimiter, $lexer->closeDelimiter];
 		$lexer->setSyntax($token->text, $tag->isNAttribute() ? null : $tag->name);
 		[$inner] = yield;
-		[$lexer->openDelimiter, $lexer->closeDelimiter] = $saved;
+		if (!$tag->isNAttribute()) {
+			$lexer->popSyntax();
+		}
 		return $inner;
 	}
 }

@@ -11,6 +11,7 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
+use Stringable;
 
 
 /**
@@ -22,20 +23,12 @@ use Nette\Utils\Html;
  */
 class CheckboxList extends MultiChoiceControl
 {
-	/** @var Html  separator element template */
-	protected $separator;
-
-	/** @var Html  container element template */
-	protected $container;
-
-	/** @var Html  item label template */
-	protected $itemLabel;
+	protected Html $separator;
+	protected Html $container;
+	protected Html $itemLabel;
 
 
-	/**
-	 * @param  string|object  $label
-	 */
-	public function __construct($label = null, ?array $items = null)
+	public function __construct(string|Stringable|null $label = null, ?array $items = null)
 	{
 		parent::__construct($label, $items);
 		$this->control->type = 'checkbox';
@@ -53,9 +46,6 @@ class CheckboxList extends MultiChoiceControl
 			? $this->getHttpData(Nette\Forms\Form::DataText)
 			: explode(',', $data);
 		$this->value = array_keys(array_flip($data));
-		if (is_array($this->disabled)) {
-			$this->value = array_diff($this->value, array_keys($this->disabled));
-		}
 	}
 
 
@@ -63,21 +53,19 @@ class CheckboxList extends MultiChoiceControl
 	{
 		$input = parent::getControl();
 		$items = $this->getItems();
-		reset($items);
-
 		return $this->container->setHtml(
 			Nette\Forms\Helpers::createInputList(
 				$this->translate($items),
 				array_merge($input->attrs, [
 					'id' => null,
 					'checked?' => $this->value,
-					'disabled:' => $this->disabled,
+					'disabled:' => $this->disabled ?: $this->disabledChoices,
 					'required' => null,
-					'data-nette-rules:' => [key($items) => $input->attrs['data-nette-rules']],
+					'data-nette-rules:' => [array_key_first($items) => $input->attrs['data-nette-rules']],
 				]),
 				$this->itemLabel->attrs,
-				$this->separator
-			)
+				$this->separator,
+			),
 		);
 	}
 
@@ -93,8 +81,8 @@ class CheckboxList extends MultiChoiceControl
 		$key = key([(string) $key => null]);
 		return parent::getControl()->addAttributes([
 			'id' => $this->getHtmlId() . '-' . $key,
-			'checked' => in_array($key, (array) $this->value, true),
-			'disabled' => is_array($this->disabled) ? isset($this->disabled[$key]) : $this->disabled,
+			'checked' => in_array($key, (array) $this->value, strict: true),
+			'disabled' => $this->disabled || isset($this->disabledChoices[$key]),
 			'required' => null,
 			'value' => $key,
 		]);
@@ -105,7 +93,7 @@ class CheckboxList extends MultiChoiceControl
 	{
 		$itemLabel = clone $this->itemLabel;
 		return func_num_args()
-			? $itemLabel->setText($this->translate($this->items[$key]))->for($this->getHtmlId() . '-' . $key)
+			? $itemLabel->setText($this->translate($this->getItems()[$key]))->for($this->getHtmlId() . '-' . $key)
 			: $this->getLabel();
 	}
 

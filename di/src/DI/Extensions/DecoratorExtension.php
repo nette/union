@@ -25,12 +25,12 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 				'setup' => Expect::list(),
 				'tags' => Expect::array(),
 				'inject' => Expect::bool(),
-			])
+			]),
 		);
 	}
 
 
-	public function beforeCompile()
+	public function beforeCompile(): void
 	{
 		$this->getContainerBuilder()->resolve();
 		foreach ($this->config as $type => $info) {
@@ -50,11 +50,7 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 
 	public function addSetups(string $type, array $setups): void
 	{
-		foreach ($this->findByType($type) as $def) {
-			if ($def instanceof Definitions\FactoryDefinition) {
-				$def = $def->getResultDefinition();
-			}
-
+		foreach ($this->getContainerBuilder()->findByType($type) as $def) {
 			foreach ($setups as $setup) {
 				if (is_array($setup)) {
 					$setup = new Definitions\Statement(key($setup), array_values($setup));
@@ -68,18 +64,9 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 
 	public function addTags(string $type, array $tags): void
 	{
-		$tags = Nette\Utils\Arrays::normalize($tags, true);
-		foreach ($this->findByType($type) as $def) {
+		$tags = Nette\Utils\Arrays::normalize($tags, filling: true);
+		foreach ($this->getContainerBuilder()->findByType($type) as $def) {
 			$def->setTags($def->getTags() + $tags);
 		}
-	}
-
-
-	private function findByType(string $type): array
-	{
-		return array_filter($this->getContainerBuilder()->getDefinitions(), function (Definitions\Definition $def) use ($type): bool {
-			return is_a($def->getType(), $type, true)
-				|| ($def instanceof Definitions\FactoryDefinition && is_a($def->getResultType(), $type, true));
-		});
 	}
 }

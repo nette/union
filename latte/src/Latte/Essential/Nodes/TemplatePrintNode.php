@@ -9,15 +9,17 @@ declare(strict_types=1);
 
 namespace Latte\Essential\Nodes;
 
+use Latte\Compiler\Node;
+use Latte\Compiler\Nodes;
 use Latte\Compiler\Nodes\StatementNode;
-use Latte\Compiler\PhpHelpers;
+use Latte\Compiler\NodeTraverser;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\Token;
 
 
 /**
- * {templatePrint [ClassName]}
+ * {templatePrint [ParentClass]}
  */
 class TemplatePrintNode extends StatementNode
 {
@@ -34,12 +36,32 @@ class TemplatePrintNode extends StatementNode
 
 	public function print(PrintContext $context): string
 	{
-		return '(new Latte\Essential\Blueprint)->printClass($this, ' . PhpHelpers::dump($this->template) . '); exit;';
+		return $context->format(<<<'XX'
+			$ʟ_bp = new Latte\Essential\Blueprint;
+			$ʟ_bp->printBegin();
+			$ʟ_bp->printClass($ʟ_bp->generateTemplateClass($this->getParameters(), extends: %dump));
+			$ʟ_bp->printEnd();
+			exit;
+			XX, $this->template);
 	}
 
 
 	public function &getIterator(): \Generator
 	{
 		false && yield;
+	}
+
+
+	/**
+	 * Pass: moves this node to head.
+	 */
+	public static function moveToHeadPass(Nodes\TemplateNode $templateNode): void
+	{
+		(new NodeTraverser)->traverse($templateNode->main, function (Node $node) use ($templateNode) {
+			if ($node instanceof self) {
+				array_unshift($templateNode->head->children, $node);
+				return new Nodes\NopNode;
+			}
+		});
 	}
 }

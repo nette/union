@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-use Nette\Utils\DateTime;
+use Nette\Database\DateTime;
 use Tester\Assert;
 
 require __DIR__ . '/connect.inc.php'; // create $connection
@@ -42,7 +42,7 @@ Assert::equal([
 	'smallint' => 1,
 	'smallmoney' => 1.1,
 	'text' => 'a',
-	'time' => new DateTime('10:10:10'),
+	'time' => new DateTime('0001-01-01 10:10:10'),
 	'tinyint' => 1,
 	'uniqueidentifier' => '678E9994-A048-11E2-9030-003048D30C14',
 	'varbinary' => "\x01",
@@ -75,7 +75,7 @@ Assert::equal([
 	'smallint' => 0,
 	'smallmoney' => 0.5,
 	'text' => '',
-	'time' => new DateTime('00:00:00'),
+	'time' => new DateTime('0001-01-01 00:00:00'),
 	'tinyint' => 0,
 	'uniqueidentifier' => '00000000-0000-0000-0000-000000000000',
 	'varbinary' => "\x00",
@@ -126,18 +126,18 @@ Assert::same([
 
 function isTimestamp($str)
 {
-	return is_string($str) && substr($str, 0, 4) === "\x00\x00\x00\x00";
+	return is_string($str) && str_starts_with($str, "\x00\x00\x00\x00");
 }
 
 
 $row = (array) $connection->query('SELECT [datetimeoffset], CAST([sql_variant] AS int) AS [sql_variant], [timestamp] FROM types2 WHERE id = 1')->fetch();
-Assert::type('DateTime', $row['datetimeoffset']);
+Assert::type(DateTime::class, $row['datetimeoffset']);
 Assert::same($row['datetimeoffset']->format('Y-m-d H:i:s P'), '2012-10-13 10:10:10 +02:00');
 Assert::same($row['sql_variant'], 123456);
 Assert::true(isTimestamp($row['timestamp']));
 
 $row = (array) $connection->query('SELECT [datetimeoffset], CAST([sql_variant] AS varchar) AS [sql_variant], [timestamp] FROM types2 WHERE id = 2')->fetch();
-Assert::type('DateTime', $row['datetimeoffset']);
+Assert::type(DateTime::class, $row['datetimeoffset']);
 Assert::same($row['datetimeoffset']->format('Y-m-d H:i:s P'), '0001-01-01 00:00:00 +00:00');
 Assert::same($row['sql_variant'], 'abcd');
 Assert::true(isTimestamp($row['timestamp']));

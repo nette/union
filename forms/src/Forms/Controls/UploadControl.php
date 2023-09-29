@@ -14,6 +14,7 @@ use Nette\Forms;
 use Nette\Forms\Form;
 use Nette\Http\FileUpload;
 use Nette\Utils\Arrays;
+use Stringable;
 
 
 /**
@@ -23,23 +24,24 @@ class UploadControl extends BaseControl
 {
 	/** validation rule */
 	public const Valid = ':uploadControlValid';
+
+	/** @deprecated use UploadControl::Valid */
 	public const VALID = self::Valid;
 
+	private bool $nullable = false;
 
-	/**
-	 * @param  string|object  $label
-	 */
-	public function __construct($label = null, bool $multiple = false)
+
+	public function __construct(string|Stringable|null $label = null, bool $multiple = false)
 	{
 		parent::__construct($label);
 		$this->control->type = 'file';
 		$this->control->multiple = $multiple;
 		$this->setOption('type', 'file');
 		$this->addCondition(true) // not to block the export of rules to JS
-			->addRule([$this, 'isOk'], Forms\Validator::$messages[self::Valid]);
+			->addRule($this->isOk(...), Forms\Validator::$messages[self::Valid]);
 		$this->addRule(Form::MaxFileSize, null, Forms\Helpers::iniGetSize('upload_max_filesize'));
 		if ($multiple) {
-			$this->addRule(Form::MaxLength, 'The maximum allowed number of uploaded files is %i', (int) ini_get('max_file_uploads'));
+			$this->addRule(Form::MaxLength, 'The maximum allowed number of uploaded files is %d', (int) ini_get('max_file_uploads'));
 		}
 
 		$this->monitor(Form::class, function (Form $form): void {
@@ -55,9 +57,6 @@ class UploadControl extends BaseControl
 	public function loadHttpData(): void
 	{
 		$this->value = $this->getHttpData(Form::DataFile);
-		if ($this->value === null) {
-			$this->value = new FileUpload(null);
-		}
 	}
 
 
@@ -68,12 +67,17 @@ class UploadControl extends BaseControl
 
 
 	/**
-	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue($value): static
 	{
 		return $this;
+	}
+
+
+	public function getValue(): FileUpload|array|null
+	{
+		return $this->value ?? ($this->nullable ? null : new FileUpload(null));
 	}
 
 
@@ -82,30 +86,48 @@ class UploadControl extends BaseControl
 	 */
 	public function isFilled(): bool
 	{
-		return $this->value instanceof FileUpload
-			? $this->value->getError() !== UPLOAD_ERR_NO_FILE // ignore null object
-			: (bool) $this->value;
+		return (bool) $this->value;
+	}
+
+
+	/**
+	 * Sets whether getValue() returns null instead of FileUpload with error UPLOAD_ERR_NO_FILE.
+	 */
+	public function setNullable(bool $value = true): static
+	{
+		$this->nullable = $value;
+		return $this;
+	}
+
+
+	public function isNullable(): bool
+	{
+		return $this->nullable;
 	}
 
 
 	/**
 	 * Have been all files successfully uploaded?
+	 * @internal
 	 */
 	public function isOk(): bool
 	{
-		return $this->value instanceof FileUpload
-			? $this->value->isOk()
-			: $this->value && Arrays::every($this->value, function (FileUpload $upload): bool {
-				return $upload->isOk();
-			});
+		return $this->value &&
+			Arrays::every(
+				$this->value instanceof FileUpload ? [$this->value] : $this->value,
+				fn(FileUpload $upload): bool => $upload->isOk()
+			);
 	}
 
 
-	/** @return static */
-	public function addRule($validator, $errorMessage = null, $arg = null)
+	public function addRule(
+		callable|string $validator,
+		string|Stringable|null $errorMessage = null,
+		mixed $arg = null,
+	): static
 	{
 		if ($validator === Form::Image) {
-			$this->control->accept = implode(', ', FileUpload::IMAGE_MIME_TYPES);
+			$this->control->accept = implode(', ', Forms\Helpers::getSupportedImages());
 
 		} elseif ($validator === Form::MimeType) {
 			$this->control->accept = implode(', ', (array) $arg);

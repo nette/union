@@ -32,7 +32,7 @@ echo $url; // https://nette.org/en/documentation?action=edit
 echo $url->getHost(); // nette.org
 ```
 
-Tarayıcılar sunucuya bir parça göndermez, bu nedenle `$url->getFragment()` boş bir dize döndürür.
+Uyarı: Tarayıcılar sunucuya bir parça göndermez, bu nedenle `$url->getFragment()` boş bir dize döndürecektir.
 
 
 getQuery(string $key=null): string|array|null .[method]
@@ -139,11 +139,6 @@ Tüm HTTP başlıklarını ilişkisel dizi olarak döndürür:
 $headers = $httpRequest->getHeaders();
 echo $headers['Content-Type'];
 ```
-
-
-getReferer(): ?Nette\Http\UrlImmutable .[method]
-------------------------------------------------
-Kullanıcı hangi URL'den geldi? Dikkat edin, hiç güvenilir değil.
 
 
 isSecured(): bool .[method]
@@ -356,6 +351,17 @@ Bu yöntem tarafından döndürülen değere güvenmeyin. Bir istemci, uygulaman
 getSanitizedName(): string .[method]
 ------------------------------------
 Temizlenmiş dosya adını döndürür. Yalnızca ASCII karakterleri içerir `[a-zA-Z0-9.-]`. Ad bu tür karakterler içermiyorsa, 'bilinmeyen' döndürür. Dosya JPEG, PNG, GIF veya WebP görüntüsüyse, doğru dosya uzantısını döndürür.
+
+.[caution]
+PHP uzantısı gerektirir `fileinfo`.
+
+
+getSuggestedExtension(): ?string .[method]{data-version:3.2.4}
+--------------------------------------------------------------
+Algılanan MIME türüne karşılık gelen uygun dosya uzantısını (nokta olmadan) döndürür.
+
+.[caution]
+PHP uzantısı gerektirir `fileinfo`.
 
 
 getUntrustedFullPath(): string .[method]

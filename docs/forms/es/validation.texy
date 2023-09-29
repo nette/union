@@ -23,9 +23,9 @@ $form->addPassword('password', 'Contraseña:')
 	->addRule($form::MinLength, 'La contraseña debe tener al menos %d caracteres', 8);
 ```
 
-Nette viene con una serie de reglas incorporadas cuyos nombres son constantes de la clase `Nette\Forms\Form`:
+**Las reglas de validación sólo se comprueban si el usuario ha rellenado el elemento.
 
-Podemos utilizar las siguientes reglas para todos los controles:
+Nette viene con una serie de reglas predefinidas cuyos nombres son constantes de la clase `Nette\Forms\Form`. Podemos aplicar estas reglas a todos los elementos:
 
 | constante | descripción | argumentos
 |-------
@@ -38,7 +38,11 @@ Podemos utilizar las siguientes reglas para todos los controles:
 | `IsNotIn` | El valor no es igual a ningún elemento de la matriz. `array`
 | `Valid` | la entrada pasa la validación (para [condiciones |#conditions]) | -
 
-Para los controles `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()` también se pueden utilizar las siguientes reglas:
+
+Entradas de texto
+-----------------
+
+Para los elementos `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, `addInteger()`, `addFloat()` también se pueden aplicar algunas de las siguientes reglas:
 
 | `MinLength` | longitud mínima de cadena | `int`
 | `MaxLength` | longitud máxima de cadena | `int`
@@ -57,9 +61,23 @@ Para los controles `addText()`, `addPassword()`, `addTextArea()`, `addEmail()`, 
 Las reglas `Integer`, `Numeric` a `Float` convierten automáticamente el valor a entero (o flotante respectivamente). Además, la regla `URL` también acepta una dirección sin esquema (por ejemplo, `nette.org`) y completa el esquema (`https://nette.org`).
 Las expresiones de `Pattern` y `PatternInsensitive` deben ser válidas para todo el valor, es decir, como si estuviera envuelto en los caracteres `^` and `$`.
 
+
+Número de artículos .[#toc-number-of-items]
+-------------------------------------------
+
+Para los elementos `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` también puede utilizar las siguientes reglas para limitar el número de elementos seleccionados o archivos cargados:
+
+| `MinLength` | número mínimo | `int`
+| `MaxLength` Número máximo `int`
+| `Length` | número en rango o número exacto | pares `[int, int]` o `int`
+
+
+Carga de archivos
+-----------------
+
 Para los controles `addUpload()`, `addMultiUpload()` también se pueden utilizar las siguientes reglas:
 
-| `MaxFileSize` | tamaño máximo del archivo | `int`
+| `MaxFileSize` | tamaño máximo del archivo en bytes | `int`
 | `MimeType` | tipo de MIME, acepta comodines (`'video/*'`) | `string\|string[]`
 | `Image` | el archivo cargado es JPEG, PNG, GIF, WebP | -
 | `Pattern` | nombre de archivo coincide con expresión regular | `string`
@@ -67,15 +85,9 @@ Para los controles `addUpload()`, `addMultiUpload()` también se pueden utilizar
 
 `MimeType` y `Image` requieren la extensión PHP `fileinfo`. Si un archivo o imagen es del tipo requerido se detecta por su firma. No se comprueba la integridad de todo el archivo. Puede averiguar si una imagen no está dañada, por ejemplo, intentando [cargarla |http:request#toImage].
 
-Para los controles `addMultiUpload()`, `addCheckboxList()`, `addMultiSelect()` también se pueden utilizar las siguientes reglas para limitar el número de elementos seleccionados, respectivamente archivos cargados:
-
-| `MinLength` | recuento mínimo | `int`
-| `MaxLength` | recuento máximo `int`
-| `Length` | recuento en rango o recuento exacto | par `[int, int]` o `int`
-
 
 Mensajes de error .[#toc-error-messages]
-----------------------------------------
+========================================
 
 Todas las reglas predefinidas excepto `Pattern` y `PatternInsensitive` tienen un mensaje de error por defecto, por lo que pueden omitirse. Sin embargo, al pasar y formular todos los mensajes personalizados, hará que el formulario sea más fácil de usar.
 
@@ -234,7 +246,7 @@ En muchos casos, descubrimos un error cuando estamos procesando un formulario v�
 try {
 	$data = $form->getValues();
 	$this->user->login($data->username, $data->password);
-	$this->redirect('Homepage:');
+	$this->redirect('Home:');
 
 } catch (Nette\Security\AuthenticationException $e) {
 	if ($e->getCode() === Nette\Security\Authenticator::InvalidCredential) {
@@ -281,7 +293,7 @@ Este script es `netteForms.js`, que está disponible en varias fuentes posibles:
 Puedes incrustar el script directamente en la página HTML desde el CDN:
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>
 ```
 
 O copiarlo localmente en la carpeta pública del proyecto (por ejemplo, desde `vendor/nette/forms/src/assets/netteForms.min.js`):
@@ -292,7 +304,7 @@ O copiarlo localmente en la carpeta pública del proyecto (por ejemplo, desde `v
 
 O instalar a través de [npm |https://www.npmjs.com/package/nette-forms]:
 
-```bash
+```shell
 npm install nette-forms
 ```
 

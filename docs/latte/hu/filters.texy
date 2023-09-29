@@ -14,6 +14,7 @@ A szűrők olyan függvények, amelyek megváltoztatják vagy formázzák az ada
 | `date` | [dátumformázás |#date]
 | `explode` | [a karakterláncot a megadott elválasztóval osztja fel |#explode].
 | `first` | [visszaadja a tömb első elemét vagy a karakterlánc első karakterét |#first].
+| `group` | [adatok csoportosítása különböző kritériumok |#group] szerint
 | `implode` | [egy tömböt egy karakterlánccal kapcsol össze |#implode].
 | `indent` | [a szöveget balról behúzza a tabulátorok számával |#indent]
 | `join` | [egy tömböt egy karakterlánchoz kapcsol |#implode].
@@ -118,8 +119,8 @@ Szűrők .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Szűrő, amely leegyszerűsíti a lineáris adatok táblázatos formában történő felsorolását. Egy tömb tömböt ad vissza a megadott számú elemmel. Ha megad egy második paramétert, akkor ezt az utolsó sor hiányzó elemeinek kitöltésére használja.
 
 ```latte
@@ -151,6 +152,8 @@ Nyomtatás:
 	</tr>
 </table>
 ```
+
+Lásd még a [group |#group] és az [iterateWhile |tags#iterateWhile] címkét.
 
 
 breakLines .[filter]
@@ -203,8 +206,8 @@ Kényszeríti az URL szanálását. Ellenőrzi, hogy a változó tartalmaz-e web
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">checked</a>
-<a data-href="{$link}">unchecked</a>
+<a data-href={$link|checkUrl}>checked</a>
+<a data-href={$link}>unchecked</a>
 ```
 
 Nyomtat:
@@ -217,8 +220,8 @@ Nyomtat:
 Lásd [mégeck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 A min és max tartományba szorított értéket adja vissza.
 
 ```latte
@@ -235,7 +238,7 @@ A tartalmat adat URI-sémává alakítja át. Használható képek HTML- vagy CS
 Legyen egy kép egy változóban `$img = Image::fromFile('obrazek.gif')`, akkor
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 Kinyomtatja például:
@@ -271,8 +274,8 @@ Kikerül egy változót, amelyet URL-ben paraméterként kell használni.
 Lásd még [query |#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Egy karakterláncot a megadott elválasztójel alapján szétválaszt, és karakterláncok tömbjét adja vissza. Alias a `split` számára.
 
 ```latte
@@ -294,8 +297,8 @@ Használhatja a `split` aliast is:
 Lásd még: [implode |#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Visszaadja a tömb első elemét vagy a karakterlánc első karakterét:
 
 ```latte
@@ -330,6 +333,25 @@ Az érték első betűjét nagybetűvé alakítja. PHP-bővítményt igényel `m
 Lásd még [nagybetű |#capitalize], [kisbetű |#lower], [nagybetű |#upper].
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+A szűrő különböző kritériumok szerint csoportosítja az adatokat.
+
+Ebben a példában a táblázat sorai a `categoryId` oszlop alapján vannak csoportosítva. A kimenet egy tömb tömbökből álló tömb, ahol a kulcs a `categoryId` oszlopban szereplő érték. Olvassa el a [részletes utasításokat |cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+Lásd még a [batch |#batch], a [group |functions#group] függvény és az [iterateWhile |tags#iterateWhile] tag.
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Visszaad egy stringet, amely a tömbben lévő stringek összevonása. Alias a következőhöz: `join`.
@@ -339,7 +361,7 @@ Visszaad egy stringet, amely a tömbben lévő stringek összevonása. Alias a k
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-A `join` alias is használható: .{data-version:2.10.2}
+A `join` alias is használható:
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -367,8 +389,8 @@ Nyomtatás:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Visszaadja a tömb utolsó elemét vagy a karakterlánc utolsó karakterét:
 
 ```latte
@@ -416,8 +438,8 @@ Ha a hivatkozás más sémát használ, például `javascript:` vagy `data:`, é
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">checked</a>
-<a href="{$link|nocheck}">unchecked</a>
+<a href={$link}>checked</a>
+<a href={$link|nocheck}>unchecked</a>
 ```
 
 Nyomtatások:
@@ -481,8 +503,8 @@ Egy adott hosszúságú karakterláncot egy másik, jobbról jövő karakterlán
 ```
 
 
-query  .[filter]{data-version:2.10}
------------------------------------
+query  .[filter]
+----------------
 Dinamikusan generál egy lekérdezési karakterláncot az URL-ben:
 
 ```latte
@@ -502,8 +524,8 @@ A `null` értékű kulcsok nem szerepelnek.
 Lásd még [escapeUrl |#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Visszaadja a tömb véletlenszerű elemét vagy a karakterlánc karakterét:
 
 ```latte
@@ -531,7 +553,7 @@ A keresett karakterlánc minden előfordulását helyettesítő karakterlánccal
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Egyszerre több csere is elvégezhető: .{data-version:2.10.2}
+Egyszerre több csere is elvégezhető:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -573,8 +595,8 @@ Egy számot adott pontosságra kerekít.
 Lásd még [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Egy tömb vagy egy karakterlánc egy szeletének kivonása.
 
 ```latte
@@ -591,9 +613,9 @@ Ha a length értéke pozitív, akkor a szekvencia legfeljebb ennyi elemet tartal
 A Filter alapértelmezés szerint átrendezi és visszaállítja az integer tömb kulcsát. Ez a viselkedés megváltoztatható a preserveKeys true értékre állításával. A string kulcsok ettől a paramétertől függetlenül mindig megmaradnak.
 
 
-sort  .[filter]{data-version:2.9}
----------------------------------
-Szűrő, amely egy tömböt rendezi és fenntartja az index hozzárendelést.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+A szűrő egy tömb vagy iterátor elemeinek rendezésére szolgál, miközben megőrzi az asszociációs kulcsokat:
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +631,41 @@ A tömb fordított sorrendbe rendezve.
 {/foreach}
 ```
 
-Saját összehasonlító függvényt adhat át paraméterként: .{data-version:2.10.2}
+Megadhat egy egyéni összehasonlító függvényt a rendezéshez (a példa azt mutatja, hogyan lehet a legnagyobbtól a legkisebbig megfordítani a rendezést):
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+A `|sort` szűrő lehetővé teszi az elemek kulcs szerinti rendezését is:
 
-spaceless  .[filter]{data-version:2.10.2}
------------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+Ha egy táblázatot egy adott oszlop szerint kell rendezni, használhatja a `by` paramétert. A példában szereplő `'name'` érték azt adja meg, hogy a rendezés a `$row->name` vagy a szerint történjen. `$row['name']`, attól függően, hogy a `$row` egy tömb vagy egy objektum:
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+Meghatározhat egy visszahívási függvényt is, amely meghatározza a rendezés értékét:
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+A `byKey` paraméter ugyanígy használható.
+
+
+spaceless  .[filter]
+--------------------
 Eltávolítja a felesleges szóközöket a kimenetből. Használhatod a `strip` aliast is.
 
 ```latte
@@ -655,8 +703,8 @@ Kivonja egy karakterlánc egy szeletét. Ezt a szűrőt felváltotta a [slice |#
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 Kifejezéseket fordít le más nyelvekre. Ahhoz, hogy a szűrő elérhető legyen, be kell [állítania a fordítót |develop#TranslatorExtension]. A [címkéket |tags#Translation] is használhatja [a fordításhoz |tags#Translation].
 
 ```latte

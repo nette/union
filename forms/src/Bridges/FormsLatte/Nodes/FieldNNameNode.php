@@ -35,7 +35,7 @@ final class FieldNNameNode extends StatementNode
 	public static function create(Tag $tag): \Generator
 	{
 		$tag->expectArguments();
-		$node = new static;
+		$node = $tag->node = new static;
 		$node->name = $tag->parser->parseUnquotedStringOrExpression(colon: false);
 		if ($tag->parser->stream->tryConsume(':')) {
 			$node->part = $tag->parser->isEnd()
@@ -57,15 +57,15 @@ final class FieldNNameNode extends StatementNode
 	}
 
 
-	private function init(Tag $tag)
+	private function init(Tag $tag): void
 	{
 		$el = $tag->htmlElement;
 		$usedAttributes = self::findUsedAttributes($el);
 		$elName = strtolower($el->name);
 
 		$tag->replaceNAttribute(new AuxiliaryNode(fn(PrintContext $context) => $context->format(
-			'echo ($ʟ_input = Nette\Bridges\FormsLatte\Runtime::item(%node, $this->global))'
-			. ($elName === 'label' ? '->getLabelPart(%node)' : '->getControlPart(%node)')
+			'echo ($ʟ_elem = $this->global->forms->item(%node)'
+			. ($elName === 'label' ? '->getLabelPart(%node))' : '->getControlPart(%node))')
 			. ($usedAttributes ? '->addAttributes(%dump)' : '')
 			. '->attributes() %3.line;',
 			$this->name,
@@ -77,20 +77,20 @@ final class FieldNNameNode extends StatementNode
 		if ($elName === 'label') {
 			if ($el->content instanceof NopNode) {
 				$el->content = new AuxiliaryNode(fn(PrintContext $context) => $context->format(
-					'echo $ʟ_input->getLabelPart()->getHtml() %line;',
+					'echo $ʟ_elem->getHtml() %line;',
 					$this->position,
 				));
 			}
 		} elseif ($elName === 'button') {
 			if ($el->content instanceof NopNode) {
 				$el->content = new AuxiliaryNode(fn(PrintContext $context) => $context->format(
-					'echo %escape($ʟ_input->getCaption()) %line;',
+					'echo %escape($ʟ_elem->value) %line;',
 					$this->position,
 				));
 			}
 		} elseif ($el->content) { // select, textarea
 			$el->content = new AuxiliaryNode(fn(PrintContext $context) => $context->format(
-				'echo $ʟ_input->getControl()->getHtml() %line;',
+				'echo $ʟ_elem->getHtml() %line;',
 				$this->position,
 			));
 		}

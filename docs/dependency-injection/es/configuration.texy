@@ -67,7 +67,7 @@ Decorador .[#toc-decorator]
 ```neon
 decorator:
 	# para todos los servicios que son instancias de esta clase o interfaz
-	App\Presenters\BasePresenter:
+	App\UI\BasePresenter:
 		setup:
 			- setProjectId(10)       # llamar a este método
 			- $absoluteUrls = true   # y establecer la variable
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Si no utilizas el array `$container->parameters`, puedes desactivar la exportación de parámetros. Además, puede exportar sólo aquellas etiquetas a través de las cuales obtiene servicios utilizando el método `$container->findByTag(...)`.
+Si no utilizas el array `$container->getParameters()`, puedes desactivar la exportación de parámetros. Además, puede exportar sólo aquellas etiquetas a través de las cuales obtiene servicios utilizando el método `$container->findByTag(...)`.
 Si no llama al método en absoluto, puede desactivar completamente la exportación de etiquetas con `false`.
 
 Puede reducir significativamente los metadatos para [autowiring] especificando las clases que utiliza como parámetro del método `$container->getByType()`.
@@ -191,20 +191,15 @@ Basta con especificar en qué directorios (y subdirectorios) deben buscarse las 
 
 ```neon
 search:
-	# usted mismo elige los nombres de las secciones
-	myForms:
-		in: %appDir%/Forms
-
-	model:
-		in: %appDir%/Model
+	-	in: %appDir%/Forms
+	-	in: %appDir%/Model
 ```
 
 Normalmente, sin embargo, no queremos añadir todas las clases e interfaces, así que podemos filtrarlas:
 
 ```neon
 search:
-	myForms:
-		in: %appDir%/Forms
+	-	in: %appDir%/Forms
 
 		# filtrado por nombre de archivo (string|string[])
 		files:
@@ -220,7 +215,7 @@ O podemos seleccionar clases que hereden o implementen al menos una de las sigui
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		extends:
 			- App\*Form
 		implements:
@@ -231,8 +226,9 @@ También se pueden definir reglas negativas, es decir, máscaras de nombres de c
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		exclude:
+archivos: ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -242,7 +238,7 @@ Se pueden establecer etiquetas para los servicios añadidos:
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		tags: ...
 ```
 

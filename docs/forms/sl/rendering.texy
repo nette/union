@@ -1,15 +1,17 @@
 Oblikovanje obrazcev
 ********************
 
-Videzi obrazcev se lahko zelo razlikujejo. Pravzaprav obstajata dve skrajnosti. Ena stran je potreba po ponovnem upodabljanju niza zelo podobnih obrazcev z malo ali nič truda. Običajno gre za administracije in zaledne strani.
+Videz oblik je lahko zelo raznolik. V praksi lahko naletimo na dve skrajnosti. Po eni strani je treba v aplikaciji prikazati vrsto obrazcev, ki so si vizualno podobni, pri čemer cenimo enostavno prikazovanje brez predloge z uporabo spletne strani `$form->render()`. To je običajno primer upravnih vmesnikov.
 
-Druga stran so drobni ljubki obrazci, od katerih je vsak umetniško delo. Njihovo postavitev je najbolje napisati v jeziku HTML. Seveda je poleg teh skrajnosti še veliko vmesnih obrazcev.
+Po drugi strani pa obstajajo različni obrazci, pri katerih je vsak izmed njih edinstven. Njihov videz je najbolje opisati s pomočjo jezika HTML v predlogi. In seveda bomo poleg obeh omenjenih skrajnosti naleteli na številne obrazce, ki so nekje vmes.
 
 
-Latte .[#toc-latte]
-===================
+Renderiranje z Latte .[#toc-rendering-with-latte]
+=================================================
 
  [Sistem predlog Latte |latte:] bistveno olajša upodabljanje obrazcev in njihovih elementov. Najprej bomo pokazali, kako ročno upodabljati obrazce, element za elementom, da bi pridobili popoln nadzor nad kodo. Kasneje bomo pokazali, kako takšno upodabljanje [avtomatizirati |#Automatic rendering].
+
+Predlog Latte predloge za obrazec lahko generirate z metodo `Nette\Forms\Blueprint::latte($form)`, ki ga bo izpisala na stran brskalnika. Nato morate kodo preprosto izbrati s klikom in jo kopirati v svoj projekt. .{data-version:3.1.15}
 
 
 `{control}`
@@ -88,12 +90,6 @@ Kompleksnejše elemente obrazca, kot sta RadioList ali CheckboxList, lahko prika
 ```
 
 
-Predlog kode `{formPrint}` .[#toc-formprint]
---------------------------------------------
-
-Podobno kodo Latte lahko ustvarite za obrazec z uporabo oznake `{formPrint}`. Če jo vstavite v predlogo, se bo namesto običajnega izrisa prikazal predlog kode. Nato jo preprosto izberite in kopirajte v svoj projekt.
-
-
 `{label}` `{input}`
 -------------------
 
@@ -150,6 +146,12 @@ Z metodo `hasErrors()` lahko zaznamo prisotnost napake in ustrezno nastavimo raz
 	{inputError username}
 </div>
 ```
+
+
+`{form}`
+--------
+
+Oznake `{form signInForm}...{/form}` so alternativa za `<form n:name="signInForm">...</form>`.
 
 
 Samodejno upodabljanje .[#toc-automatic-rendering]
@@ -231,15 +233,15 @@ Blok morate uvoziti le na enem mestu, na začetku predloge za postavitev:
 Posebni primeri .[#toc-special-cases]
 -------------------------------------
 
-Če morate prikazati samo notranjo vsebino obrazca brez `<form>` & `</form>` HTML, na primer v zahtevi AJAX, lahko obrazec odprete in zaprete s `{formContext} … {/formContext}`. V logičnem smislu deluje podobno kot `{form}`, tu vam omogoča uporabo drugih oznak za izris elementov obrazca, vendar hkrati ne izrisuje ničesar.
+Če želite prikazati samo notranji del obrazca brez oznak HTML `<form>`na primer pri pošiljanju izsekov, jih skrijte s pomočjo atributa `n:tag-if`:
 
 ```latte
-{formContext signForm}
+<form n:name=signInForm n:tag-if=false>
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-{/formContext}
+</form>
 ```
 
 Oznaka `formContainer` pomaga pri izrisovanju vnosov znotraj vsebnika obrazca.
@@ -256,8 +258,8 @@ Oznaka `formContainer` pomaga pri izrisovanju vnosov znotraj vsebnika obrazca.
 ```
 
 
-Brez Latte .[#toc-without-latte]
-================================
+Renderiranje brez Latte .[#toc-rendering-without-latte]
+=======================================================
 
 Obrazec najlažje prikažete tako, da pokličete:
 
@@ -321,13 +323,13 @@ To je objekt, ki zagotavlja upodabljanje obrazca. Nastavite ga lahko z metodo `$
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
 </tr>
 
 <tr>
@@ -357,12 +359,12 @@ Rezultat je naslednji delček:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -428,6 +430,8 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
+Renderer najprej izriše skupine, nato pa elemente, ki ne pripadajo nobeni skupini.
+
 
 Podpora Bootstrap .[#toc-bootstrap-support]
 -------------------------------------------
@@ -438,7 +442,7 @@ Najdete lahko [primere |https://github.com/nette/forms/tree/master/examples] kon
 Atributi HTML .[#toc-html-attributes]
 =====================================
 
-Z uporabo spletne strani `setHtmlAttribute(string $name, $value = true)` lahko kontrolnim elementom obrazca nastavite poljubne atribute HTML:
+Če želite nastaviti poljubne atribute HTML za elemente obrazca, uporabite metodo `setHtmlAttribute(string $name, $value = true)`:
 
 ```php
 $form->addInteger('number', 'Number:')
@@ -448,11 +452,11 @@ $form->addSelect('rank', 'Order by:', ['price', 'name'])
 	->setHtmlAttribute('onchange', 'submit()'); // ob spremembi pokliče funkcijo JS submit().
 
 
-// uporaba na <form>
+// Za nastavitev atributov samega <form>
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Nastavitev vrste vnosa:
+Določanje vrste elementa:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -460,8 +464,11 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-V seznamih z radijskimi ali potrditvenimi polji lahko posameznim elementom nastavimo atribut HTML z različnimi vrednostmi za vsakega od njih.
-Upoštevajte dvopičje za `style:`, ki zagotavlja, da je vrednost izbrana po ključu:
+.[warning]
+Nastavitev vrste in drugih atributov služi le za vizualne namene. Pravilnost vnosa je treba preveriti v strežniku, kar lahko zagotovite z izbiro ustreznega [nadzora obrazca | controls] in določitvijo [pravil potrjevanja | validation].
+
+Za posamezne elemente v radijskih ali potrditvenih seznamih lahko nastavimo atribut HTML z različnimi vrednostmi za vsakega od njih.
+Opazite dvopičje za `style:`, ki zagotavlja, da je vrednost izbrana na podlagi ključa:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -478,10 +485,9 @@ Renders:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-Za logični atribut HTML (ki nima vrednosti, na primer `readonly`), lahko uporabite vprašalnik:
+Za nastavljanje logičnih atributov, kot je `readonly`, lahko uporabimo zapis z vprašalnikom:
 
 ```php
-$colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // uporabite polje za več ključev, npr. ['r', 'g']
 ```
@@ -535,9 +541,6 @@ Za elemente Checkbox, CheckboxList in RadioList lahko vplivate na predlogo eleme
 
 ```php
 $input = $form->addCheckbox('send');
-echo $input->getControl();
-// <label><input type="checkbox" name="send"></label>
-
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

@@ -1,7 +1,12 @@
 Instrukcje i procedury
 **********************
 
-- [Wszystko, co kiedykolwiek chciałeś wiedzieć o {iterateWhile} |iteratewhile].
+.[perex]
+Przykładowe kody i przepisy na wykonanie typowych zadań z Latte.
+
+- [Wytyczne dla deweloperów |/develop]
+- [Przekazywanie zmiennych między szablonami |passing-variables]
+- [Wszystko, co zawsze chciałeś wiedzieć o grupowaniu |grouping]
 - [Jak pisać zapytania SQL w Latte? |how-to-write-sql-queries-in-latte]
 - [Migracja z PHP |migration-from-php]
 - [Migracja z Twig |migration-from-twig]

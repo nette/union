@@ -22,7 +22,6 @@ use Latte\Compiler\Tag;
 
 /**
  * {form name} ... {/form}
- * {formContext ...}
  */
 class FormNode extends StatementNode
 {
@@ -42,11 +41,14 @@ class FormNode extends StatementNode
 
 		$tag->outputMode = $tag::OutputKeepIndentation;
 		$tag->expectArguments();
-		$node = new static;
+		$node = $tag->node = new static;
 		$node->name = $tag->parser->parseUnquotedStringOrExpression();
 		$tag->parser->stream->tryConsume(',');
 		$node->attributes = $tag->parser->parseArguments();
 		$node->print = $tag->name === 'form';
+		if (!$node->print) {
+			trigger_error('Tag {formContext} is deprecated', E_USER_DEPRECATED);
+		}
 
 		[$node->content, $endTag] = yield;
 		$node->endLine = $endTag?->position;
@@ -61,19 +63,21 @@ class FormNode extends StatementNode
 	public function print(PrintContext $context): string
 	{
 		return $context->format(
-			'$form = $this->global->formsStack[] = '
+			'$this->global->forms->begin($form = '
 			. ($this->name instanceof StringNode
 				? '$this->global->uiControl[%node]'
-				: 'is_object($ʟ_tmp = %node) ? $ʟ_tmp : $this->global->uiControl[$ʟ_tmp]')
-			. ' %line;'
+				: '(is_object($ʟ_tmp = %node) ? $ʟ_tmp : $this->global->uiControl[$ʟ_tmp])')
+			. ') %line;'
 			. ($this->print
-				? 'echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin($form, %node) %1.line;'
+				? 'echo $this->global->forms->renderFormBegin(%node) %1.line;'
 				: '')
 			. ' %3.node '
 			. ($this->print
-				? 'echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(array_pop($this->global->formsStack))'
-				: 'array_pop($this->global->formsStack)')
-			. " %4.line;\n\n",
+				? 'echo $this->global->forms->renderFormEnd()'
+				: '')
+			. ' %4.line;'
+			. '$this->global->forms->end();'
+			. "\n\n",
 			$this->name,
 			$this->position,
 			$this->attributes,

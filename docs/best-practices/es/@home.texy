@@ -17,6 +17,8 @@ Aplicación Nette
 - [Cómo volver a una página anterior |restore-request]
 - [Paginación de los resultados de la base de datos |Pagination]
 - [Fragmentos dinámicos |dynamic-snippets]
+- [Cómo utilizar el atributo #Requires |attribute-requires]
+- [Cómo utilizar correctamente los enlaces POST |post-links]
 
 </div>
 <div>
@@ -26,6 +28,7 @@ Formularios
 -----------
 - [Reutilización de formularios |form-reuse]
 - [Formulario de creación y edición de registros |creating-editing-form]
+- [Creemos un formulario de contacto |lets-create-contact-form]
 - [Casillas de selección dependientes |https://blog.nette.org/es/selectboxes-dependientes-elegantemente-en-nette-y-js-puro]
 
 </div>
@@ -35,10 +38,12 @@ Formularios
 Común
 -----
 - [Cómo cargar el fichero de configuración |bootstrap:]
+- [Cómo escribir micrositios |microsites]
 - [¿Por qué Nette utiliza la notación constante PascalCase? |https://blog.nette.org/es/para-menos-gritos-en-el-codigo]
 - [¿Por qué Nette no utiliza el sufijo Interface? |https://blog.nette.org/es/los-prefijos-y-sufijos-no-pertenecen-a-los-nombres-de-interfaz]
 - [Consejos de uso de Composer |composer]
 - [Consejos sobre editores y herramientas |editors-and-tools]
+- [Introducción a la programación orientada a objetos |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

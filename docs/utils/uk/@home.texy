@@ -11,15 +11,16 @@
 | [Генерація випадкових рядків |random] | Nette\Utils\Random
 | [Дата і час |datetime] | Nette\Utils\DateTime
 | [Зображення |images] | Nette\Utils\Image
-| [Модель об'єкта |smartobject] | Nette\SmartObject & Nette\StaticClass
 | [Пагінація |paginator] | Nette\Utils\Paginator
 | [Парсинг і генерація JSON |json] | Nette\Utils\Json
+| [Змінні |iterables] | Nette\Utils\Iterables
 | [Поле |arrays] | Nette\Utils\Arrays
 | [Рядки |strings] | Nette\Utils\Strings
 | [Типи |type] | Nette\Utils\Type
 | [Файлова система |filesystem] | Nette\Utils\FileSystem
 | [Функції-помічники |helpers] | Nette\Utils\Helpers
 | [Елементи HTML |html-elements] | Nette\Utils\Html
+| [SmartObject] & [StaticClass] | Nette\SmartObject & Nette\StaticClass
 | [PHP Відображення |reflection] | Nette\Utils\Reflection
 
 
@@ -34,8 +35,8 @@ composer require nette/utils
 
 | Версія, сумісна з PHP
 |-----------|-------------------
-| Nette Utils 4.0 | PHP 8.0 - 8.2
-| Nette Utils 3.2 | PHP 7.2 - 8.2
+| Nette Utils 4.0 | PHP 8.0 – 8.3
+| Nette Utils 3.2 | PHP 7.2 – 8.3
 | Nette Utils 3.0 - 3.1 | PHP 7.1 - 8.0
 | Nette Utils 2.5 | PHP 5.6 - 8.0
 

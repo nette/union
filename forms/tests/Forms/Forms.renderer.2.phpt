@@ -15,7 +15,7 @@ require __DIR__ . '/../bootstrap.php';
 
 
 $_SERVER['REQUEST_METHOD'] = 'POST';
-$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
+$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
 $_POST = ['name' => 'John Doe ', 'age' => '9.9', 'email' => '@', 'street' => '', 'city' => 'Troubsko', 'country' => '0', 'password' => 'xx', 'password2' => 'xx', 'note' => '', 'submit1' => 'Send', 'userid' => '231'];
 
 
@@ -132,4 +132,4 @@ $form->setDefaults($defaults);
 $form->onSuccess[] = function () {};
 $form->fireEvents();
 
-Assert::matchFile(__DIR__ . '/Forms.renderer.2.expect', $form->__toString(true));
+Assert::matchFile(__DIR__ . '/expected/Forms.renderer.2.expect', $form->__toString(true));

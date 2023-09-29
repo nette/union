@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                php: ['7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3']
+                php: ['8.1', '8.2', '8.3']
 
             fail-fast: false
 
@@ -43,7 +43,6 @@ jobs:
                     --health-retries=5
                     -e MYSQL_ROOT_PASSWORD=root
                     -e MYSQL_DATABASE=nette_test
-                    --entrypoint sh mysql:8 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
 
             postgres96:
                 image: postgres:9.6
@@ -89,7 +88,7 @@ jobs:
                     --health-retries 5
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php }}
@@ -104,7 +103,7 @@ jobs:
               run: docker exec -i mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd' -Q 'CREATE DATABASE nette_test'
 
             - run: composer install --no-progress --prefer-dist
-            - run: vendor/bin/tester -p phpdbg tests -s -C --coverage ./coverage.xml --coverage-src ./src
+            - run: vendor/bin/tester tests -s -C
             - if: failure()
               uses: actions/upload-artifact@v3
               with:
@@ -112,23 +111,14 @@ jobs:
                   path: tests/**/output
 
 
-            - name: Save Code Coverage
-              if: ${{ matrix.php == '8.0' }}
-              env:
-                  COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.4.3/php-coveralls.phar
-                  php php-coveralls.phar --verbose --config tests/.coveralls.yml
-
-
     lowest_dependencies:
         name: Lowest Dependencies
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - uses: shivammathur/setup-php@v2
               with:
-                  php-version: 8.0
+                  php-version: 8.1
                   coverage: none
 
             - name: Create databases.ini

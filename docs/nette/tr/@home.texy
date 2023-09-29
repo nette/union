@@ -6,13 +6,16 @@ Nette Dokümantasyon
 <div>
 
 
+Giriş
+-----
+- [Neden Nette Kullanılmalı? |www:10-reasons-why-nette]
+- [Kurulum |Installation]
+- [İlk Başvurunuzu Oluşturun! |quickstart:]
+
+
 Genel
 -----
-- [Neden Nette Kullanmalısınız? |www:10-reasons-why-nette]
-- <b>[İlk Uygulamanızı Oluşturun! |quickstart:]<b>
-
-
-- [Paketler & Kurulum |www:packages]
+- [Paketlerin Listesi |www:packages]
 - [Bakım ve PHP |www:maintenance]
 - [Sürüm Notları |https://nette.org/releases]
 - [Yükseltme Kılavuzu |migrations:en]
@@ -20,6 +23,7 @@ Genel
 - [Nette'i Kim Yarattı |https://nette.org/contributors]
 - [Nette'in Tarihçesi |www:history]
 - [Katılın |contributing:]
+- [Sponsor geliştirme |https://nette.org/en/donate]
 - [API referansı |https://api.nette.org/]
 </div>
 
@@ -80,11 +84,11 @@ Yardımcı Programlar
 - [JSON |utils:JSON]
 - [NEON |neon:]
 - [Parola Hashing |security:passwords]
-- [SmartObject |utils:SmartObject]
 - [PHP Türleri |utils:type]
 - [Dizeler |utils:Strings]
 - [Doğrulayıcılar |utils:validators]
 - [RobotLoader |robot-loader:]
+- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
 - [SafeStream |safe-stream:]
 - [...diğerleri |utils:]
 </div>

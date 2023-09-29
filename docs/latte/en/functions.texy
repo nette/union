@@ -9,6 +9,8 @@ In addition to the common PHP functions, you can also use these in templates.
 | `divisibleBy`| [checks if a variable is divisible by a number |#divisibleBy]
 | `even`       | [checks if the given number is even |#even]
 | `first`      | [returns first element of array or character of string |#first]
+| `group`      | [groups data according to various criteria |#group]
+| `hasBlock`   | [detects the existence of a block |#hasBlock]
 | `last`       | [returns last element of array or character of string |#last]
 | `odd`        | [checks if the given number is odd |#odd]
 | `slice`      | [extracts a slice of an array or a string |#slice]
@@ -44,8 +46,8 @@ Functions
 =========
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
-----------------------------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
+----------------------------------------------------------------------------
 Returns value clamped to the inclusive range of min and max.
 
 ```latte
@@ -55,8 +57,8 @@ Returns value clamped to the inclusive range of min and max.
 See also [filter clamp|filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
----------------------------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]
+------------------------------------------------
 Checks if a variable is divisible by a number.
 
 ```latte
@@ -64,8 +66,8 @@ Checks if a variable is divisible by a number.
 ```
 
 
-even(int $value): bool .[method]{data-version:2.10.2}
------------------------------------------------------
+even(int $value): bool .[method]
+--------------------------------
 Checks if the given number is even.
 
 ```latte
@@ -73,8 +75,8 @@ Checks if the given number is even.
 ```
 
 
-first(string|array $value): mixed .[method]{data-version:2.10.2}
-----------------------------------------------------------------
+first(string|iterable $value): mixed .[method]
+----------------------------------------------
 Returns the first element of array or character of string:
 
 ```latte
@@ -85,8 +87,38 @@ Returns the first element of array or character of string:
 See also [#last], [filter first|filters#first].
 
 
-last(string|array $value): mixed .[method]{data-version:2.10.2}
----------------------------------------------------------------
+group(iterable $data, string|int|\Closure $by): array .[method]{data-version:3.0.16}
+------------------------------------------------------------------------------------
+This function groups data according to different criteria.
+
+In this example, the rows in the table are grouped by the column `categoryId`. The output is an array of fields where the key is the value in the column `categoryId`. Read the [detailed instructions |cookbook/grouping].
+
+```latte
+{foreach group($items, categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+See also filter [group |filters#group].
+
+
+hasBlock(string $name): bool .[method]{data-version:3.0.10}
+-----------------------------------------------------------
+Checks if the block of the specified name exists:
+
+```latte
+{if hasBlock(header)} ... {/if}
+```
+
+See also [block existence check |template-inheritance#Checking Block Existence].
+
+
+last(string|array $value): mixed .[method]
+------------------------------------------
 Returns the last element of array or character of string:
 
 ```latte
@@ -97,8 +129,8 @@ Returns the last element of array or character of string:
 See also [#first], [filter last|filters#last].
 
 
-odd(int $value): bool .[method]{data-version:2.10.2}
-----------------------------------------------------
+odd(int $value): bool .[method]
+-------------------------------
 Checks if the given number is odd.
 
 ```latte
@@ -106,8 +138,8 @@ Checks if the given number is odd.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
--------------------------------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
+----------------------------------------------------------------------------------------------------------
 Extracts a slice of an array or a string.
 
 ```latte

@@ -25,7 +25,6 @@ test('', function () {
 	$def->setImplement(Good2::class);
 
 	$builder = new Nette\DI\ContainerBuilder;
-	$builder->addDefinition('a')->setType(stdClass::class);
 	$resolver = new Nette\DI\Resolver($builder);
 
 	$resolver->resolveDefinition($def);
@@ -35,24 +34,23 @@ test('', function () {
 	$method = $phpGenerator->generateMethod($def);
 
 	Assert::match(
-		'public function createServiceAbc(): Good2
-{
-	return new class ($this) implements Good2 {
-		private $container;
+		<<<'XX'
+			public function createServiceAbc(): Good2
+			{
+				return new class ($this) implements Good2 {
+					public function __construct(
+						private $container,
+					) {
+					}
 
 
-		public function __construct($container)
-		{
-			$this->container = $container;
-		}
-
-
-		public function create(): stdClass
-		{
-			return new stdClass;
-		}
-	};
-}',
-		$method->__toString()
+					public function create(): stdClass
+					{
+						return new stdClass;
+					}
+				};
+			}
+			XX,
+		$method->__toString(),
 	);
 });
