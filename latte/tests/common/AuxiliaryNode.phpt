@@ -15,7 +15,9 @@ require __DIR__ . '/../bootstrap.php';
 
 $node = new Nodes\AuxiliaryNode(
 	fn(PrintContext $context, $a, $b, $c) => $context->format('%node %node %node', $a, $b, $c),
-	[new StringNode('a'), null, new StringNode('b')],
+	new StringNode('a'),
+	null,
+	new StringNode('b'),
 );
 
 $node = (new NodeTraverser)->traverse(
@@ -27,7 +29,9 @@ Assert::same("'new' 'new'", $node->print(new PrintContext));
 
 $node = new Expression\AuxiliaryNode(
 	fn(PrintContext $context, $a, $b, $c) => $context->format('%node %node %node', $a, $b, $c),
-	[new StringNode('a'), null, new StringNode('b')],
+	new StringNode('a'),
+	null,
+	new StringNode('b'),
 );
 
 $node = (new NodeTraverser)->traverse(

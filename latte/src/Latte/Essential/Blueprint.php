@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Latte\Essential;
 
+use Latte;
+use Latte\Runtime\Template;
 use Nette\PhpGenerator as Php;
 
 
@@ -18,46 +20,26 @@ use Nette\PhpGenerator as Php;
  */
 final class Blueprint
 {
-	public function generateTemplateClass(
-		array $params,
-		?string $name = 'Template',
-		?string $extends = null,
-	): Php\ClassType
+	use Latte\Strict;
+
+	public function printClass(Template $template, ?string $name = null): void
 	{
 		if (!class_exists(Php\ClassType::class)) {
-			throw new \LogicException('Nette PhpGenerator is required to generate blueprint, install package `nette/php-generator`.');
+			throw new \LogicException('Nette PhpGenerator is required to print template, install package `nette/php-generator`.');
 		}
 
+		$name = $name ?: 'Template';
 		$namespace = new Php\PhpNamespace(Php\Helpers::extractNamespace($name));
 		$class = $namespace->addClass(Php\Helpers::extractShortName($name));
-		if ($extends) {
-			if (class_exists($extends)) {
-				if ((new \ReflectionClass($extends))->isFinal()) {
-					throw new \LogicException("Blueprint error: Unable to extend final class $extends");
-				}
-				$class->setExtends($extends);
-			} elseif (trait_exists($extends)) {
-				$class->addTrait($extends);
-			} else {
-				throw new \LogicException("Blueprint error: Class '$extends' doesn't exist.");
-			}
-			$params = array_diff_key($params, get_class_vars($extends));
-		}
-		$this->addProperties($class, $params);
-		return $class;
-	}
 
+		$this->addProperties($class, $template->getParameters());
+		$functions = array_diff_key((array) $template->global->fn, (new Latte\Essential\CoreExtension)->getFunctions());
+		$this->addFunctions($class, $functions);
 
-	public function printClass(Php\ClassType $class): void
-	{
-		$this->printCode((string) $class->getNamespace());
-	}
-
-
-	public function clickableFile(string $file, int $line = 1): string
-	{
-		$link = 'editor://open/?file=' . rawurlencode(strtr($file, '/', DIRECTORY_SEPARATOR)) . '&line=' . $line;
-		return '<a href="' . htmlspecialchars($link) . '">' . htmlspecialchars($file) . '</a>';
+		$end = $this->printCanvas();
+		$this->printHeader('Native types');
+		$this->printCode((string) $namespace);
+		echo $end;
 	}
 
 
@@ -66,16 +48,24 @@ final class Blueprint
 	 */
 	public function printVars(array $vars): void
 	{
-		$res = '';
-		foreach ($vars as $name => $value) {
-			if (!str_starts_with($name, 'ʟ_')) {
-				$type = $this->getType($value);
-				$res .= "{varType $type $$name}\n";
-			}
+		if (!class_exists(Php\Type::class)) {
+			throw new \LogicException('Nette PhpGenerator is required to print template, install package `nette/php-generator`.');
 		}
 
+		$res = '';
+		foreach ($vars as $name => $value) {
+			if (str_starts_with($name, 'ʟ_')) {
+				continue;
+			}
+
+			$type = $this->getType($value);
+			$res .= "{varType $type $$name}\n";
+		}
+
+		$end = $this->printCanvas();
 		$this->printHeader('varPrint');
 		$this->printCode($res ?: 'No variables', 'latte');
+		echo $end;
 	}
 
 
@@ -146,17 +136,12 @@ final class Blueprint
 	}
 
 
-	public function printBegin(): void
+	public function printCanvas(): string
 	{
 		echo '<script src="https://nette.github.io/resources/prism/prism.js"></script>';
 		echo '<link rel="stylesheet" href="https://nette.github.io/resources/prism/prism.css">';
 		echo "<div style='all:initial;position:fixed;overflow:auto;z-index:1000;left:0;right:0;top:0;bottom:0;color:black;background:white;padding:1em'>\n";
-	}
-
-
-	public function printEnd(): void
-	{
-		echo "</div>\n";
+		return "</div>\n";
 	}
 
 

@@ -112,7 +112,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  conds: array (1)
    |  |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\Expression\ClassConstantFetchNode
    |  |  |  |  |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  |  name: 'BinaryOperator'
+   |  |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  |  0 => 'BinaryOperator'
    |  |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  |  position: 12:5 (offset 136)
    |  |  |  |  |  |  |  name: Latte\Compiler\Nodes\Php\IdentifierNode

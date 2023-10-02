@@ -46,7 +46,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\VariableNode
    |  |  |  name: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  name: 'foo'
+   |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  0 => 'foo'
    |  |  |  |  |  kind: 1
    |  |  |  |  |  position: 3:3 (offset 14)
    |  |  |  |  args: array (0)

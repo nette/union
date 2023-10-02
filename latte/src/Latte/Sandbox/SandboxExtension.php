@@ -10,12 +10,12 @@ declare(strict_types=1);
 namespace Latte\Sandbox;
 
 use Latte;
+use Latte\Compiler\ExpressionBuilder;
 use Latte\Compiler\Node;
 use Latte\Compiler\Nodes\Php;
 use Latte\Compiler\Nodes\Php\Expression;
 use Latte\Compiler\Nodes\TemplateNode;
 use Latte\Compiler\NodeTraverser;
-use Latte\Compiler\PrintContext;
 use Latte\Engine;
 use Latte\Runtime\Template;
 use Latte\SecurityViolationException;
@@ -26,6 +26,8 @@ use Latte\SecurityViolationException;
  */
 final class SandboxExtension extends Latte\Extension
 {
+	use Latte\Strict;
+
 	private ?Latte\Policy $policy;
 
 
@@ -93,10 +95,8 @@ final class SandboxExtension extends Latte\Extension
 				throw new SecurityViolationException("Function $node->name() is not allowed.", $node->position);
 
 			} elseif ($node->args) {
-				$arg = new Expression\AuxiliaryNode(
-					fn(PrintContext $context, ...$args) => '$this->global->sandbox->args(' . $context->implode($args) . ')',
-					$node->args,
-				);
+				$arg = ExpressionBuilder::variable('$this')->property('global')->property('sandbox')->method('args', $node->args)
+					->build();
 				$node->args = [new Php\ArgumentNode($arg, unpack: true)];
 			}
 
@@ -108,10 +108,8 @@ final class SandboxExtension extends Latte\Extension
 				throw new SecurityViolationException("Filter |$name is not allowed.", $node->position);
 
 			} elseif ($node->args) {
-				$arg = new Expression\AuxiliaryNode(
-					fn(PrintContext $context, ...$args) => '$this->global->sandbox->args(' . $context->implode($args) . ')',
-					$node->args,
-				);
+				$arg = ExpressionBuilder::variable('$this')->property('global')->property('sandbox')->method('args', $node->args)
+					->build();
 				$node->args = [new Php\ArgumentNode($arg, unpack: true)];
 			}
 
@@ -123,8 +121,8 @@ final class SandboxExtension extends Latte\Extension
 			|| $node instanceof Expression\FunctionCallableNode
 			|| $node instanceof Expression\MethodCallNode
 			|| $node instanceof Expression\MethodCallableNode
-			|| $node instanceof Expression\StaticMethodCallNode
-			|| $node instanceof Expression\StaticMethodCallableNode
+			|| $node instanceof Expression\StaticCallNode
+			|| $node instanceof Expression\StaticCallableNode
 		) {
 			$class = namespace\Nodes::class . strrchr($node::class, '\\');
 			return new $class($node);

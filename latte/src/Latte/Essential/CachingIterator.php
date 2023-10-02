@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Latte\Essential;
 
+use Latte;
+
 
 /**
  * Smarter caching iterator.
@@ -27,6 +29,8 @@ namespace Latte\Essential;
  */
 class CachingIterator extends \CachingIterator implements \Countable
 {
+	use Latte\Strict;
+
 	private int $counter = 0;
 	private ?self $parent = null;
 

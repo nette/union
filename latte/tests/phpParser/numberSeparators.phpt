@@ -76,7 +76,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  5 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ConstantFetchNode
    |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  name: '_100'
+   |  |  |  |  parts: array (1)
+   |  |  |  |  |  0 => '_100'
    |  |  |  |  kind: 1
    |  |  |  |  position: 8:1 (offset 101)
    |  |  |  position: 8:1 (offset 101)

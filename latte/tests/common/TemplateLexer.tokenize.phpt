@@ -11,8 +11,9 @@ require __DIR__ . '/../bootstrap.php';
 function tokenize($s)
 {
 	$parser = new Latte\Compiler\TemplateParser;
+	$lexer = new Latte\Compiler\TemplateLexer;
 	$parser->addTags((new Latte\Essential\CoreExtension)->getTags());
-	$parser->parse($s);
+	$parser->parse($s, $lexer);
 	$tokens = Assert::with($parser->getStream(), fn() => $this->tokens);
 	return array_map(
 		fn(Token $token) => [$token->type, $token->text, $token->position->line . ':' . $token->position->column],

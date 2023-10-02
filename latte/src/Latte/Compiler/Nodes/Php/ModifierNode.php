@@ -51,12 +51,12 @@ class ModifierNode extends Node
 		$check = $this->check;
 		foreach ($this->filters as $filter) {
 			$name = $filter->name->name;
-			if ($name === 'nocheck' || $name === 'noCheck') {
+			if (['nocheck' => 1, 'noCheck' => 1][$name] ?? null) {
 				$check = false;
 			} elseif ($name === 'noescape') {
 				$escape = false;
 			} else {
-				if ($name === 'datastream' || $name === 'dataStream') {
+				if (['datastream' => 1, 'dataStream' => 1][$name] ?? null) {
 					$check = false;
 				}
 				$expr = $filter->printSimple($context, $expr);
@@ -68,9 +68,9 @@ class ModifierNode extends Node
 			$expr = $escaper->check($expr);
 		}
 
-		$expr = $escape
-			? $escaper->escape($expr)
-			: $escaper->escapeMandatory($expr);
+		if ($escape) {
+			$expr = $escaper->escape($expr);
+		}
 
 		return $expr;
 	}

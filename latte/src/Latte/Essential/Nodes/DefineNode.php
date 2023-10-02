@@ -42,10 +42,11 @@ class DefineNode extends StatementNode
 		$tag->parser->stream->tryConsume('#');
 		$name = $tag->parser->parseUnquotedStringOrExpression();
 
-		$node = $tag->node = new static;
+		$node = new static;
 		$node->block = new Block($name, $layer, $tag);
 		if (!$node->block->isDynamic()) {
 			$parser->checkBlockIsUnique($node->block);
+			$tag->data->block = $node->block; // for {include}
 			$tag->parser->stream->tryConsume(',');
 			$node->block->parameters = self::parseParameters($tag);
 		}

@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace Latte\Compiler;
 
+use Latte;
 use Latte\CompileException;
+use Latte\RegexpException;
 
 
 /**
@@ -17,6 +19,8 @@ use Latte\CompileException;
  */
 final class TagLexer
 {
+	use Latte\Strict;
+
 	private const Keywords = [
 		'and' => Token::Php_LogicalAnd,
 		'array' => Token::Php_Array,
@@ -82,8 +86,8 @@ final class TagLexer
 	{
 		preg_match(
 			$colon
-				? '~ ( [./@_a-z0-9#!-] | :(?!:) | \{\$ [_a-z0-9\[\]()>-]+ })++  (?=\s+[!"\'$(\[{,\\\\|\~\w-] | [,|]  | \s*$) ~xAi'
-				: '~ ( [./@_a-z0-9#!-]          | \{\$ [_a-z0-9\[\]()>-]+ })++  (?=\s+[!"\'$(\[{,\\\\|\~\w-] | [,:|] | \s*$) ~xAi',
+				? '~ ( [./@_a-z0-9#!-] | :(?!:) | \{\$ [_a-z0-9\[\]()>-]+ })++  (?=\s+[!"\'$(\[{,\\|\~\w-] | [,|]  | \s*$) ~xAi'
+				: '~ ( [./@_a-z0-9#!-]          | \{\$ [_a-z0-9\[\]()>-]+ })++  (?=\s+[!"\'$(\[{,\\|\~\w-] | [,:|] | \s*$) ~xAi',
 			$input,
 			$match,
 			offset: $position->offset - $offsetDelta,
@@ -181,7 +185,7 @@ final class TagLexer
 		matchRE:
 		preg_match_all($re, $this->input, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL, $this->offset);
 		if (preg_last_error()) {
-			throw new CompileException(preg_last_error_msg());
+			throw new RegexpException;
 		}
 
 		foreach ($matches as $m) {
@@ -326,7 +330,7 @@ final class TagLexer
 		matchRE:
 		preg_match_all($re, $this->input, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL, $this->offset);
 		if (preg_last_error()) {
-			throw new CompileException(preg_last_error_msg());
+			throw new RegexpException;
 		}
 
 		$buffer = '';

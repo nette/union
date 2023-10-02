@@ -27,13 +27,12 @@ class IfContentNode extends StatementNode
 	public AreaNode $content;
 	public int $id;
 	public ElementNode $htmlElement;
-	public ?AreaNode $else = null;
 
 
 	/** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
 	public static function create(Tag $tag, TemplateParser $parser): \Generator
 	{
-		$node = $tag->node = new static;
+		$node = new static;
 		$node->id = $parser->generateId();
 		[$node->content] = yield;
 		$node->htmlElement = $tag->htmlElement;
@@ -48,7 +47,6 @@ class IfContentNode extends StatementNode
 	{
 		try {
 			$saved = $this->htmlElement->content;
-			$else = $this->else ?? new AuxiliaryNode(fn() => '');
 			$this->htmlElement->content = new AuxiliaryNode(fn() => <<<XX
 				ob_start();
 				try {
@@ -65,7 +63,6 @@ class IfContentNode extends StatementNode
 				} finally {
 					if (\$ʟ_ifc[$this->id] ?? null) {
 						ob_end_clean();
-						{$else->print($context)}
 					} else {
 						echo ob_get_clean();
 					}

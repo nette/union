@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Latte\Compiler;
 
+use Latte;
 use Latte\Compiler\Nodes\Php;
 use Latte\Compiler\Nodes\Php\Expression;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
@@ -17,6 +18,8 @@ use Latte\Compiler\Nodes\Php\Scalar;
 
 final class NodeHelpers
 {
+	use Latte\Strict;
+
 	/** @return Node[] */
 	public static function find(Node $node, callable $filter): array
 	{

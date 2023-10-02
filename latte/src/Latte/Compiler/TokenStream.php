@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Latte\Compiler;
 
+use Latte;
 use Latte\CompileException;
 
 
@@ -18,6 +19,8 @@ use Latte\CompileException;
  */
 final class TokenStream
 {
+	use Latte\Strict;
+
 	/** @var Token[] */
 	private array $tokens = [];
 	private \Iterator /*readonly*/ $source;

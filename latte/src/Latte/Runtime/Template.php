@@ -19,6 +19,8 @@ use Latte\Engine;
  */
 class Template
 {
+	use Latte\Strict;
+
 	public const
 		LayerTop = 0,
 		LayerSnippet = 'snippet',
@@ -138,9 +140,11 @@ class Template
 
 		$params = $this->prepare();
 
-		if ($this->parentName === null && !$this->referringTemplate && isset($this->global->coreParentFinder)) {
+		if ($this->parentName === null && isset($this->global->coreParentFinder)) {
 			$this->parentName = ($this->global->coreParentFinder)($this);
 		}
+
+		Filters::$xml = static::ContentType === Latte\ContentType::Xml;
 
 		if ($this->referenceType === 'import') {
 			if ($this->parentName) {
@@ -170,7 +174,7 @@ class Template
 		$name = $this->engine->getLoader()->getReferredName($name, $this->name);
 		$referred = $referenceType === 'sandbox'
 			? (clone $this->engine)->setSandboxMode()->createTemplate($name, $params)
-			: $this->engine->createTemplate($name, $params, clearCache: false);
+			: $this->engine->createTemplate($name, $params);
 
 		$referred->referringTemplate = $this;
 		$referred->referenceType = $referenceType;

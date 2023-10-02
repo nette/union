@@ -60,7 +60,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  |  position: 4:11 (offset 37)
    |  |  |  |  |  default: null
    |  |  |  |  |  type: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  name: 'callable'
+   |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  0 => 'callable'
    |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  position: 4:2 (offset 28)
    |  |  |  |  |  byRef: false
@@ -72,7 +73,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  |  position: 5:4 (offset 44)
    |  |  |  |  |  default: null
    |  |  |  |  |  type: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  name: 'E'
+   |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  0 => 'E'
    |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  position: 5:2 (offset 42)
    |  |  |  |  |  byRef: false
@@ -85,7 +87,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  default: null
    |  |  |  |  |  type: Latte\Compiler\Nodes\Php\NullableTypeNode
    |  |  |  |  |  |  type: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  name: 'Foo'
+   |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  0 => 'Foo'
    |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  position: 6:6 (offset 53)
    |  |  |  |  |  |  position: 6:5 (offset 52)
@@ -100,7 +103,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  type: Latte\Compiler\Nodes\Php\UnionTypeNode
    |  |  |  |  |  |  types: array (3)
    |  |  |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  |  name: 'A'
+   |  |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  |  0 => 'A'
    |  |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  |  position: 7:5 (offset 65)
    |  |  |  |  |  |  |  1 => Latte\Compiler\Nodes\Php\IdentifierNode
@@ -121,11 +125,13 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  |  type: Latte\Compiler\Nodes\Php\IntersectionTypeNode
    |  |  |  |  |  |  types: array (2)
    |  |  |  |  |  |  |  0 => Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  |  name: 'A'
+   |  |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  |  0 => 'A'
    |  |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  |  position: 8:5 (offset 89)
    |  |  |  |  |  |  |  1 => Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  |  name: 'B'
+   |  |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  |  0 => 'B'
    |  |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  |  position: 8:7 (offset 91)
    |  |  |  |  |  |  position: 8:5 (offset 89)

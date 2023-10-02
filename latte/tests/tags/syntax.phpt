@@ -95,7 +95,9 @@ $template = <<<'EOD'
 		{if $var} {$var} {/if}
 		{/syntax}
 		{* comment single *}
-	</ul> {$after}
+	</ul>
+
+	{$after}
 	EOD;
 
 Assert::match(
@@ -104,7 +106,9 @@ Assert::match(
 			{if $var} {$var} {/if}
 			{/syntax}
 			{* comment single *}
-		</ul> after
+		</ul>
+
+		after
 		XX,
 	$latte->renderToString($template, ['var' => 'var', 'after' => 'after']),
 );

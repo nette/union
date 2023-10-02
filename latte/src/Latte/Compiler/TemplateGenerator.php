@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Latte\Compiler;
 
+use Latte;
 use Latte\ContentType;
 
 
@@ -17,6 +18,8 @@ use Latte\ContentType;
  */
 final class TemplateGenerator
 {
+	use Latte\Strict;
+
 	/** @var array<string, ?array{body: string, arguments: string, returns: string, comment: ?string}> */
 	private array $methods = [];
 
@@ -33,7 +36,7 @@ final class TemplateGenerator
 	public function generate(
 		Nodes\TemplateNode $node,
 		string $className,
-		?string $templateName = null,
+		?string $sourceName = null,
 		bool $strictMode = false,
 	): string
 	{
@@ -54,8 +57,8 @@ final class TemplateGenerator
 			$this->addConstant('ContentType', $node->contentType);
 		}
 
-		if ($templateName !== null && !preg_match('#\n|\?#', $templateName)) {
-			$this->addConstant('Source', $templateName);
+		if ($sourceName !== null) {
+			$this->addConstant('Source', $sourceName);
 		}
 
 		$this->generateBlocks($context->blocks, $context);
@@ -80,7 +83,7 @@ final class TemplateGenerator
 		$code = "<?php\n\n"
 			. ($strictMode ? "declare(strict_types=1);\n\n" : '')
 			. "use Latte\\Runtime as LR;\n\n"
-			. ($templateName === null ? '' : '/** source: ' . str_replace('*/', '* /', $templateName) . " */\n")
+			. ($sourceName === null ? '' : '/** source: ' . str_replace('*/', '* /', $sourceName) . " */\n")
 			. "final class $className extends Latte\\Runtime\\Template\n{\n"
 			. implode("\n\n", $members)
 			. "\n}\n";
@@ -188,7 +191,7 @@ final class TemplateGenerator
 
 
 	/**
-	 * Returns custom properties.
+	 * Returns custom properites.
 	 * @return array<string, mixed>
 	 * @internal
 	 */

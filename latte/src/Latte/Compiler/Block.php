@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Latte\Compiler;
 
+use Latte;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\Php\ParameterNode;
 use Latte\Compiler\Nodes\Php\Scalar;
@@ -17,6 +18,8 @@ use Latte\Compiler\Nodes\Php\Scalar;
 /** @internal */
 final class Block
 {
+	use Latte\Strict;
+
 	public string $method;
 	public string $content;
 	public string $escaping;

@@ -59,12 +59,11 @@ Assert::same("'True'", format('True'));
 Assert::same("'False'", format('False'));
 
 // unquoted & following chars
-Assert::same("'fo:o'", format('fo:o,'));
-Assert::same("'fo:o'", format('fo:o ,'));
-Assert::same("'fo:o'", format('fo:o foo'));
-Assert::same("'fo:o'", format('fo:o ()'));
-Assert::same("'fo:o'", format('fo:o ""'));
-Assert::same("'fo:o'", format('fo:o \foo'));
+Assert::same("'null'", format('null,'));
+Assert::same("'null'", format('null ,'));
+Assert::same("'null'", format('null foo'));
+Assert::same("'fnc'", format('fnc ()'));
+Assert::same("'foo'", format('foo ""'));
 
 // non-unquoted & following chars
 Assert::same('true ? false : null', format('true ? false'));

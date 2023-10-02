@@ -22,6 +22,6 @@ Assert::same('e', Filters::trim($info, "\u{158}e-", "\u{158}-")); // Ře-
 
 Assert::exception(
 	fn() => Filters::trim($info, "\xC2x\xA0"),
-	Latte\RuntimeException::class,
+	Latte\RegexpException::class,
 	null,
 );

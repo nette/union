@@ -154,7 +154,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  |  |  |  value: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  name: 'getArr'
+   |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  0 => 'getArr'
    |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  position: 6:5 (offset 63)
    |  |  |  |  |  |  args: array (0)
@@ -174,7 +175,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  |  |  |  value: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  name: 'arrGen'
+   |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  0 => 'arrGen'
    |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  position: 7:5 (offset 78)
    |  |  |  |  |  |  args: array (0)
@@ -194,7 +196,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  |  |  |  value: Latte\Compiler\Nodes\Php\Expression\NewNode
    |  |  |  |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  name: 'ArrayIterator'
+   |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  0 => 'ArrayIterator'
    |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  position: 8:9 (offset 97)
    |  |  |  |  |  |  args: array (1)
@@ -263,7 +266,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  2 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  |  |  |  value: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  name: 'getArr'
+   |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  0 => 'getArr'
    |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  position: 9:19 (offset 148)
    |  |  |  |  |  |  args: array (0)
@@ -320,7 +324,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  8 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  |  |  |  value: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  |  |  name: 'arrGen'
+   |  |  |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  |  |  0 => 'arrGen'
    |  |  |  |  |  |  |  kind: 1
    |  |  |  |  |  |  |  position: 9:48 (offset 177)
    |  |  |  |  |  |  args: array (0)

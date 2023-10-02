@@ -36,6 +36,6 @@ abstract class ExpressionNode extends Node
 	{
 		return $this instanceof Expression\FunctionCallNode
 			|| $this instanceof Expression\MethodCallNode
-			|| $this instanceof Expression\StaticMethodCallNode;
+			|| $this instanceof Expression\StaticCallNode;
 	}
 }

@@ -57,7 +57,8 @@ Assert::match(
 
 
 Assert::match(
-	'<div>1</div><div>2</div>',
+	'<div>1</div>
+<div>2</div>',
 	$latte->renderToString('<div n:foreach="[1,2] as $n" n:ifcontent>{$n}{continueIf true}</div>'),
 );
 
@@ -110,7 +111,6 @@ Assert::match(
 				} finally {
 					if ($ʟ_ifc[0] ?? null) {
 						ob_end_clean();
-
 					} else {
 						echo ob_get_clean();
 					}

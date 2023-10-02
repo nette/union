@@ -23,15 +23,10 @@ use Nette\Localization\Translator;
  */
 final class TranslatorExtension extends Latte\Extension
 {
-	/** @var callable|Translator|null */
-	private $translator;
-
-
 	public function __construct(
-		callable|Translator|null $translator,
+		private /*?callable|Translator*/ $translator,
 		private ?string $key = null,
 	) {
-		$this->translator = $translator;
 		if ($translator instanceof Translator) {
 			$this->translator = [$translator, 'translate'];
 		}

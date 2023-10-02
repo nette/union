@@ -69,7 +69,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\EmptyNode
    |  |  |  expr: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  name: 'foo'
+   |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  0 => 'foo'
    |  |  |  |  |  kind: 1
    |  |  |  |  |  position: 5:7 (offset 48)
    |  |  |  |  args: array (0)

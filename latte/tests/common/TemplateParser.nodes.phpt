@@ -24,6 +24,7 @@ class FooNode extends Latte\Compiler\Nodes\AreaNode
 
 function parse($s)
 {
+	$lexer = new Latte\Compiler\TemplateLexer;
 	$parser = new Latte\Compiler\TemplateParser;
 	$parser->addTags(['foo' => function () {
 		$node = new FooNode;
@@ -31,7 +32,7 @@ function parse($s)
 		return $node;
 	}]);
 
-	$node = $parser->parse($s);
+	$node = $parser->parse($s, $lexer);
 	return exportNode($node);
 }
 
@@ -162,11 +163,10 @@ Assert::match(<<<'XX'
 	   |  |  |  content: null
 	   |  |  |  nAttributes: array (0)
 	   |  |  |  tagNode: Latte\Compiler\Nodes\AuxiliaryNode
-	   |  |  |  |  print: Closure($context)
 	   |  |  |  |  nodes: array (0)
+	   |  |  |  |  print: Closure($context)
 	   |  |  |  |  position: null
 	   |  |  |  captureTagName: false
-	   |  |  |  breakable: false
 	   |  |  |  endTagVar: unset
 	   |  |  |  name: 'br'
 	   |  |  |  position: 1:1 (offset 0)
@@ -234,11 +234,10 @@ Assert::match(<<<'XX'
 	   |  |  |  content: null
 	   |  |  |  nAttributes: array (0)
 	   |  |  |  tagNode: Latte\Compiler\Nodes\AuxiliaryNode
-	   |  |  |  |  print: Closure($context)
 	   |  |  |  |  nodes: array (0)
+	   |  |  |  |  print: Closure($context)
 	   |  |  |  |  position: null
 	   |  |  |  captureTagName: false
-	   |  |  |  breakable: false
 	   |  |  |  endTagVar: unset
 	   |  |  |  name: 'br'
 	   |  |  |  position: 1:1 (offset 0)
@@ -293,11 +292,10 @@ Assert::match(<<<'XX'
 	   |  |  |  |  position: 1:4 (offset 3)
 	   |  |  |  nAttributes: array (0)
 	   |  |  |  tagNode: Latte\Compiler\Nodes\AuxiliaryNode
-	   |  |  |  |  print: Closure($context)
 	   |  |  |  |  nodes: array (0)
+	   |  |  |  |  print: Closure($context)
 	   |  |  |  |  position: null
 	   |  |  |  captureTagName: false
-	   |  |  |  breakable: false
 	   |  |  |  endTagVar: unset
 	   |  |  |  name: 'p'
 	   |  |  |  position: 1:1 (offset 0)
@@ -309,5 +307,4 @@ Assert::match(<<<'XX'
 	   |  position: 1:1 (offset 0)
 	   contentType: 'html'
 	   position: null
-
 	XX, parse("<p>\n...\n</p>"));

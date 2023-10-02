@@ -44,15 +44,15 @@ class SandboxNode extends StatementNode
 				ob_start(fn() => '');
 				try {
 					$this->createTemplate(%node, %node, 'sandbox')->renderToContentType(%dump) %line;
+					echo ob_get_clean();
 				} catch (\Throwable $ʟ_e) {
 					if (isset($this->global->coreExceptionHandler)) {
-						ob_clean();
+						ob_end_clean();
 						($this->global->coreExceptionHandler)($ʟ_e, $this);
 					} else {
+						echo ob_get_clean();
 						throw $ʟ_e;
 					}
-				} finally {
-					echo ob_get_clean();
 				}
 
 

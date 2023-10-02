@@ -37,7 +37,6 @@ class ElementNode extends AreaNode
 	/** n:tag & n:tag- support */
 	public AreaNode $tagNode;
 	public bool $captureTagName = false;
-	public bool $breakable = false;
 	private ?string $endTagVar;
 
 
@@ -97,11 +96,9 @@ class ElementNode extends AreaNode
 
 		if ($this->content) {
 			$context->beginEscape()->enterHtmlText($this);
-			$content = $this->content->print($context);
+			$res .= $this->content->print($context);
 			$context->restoreEscape();
-			$res .= $this->breakable
-				? 'try { ' . $content . ' } finally { echo ' . $endTag . '; } '
-				: $content . 'echo ' . $endTag . ';';
+			$res .= 'echo ' . $endTag . ';';
 		}
 
 		return $res;

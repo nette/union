@@ -18,9 +18,19 @@ Assert::match(<<<'XX'
 			Element:
 				name: input
 				Auxiliary:
-				Auxiliary:
-					Variable:
-						name: var
+				StaticCall:
+					Name:
+						parts: ['Latte', 'Essential', 'Nodes', 'NTagNode']
+					Identifier:
+						name: check
+					Argument:
+						String:
+							value: input
+					Argument:
+						Variable:
+							name: var
+					Argument:
+						Boolean:
 				Fragment:
 					Text:
 						content: ''

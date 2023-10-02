@@ -24,7 +24,6 @@ class ContentTypeNode extends StatementNode
 {
 	public string $contentType;
 	public ?string $mimeType = null;
-	public bool $inScript;
 
 
 	public static function create(Tag $tag, TemplateParser $parser): static
@@ -38,7 +37,6 @@ class ContentTypeNode extends StatementNode
 		}
 
 		$node = new static;
-		$node->inScript = (bool) $tag->htmlElement;
 		$node->contentType = match (true) {
 			str_contains($type, 'html') => ContentType::Html,
 			str_contains($type, 'xml') => ContentType::Xml,
@@ -58,11 +56,6 @@ class ContentTypeNode extends StatementNode
 
 	public function print(PrintContext $context): string
 	{
-		if ($this->inScript) {
-			$context->getEscaper()->enterHtmlRaw($this->contentType);
-			return '';
-		}
-
 		$context->beginEscape()->enterContentType($this->contentType);
 
 		return $this->mimeType

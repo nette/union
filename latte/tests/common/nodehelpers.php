@@ -83,7 +83,7 @@ class TracingVisitor
 }
 
 
-class ModifyingVisitor
+class ModifingVisitor
 {
 	private array $returns;
 	private int $pos = 0;

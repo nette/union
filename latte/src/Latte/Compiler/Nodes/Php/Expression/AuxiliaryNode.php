@@ -16,12 +16,15 @@ use Latte\Compiler\PrintContext;
 
 class AuxiliaryNode extends ExpressionNode
 {
+	/** @var (?Node)[] */
+	public array $nodes;
+
+
 	public function __construct(
 		public /*readonly*/ \Closure $print,
-		/** @var (?Node)[] */
-		public array $nodes = [],
+		?Node ...$nodes,
 	) {
-		(function (?Node ...$nodes) {})(...$nodes);
+		$this->nodes = $nodes;
 	}
 
 

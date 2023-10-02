@@ -17,7 +17,6 @@ use Tracy\Helpers;
 
 /**
  * BlueScreen panels for Tracy 2.x
- * @internal
  */
 class BlueScreenPanel
 {

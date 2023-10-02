@@ -17,6 +17,8 @@ use Latte;
  */
 final class RawPhpExtension extends Latte\Extension
 {
+	use Latte\Strict;
+
 	public function getTags(): array
 	{
 		return [

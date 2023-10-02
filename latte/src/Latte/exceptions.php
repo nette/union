@@ -37,10 +37,14 @@ class CompileException extends \Exception implements Exception
 
 
 /**
- * The exception occurred during template rendering.
+ * The exception that indicates error of the last Regexp execution.
  */
-class RuntimeException extends \RuntimeException implements Exception
+class RegexpException extends \Exception implements Exception
 {
+	public function __construct()
+	{
+		parent::__construct(preg_last_error_msg(), preg_last_error());
+	}
 }
 
 
@@ -57,4 +61,9 @@ class SecurityViolationException extends \Exception implements Exception
 		$this->position = $position;
 		$this->generateMessage();
 	}
+}
+
+
+class RuntimeException extends \RuntimeException implements Exception
+{
 }

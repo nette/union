@@ -13,9 +13,9 @@ use Latte\Compiler\Nodes\Php\Expression;
 use Latte\Compiler\PrintContext;
 
 
-class StaticMethodCallableNode extends Expression\StaticMethodCallableNode
+class StaticCallableNode extends Expression\StaticCallableNode
 {
-	public function __construct(Expression\StaticMethodCallableNode $from)
+	public function __construct(Expression\StaticCallableNode $from)
 	{
 		parent::__construct($from->class, $from->name, $from->position);
 	}

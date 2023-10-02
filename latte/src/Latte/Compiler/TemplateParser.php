@@ -21,6 +21,8 @@ use Latte\SecurityViolationException;
 
 final class TemplateParser
 {
+	use Latte\Strict;
+
 	/** @var Block[][] */
 	public array $blocks = [[]];
 	public int $blockLayer = Template::LayerTop;
@@ -36,31 +38,24 @@ final class TemplateParser
 
 	private TemplateParserHtml $html;
 	private ?TokenStream $stream = null;
-	private TemplateLexer $lexer;
+	private ?TemplateLexer $lexer = null;
 	private ?Policy $policy = null;
-	private string $contentType;
+	private string $contentType = ContentType::Html;
 	private int $counter = 0;
 	private ?Tag $tag = null;
 	private $lastResolver;
-	private \WeakMap $lookFor;
-
-
-	public function __construct()
-	{
-		$this->lexer = new TemplateLexer;
-		$this->setContentType(ContentType::Html);
-	}
 
 
 	/**
 	 * Parses tokens to nodes.
 	 * @throws CompileException
 	 */
-	public function parse(string $template): Nodes\TemplateNode
+	public function parse(string $template, TemplateLexer $lexer): Nodes\TemplateNode
 	{
+		$this->lexer = $lexer;
+		$this->setContentType($this->contentType);
 		$this->html = new TemplateParserHtml($this, $this->completeAttrParsers());
-		$this->stream = new TokenStream($this->lexer->tokenize($template));
-		$this->lookFor = new \WeakMap;
+		$this->stream = new TokenStream($lexer->tokenize($template));
 
 		$headLength = 0;
 		$findLength = function (FragmentNode $fragment) use (&$headLength) {
@@ -165,7 +160,7 @@ final class TemplateParser
 	{
 		$this->lexer->pushState(TemplateLexer::StateLatteTag);
 		if ($this->stream->peek(1)->is(Token::Slash)
-			|| (isset($this->tag, $this->lookFor[$this->tag]) && in_array($this->stream->peek(1)->text, $this->lookFor[$this->tag], true))
+			|| isset($this->tag->data->filters) && in_array($this->stream->peek(1)->text, $this->tag->data->filters, true)
 		) {
 			$this->lexer->popState();
 			return null; // go back to previous parseLatteStatement()
@@ -191,7 +186,7 @@ final class TemplateParser
 				$res->send([new FragmentNode, $startTag]);
 			} else {
 				while ($res->valid()) {
-					$this->lookFor[$startTag] = $res->current() ?: null;
+					$startTag->data->filters = $res->current() ?: null;
 					$content = $this->parseFragment($resolver ?? $this->lastResolver);
 
 					if (!$this->stream->is(Token::Latte_TagOpen)) {
@@ -211,7 +206,7 @@ final class TemplateParser
 						$res->send([$content, $tag]);
 						$this->ensureIsConsumed($tag);
 						break;
-					} elseif (in_array($tag->name, $this->lookFor[$startTag] ?? [], true)) {
+					} elseif (in_array($tag->name, $startTag->data->filters ?? [], true)) {
 						$this->pushTag($tag);
 						$res->send([$content, $tag]);
 						$this->ensureIsConsumed($tag);
@@ -396,7 +391,7 @@ final class TemplateParser
 	public function setContentType(string $type): static
 	{
 		$this->contentType = $type;
-		$this->lexer->setState($type === ContentType::Html || $type === ContentType::Xml
+		$this->lexer?->setState($type === ContentType::Html || $type === ContentType::Xml
 			? TemplateLexer::StateHtmlText
 			: TemplateLexer::StatePlain);
 		return $this;

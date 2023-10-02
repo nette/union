@@ -17,7 +17,7 @@ use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
 
 
-class StaticMethodCallNode extends ExpressionNode
+class StaticCallNode extends ExpressionNode
 {
 	public function __construct(
 		public NameNode|ExpressionNode $class,
@@ -51,15 +51,5 @@ class StaticMethodCallNode extends ExpressionNode
 		foreach ($this->args as &$item) {
 			yield $item;
 		}
-	}
-}
-
-
-class_alias(StaticMethodCallNode::class, StaticCallNode::class);
-
-if (false) {
-	/** @deprecated use Latte\Compiler\Nodes\Php\Expression\StaticMethodCallNode */
-	class StaticCallNode
-	{
 	}
 }

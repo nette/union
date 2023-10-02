@@ -16,6 +16,7 @@ use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
+use Latte\ContentType;
 
 
 /**
@@ -25,17 +26,24 @@ class PrintNode extends StatementNode
 {
 	public ExpressionNode $expression;
 	public ModifierNode $modifier;
-	private ?string $followsQuote = null;
 
 
 	public static function create(Tag $tag, TemplateParser $parser): static
 	{
 		$tag->outputMode = $tag::OutputKeepIndentation;
+
+		$stream = $parser->getStream();
+		if (
+			$tag->isInText()
+			&& $parser->getContentType() === ContentType::Html
+			&& $tag->htmlElement?->is('script')
+			&& preg_match('#["\']#A', $stream->peek()->text)
+		) {
+			throw new CompileException("Do not place {$tag->getNotation(true)} inside quotes in JavaScript.", $tag->position);
+		}
+
 		$tag->expectArguments();
 		$node = new static;
-		$node->followsQuote = preg_match('#["\']#A', $parser->getStream()->peek()->text)
-			? $tag->getNotation(true)
-			: null;
 		$node->expression = $tag->parser->parseExpression();
 		$node->modifier = $tag->parser->parseModifier();
 		$node->modifier->escape = true;
@@ -45,9 +53,6 @@ class PrintNode extends StatementNode
 
 	public function print(PrintContext $context): string
 	{
-		if ($this->followsQuote && $context->getEscaper()->export() === 'html/raw/js') {
-			throw new CompileException("Do not place {$this->followsQuote} inside quotes in JavaScript.", $this->position);
-		}
 		return $context->format(
 			"echo %modify(%node) %line;\n",
 			$this->modifier,

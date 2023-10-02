@@ -40,7 +40,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  1 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ConstantFetchNode
    |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  name: 'A'
+   |  |  |  |  parts: array (1)
+   |  |  |  |  |  0 => 'A'
    |  |  |  |  kind: 2
    |  |  |  |  position: 2:1 (offset 3)
    |  |  |  position: 2:1 (offset 3)
@@ -51,7 +52,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  2 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClassConstantFetchNode
    |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  name: 'A'
+   |  |  |  |  parts: array (1)
+   |  |  |  |  |  0 => 'A'
    |  |  |  |  kind: 1
    |  |  |  |  position: 3:1 (offset 7)
    |  |  |  name: Latte\Compiler\Nodes\Php\IdentifierNode
@@ -65,7 +67,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  3 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClassConstantFetchNode
    |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  name: 'A'
+   |  |  |  |  parts: array (1)
+   |  |  |  |  |  0 => 'A'
    |  |  |  |  kind: 1
    |  |  |  |  position: 4:1 (offset 13)
    |  |  |  name: Latte\Compiler\Nodes\Php\IdentifierNode
@@ -105,12 +108,14 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  6 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\ClassConstantFetchNode
    |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  name: 'Foo'
+   |  |  |  |  parts: array (1)
+   |  |  |  |  |  0 => 'Foo'
    |  |  |  |  kind: 1
    |  |  |  |  position: 7:1 (offset 41)
    |  |  |  name: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  name: 'bar'
+   |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  0 => 'bar'
    |  |  |  |  |  kind: 1
    |  |  |  |  |  position: 7:7 (offset 47)
    |  |  |  |  args: array (0)
@@ -127,7 +132,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  |  |  position: 8:1 (offset 55)
    |  |  |  name: Latte\Compiler\Nodes\Php\Expression\FunctionCallNode
    |  |  |  |  name: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  name: 'bar'
+   |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  0 => 'bar'
    |  |  |  |  |  kind: 1
    |  |  |  |  |  position: 8:8 (offset 62)
    |  |  |  |  args: array (0)

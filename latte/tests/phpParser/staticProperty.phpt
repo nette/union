@@ -30,7 +30,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  0 => Latte\Compiler\Nodes\Php\ArrayItemNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\StaticPropertyFetchNode
    |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  name: 'A'
+   |  |  |  |  parts: array (1)
+   |  |  |  |  |  0 => 'A'
    |  |  |  |  kind: 1
    |  |  |  |  position: 1:1 (offset 0)
    |  |  |  name: Latte\Compiler\Nodes\Php\VarLikeIdentifierNode
@@ -109,7 +110,8 @@ Latte\Compiler\Nodes\Php\Expression\ArrayNode
    |  |  value: Latte\Compiler\Nodes\Php\Expression\StaticPropertyFetchNode
    |  |  |  class: Latte\Compiler\Nodes\Php\Expression\StaticPropertyFetchNode
    |  |  |  |  class: Latte\Compiler\Nodes\Php\NameNode
-   |  |  |  |  |  name: 'A'
+   |  |  |  |  |  parts: array (1)
+   |  |  |  |  |  |  0 => 'A'
    |  |  |  |  |  kind: 1
    |  |  |  |  |  position: 6:1 (offset 52)
    |  |  |  |  name: Latte\Compiler\Nodes\Php\VarLikeIdentifierNode

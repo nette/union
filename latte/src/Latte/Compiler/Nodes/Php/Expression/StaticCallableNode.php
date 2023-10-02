@@ -16,7 +16,7 @@ use Latte\Compiler\Position;
 use Latte\Compiler\PrintContext;
 
 
-class StaticMethodCallableNode extends ExpressionNode
+class StaticCallableNode extends ExpressionNode
 {
 	public function __construct(
 		public NameNode|ExpressionNode $class,
@@ -43,15 +43,5 @@ class StaticMethodCallableNode extends ExpressionNode
 	{
 		yield $this->class;
 		yield $this->name;
-	}
-}
-
-
-class_alias(StaticMethodCallableNode::class, StaticCallableNode::class);
-
-if (false) {
-	/** @deprecated use Latte\Compiler\Nodes\Php\Expression\StaticMethodCallableNode */
-	class StaticCallableNode
-	{
 	}
 }

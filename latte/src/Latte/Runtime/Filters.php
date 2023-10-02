@@ -24,6 +24,9 @@ class Filters
 	/** @deprecated */
 	public static string $dateFormat = "j.\u{a0}n.\u{a0}Y";
 
+	/** @internal use XML syntax? */
+	public static bool $xml = false;
+
 
 	/**
 	 * Escapes string for use everywhere inside HTML (except for comments).
@@ -101,28 +104,6 @@ class Filters
 
 
 	/**
-	 * Escapes HTML for usage in <script type=text/html>
-	 */
-	public static function escapeHtmlRawTextHtml($s): string
-	{
-		if ($s instanceof HtmlStringable || $s instanceof Nette\HtmlStringable) {
-			return self::convertHtmlToHtmlRawText($s->__toString());
-		}
-
-		return htmlspecialchars((string) $s, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8');
-	}
-
-
-	/**
-	 * Escapes only quotes.
-	 */
-	public static function escapeHtmlQuotes($s): string
-	{
-		return strtr((string) $s, ['"' => '&quot;', "'" => '&apos;']);
-	}
-
-
-	/**
 	 * Escapes string for use everywhere inside XML (except for comments and tags).
 	 */
 	public static function escapeXml($s): string
@@ -174,7 +155,7 @@ class Filters
 
 		$json = json_encode($s, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
 		if ($error = json_last_error()) {
-			throw new Latte\RuntimeException(json_last_error_msg());
+			throw new Latte\RuntimeException(json_last_error_msg(), $error);
 		}
 
 		return str_replace([']]>', '<!', '</'], [']]\u003E', '\u003C!', '<\/'], $json);
@@ -190,6 +171,15 @@ class Filters
 		$s = str_replace("\r", '', (string) $s);
 		$s = preg_replace('#[\x00-\x08\x0B-\x1F]#', "\u{FFFD}", (string) $s);
 		return addcslashes($s, "\";\\,:\n");
+	}
+
+
+	/**
+	 * Converts JS and CSS for usage in <script> or <style>
+	 */
+	public static function convertJSToHtmlRawText($s): string
+	{
+		return preg_replace('#</(script|style)#i', '<\/$1', (string) $s);
 	}
 
 
@@ -217,24 +207,6 @@ class Filters
 
 
 	/**
-	 * Converts JS and CSS for usage in <script> or <style>
-	 */
-	public static function convertJSToHtmlRawText($s): string
-	{
-		return preg_replace('#</(script|style)#i', '<\/$1', (string) $s);
-	}
-
-
-	/**
-	 * Sanitizes <script> in <script type=text/html>
-	 */
-	public static function convertHtmlToHtmlRawText(string $s): string
-	{
-		return preg_replace('#(</?)(script)#i', '$1x-$2', $s);
-	}
-
-
-	/**
 	 * Converts HTML text to quoted attribute. The quotation marks need to be escaped.
 	 */
 	public static function convertHtmlToHtmlAttr(string $s): string
@@ -256,11 +228,11 @@ class Filters
 	/**
 	 * Sanitizes string for use inside href attribute.
 	 */
-	public static function safeUrl($s): string
+	public static function safeUrl(string|HtmlStringable $s): string
 	{
-		$s = $s instanceof HtmlStringable
-			? self::convertHtmlToText((string) $s)
-			: (string) $s;
+		if ($s instanceof HtmlStringable) {
+			$s = self::convertHtmlToText((string) $s);
+		}
 
 		return preg_match('~^(?:(?:https?|ftp)://[^@]+(?:/.*)?|(?:mailto|tel|sms):.+|[/?#].*|[^:]+)$~Di', $s) ? $s : '';
 	}

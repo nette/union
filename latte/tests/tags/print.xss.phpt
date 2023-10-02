@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * n:class
+ */
+
 declare(strict_types=1);
 
 use Latte\Runtime\Html;

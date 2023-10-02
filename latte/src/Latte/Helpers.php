@@ -46,9 +46,7 @@ class Helpers
 	public static function toReflection($callable): \ReflectionFunctionAbstract
 	{
 		if (is_string($callable) && strpos($callable, '::')) {
-			return PHP_VERSION_ID < 80300
-				? new \ReflectionMethod($callable)
-				: \ReflectionMethod::createFromMethodName($callable);
+			return new \ReflectionMethod($callable);
 		} elseif (is_array($callable)) {
 			return new \ReflectionMethod($callable[0], $callable[1]);
 		} elseif (is_object($callable) && !$callable instanceof \Closure) {

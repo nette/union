@@ -17,6 +17,8 @@ use Latte;
  */
 class FileLoader implements Latte\Loader
 {
+	use Latte\Strict;
+
 	protected ?string $baseDir = null;
 
 
@@ -50,7 +52,8 @@ class FileLoader implements Latte\Loader
 
 	public function isExpired(string $file, int $time): bool
 	{
-		return false;
+		$mtime = @filemtime($this->baseDir . $file); // @ - stat may fail
+		return !$mtime || $mtime > $time;
 	}
 
 
