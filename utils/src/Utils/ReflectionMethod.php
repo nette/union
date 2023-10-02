@@ -11,7 +11,7 @@ namespace Nette\Utils;
 
 
 /**
- * ReflectionMethod with the ability to remember the original class name.
+ * ReflectionMethod preserving the original class name.
  * @internal
  */
 final class ReflectionMethod extends \ReflectionMethod

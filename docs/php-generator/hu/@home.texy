@@ -2,11 +2,12 @@ PHP kód generátor
 *****************
 
 <div class=perex>
-- PHP kódot szeretne generálni osztályokhoz, függvényekhez, PHP fájlokhoz stb.?
-- Támogatja az összes legújabb PHP funkciót, mint például az enumokat, attribútumokat stb.
+Olyan eszközt keres, amellyel PHP kódot generálhat osztályokhoz, függvényekhez vagy teljes fájlokhoz?
+
+- Támogatja az összes legújabb PHP-funkciót (például enums stb.)
 - Lehetővé teszi a meglévő osztályok egyszerű módosítását
-- PSR-12 szabványnak megfelelő kimenet
-- Rendkívül kiforrott, stabil és széles körben használt könyvtár
+- PSR-12 / PER kódolási stílusnak megfelelő kimenet
+- Kiforrott, stabil és széles körben használt könyvtár
 </div>
 
 
@@ -52,7 +53,6 @@ A következő eredményt adja ki:
  */
 final class Demo extends ParentClass implements Countable
 {
-	use Nette\SmartObject;
 }
 ```
 
@@ -67,7 +67,8 @@ Konstanciákat (class [Constant |api:Nette\PhpGenerator\Constant]) és tulajdons
 
 ```php
 $class->addConstant('ID', 123)
-	->setProtected() // állandó láthatóság
+	->setProtected() // konstans láthatóság
+	->setType('int')
 	->setFinal();
 
 $class->addProperty('items', [1, 2, 3])
@@ -83,7 +84,7 @@ $class->addProperty('list')
 Ez generálja:
 
 ```php
-final protected const ID = 123;
+final protected const int ID = 123;
 
 /** @var int[] */
 private static $items = [1, 2, 3];
@@ -137,7 +138,7 @@ public function __construct(
 }
 ```
 
-A PHP 8.1 által bevezetett csak olvasható tulajdonságok a `setReadOnly()` oldalon keresztül jelölhetők.
+A csak olvasható tulajdonságok és osztályok a `setReadOnly()` címen keresztül jelölhetők meg.
 
 ------
 
@@ -170,14 +171,14 @@ $class->addMember($methodRecount);
 Interface vagy Trait .[#toc-interface-or-trait]
 -----------------------------------------------
 
-Létrehozhat interfészeket és vonásokat:
+Interfészeket és tulajdonságokat hozhat létre ( [InterfaceType |api:Nette\PhpGenerator\InterfaceType] és [TraitType |api:Nette\PhpGenerator\TraitType] osztályok):
 
 ```php
 $interface = new Nette\PhpGenerator\InterfaceType('MyInterface');
 $trait = new Nette\PhpGenerator\TraitType('MyTrait');
 ```
 
-Traits használata:
+Vonások használata:
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
@@ -194,6 +195,7 @@ Eredmény:
 class Demo
 {
 	use SmartObject;
+	/** @use MyTrait<Foo> */
 	use MyTrait {
 		sayHello as protected;
 	}
@@ -204,7 +206,7 @@ class Demo
 Enums .[#toc-enums]
 -------------------
 
-A PHP 8.1 által kínált enumokat könnyen létrehozhatod:
+A PHP 8.1 által hozott enumokat ( [EnumType |api:Nette\PhpGenerator\EnumType] osztály) könnyen létrehozhatod:
 
 ```php
 $enum = new Nette\PhpGenerator\EnumType('Suit');
@@ -275,7 +277,7 @@ $function->addParameter('a');
 $function->addParameter('b');
 echo $function;
 
-// vagy használja a PsrPrintert a PSR-2 / PSR-12 szabványnak megfelelő kimenethez.
+// vagy használja a PsrPrintert a PSR-2 / PSR-12 / PER szabványnak megfelelő kimenethez.
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFunction($function);
 ```
 
@@ -303,7 +305,7 @@ $closure->addUse('c')
 	->setReference();
 echo $closure;
 
-// vagy használja a PsrPrintert a PSR-2 / PSR-12 szabványnak megfelelő kimenethez.
+// vagy használja a PsrPrintert a PSR-2 / PSR-12 / PER szabványnak megfelelő kimenethez.
 // echo (new Nette\PhpGenerator\PsrPrinter)->printClosure($closure);
 ```
 
@@ -470,30 +472,56 @@ function foo($a)
 Nyomtatók és PSR-megfelelőség .[#toc-printers-and-psr-compliance]
 -----------------------------------------------------------------
 
-A PHP-kódot a `Printer` objektumok generálják. Létezik egy `PsrPrinter`, amelynek kimenete megfelel a PSR-2 és PSR-12 szabványoknak, és a behúzásnál szóközöket használ, valamint egy `Printer`, amely a behúzásnál tabulátorokat használ.
+A [Printer |api:Nette\PhpGenerator\Printer] osztály PHP kód generálására szolgál:
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
 // ...
 
-$printer = new Nette\PhpGenerator\PsrPrinter;
-echo $printer->printClass($class); // 4 szóköz behúzás
+$printer = new Nette\PhpGenerator\Printer;
+echo $printer->printClass($class); // ugyanaz, mint: echo $class
 ```
 
-Testreszabni szeretné a nyomtató viselkedését? Hozzon létre sajátot a `Printer` osztály öröklésével. Ezeket a változókat átkonfigurálhatja:
+Minden más elemhez képes kódot generálni, és olyan módszereket kínál, mint a `printFunction()`, `printNamespace()`, stb.
+
+Ezenkívül rendelkezésre áll a `PsrPrinter` osztály, amelynek kimenete megfelel a PSR-2 / PSR-12 / PER kódolási stílusnak:
+
+```php
+$printer = new Nette\PhpGenerator\PsrPrinter;
+echo $printer->printClass($class);
+```
+
+Szüksége van a viselkedés finomhangolására az Ön igényei szerint? Hozzon létre saját nyomtatót a `Printer` osztály öröklésével. Ezeket a változókat átkonfigurálhatja:
 
 ```php
 class MyPrinter extends Nette\PhpGenerator\Printer
 {
+	// a sor hossza, amely után a sor megszakad.
 	public int $wrapLength = 120;
+	// behúzás karakter, helyettesíthető szóközökkel
 	public string $indentation = "\t";
+	// a tulajdonságok közötti üres sorok száma
 	public int $linesBetweenProperties = 0;
+	// üres sorok száma a metódusok között
 	public int $linesBetweenMethods = 2;
+	// üres sorok száma az osztályok, függvények és konstansok használati utasításcsoportjai között
 	public int $linesBetweenUseTypes = 0;
+	// a nyitó zárójel pozíciója függvények és metódusok esetén
 	public bool $bracesOnNextLine = true;
+	// egy paramétert egy sorba helyezünk, még akkor is, ha attribútummal rendelkezik vagy előléptetve van.
+	public bool $singleParameterOnOneLine = false;
+	// omits namespaces that do not contain any class or function
+	public bool $omitEmptyNamespaces = true;
+	// elválasztó a függvények és metódusok jobb oldali zárójel és a visszatérési típus között.
 	public string $returnTypeColon = ': ';
 }
 ```
+
+Miben és miért különbözik pontosan a szabványos `Printer` és a `PsrPrinter`? Miért nincs csak egy nyomtató, a `PsrPrinter`, a csomagban?
+
+A szabványos `Printer` úgy formázza a kódot, ahogyan azt az egész Nette-ben tesszük. Mivel a Nette sokkal korábban készült, mint a PSR, és mivel a PSR sok éven át nem időben, hanem néha akár több éves késéssel szállította a szabványokat egy-egy új funkció bevezetésétől a PHP-ben, ez néhány kisebb eltérést eredményezett a [kódolási szabványban |contributing:coding-standard].
+A nagyobb különbség csupán a tabulátorok használata a szóközök helyett. Tudjuk, hogy a tabulátorok használatával a projektjeinkben lehetővé tesszük a szélesség beállítását, ami a [látássérült emberek számára elengedhetetlen |contributing:coding-standard#Tabs Instead of Spaces].
+Egy példa a kisebb különbségre a függvények és metódusok esetében a görbe zárójel külön sorba helyezése és mindig. A PSR ajánlását logikátlannak látjuk, és a [kód áttekinthetőségének csökkenéséhez vezet |contributing:coding-standard#Wrapping and Braces].
 
 
 Típusok .[#toc-types]
@@ -505,7 +533,8 @@ Minden típus vagy union/intersection típus átadható stringként, a natív t�
 use Nette\PhpGenerator\Type;
 
 $member->setType('array'); // vagy Type::Array;
-$member->setType('array|string'); // vagy Type::union('array', 'string')
+$member->setType('?array'); // or Type::nullable(Type::Array);
+$member->setType('array|string'); // or Type::union(Type::Array, Type::String)
 $member->setType('Foo&Bar'); // vagy Type::intersection(Foo::class, Bar::class)
 $member->setType(null); // eltávolítja a típust
 ```
@@ -551,6 +580,13 @@ new Literal('substr(?, ?)', [$a, $b]);
 // generál, például: substr('hello', 5);
 ```
 
+Az új objektum létrehozását jelképező literál a `new` módszerrel könnyen létrehozható:
+
+```php
+Literal::new(Demo::class, [$a, 'foo' => $b]);
+// generál, például: new Demo(10, foo: 20)
+```
+
 
 Attribútumok .[#toc-attributes]
 -------------------------------
@@ -559,10 +595,15 @@ A PHP 8 attribútumokat minden osztályhoz, metódushoz, tulajdonsághoz, konsta
 
 ```php
 $class = new Nette\PhpGenerator\ClassType('Demo');
-$class->addAttribute('Deprecated');
+$class->addAttribute('Table', [
+	'name' => 'user',
+	'constraints' => [
+		Literal::new('UniqueConstraint', ['name' => 'ean', 'columns' => ['ean']]),
+	],
+]);
 
 $class->addProperty('list')
-	->addAttribute('WithArguments', [1, 2]);
+	->addAttribute('Deprecated');
 
 $method = $class->addMethod('count')
 	->addAttribute('Foo\Cached', ['mode' => true]);
@@ -576,16 +617,18 @@ echo $class;
 Eredmény:
 
 ```php
-#[Deprecated]
+#[Table(name: 'user', constraints: [new UniqueConstraint(name: 'ean', columns: ['ean'])])]
 class Demo
 {
-	#[WithArguments(1, 2)]
+	#[Deprecated]
 	public $list;
 
 
 	#[Foo\Cached(mode: true)]
-	public function count(#[Bar] $items)
-	{
+	public function count(
+		#[Bar]
+		$items,
+	) {
 	}
 }
 ```
@@ -640,9 +683,8 @@ echo $namespace->resolveName('range', $namespace::NameFunction); // 'iter\range'
 Osztálynevek feloldása .[#toc-class-names-resolving]
 ----------------------------------------------------
 
-**Ha az osztály a névtér része, akkor kissé másképp jelenik meg**: minden típus (azaz a típushivatkozások, a visszatérési típusok, a szülő osztály neve,
-implementált interfészek, használt tulajdonságok és attribútumok) automatikusan *feloldódnak* (hacsak ki nem kapcsolod, lásd alább).
-Ez azt jelenti, hogy a definíciókban **teljes osztályneveket** kell használnod, és ezek a keletkező kódban aliasokkal (a use-statementsnek megfelelően) vagy teljesen minősített nevekkel lesznek helyettesítve:
+**Ha egy osztály egy névtér része, akkor kissé másképp jelenik meg:** minden típus (pl. a típushivatkozások, visszatérési típusok, szülőosztály neve, implementált interfészek, használt tulajdonságok és attribútumok) automatikusan *feloldódik* (hacsak ki nem kapcsolod, lásd alább).
+Ez azt jelenti, hogy a definíciókban **teljesen minősített osztályneveket** kell használnia, és ezek helyébe aliasok (a használati záradékok alapján) vagy teljesen minősített nevek lépnek az eredményül kapott kódban:
 
 ```php
 $namespace = new Nette\PhpGenerator\PhpNamespace('Foo');
@@ -653,13 +695,13 @@ $class->addImplement('Foo\A') // egyszerűsödik A
 	->addTrait('Bar\AliasedClass'); // AliasedClass-ra fog egyszerűsödni
 
 $method = $class->addMethod('method');
-$method->addComment('@return ' . $namespace->simplifyName('Foo\D')); // a megjegyzésekben kézzel egyszerűsít
+$method->addComment('@return ' . $namespace->simplifyType('Foo\D')); // a megjegyzésekben manuálisan egyszerűsítünk
 $method->addParameter('arg')
 	->setType('Bar\OtherClass'); // feloldódik \Bar\OtherClass-ra
 
 echo $namespace;
 
-// vagy használja a PsrPrintert a PSR-2 / PSR-12 szabványnak megfelelő kimenethez.
+// vagy használja a PsrPrintert a PSR-2 / PSR-12 / PER szabványnak megfelelő kimenethez.
 // echo (new Nette\PhpGenerator\PsrPrinter)->printNamespace($namespace);
 ```
 
@@ -712,7 +754,7 @@ $function = $file->addFunction('Foo\foo');
 
 echo $file;
 
-// vagy használja a PsrPrintert a PSR-2 / PSR-12 szabványnak megfelelő kimenethez.
+// vagy használja a PsrPrintert a PSR-2 / PSR-12 / PER szabványnak megfelelő kimenethez.
 // echo (new Nette\PhpGenerator\PsrPrinter)->printFile($file);
 ```
 
@@ -770,7 +812,7 @@ $function = Nette\PhpGenerator\GlobalFunction::from('foo', withBody: true);
 Betöltés PHP fájlból .[#toc-loading-from-php-file]
 --------------------------------------------------
 
-Az osztályokat és függvényeket közvetlenül egy még nem betöltött PHP-fájlból vagy PHP-kódból álló karakterláncból is betöltheti:
+A függvényeket, osztályokat, interfészeket és enumokat közvetlenül egy PHP kódsorozatból is betöltheti. Például így hozzuk létre a `ClassType` objektumot:
 
 ```php
 $class = Nette\PhpGenerator\ClassType::fromCode(<<<XX
@@ -783,13 +825,20 @@ $class = Nette\PhpGenerator\ClassType::fromCode(<<<XX
 	XX);
 ```
 
-A teljes PHP-fájl betöltése, amely több osztályt vagy akár több névteret is tartalmazhat:
+Az osztályok PHP kódból történő betöltésekor a metódus testén kívüli egysoros megjegyzéseket figyelmen kívül hagyjuk (pl. tulajdonságok stb. esetén), mivel ez a könyvtár nem rendelkezik API-val ezek kezelésére.
+
+A teljes PHP-fájlt közvetlenül is betöltheti, amely tetszőleges számú osztályt, függvényt vagy akár több névteret is tartalmazhat:
 
 ```php
 $file = Nette\PhpGenerator\PhpFile::fromCode(file_get_contents('classes.php'));
 ```
 
+A kezdeti fájlkommentár és a `strict_types` nyilatkozat is betöltődik. Másrészt minden más globális kódot figyelmen kívül hagyunk.
+
 Ehhez telepíteni kell a `nikic/php-parser` oldalt.
+
+.[note]
+Ha fájlokban lévő globális kódot vagy a metódusok testében lévő egyes utasításokat kell manipulálnia, jobb, ha közvetlenül a `nikic/php-parser` könyvtárat használja.
 
 
 Változók Dumper .[#toc-variables-dumper]
@@ -809,6 +858,6 @@ echo $dumper->dump($var); // prints ['a', 'b', 123]
 Kompatibilitási táblázat .[#toc-compatibility-table]
 ----------------------------------------------------
 
-A PhpGenerator 4.0 kompatibilis a PHP 8.0 és 8.2 közötti változatokkal.
+A PhpGenerator 4.0 és 4.1 kompatibilis a PHP 8.0 és 8.3 közötti változatokkal.
 
 {{leftbar: nette:@menu-topics}}

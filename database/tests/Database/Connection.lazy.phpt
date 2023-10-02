@@ -15,26 +15,32 @@ require __DIR__ . '/../bootstrap.php';
 
 
 test('non lazy', function () {
-	Assert::exception(function () {
-		$connection = new Nette\Database\Connection('dsn', 'user', 'password');
-	}, Nette\Database\DriverException::class, '%a%valid data source %a%');
+	Assert::exception(
+		fn() => new Nette\Database\Connection('dsn', 'user', 'password'),
+		Nette\Database\DriverException::class,
+		'%a%valid data source %a%',
+	);
 });
 
 
 test('lazy', function () {
 	$connection = new Nette\Database\Connection('dsn', 'user', 'password', ['lazy' => true]);
 	$explorer = new Nette\Database\Explorer($connection, new Structure($connection, new DevNullStorage));
-	Assert::exception(function () use ($explorer) {
-		$explorer->query('SELECT ?', 10);
-	}, Nette\Database\DriverException::class, '%a%valid data source %a%');
+	Assert::exception(
+		fn() => $explorer->query('SELECT ?', 10),
+		Nette\Database\DriverException::class,
+		'%a%valid data source %a%',
+	);
 });
 
 
 test('', function () {
 	$connection = new Nette\Database\Connection('dsn', 'user', 'password', ['lazy' => true]);
-	Assert::exception(function () use ($connection) {
-		$connection->quote('x');
-	}, Nette\Database\DriverException::class, '%a%valid data source %a%');
+	Assert::exception(
+		fn() => $connection->quote('x'),
+		Nette\Database\DriverException::class,
+		'%a%valid data source %a%',
+	);
 });
 
 
@@ -44,7 +50,7 @@ test('connect & disconnect', function () {
 
 	try {
 		$connection = new Nette\Database\Connection($options['dsn'], $options['user'], $options['password']);
-	} catch (PDOException $e) {
+	} catch (Nette\Database\ConnectionException $e) {
 		Tester\Environment::skip("Connection to '$options[dsn]' failed. Reason: " . $e->getMessage());
 	}
 

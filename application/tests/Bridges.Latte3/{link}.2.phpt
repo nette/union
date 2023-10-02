@@ -2,7 +2,6 @@
 
 /**
  * Test: {link ...}, {plink ...}
- * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -10,10 +9,6 @@ declare(strict_types=1);
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-
-if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-	Tester\Environment::skip('Test for Latte 3');
-}
 
 
 class MockControl
@@ -88,9 +83,7 @@ Assert::match(<<<'EOD'
 	<a href="link:{'0':'default!','1':10,'a':20,'b':30}"></a>
 
 	<a href="link:['default!#hash',10,20]"></a>
-	EOD
-
-	, strtr($latte->renderToString(<<<'EOD'
+	EOD, strtr($latte->renderToString(<<<'EOD'
 	{plink Homepage:}
 
 	{plink  Homepage: }
@@ -120,5 +113,4 @@ Assert::match(<<<'EOD'
 	<a n:href="default! 10, 'a' => 20, 'b' => 30"></a>
 
 	<a n:href="default!#hash 10, 20"></a>
-	EOD
-		, $params), ['&#039;' => "'", '&apos;' => "'", '&#123;' => '{']));
+	EOD, $params), ['&#039;' => "'", '&apos;' => "'", '&#123;' => '{']));

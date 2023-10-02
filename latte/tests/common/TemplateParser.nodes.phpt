@@ -24,6 +24,7 @@ class FooNode extends Latte\Compiler\Nodes\AreaNode
 
 function parse($s)
 {
+	$lexer = new Latte\Compiler\TemplateLexer;
 	$parser = new Latte\Compiler\TemplateParser;
 	$parser->addTags(['foo' => function () {
 		$node = new FooNode;
@@ -31,7 +32,7 @@ function parse($s)
 		return $node;
 	}]);
 
-	$node = $parser->parse($s);
+	$node = $parser->parse($s, $lexer);
 	return exportNode($node);
 }
 

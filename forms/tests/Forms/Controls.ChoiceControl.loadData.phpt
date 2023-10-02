@@ -19,10 +19,11 @@ class ChoiceControl extends Nette\Forms\Controls\ChoiceControl
 }
 
 
-before(function () {
+setUp(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
+	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+	ob_start();
 	Form::initialize(true);
 });
 
@@ -130,7 +131,7 @@ test('setItems without keys', function () use ($series) {
 
 	$form = new Form;
 	$input = $form['select'] = new ChoiceControl;
-	$input->setItems(array_keys($series), false);
+	$input->setItems(array_keys($series), useKeys: false);
 	Assert::same([
 		'red-dwarf' => 'red-dwarf',
 		'the-simpsons' => 'the-simpsons',
@@ -150,9 +151,11 @@ test('setValue() and invalid argument', function () use ($series) {
 	$input = $form['select'] = new ChoiceControl(null, $series);
 	$input->setValue(null);
 
-	Assert::exception(function () use ($input) {
-		$input->setValue('unknown');
-	}, Nette\InvalidArgumentException::class, "Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.");
+	Assert::exception(
+		fn() => $input->setValue('unknown'),
+		Nette\InvalidArgumentException::class,
+		"Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.",
+	);
 });
 
 
@@ -177,7 +180,7 @@ test('object as value', function () {
 test('object as item', function () {
 	$form = new Form;
 	$input = $form['select'] = new ChoiceControl;
-	$input->setItems([new DateTime('2013-07-05')], false)
+	$input->setItems([new DateTime('2013-07-05')], useKeys: false)
 		->setValue(new DateTime('2013-07-05'));
 
 	Assert::same('2013-07-05 00:00:00', $input->getValue());

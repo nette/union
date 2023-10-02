@@ -33,16 +33,12 @@ test('simple object', function () {
 	$schema = Expect::array()->castTo(Foo1::class);
 	Assert::equal(
 		$foo,
-		(new Processor)->process($schema, ['a' => 1, 'b' => 2])
+		(new Processor)->process($schema, ['a' => 1, 'b' => 2]),
 	);
 });
 
 
 test('object with constructor', function () {
-	if (PHP_VERSION_ID < 80000) {
-		return;
-	}
-
 	class Foo2
 	{
 		private $a;
@@ -59,7 +55,7 @@ test('object with constructor', function () {
 	$schema = Expect::array()->castTo(Foo2::class);
 	Assert::equal(
 		new Foo2(1, 2),
-		(new Processor)->process($schema, ['b' => 2, 'a' => 1])
+		(new Processor)->process($schema, ['b' => 2, 'a' => 1]),
 	);
 });
 
@@ -68,6 +64,6 @@ test('DateTime', function () {
 	$schema = Expect::string()->castTo(DateTime::class);
 	Assert::equal(
 		new DateTime('2021-01-01'),
-		(new Processor)->process($schema, '2021-01-01')
+		(new Processor)->process($schema, '2021-01-01'),
 	);
 });

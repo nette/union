@@ -11,14 +11,32 @@ Nette non funziona, viene visualizzata una pagina bianca .[#toc-nette-is-not-wor
 
 Errore 500 *Errore del server: Ci dispiace! ...* .[#toc-error-500-server-error-we-re-sorry]
 -------------------------------------------------------------------------------------------
-Questa pagina di errore viene visualizzata da Nette in modalità di produzione. Se viene visualizzata su una macchina per sviluppatori, [passare alla modalità sviluppatore |application:bootstrap#Development vs Production Mode].
+Questa pagina di errore viene visualizzata da Nette in modalità di produzione. Se viene visualizzata sulla macchina di sviluppo, [passare alla modalità sviluppatore |application:bootstrap#Development vs Production Mode] e Tracy verrà visualizzato con un rapporto dettagliato.
 
-Se il messaggio di errore contiene `Tracy is unable to log error`, scoprire perché gli errori non possono essere registrati. È possibile farlo, ad esempio, [passando |application:bootstrap#Development vs Production Mode] alla modalità sviluppatore e chiamando `Tracy\Debugger::log('hello');` dopo `$configurator->enableTracy(...)`. Tracy vi dirà perché non può essere registrato.
-Di solito la causa è l'[insufficienza dei permessi |#Setting Directory Permissions] di scrittura nella directory `log/`.
+È sempre possibile trovare il motivo dell'errore nella directory `log/`. Tuttavia, se il messaggio di errore riporta la frase `Tracy is unable to log error`, occorre innanzitutto determinare perché gli errori non possono essere registrati. È possibile farlo, ad esempio, [passando |application:bootstrap#Development vs Production Mode] temporaneamente alla modalità sviluppatore e lasciando che Tracy registri qualsiasi cosa dopo il suo avvio:
 
-Se la frase `Tracy is unable to log error` non compare (più) nel messaggio di errore, si può scoprire il motivo dell'errore nel log della cartella `log/`.
+```php
+// Bootstrap.php
+$configurator->setDebugMode('23.75.345.200'); // il vostro indirizzo IP
+$configurator->enableTracy($appDir . '/log');
+\Tracy\Debugger::log('hello');
+```
 
-Una delle ragioni più comuni è una cache non aggiornata. Mentre Nette aggiorna automaticamente la cache in modalità di sviluppo, in modalità di produzione si concentra sulla massimizzazione delle prestazioni e la cancellazione della cache dopo ogni modifica del codice dipende da voi. Provate a cancellare `temp/cache`.
+Tracy vi informerà del motivo per cui non riesce a registrare. La causa potrebbe essere l'[insufficienza dei permessi |#Setting Directory Permissions] di scrittura nella directory `log/`.
+
+Una delle ragioni più comuni di un errore 500 è la cache obsoleta. Mentre Nette aggiorna automaticamente la cache in modalità di sviluppo, in modalità di produzione si concentra sulla massimizzazione delle prestazioni e la cancellazione della cache dopo ogni modifica del codice dipende da voi. Provare a cancellare `temp/cache`.
+
+
+Errore 404, il routing non funziona .[#toc-error-404-routing-not-working]
+-------------------------------------------------------------------------
+Quando tutte le pagine (tranne la homepage) restituiscono un errore 404, sembra che ci sia un problema di configurazione del server per gli [URL più belli |#How to Configure a Server for Nice URLs?].
+
+
+Come disattivare la cache durante lo sviluppo? .[#toc-how-to-disable-cache-during-development]
+----------------------------------------------------------------------------------------------
+Nette è intelligente e non è necessario disabilitare la cache. Durante lo sviluppo, aggiorna automaticamente la cache ogni volta che c'è un cambiamento nel template o nella configurazione del contenitore DI. Inoltre, la modalità di sviluppo è attivata dal rilevamento automatico, quindi di solito non è necessario configurare nulla, [o solo l'indirizzo IP |application:bootstrap#development-vs-production-mode].
+
+Quando si esegue il debug del router, si consiglia di disabilitare la cache del browser, dove, ad esempio, potrebbero essere memorizzati i reindirizzamenti: aprire gli Strumenti per gli sviluppatori (Ctrl+Maiusc+I o Cmd+Option+I) e, nel pannello Rete, selezionare la casella per disabilitare la cache.
 
 
 Errore `#[\ReturnTypeWillChange] attribute should be used` .[#toc-error-returntypewillchange-attribute-should-be-used]
@@ -61,7 +79,7 @@ La soluzione **non** è quella di "sbarazzarsi" della cartella `www/` usando reg
 
 Come configurare un server per avere URL gradevoli? .[#toc-how-to-configure-a-server-for-nice-urls]
 ---------------------------------------------------------------------------------------------------
-**Apache**: l'estensione mod_rewrite deve essere consentita e configurata in un file `.htaccess`.
+**Apache**: è necessario abilitare e impostare le regole mod_rewrite nel file `.htaccess`:
 
 ```apacheconf
 RewriteEngine On
@@ -70,17 +88,47 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule !\.(pdf|js|ico|gif|jpg|png|css|rar|zip|tar\.gz)$ index.php [L]
 ```
 
-Per modificare la configurazione di Apache con i file .htaccess, è necessario abilitare la direttiva AllowOverride. Questo è il comportamento predefinito di Apache.
+In caso di problemi, assicurarsi che:
+- il file `.htaccess` si trovi nella directory document-root (cioè accanto al file `index.php` )
+- [Apache stia elaborando i file .htaccess |#Test if .htaccess is working]
+- [mod_rewrite sia abilitato |#Test if mod_rewrite is enabled]
+
+Se si sta impostando l'applicazione in una sottocartella, potrebbe essere necessario decommentare la riga dell'impostazione `RewriteBase` e impostarla sulla cartella corretta.
 
 **nginx**: la direttiva `try_files` deve essere usata nella configurazione del server:
 
 ```nginx
 location / {
-	try_files $uri $uri/ /index.php$is_args$args;  # $is_args$args is important
+	try_files $uri $uri/ /index.php$is_args$args;  # $is_args$args È IMPORTANTE!
 }
 ```
 
 Il blocco `location` deve essere definito esattamente una volta per ogni percorso del filesystem nel blocco `server`. Se nella configurazione è già presente un blocco `location /`, aggiungere la direttiva `try_files` al blocco esistente.
+
+
+Verificare se `.htaccess` funziona .[#toc-test-if-htaccess-is-working]
+----------------------------------------------------------------------
+Il modo più semplice per verificare se Apache utilizza o ignora il file `.htaccess` è quello di interromperlo intenzionalmente. Inserite la riga `Test` all'inizio del file e ora, se aggiornate la pagina nel browser, dovreste vedere un *Internal Server Error*.
+
+Se vedete questo errore, in realtà è un bene! Significa che Apache sta analizzando il file `.htaccess` e incontra l'errore che abbiamo inserito. Rimuovere la riga `Test`.
+
+Se non viene visualizzato un *Internal Server Error*, la configurazione di Apache ignora il file `.htaccess`. In genere, Apache lo ignora a causa della direttiva di configurazione mancante `AllowOverride All`.
+
+Se lo ospitate voi stessi, è abbastanza facile da risolvere. Aprire il file `httpd.conf` o `apache.conf` in un editor di testo, individuare la sezione pertinente `<Directory>` e aggiungere/modificare la direttiva:
+
+```apacheconf
+<Directory "/var/www/htdocs"> # path to your document root
+    AllowOverride All
+    ...
+```
+
+Se il vostro sito è ospitato altrove, controllate il vostro pannello di controllo per vedere se potete abilitare `.htaccess` lì. In caso contrario, contattate il vostro provider di hosting affinché lo faccia per voi.
+
+
+Verificare se `mod_rewrite` è abilitato .[#toc-test-if-mod-rewrite-is-enabled]
+------------------------------------------------------------------------------
+Se si è verificato che [`.htaccess` funziona |#Test if .htaccess is working], si può verificare che l'estensione mod_rewrite sia abilitata. Inserire la riga `RewriteEngine On` all'inizio del file `.htaccess` e aggiornare la pagina nel browser.
+Se viene visualizzato un *Internal Server Error*, significa che mod_rewrite non è abilitato. Ci sono diversi modi per abilitarlo. Si veda Stack Overflow per i vari modi in cui questo può essere fatto su diverse configurazioni.
 
 
 I collegamenti sono generati senza `https:` .[#toc-links-are-generated-without-https]

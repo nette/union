@@ -6,13 +6,16 @@ Nette Τεκμηρίωση
 <div>
 
 
+Εισαγωγή
+--------
+- [Γιατί να χρησιμοποιήσετε τη Nette; |www:10-reasons-why-nette]
+- [Εγκατάσταση |Installation]
+- [Δημιουργήστε την πρώτη σας εφαρμογή! |quickstart:]
+
+
 Γενικά
 ------
-- [Γιατί να χρησιμοποιήσετε τη Nette; |www:en:10-reasons-why-nette]
-- <b>[Δημιουργήστε την πρώτη σας εφαρμογή! |quickstart:]<b>
-
-
-- [Πακέτα & Εγκατάσταση |www:packages]
+- [Κατάλογος πακέτων |www:packages]
 - [Συντήρηση και PHP |www:maintenance]
 - [Σημειώσεις έκδοσης |https://nette.org/releases]
 - [Οδηγός αναβάθμισης |migrations:en]
@@ -20,6 +23,7 @@ Nette Τεκμηρίωση
 - [Ποιος δημιουργεί το Nette |https://nette.org/contributors]
 - [Ιστορία της Nette |www:history]
 - [Συμμετέχετε |contributing:]
+- [Ανάπτυξη χορηγού |https://nette.org/en/donate]
 - [Αναφορά API |https://api.nette.org/]
 </div>
 
@@ -80,11 +84,11 @@ Nette Τεκμηρίωση
 - [JSON |utils:JSON]
 - [NEON |neon:]
 - [Κρυπτογράφηση κωδικού πρόσβασης |security:passwords]
-- [SmartObject |utils:SmartObject]
 - [Τύποι PHP |utils:type]
 - [Strings |utils:Strings]
 - [Επικυρωτές |utils:validators]
 - [RobotLoader |robot-loader:]
+- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
 - [SafeStream |safe-stream:]
 - [...άλλα |utils:]
 </div>

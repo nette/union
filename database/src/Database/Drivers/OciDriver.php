@@ -15,38 +15,39 @@ use Nette;
 /**
  * Supplemental Oracle database driver.
  */
-class OciDriver implements Nette\Database\Driver
+class OciDriver extends PdoDriver
 {
-	use Nette\SmartObject;
-
-	/** @var Nette\Database\Connection */
-	private $connection;
-
-	/** @var string  Datetime format */
-	private $fmtDateTime;
+	/** Datetime format */
+	private string $fmtDateTime;
 
 
-	public function initialize(Nette\Database\Connection $connection, array $options): void
+	public function connect(
+		string $dsn,
+		?string $user = null,
+		#[\SensitiveParameter]
+		?string $password = null,
+		?array $options = null,
+	): void
 	{
-		$this->connection = $connection;
+		parent::connect($dsn, $user, $password, $options);
 		$this->fmtDateTime = $options['formatDateTime'] ?? 'U';
 	}
 
 
-	public function convertException(\PDOException $e): Nette\Database\DriverException
+	public function detectExceptionClass(\PDOException $e): ?string
 	{
 		$code = $e->errorInfo[1] ?? null;
-		if (in_array($code, [1, 2299, 38911], true)) {
-			return Nette\Database\UniqueConstraintViolationException::from($e);
+		if (in_array($code, [1, 2299, 38911], strict: true)) {
+			return Nette\Database\UniqueConstraintViolationException::class;
 
-		} elseif (in_array($code, [1400], true)) {
-			return Nette\Database\NotNullConstraintViolationException::from($e);
+		} elseif (in_array($code, [1400], strict: true)) {
+			return Nette\Database\NotNullConstraintViolationException::class;
 
-		} elseif (in_array($code, [2266, 2291, 2292], true)) {
-			return Nette\Database\ForeignKeyConstraintViolationException::from($e);
+		} elseif (in_array($code, [2266, 2291, 2292], strict: true)) {
+			return Nette\Database\ForeignKeyConstraintViolationException::class;
 
 		} else {
-			return Nette\Database\DriverException::from($e);
+			return null;
 		}
 	}
 
@@ -102,7 +103,7 @@ class OciDriver implements Nette\Database\Driver
 	public function getTables(): array
 	{
 		$tables = [];
-		foreach ($this->connection->query('SELECT * FROM cat') as $row) {
+		foreach ($this->pdo->query('SELECT * FROM cat') as $row) {
 			if ($row[1] === 'TABLE' || $row[1] === 'VIEW') {
 				$tables[] = [
 					'name' => $row[0],
@@ -141,6 +142,6 @@ class OciDriver implements Nette\Database\Driver
 
 	public function isSupported(string $item): bool
 	{
-		return $item === self::SUPPORT_SEQUENCE || $item === self::SUPPORT_SUBSELECT;
+		return $item === self::SupportSequence || $item === self::SupportSubselect;
 	}
 }

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Nette\Forms\Controls;
 
 use Nette;
+use Stringable;
 
 
 /**
@@ -19,36 +20,34 @@ class SelectBox extends ChoiceControl
 {
 	/** validation rule */
 	public const Valid = ':selectBoxValid';
+
+	/** @deprecated use SelectBox::Valid */
 	public const VALID = self::Valid;
 
-	/** @var array of option / optgroup */
-	private $options = [];
+	/** of option / optgroup */
+	private array $options = [];
 
-	/** @var string|object|false */
-	private $prompt = false;
+	private string|Stringable|false $prompt = false;
 
-	/** @var array */
-	private $optionAttributes = [];
+	private array $optionAttributes = [];
 
 
 	public function __construct($label = null, ?array $items = null)
 	{
 		parent::__construct($label, $items);
 		$this->setOption('type', 'select');
-		$this->addCondition(function () {
-			return $this->prompt === false
-				&& $this->options
-				&& $this->control->size < 2;
-		})->addRule(Nette\Forms\Form::Filled, Nette\Forms\Validator::$messages[self::Valid]);
+		$this->addCondition(
+			fn() => $this->prompt === false
+			&& $this->options
+			&& $this->control->size < 2,
+		)->addRule(Nette\Forms\Form::Filled, Nette\Forms\Validator::$messages[self::Valid]);
 	}
 
 
 	/**
 	 * Sets first prompt item in select box.
-	 * @param  string|object|false  $prompt
-	 * @return static
 	 */
-	public function setPrompt($prompt)
+	public function setPrompt(string|Stringable|false $prompt): static
 	{
 		$this->prompt = $prompt;
 		return $this;
@@ -57,9 +56,8 @@ class SelectBox extends ChoiceControl
 
 	/**
 	 * Returns first prompt item?
-	 * @return string|object|false
 	 */
-	public function getPrompt()
+	public function getPrompt(): string|Stringable|false
 	{
 		return $this->prompt;
 	}
@@ -67,9 +65,8 @@ class SelectBox extends ChoiceControl
 
 	/**
 	 * Sets options and option groups from which to choose.
-	 * @return static
 	 */
-	public function setItems(array $items, bool $useKeys = true)
+	public function setItems(array $items, bool $useKeys = true): static
 	{
 		if (!$useKeys) {
 			$res = [];
@@ -88,7 +85,7 @@ class SelectBox extends ChoiceControl
 		}
 
 		$this->options = $items;
-		return parent::setItems(Nette\Utils\Arrays::flatten($items, true));
+		return parent::setItems(Nette\Utils\Arrays::flatten($items, preserveKeys: true));
 	}
 
 
@@ -104,21 +101,20 @@ class SelectBox extends ChoiceControl
 			[
 				'disabled:' => is_array($this->disabled) ? $this->disabled : null,
 			] + $this->optionAttributes,
-			$this->value
+			$this->value,
 		)->addAttributes(parent::getControl()->attrs);
 	}
 
 
-	/** @return static */
-	public function addOptionAttributes(array $attributes)
+	/** @deprecated use setOptionAttribute() */
+	public function addOptionAttributes(array $attributes): static
 	{
 		$this->optionAttributes = $attributes + $this->optionAttributes;
 		return $this;
 	}
 
 
-	/** @return static */
-	public function setOptionAttribute(string $name, $value = true)
+	public function setOptionAttribute(string $name, mixed $value = true): static
 	{
 		$this->optionAttributes[$name] = $value;
 		return $this;

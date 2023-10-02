@@ -158,7 +158,7 @@ Metoda `forward()` takoj preklopi na novi predstavnik brez preusmeritve HTTP:
 $this->forward('Product:show');
 ```
 
-Primer začasne preusmeritve s kodo HTTP 302 ali 303:
+Primer tako imenovane začasne preusmeritve s kodo HTTP 302 (ali 303, če je trenutni način zahteve POST):
 
 ```php
 $this->redirect('Product:show', $id);
@@ -170,7 +170,7 @@ Za trajno preusmeritev s kodo HTTP 301 uporabite:
 $this->redirectPermanent('Product:show', $id);
 ```
 
-Z metodo `redirectUrl()` lahko preusmerite na drug URL zunaj aplikacije:
+Z metodo `redirectUrl()` lahko preusmerite na drug naslov URL zunaj aplikacije. Kodo HTTP lahko določite kot drugi parameter, pri čemer je privzeta vrednost 302 (ali 303, če je trenutna metoda zahteve POST):
 
 ```php
 $this->redirectUrl('https://nette.org');
@@ -236,49 +236,83 @@ public function actionData(): void
 ```
 
 
-Trajni parametri .[#toc-persistent-parameters]
-==============================================
+Parametri zahtevka .[#toc-request-parameters]
+=============================================
 
-Trajni parametri se v povezavah **prenesejo samodejno**. To pomeni, da nam jih ni treba izrecno navesti v vsakem `link()` ali `n:href` v predlogi, vendar se bodo vseeno prenesli.
+Predstavitelj in vsaka komponenta pridobi svoje parametre iz zahteve HTTP. Njihove vrednosti lahko pridobite z metodo `getParameter($name)` ali `getParameters()`. Vrednosti so nizi ali nizi nizov, v bistvu surovi podatki, pridobljeni neposredno iz URL.
 
-Če ima vaša aplikacija več jezikovnih različic, je trenutni jezik parameter, ki mora biti vedno del naslova URL. In bilo bi neverjetno naporno, če bi ga morali navajati v vsaki povezavi. Z Nette to ni potrebno. Parameter `lang` na ta način preprosto označimo kot stalen:
+Zaradi večjega udobja priporočamo, da so parametri dostopni prek lastnosti. Preprosto jih opišite z ukazom `#[Parameter]` atributom:
 
 ```php
-class ProductPresenter extends Nette\Application\UI\Presenter
+use Nette\Application\Attributes\Parameter;  // ta vrstica je pomembna
+
+class HomePresenter extends Nette\Application\UI\Presenter
 {
-	/** @persistent */
-	public string $lang;
+	#[Parameter]
+	public string $theme; // mora biti javna.
 }
 ```
 
-Če je trenutna vrednost parametra `lang` `'en'` , potem bo URL, ustvarjen s `link()` ali `n:href` v predlogi, vseboval `lang=en`. Odlično!
+Za lastnosti predlagamo, da navedete vrsto podatkov (npr. `string`). Nette bo na podlagi tega samodejno določil vrednost. Vrednosti parametrov je mogoče tudi [potrditi |#Validation of Parameters].
 
-Vendar pa lahko dodamo tudi parameter `lang` in s tem spremenimo njegovo vrednost:
-
-```latte
-<a n:href="Product:show $id, lang: en">detail in English</a>
-```
-
-Lahko pa ga tudi odstranimo z nastavitvijo vrednosti null:
+Pri ustvarjanju povezave lahko neposredno določite vrednost za parametre:
 
 ```latte
-<a n:href="Product:show $id, lang: null">click here</a>
+<a n:href="Home:default theme: dark">click</a>
 ```
 
-Trajna spremenljivka mora biti deklarirana kot javna. Določimo lahko tudi privzeto vrednost. Če ima parameter enako vrednost kot privzeta vrednost, ne bo vključen v naslov URL.
 
-Vztrajnost odraža hierarhijo razredov predstavnikov, zato se parameter, opredeljen v določenem predstavniku ali lastnosti, nato samodejno prenese na vsak predstavnik, ki ga podeduje ali uporablja isto lastnost.
+Trajni parametri .[#toc-persistent-parameters]
+==============================================
 
-V PHP 8 lahko za označevanje trajnih parametrov uporabite tudi atribute:
+Trajni parametri se uporabljajo za ohranjanje stanja med različnimi zahtevami. Njihova vrednost ostane enaka tudi po kliku na povezavo. Za razliko od podatkov seje se posredujejo v naslovu URL. To poteka povsem samodejno, zato jih ni treba izrecno navesti v `link()` ali `n:href`.
+
+Primer uporabe? Imate večjezično aplikacijo. Dejanski jezik je parameter, ki mora biti vedno del naslova URL. Vendar bi bilo izjemno zamudno, če bi ga vključili v vsako povezavo. Zato ga naredite za trajni parameter z imenom `lang`, ki se bo prenašal sam. Super!
+
+Ustvarjanje trajnega parametra je v Nette izjemno enostavno. Preprosto ustvarite javno lastnost in jo označite z atributom: (prej se je uporabljal `/** @persistent */` ).
 
 ```php
-use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Persistent; // ta vrstica je pomembna
 
 class ProductPresenter extends Nette\Application\UI\Presenter
 {
 	#[Persistent]
+	public string $lang; // morajo biti javni.
+}
+```
+
+Če ima `$this->lang` vrednost, kot je `'en'`, bodo povezave, ustvarjene z uporabo `link()` ali `n:href`, vsebovale tudi parameter `lang=en`. In ko boste povezavo kliknili, bo ta spet imela vrednost `$this->lang = 'en'`.
+
+Za lastnosti priporočamo, da vključite podatkovno vrsto (npr. `string`), vključite pa lahko tudi privzeto vrednost. Vrednosti parametrov je mogoče [potrditi |#Validation of Parameters].
+
+Trajni parametri se privzeto posredujejo med vsemi dejanji določenega predstavnika. Če jih želite posredovati med več predstavniki, jih morate opredeliti:
+
+- v skupnem predniku, od katerega predstavniki dedujejo
+- v lastnosti, ki jo uporabljajo predstavniki:
+
+```php
+trait LangAware
+{
+	#[Persistent]
 	public string $lang;
 }
+
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	use LangAware;
+}
+```
+
+Pri ustvarjanju povezave lahko spremenite vrednost trajnega parametra:
+
+```latte
+<a n:href="Product:show $id, lang: cs">detail in Czech</a>
+```
+
+Lahko ga tudi *resetirate*, tj. odstranite iz URL-ja. Nato bo prevzel privzeto vrednost:
+
+```latte
+<a n:href="Product:show $id, lang: null">click</a>
 ```
 
 
@@ -299,16 +333,37 @@ Poglobitev .[#toc-going-deeper]
 To, kar smo doslej prikazali v tem poglavju, bo verjetno zadostovalo. Naslednje vrstice so namenjene tistim, ki jih predstavniki zanimajo poglobljeno in želijo vedeti vse.
 
 
-Zahteve in parametri .[#toc-requirement-and-parameters]
+Potrjevanje parametrov .[#toc-validation-of-parameters]
 -------------------------------------------------------
 
-Zahteva, ki jo obravnava predstavnik, je objekt [api:Nette\Application\Request] in jo vrne predstavnikova metoda `getRequest()`. Vključuje niz parametrov, vsak od njih pa pripada bodisi kateri od komponent bodisi neposredno predstavniku (ki je pravzaprav tudi komponenta, čeprav posebna). Nette torej prerazporedi parametre in prehaja med posameznimi komponentami (in predstavnikom) tako, da pokliče metodo `loadState(array $params)`, ki je podrobneje opisana v poglavju [Komponente |Components]. Parametre lahko pridobimo z metodo `getParameters(): array`, posamično pa z uporabo `getParameter($name)`. Vrednosti parametrov so nizi ali polja nizov, v bistvu gre za surove podatke, pridobljene neposredno iz naslova URL.
+Vrednosti [parametrov zahteve |#request parameters] in [trajnih parametrov |#persistent parameters], prejetih z naslovov URL, se zapišejo v lastnosti z metodo `loadState()`. Preveri tudi, ali se podatkovna vrsta, navedena v lastnosti, ujema, sicer se odzove z napako 404 in stran se ne prikaže.
+
+Parametrom nikoli ne zaupajte na slepo, saj jih lahko uporabnik zlahka prepiše v naslovu URL. Tako na primer preverimo, ali je `$this->lang` med podprtimi jeziki. Dober način za to je, da prekrijete zgoraj omenjeno metodo `loadState()`:
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $lang;
+
+	public function loadState(array $params): void
+	{
+		parent::loadState($params); // tukaj je nastavljen $this->lang
+		// sledi preverjanju uporabniške vrednosti:
+		if (!in_array($this->lang, ['en', 'cs'])) {
+			$this->error();
+		}
+	}
+}
+```
 
 
 Shranjevanje in obnavljanje zahtevka .[#toc-save-and-restore-the-request]
 -------------------------------------------------------------------------
 
-Trenutni zahtevek lahko shranite v sejo ali pa ga obnovite iz seje in omogočite predavatelju, da ga ponovno izvede. To je na primer uporabno, ko uporabnik izpolni obrazec in mu poteče prijava. Da ne bi izgubili podatkov, pred preusmeritvijo na stran za prijavo shranimo trenutno zahtevo v sejo z uporabo `$reqId = $this->storeRequest()`, ki vrne identifikator v obliki kratkega niza in ga kot parameter posreduje predstavniku za prijavo.
+Zahteva, ki jo predstavnik obravnava, je objekt [api:Nette\Application\Request] in jo vrne predstavnikova metoda `getRequest()`.
+
+Trenutni zahtevek lahko shranite v sejo ali pa ga obnovite iz seje in omogočite predstavniku, da ga ponovno izvede. To je na primer uporabno, ko uporabnik izpolni obrazec in mu poteče prijava. Da ne bi izgubili podatkov, pred preusmeritvijo na stran za prijavo shranimo trenutno zahtevo v sejo z uporabo `$reqId = $this->storeRequest()`, ki vrne identifikator v obliki kratkega niza in ga kot parameter posreduje predstavniku za prijavo.
 
 Po prijavi pokličemo metodo `$this->restoreRequest($reqId)`, ki prevzame zahtevo iz seje in ji jo posreduje naprej. Metoda preveri, ali je zahtevo ustvaril isti uporabnik, kot je zdaj prijavljeni. Če se prijavi drug uporabnik ali je ključ neveljaven, ne stori ničesar in program se nadaljuje.
 
@@ -390,6 +445,27 @@ $callback = function (Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $ht
 };
 $this->sendResponse(new Responses\CallbackResponse($callback));
 ```
+
+
+Preverjanje metode HTTP .[#toc-http-method-check]
+-------------------------------------------------
+
+Predstavniki v Nette samodejno preverijo metodo HTTP vsake prejete zahteve. Glavni razlog za to preverjanje je varnost. Preverjanje metode se izvede v `checkHttpMethod()`, ki ugotovi, ali je metoda, navedena v zahtevi, vključena v polje `$presenter->allowedMethods`. Privzeto to polje vsebuje elemente `GET`, `POST`, `HEAD`, `PUT`, `DELETE`, `PATCH`, kar pomeni, da so te metode dovoljene.
+
+Če želite dodatno dovoliti metodo `OPTIONS`, lahko to dosežete na naslednji način:
+
+```php
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+    protected function checkHttpMethod(): void
+    {
+        $this->allowedMethods[] = 'OPTIONS';
+        parent::checkHttpMethod();
+    }
+}
+```
+
+Ključnega pomena je poudariti, da če omogočite metodo `OPTIONS`, jo morate ustrezno obdelati tudi v svojem predstavitvenem programu. Ta metoda se pogosto uporablja kot tako imenovana zahteva preflight, ki jo brskalniki samodejno pošljejo pred dejansko zahtevo, ko je treba ugotoviti, ali je zahteva dovoljena z vidika politike CORS (Cross-Origin Resource Sharing). Če to metodo dovolite, vendar ne izvedete ustreznega odziva, lahko pride do nedoslednosti in morebitnih varnostnih težav.
 
 
 Nadaljnje branje .[#toc-further-reading]

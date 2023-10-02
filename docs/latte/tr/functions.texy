@@ -9,6 +9,7 @@ Yaygın PHP işlevlerine ek olarak, bunları şablonlarda da kullanabilirsiniz.
 | `divisibleBy`| [bir değişkenin bir sayıya bölünebilir olup olmadığını kontroleder|#divisibleBy]
 | `even` | [verilen sayının çift olup olmadığını kontroleder |#even]
 | `first` | [dizinin ilk elemanını veya karakter dizisini döndürür |#first]
+| `hasBlock` | [bir bloğun varlığını tespit |#hasBlock] eder
 | `last` | [dizinin son elemanını veya karakter dizisini döndürür |#last]
 | `odd` | [verilen sayının tek olup olmadığını kontroleder |#odd]
 | `slice` | [bir dizi veya dizenin bir dilimini çıkarır |#slice]
@@ -44,8 +45,8 @@ Fonksiyonlar .[#toc-functions]
 ==============================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
-----------------------------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
+----------------------------------------------------------------------------
 Min ve maks. dahil aralığına sıkıştırılmış değeri döndürür.
 
 ```latte
@@ -55,8 +56,8 @@ Min ve maks. dahil aralığına sıkıştırılmış değeri döndürür.
 Ayrıca bkz. [filtre kelepçesi |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
----------------------------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]
+------------------------------------------------
 Bir değişkenin bir sayıya bölünebilir olup olmadığını kontrol eder.
 
 ```latte
@@ -64,8 +65,8 @@ Bir değişkenin bir sayıya bölünebilir olup olmadığını kontrol eder.
 ```
 
 
-even(int $value): bool .[method]{data-version:2.10.2}
------------------------------------------------------
+even(int $value): bool .[method]
+--------------------------------
 Verilen sayının çift olup olmadığını kontrol eder.
 
 ```latte
@@ -73,8 +74,8 @@ Verilen sayının çift olup olmadığını kontrol eder.
 ```
 
 
-first(string|array $value): mixed .[method]{data-version:2.10.2}
-----------------------------------------------------------------
+first(string|array $value): mixed .[method]
+-------------------------------------------
 Dizinin ilk elemanını veya karakter dizisini döndürür:
 
 ```latte
@@ -85,8 +86,19 @@ Dizinin ilk elemanını veya karakter dizisini döndürür:
 Ayrıca bkz. [last |#last], [filter first |filters#first].
 
 
-last(string|array $value): mixed .[method]{data-version:2.10.2}
----------------------------------------------------------------
+hasBlock(string $name): bool .[method]{data-version:3.0.10}
+-----------------------------------------------------------
+Belirtilen addaki bloğun var olup olmadığını kontrol eder:
+
+```latte
+{if hasBlock(header)} ... {/if}
+```
+
+Ayrıca bkz. [blok varlık kontrolü |template-inheritance#Checking Block Existence].
+
+
+last(string|array $value): mixed .[method]
+------------------------------------------
 Dizinin son elemanını veya karakter dizisini döndürür:
 
 ```latte
@@ -97,8 +109,8 @@ Dizinin son elemanını veya karakter dizisini döndürür:
 Ayrıca bkz. [ilk |#first], [son filtre |filters#last].
 
 
-odd(int $value): bool .[method]{data-version:2.10.2}
-----------------------------------------------------
+odd(int $value): bool .[method]
+-------------------------------
 Verilen sayının tek olup olmadığını kontrol eder.
 
 ```latte
@@ -106,8 +118,8 @@ Verilen sayının tek olup olmadığını kontrol eder.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
--------------------------------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
+----------------------------------------------------------------------------------------------------------
 Bir dizinin veya dizginin bir dilimini çıkarır.
 
 ```latte

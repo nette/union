@@ -17,14 +17,14 @@ use Nette;
  *
  * @property   array $items
  * @property-read mixed $selectedItem
+ *
+ * @extends BaseControl<array-key>
  */
 abstract class ChoiceControl extends BaseControl
 {
-	/** @var bool */
-	private $checkDefaultValue = true;
+	private bool $checkDefaultValue = true;
 
-	/** @var array */
-	private $items = [];
+	private array $items = [];
 
 
 	public function __construct($label = null, ?array $items = null)
@@ -50,17 +50,20 @@ abstract class ChoiceControl extends BaseControl
 	/**
 	 * Sets selected item (by key).
 	 * @param  string|int|\BackedEnum|null  $value
-	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue($value): static
 	{
 		if ($value instanceof \BackedEnum) {
 			$value = $value->value;
 		}
 
 		if ($this->checkDefaultValue && $value !== null && !array_key_exists((string) $value, $this->items)) {
-			$set = Nette\Utils\Strings::truncate(implode(', ', array_map(function ($s) { return var_export($s, true); }, array_keys($this->items))), 70, '...');
+			$set = Nette\Utils\Strings::truncate(
+				implode(', ', array_map(fn($s) => var_export($s, return: true), array_keys($this->items))),
+				70,
+				'...',
+			);
 			throw new Nette\InvalidArgumentException("Value '$value' is out of allowed set [$set] in field '{$this->name}'.");
 		}
 
@@ -71,9 +74,8 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected key.
-	 * @return string|int|null
 	 */
-	public function getValue()
+	public function getValue(): mixed
 	{
 		return array_key_exists($this->value, $this->items)
 			? $this->value
@@ -83,9 +85,8 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected key (not checked).
-	 * @return string|int
 	 */
-	public function getRawValue()
+	public function getRawValue(): string|int
 	{
 		return $this->value;
 	}
@@ -102,9 +103,8 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Sets items from which to choose.
-	 * @return static
 	 */
-	public function setItems(array $items, bool $useKeys = true)
+	public function setItems(array $items, bool $useKeys = true): static
 	{
 		$this->items = $useKeys ? $items : array_combine($items, $items);
 		return $this;
@@ -122,9 +122,8 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Returns selected value.
-	 * @return mixed
 	 */
-	public function getSelectedItem()
+	public function getSelectedItem(): mixed
 	{
 		$value = $this->getValue();
 		return $value === null ? null : $this->items[$value];
@@ -133,17 +132,15 @@ abstract class ChoiceControl extends BaseControl
 
 	/**
 	 * Disables or enables control or items.
-	 * @param  bool|array  $value
-	 * @return static
 	 */
-	public function setDisabled($value = true)
+	public function setDisabled(bool|array $value = true): static
 	{
 		if (!is_array($value)) {
 			return parent::setDisabled($value);
 		}
 
 		parent::setDisabled(false);
-		$this->disabled = array_fill_keys($value, true);
+		$this->disabled = array_fill_keys($value, value: true);
 		if (isset($this->disabled[$this->value])) {
 			$this->value = null;
 		}
@@ -152,8 +149,7 @@ abstract class ChoiceControl extends BaseControl
 	}
 
 
-	/** @return static */
-	public function checkDefaultValue(bool $value = true)
+	public function checkDefaultValue(bool $value = true): static
 	{
 		$this->checkDefaultValue = $value;
 		return $this;

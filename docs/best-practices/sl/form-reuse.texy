@@ -2,43 +2,208 @@ Ponovna uporaba obrazcev na več mestih
 **************************************
 
 .[perex]
-Kako ponovno uporabiti isti obrazec na več mestih in ne podvajati kode? To je v programu Nette zelo enostavno, na voljo pa imate več načinov, med katerimi lahko izbirate.
+V Nette imate več možnosti za ponovno uporabo istega obrazca na več mestih brez podvajanja kode. V tem članku bomo pregledali različne rešitve, vključno s tistimi, ki se jim morate izogniti.
 
 
 Tovarna obrazcev .[#toc-form-factory]
 =====================================
 
-Ustvarimo razred, ki lahko ustvari obrazec. Takšen razred se imenuje tovarna. Na mestu, kjer želimo uporabiti obrazec (npr. v predstavitvenem programu), zahtevamo [tovarno kot odvisnost |dependency-injection:passing-dependencies].
+Osnovni pristop k uporabi iste komponente na več mestih je ustvarjanje metode ali razreda, ki generira komponento, in nato klicanje te metode na različnih mestih v aplikaciji. Takšna metoda ali razred se imenuje *factory*. Ne zamenjujte z načrtovalskim vzorcem *tovarniška metoda*, ki opisuje poseben način uporabe tovarn in ni povezan s to temo.
 
-Del tovarne je koda, ki posreduje podatke v nadaljnjo obdelavo, ko je obrazec uspešno oddan. Običajno na modelno plast. Prav tako preveri, ali je vse potekalo dobro, in morebitne napake [posreduje nazaj |forms:validation#Processing-errors] obrazcu. Model v naslednjem primeru predstavlja razred `Facade`:
+Kot primer ustvarimo tovarno, ki bo ustvarila obrazec za urejanje:
 
 ```php
 use Nette\Application\UI\Form;
 
+class FormFactory
+{
+	public function createEditForm(): Form
+	{
+		$form = new Form;
+		$form->addText('title', 'Title:');
+		// tukaj so dodana dodatna polja obrazca
+		$form->addSubmit('send', 'Save');
+		return $form;
+	}
+}
+```
+
+Zdaj lahko to tovarno uporabite na različnih mestih v aplikaciji, na primer v predstavitvah ali komponentah. To storimo tako, da [jo zahtevamo kot odvisnost |dependency-injection:passing-dependencies]. Najprej bomo razred zapisali v konfiguracijsko datoteko:
+
+```neon
+services:
+	- FormFactory
+```
+
+Nato ga bomo uporabili v predstavitvi:
+
+
+```php
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+	public function __construct(
+		private FormFactory $formFactory,
+	) {
+	}
+
+	protected function createComponentEditForm(): Form
+	{
+		$form = $this->formFactory->createEditForm();
+		$form->onSuccess[] = function () {
+			// obdelava poslanih podatkov
+		};
+		return $form;
+	}
+}
+```
+
+Tovarno obrazcev lahko razširite z dodatnimi metodami in tako ustvarite druge vrste obrazcev, ki ustrezajo vaši aplikaciji. Seveda lahko dodate tudi metodo, ki ustvari osnovni obrazec brez elementov, ki ga bodo uporabljale druge metode:
+
+```php
+class FormFactory
+{
+	public function createForm(): Form
+	{
+		$form = new Form;
+		return $form;
+	}
+
+	public function createEditForm(): Form
+	{
+		$form = $this->createForm();
+		$form->addText('title', 'Title:');
+		// tukaj so dodana dodatna polja obrazca
+		$form->addSubmit('send', 'Save');
+		return $form;
+	}
+}
+```
+
+Metoda `createForm()` še ne počne ničesar uporabnega, vendar se bo to hitro spremenilo.
+
+
+Tovarniške odvisnosti .[#toc-factory-dependencies]
+==================================================
+
+Sčasoma se bo izkazalo, da potrebujemo večjezične obrazce. To pomeni, da moramo za vse obrazce vzpostaviti [prevajalnik |forms:rendering#Translating]. V ta namen spremenimo razred `FormFactory` tako, da v konstruktorju sprejme objekt `Translator` kot odvisnost in ga posreduje obrazcu:
+
+```php
+use Nette\Localization\Translator;
+
+class FormFactory
+{
+	public function __construct(
+		private Translator $translator,
+	) {
+	}
+
+	public function createForm(): Form
+	{
+		$form = new Form;
+		$form->setTranslator($this->translator);
+		return $form;
+	}
+
+	//...
+}
+```
+
+Ker metodo `createForm()` kličejo tudi druge metode, ki ustvarjajo določene obrazce, moramo prevajalnik nastaviti le v tej metodi. In končali smo. Ni treba spreminjati kode predstavnika ali komponente, kar je odlično.
+
+
+Več tovarniških razredov .[#toc-more-factory-classes]
+=====================================================
+
+Ustvarite lahko tudi več razredov za vsak obrazec, ki ga želite uporabiti v svoji aplikaciji.
+Ta pristop lahko poveča berljivost kode in olajša upravljanje obrazcev. Pustite prvotni `FormFactory` za ustvarjanje samo čistega obrazca z osnovno konfiguracijo (na primer s podporo za prevajanje) in ustvarite novo tovarno `EditFormFactory` za obrazec za urejanje.
+
+```php
+class FormFactory
+{
+	public function __construct(
+		private Translator $translator,
+	) {
+	}
+
+	public function create(): Form
+	{
+		$form = new Form;
+		$form->setTranslator($this->translator);
+		return $form;
+	}
+}
+
+
+// ✅ uporaba sestave
 class EditFormFactory
 {
 	public function __construct(
+		private FormFactory $formFactory,
+	) {
+	}
+
+	public function create(): Form
+	{
+		$form = $this->formFactory->create();
+		// tu so dodana dodatna polja obrazca
+		$form->addSubmit('send', 'Save');
+		return $form;
+	}
+}
+```
+
+Zelo pomembno je, da se povezava med razredoma `FormFactory` in `EditFormFactory` izvaja [s kompozicijo |nette:introduction-to-object-oriented-programming#composition] in ne z [dedovanjem objektov |https://doc.nette.org/en/introduction-to-object-oriented-programming#inheritance]:
+
+```php
+// ⛔ NE! DEDIŠČINA NE SPADA SEM
+class EditFormFactory extends FormFactory
+{
+	public function create(): Form
+	{
+		$form = parent::create();
+		$form->addText('title', 'Title:');
+		// tu so dodana dodatna polja obrazca
+		$form->addSubmit('send', 'Save');
+		return $form;
+	}
+}
+```
+
+Uporaba dedovanja bi bila v tem primeru popolnoma neproduktivna. Zelo hitro bi naleteli na težave. Na primer, če bi želeli metodi `create()` dodati parametre; PHP bi sporočil napako, ker se njen podpis razlikuje od podpisa nadrejene metode.
+Ali pa pri posredovanju odvisnosti razredu `EditFormFactory` prek konstruktorja. To bi povzročilo tako imenovani [konstruktorski pekel |dependency-injection:passing-dependencies#Constructor hell].
+
+Na splošno je bolje dati prednost [sestavi pred dedovanjem |dependency-injection:faq#Why composition is preferred over inheritance].
+
+
+Ravnanje z obrazci .[#toc-form-handling]
+========================================
+
+Obvladovalnik obrazca, ki se pokliče po uspešni oddaji, je lahko tudi del tovarniškega razreda. Deloval bo tako, da bo predložene podatke posredoval modelu v obdelavo. Morebitne napake bo posredoval [nazaj |forms:validation#Processing Errors] v obrazec. Model v naslednjem primeru predstavlja razred `Facade`:
+
+```php
+class EditFormFactory
+{
+	public function __construct(
+		private FormFactory $formFactory,
 		private Facade $facade,
 	) {
 	}
 
-	public function create(/* parameters */): Form
+	public function create(): Form
 	{
-		$form = new Form;
-
-		// dodajanje elementov v obrazec
-
-		$form->addSubmit('send', 'Submit');
+		$form = $this->formFactory->create();
+		$form->addText('title', 'Title:');
+		// tukaj so dodana dodatna polja obrazca
+		$form->addSubmit('send', 'Save');
 		$form->onSuccess[] = [$this, 'processForm'];
-
 		return $form;
 	}
 
-	public function processForm(Form $form, array $values): void
+	public function processForm(Form $form, array $data): void
 	{
 		try {
-			// obdelava obrazca
-			$this->facade->process($values);
+			// obdelava posredovanih podatkov
+			$this->facade->process($data);
 
 		} catch (AnyModelException $e) {
 			$form->addError('...');
@@ -47,17 +212,7 @@ class EditFormFactory
 }
 ```
 
-Tovarna je seveda lahko parametrična, kar pomeni, da lahko prejme parametre, ki bodo vplivali na videz ustvarjenega obrazca.
-
-Sedaj bomo prikazali, kako tovarno posredujemo predstavniku. Najprej jo zapišemo v konfiguracijsko datoteko:
-
-```neon
-services:
-	- EditFormFactory
-```
-
-Nato jo zahtevamo v predstavitvenem programu. Sledi tudi naslednji korak obdelave oddanega obrazca, to je preusmeritev na naslednjo stran:
-
+Naj predstavnik sam poskrbi za preusmeritev. Dogodku `onSuccess` bo dodal še eno izvajalko, ki bo izvedla preusmeritev. To bo omogočilo uporabo obrazca v različnih predstavitvenih programih, pri čemer lahko vsak od njih preusmeri na drugo mesto.
 
 ```php
 class MyPresenter extends Nette\Application\UI\Presenter
@@ -70,24 +225,48 @@ class MyPresenter extends Nette\Application\UI\Presenter
 	protected function createComponentEditForm(): Form
 	{
 		$form = $this->formFactory->create();
-
-		$form->onSuccess[] = function (Form $form) {
-			$this->redirect('this');
+		$form->onSuccess[] = function () {
+			$this->flashMessage('Záznam byl uložen');
+			$this->redirect('Homepage:');
 		};
-
 		return $form;
 	}
 }
 ```
 
-Ker je preusmeritev urejena s strani izvajalca predstavitve, lahko komponento uporabimo na več mestih in jo na vsakem mestu preusmerimo drugam.
+Ta rešitev izkorišča lastnost obrazcev, da se ob klicu `addError()` na obrazcu ali njegovem elementu ne prikliče naslednji izvajalec `onSuccess`.
 
 
-Komponenta z obrazcem .[#toc-component-with-form]
-=================================================
+Dedovanje iz razreda Form .[#toc-inheriting-from-the-form-class]
+================================================================
 
-Drug način je, da ustvarite novo [komponento |application:components], ki vsebuje obrazec. To nam daje možnost, da obrazec prikažemo na določen način, na primer zato, ker komponenta vsebuje predlogo.
-Lahko pa uporabimo signale za komunikacijo AJAX in nalaganje informacij v obrazec, na primer za samodejno dokončanje itd.
+Vgrajeni obrazec naj ne bi bil otrok obrazca. Z drugimi besedami, ne uporabljajte te rešitve:
+
+```php
+// ⛔ NE! DEDIŠČINA NE SPADA SEM
+class EditForm extends Form
+{
+	public function __construct(Translator $translator)
+	{
+		parent::__construct();
+		$form->addText('title', 'Title:');
+		// tu so dodana dodatna polja obrazca
+		$form->addSubmit('send', 'Save');
+		$form->setTranslator($translator);
+	}
+}
+```
+
+Namesto da bi obrazec zgradili v konstruktorju, uporabite tovarno.
+
+Pomembno se je zavedati, da je razred `Form` predvsem orodje za sestavljanje obrazca, tj. gradnik obrazca. Sestavljeni obrazec pa lahko štejemo za njegov izdelek. Vendar izdelek ni poseben primer gradnika; med njima ni razmerja *is a*, ki je osnova dedovanja.
+
+
+Komponenta obrazca .[#toc-form-component]
+=========================================
+
+Povsem drugačen pristop je ustvarjanje [komponente |application:components], ki vključuje obrazec. To daje nove možnosti, na primer prikazovanje obrazca na poseben način, saj komponenta vključuje predlogo.
+Ali pa se lahko signali uporabijo za komunikacijo AJAX in nalaganje informacij v obrazec, na primer za namige itd.
 
 
 ```php
@@ -105,20 +284,19 @@ class EditControl extends Nette\Application\UI\Control
 	protected function createComponentForm(): Form
 	{
 		$form = new Form;
-
-		// dodajanje elementov v obrazec
-
-		$form->addSubmit('send', 'Submit');
+		$form->addText('title', 'Title:');
+		// tukaj so dodana dodatna polja obrazca
+		$form->addSubmit('send', 'Save');
 		$form->onSuccess[] = [$this, 'processForm'];
 
 		return $form;
 	}
 
-	public function processForm(Form $form, array $values): void
+	public function processForm(Form $form, array $data): void
 	{
 		try {
-			// obdelava obrazca
-			$this->facade->process($values);
+			// obdelava posredovanih podatkov
+			$this->facade->process($data);
 
 		} catch (AnyModelException $e) {
 			$form->addError('...');
@@ -126,13 +304,12 @@ class EditControl extends Nette\Application\UI\Control
 		}
 
 		// priklic dogodka
-		$this->onSave($this, $values);
+		$this->onSave($this, $data);
 	}
 }
 ```
 
-Nato bomo ustvarili tovarno, ki bo izdelala to komponento. [Napišite njen vmesnik |application:components#Components with Dependencies]:
-
+Ustvarimo tovarno, ki bo izdelala to komponento. Dovolj je, če [napišemo njen vmesnik |application:components#Components with Dependencies]:
 
 ```php
 interface EditControlFactory
@@ -141,7 +318,7 @@ interface EditControlFactory
 }
 ```
 
-In dodajte v konfiguracijsko datoteko:
+in ga dodamo v konfiguracijsko datoteko:
 
 ```neon
 services:
@@ -173,5 +350,4 @@ class MyPresenter extends Nette\Application\UI\Presenter
 }
 ```
 
-{{priority: -1}}
 {{sitename: Best Practices}}

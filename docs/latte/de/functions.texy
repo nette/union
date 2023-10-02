@@ -9,6 +9,7 @@ Zusätzlich zu den üblichen PHP-Funktionen können Sie diese auch in Vorlagen v
 | `divisibleBy`| [prüft ob eine Variable durch eine Zahl teilbar ist |#divisibleBy]
 | `even` | [prüft ob die angegebene Zahl gerade ist |#even]
 | `first` | [gibt das erste Element eines Arrays oder ein Zeichen einer Zeichenkette zurück |#first]
+| `hasBlock` | [erkennt das Vorhandensein eines Blocks |#hasBlock]
 | `last` | [gibt das letzte Element eines Arrays oder ein Zeichen einer Zeichenkette zurück |#last]
 | `odd` | [prüft ob die angegebene Zahl ungerade ist |#odd]
 | `slice` | [extrahiert einen Ausschnitt aus einem Array oder einer Zeichenkette|#slice]
@@ -44,8 +45,8 @@ Funktionen .[#toc-functions]
 ============================
 
 
-clamp(int|float $value, int|float $min, int|float $max): int|float .[method]{data-version:2.9}
-----------------------------------------------------------------------------------------------
+clamp(int|float $value, int|float $min, int|float $max): int|float .[method]
+----------------------------------------------------------------------------
 Gibt einen Wert zurück, der auf den gesamten Bereich von min und max begrenzt ist.
 
 ```latte
@@ -55,8 +56,8 @@ Gibt einen Wert zurück, der auf den gesamten Bereich von min und max begrenzt i
 Siehe auch [Filter Klammer |filters#clamp]:
 
 
-divisibleBy(int $value, int $by): bool .[method]{data-version:2.10.2}
----------------------------------------------------------------------
+divisibleBy(int $value, int $by): bool .[method]
+------------------------------------------------
 Prüft, ob eine Variable durch eine Zahl teilbar ist.
 
 ```latte
@@ -64,8 +65,8 @@ Prüft, ob eine Variable durch eine Zahl teilbar ist.
 ```
 
 
-even(int $value): bool .[method]{data-version:2.10.2}
------------------------------------------------------
+even(int $value): bool .[method]
+--------------------------------
 Prüft, ob die angegebene Zahl gerade ist.
 
 ```latte
@@ -73,8 +74,8 @@ Prüft, ob die angegebene Zahl gerade ist.
 ```
 
 
-first(string|array $value): mixed .[method]{data-version:2.10.2}
-----------------------------------------------------------------
+first(string|array $value): mixed .[method]
+-------------------------------------------
 Gibt das erste Element eines Arrays oder ein Zeichen einer Zeichenkette zurück:
 
 ```latte
@@ -85,8 +86,19 @@ Gibt das erste Element eines Arrays oder ein Zeichen einer Zeichenkette zurück:
 Siehe auch [last |#last], [filter first |filters#first].
 
 
-last(string|array $value): mixed .[method]{data-version:2.10.2}
----------------------------------------------------------------
+hasBlock(string $name): bool .[method]{data-version:3.0.10}
+-----------------------------------------------------------
+Prüft, ob der Block mit dem angegebenen Namen existiert:
+
+```latte
+{if hasBlock(header)} ... {/if}
+```
+
+Siehe auch [Blockexistenzprüfung |template-inheritance#Checking Block Existence].
+
+
+last(string|array $value): mixed .[method]
+------------------------------------------
 Gibt das letzte Element eines Arrays oder ein Zeichen einer Zeichenkette zurück:
 
 ```latte
@@ -97,8 +109,8 @@ Gibt das letzte Element eines Arrays oder ein Zeichen einer Zeichenkette zurück
 Siehe auch [first |#first], [filter last |filters#last].
 
 
-odd(int $value): bool .[method]{data-version:2.10.2}
-----------------------------------------------------
+odd(int $value): bool .[method]
+-------------------------------
 Prüft, ob die angegebene Zahl ungerade ist.
 
 ```latte
@@ -106,8 +118,8 @@ Prüft, ob die angegebene Zahl ungerade ist.
 ```
 
 
-slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]{data-version:2.10.2}
--------------------------------------------------------------------------------------------------------------------------------
+slice(string|array $value, int $start, int $length=null, bool $preserveKeys=false): string|array .[method]
+----------------------------------------------------------------------------------------------------------
 Extrahiert einen Ausschnitt aus einem Array oder einer Zeichenkette.
 
 ```latte

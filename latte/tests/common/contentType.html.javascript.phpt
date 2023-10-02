@@ -6,8 +6,8 @@
 
 declare(strict_types=1);
 
-use Latte\Runtime\Html;
 use Tester\Assert;
+
 
 require __DIR__ . '/../bootstrap.php';
 
@@ -46,7 +46,7 @@ Assert::match(
 );
 
 Assert::exception(
-	fn() => $latte->compile('<script>"{=123|noescape}"</script>'),
+	fn() => $latte->compile('<script>"{=123|noescape}"'),
 	Latte\CompileException::class,
 	'Do not place {=123|noescape} inside quotes in JavaScript (on line 1 at column 10)',
 );
@@ -78,7 +78,7 @@ Assert::match(
 	$latte->renderToString('<script type="module">{="<>"}</script>'),
 );
 
-Assert::match( // GDPR usage, see #282
+Assert::match(
 	'<script type="text/plain">"<>"</script>',
 	$latte->renderToString('<script type="text/plain">{="<>"}</script>'),
 );
@@ -88,33 +88,10 @@ Assert::match(
 	$latte->renderToString('<script type="application/json">{ foo:{="<>"} }</script>'),
 );
 
-Assert::match(
-	'<script type="importmap">{ foo:"<>" }</script>',
-	$latte->renderToString('<script type="importmap">{ foo:{="<>"} }</script>'),
-);
-
-Assert::match(
-	'<script type="">{ foo:"<>" }</script>',
-	$latte->renderToString('<script type="">{ foo:{="<>"} }</script>'),
-);
-
-Assert::match(
-	'<script type>{ foo:"<>" }</script>',
-	$latte->renderToString('<script type>{ foo:{="<>"} }</script>'),
-);
-
 // trim inside <script>
 Assert::match(
 	'<script>123;</script>',
 	$latte->renderToString('<script>{block|trim}  123;  {/block}</script>'),
-);
-
-Assert::match(
-	'<script> "<div title=\'<\/script>\'><\/div>" </script>',
-	$latte->renderToString(
-		'<script> {$foo} </script>',
-		['foo' => new Html("<div title='</script>'></div>")],
-	),
 );
 
 
@@ -127,10 +104,4 @@ Assert::match(
 Assert::match(
 	'<div onclick="[1,2,3]"></div>',
 	$latte->renderToString('<div onclick="{=[1,2,3]}"></div>'),
-);
-
-// no escape
-Assert::match(
-	'<script><\/script></script>',
-	$latte->renderToString('<script>{="</script>"|noescape}</script>'),
 );

@@ -20,8 +20,6 @@ use Nette\Application\UI\Renderable;
  */
 final class SnippetRuntime
 {
-	use Nette\SmartObject;
-
 	public const
 		TypeStatic = 'static',
 		TypeDynamic = 'dynamic',
@@ -57,17 +55,18 @@ final class SnippetRuntime
 			($this->nestingLevel === 0 && $this->control->isControlInvalid($name))
 			|| ($type === self::TypeDynamic && ($previous = end($this->stack)) && $previous[1] === true)
 		) {
-			ob_start(function () {});
+			ob_start(fn() => null);
 			$this->nestingLevel = $type === self::TypeArea ? 0 : 1;
 			$obStarted = true;
 		} elseif ($this->nestingLevel > 0) {
 			$this->nestingLevel++;
 		}
 
-		$this->stack[] = [$name, $obStarted];
-		if ($name !== '') {
-			$this->control->redrawControl($name, false);
+		$this->stack[] = [$name, $obStarted, $this->control->snippetMode];
+		if ($type !== self::TypeArea) {
+			$this->control->snippetMode = false;
 		}
+		$this->control->redrawControl($name, redraw: false);
 	}
 
 
@@ -78,7 +77,7 @@ final class SnippetRuntime
 			return;
 		}
 
-		[$name, $obStarted] = array_pop($this->stack);
+		[$name, $obStarted, $this->control->snippetMode] = array_pop($this->stack);
 		if ($this->nestingLevel > 0 && --$this->nestingLevel === 0) {
 			$content = ob_get_clean();
 			$this->payload ??= $this->control->getPresenter()->getPayload();
@@ -107,7 +106,6 @@ final class SnippetRuntime
 		}
 
 		$this->renderingSnippets = true;
-		$this->control->snippetMode = false;
 		foreach ($blocks as $name => $block) {
 			if (!$this->control->isControlInvalid($name)) {
 				continue;
@@ -116,8 +114,8 @@ final class SnippetRuntime
 			$function = reset($block->functions);
 			$function($params);
 		}
+		$this->renderingSnippets = false;
 
-		$this->control->snippetMode = true;
 		$this->renderChildren();
 		return true;
 	}

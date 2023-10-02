@@ -14,10 +14,11 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-before(function () {
+setUp(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
+	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+	ob_start();
 	Form::initialize(true);
 });
 
@@ -124,7 +125,7 @@ test('setItems without keys', function () use ($series) {
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
-	$input = $form->addRadioList('select')->setItems(array_keys($series), false);
+	$input = $form->addRadioList('select')->setItems(array_keys($series), useKeys: false);
 
 	Assert::true($form->isValid());
 	Assert::same('red-dwarf', $input->getValue());
@@ -138,9 +139,11 @@ test('setValue() and invalid argument', function () use ($series) {
 	$input = $form->addRadioList('radio', null, $series);
 	$input->setValue(null);
 
-	Assert::exception(function () use ($input) {
-		$input->setValue('unknown');
-	}, Nette\InvalidArgumentException::class, "Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'radio'.");
+	Assert::exception(
+		fn() => $input->setValue('unknown'),
+		Nette\InvalidArgumentException::class,
+		"Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'radio'.",
+	);
 });
 
 
@@ -156,7 +159,7 @@ test('object as value', function () {
 test('object as item', function () {
 	$form = new Form;
 	$input = $form->addRadioList('radio')
-		->setItems([new DateTime('2013-07-05')], false)
+		->setItems([new DateTime('2013-07-05')], useKeys: false)
 		->setValue(new DateTime('2013-07-05'));
 
 	Assert::same('2013-07-05 00:00:00', $input->getValue());

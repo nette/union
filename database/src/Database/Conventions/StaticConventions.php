@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Nette\Database\Conventions;
 
-use Nette;
 use Nette\Database\Conventions;
 
 
@@ -18,16 +17,11 @@ use Nette\Database\Conventions;
  */
 class StaticConventions implements Conventions
 {
-	use Nette\SmartObject;
+	protected string $primary;
 
-	/** @var string */
-	protected $primary;
+	protected string $foreign;
 
-	/** @var string */
-	protected $foreign;
-
-	/** @var string */
-	protected $table;
+	protected string $table;
 
 
 	/**

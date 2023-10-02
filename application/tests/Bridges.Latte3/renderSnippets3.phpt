@@ -2,7 +2,6 @@
 
 /**
  * Test: renderSnippets and control wrapped in a snippet
- * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -11,10 +10,6 @@ use Nette\Http;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-
-if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-	Tester\Environment::skip('Test for Latte 3');
-}
 
 
 class TestControl extends Nette\Application\UI\Control
@@ -47,7 +42,7 @@ class TestPresenter extends Nette\Application\UI\Presenter
 
 
 $presenter = new TestPresenter;
-$presenter->injectPrimary(null, null, null, new Http\Request(new Http\UrlScript('/')), new Http\Response);
+$presenter->injectPrimary(new Http\Request(new Http\UrlScript('/')), new Http\Response);
 $presenter->snippetMode = true;
 $presenter->redrawControl('foo');
 $presenter['test']->redrawControl('foo');
@@ -60,7 +55,7 @@ Assert::same([
 
 
 $presenter = new TestPresenter;
-$presenter->injectPrimary(null, null, null, new Http\Request(new Http\UrlScript('/')), new Http\Response);
+$presenter->injectPrimary(new Http\Request(new Http\UrlScript('/')), new Http\Response);
 $presenter->snippetMode = true;
 $presenter['test']->redrawControl('foo');
 $presenter->render();

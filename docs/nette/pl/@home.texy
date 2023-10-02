@@ -6,13 +6,16 @@ Dokumentacja Nette
 <div>
 
 
+Wstęp
+-----
+- [Dlaczego warto używać Nette? |www:10-reasons-why-nette]
+- [Instalacja |Installation]
+- [Stwórz swoją pierwszą aplikację! |quickstart:]
+
+
 Ogólne
 ------
-- [Dlaczego warto korzystać z Nette? |www:10-reasons-why-nette]
-- <b>[Piszemy nasz pierwszy wniosek! |quickstart:]</b>
-
-
-- [Pakiety i instalacja |www:packages]
+- [Lista pakietów |www:packages]
 - [Konserwacja i wersja PHP |www:maintenance]
 - [Uwagi do wydania |https://nette.org/releases]
 - [Aktualizacja do nowszych wersji |migrations:en]
@@ -20,6 +23,7 @@ Ogólne
 - [Kto tworzy Nette |https://nette.org/contributors]
 - [Historia Nette |www:history]
 - [Zaangażuj się |contributing:]
+- [Rozwój sponsora |https://nette.org/en/donate]
 - [Odniesienia do API |https://api.nette.org/]
 </div>
 
@@ -80,11 +84,11 @@ Narzędzia
 - [JSON |utils:JSON]
 - [NEON |neon:]
 - [Hashing hasła |security:passwords]
-- [SmartObject |utils:smartobject]
 - [Rodzaje PHP |utils:type]
 - [Struny |utils:strings]
 - [Walidatory |utils:validators]
 - [RobotLoader |robot-loader:]
+- [SmartObject |utils:smartobject] & [StaticClass |utils:StaticClass]
 - [SafeStream |safe-stream:]
 - [...więcej |utils:]
 </div>
