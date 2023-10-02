@@ -34,14 +34,18 @@ class FooArticle extends Article
 }
 
 $compiler = new DI\Compiler;
-$container = createContainer($compiler, '
+// parameters are deprecated
+$container = @createContainer($compiler, '
 services:
 	article:
-		factory: Article
+		factory: Article(%title%)
 		implement: IArticleFactory
+		parameters: [title]
 
 	article2:
 		implement: IArticleFactory
+		arguments: [%title%]
+		parameters: [title]
 
 	article3:
 		implement: IArticleFactory

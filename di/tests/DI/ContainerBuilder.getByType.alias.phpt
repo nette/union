@@ -24,36 +24,30 @@ $two = $builder->addDefinition('two')
 
 
 
-Assert::exception(
-	fn() => $builder->getByType(Service::class),
-	Nette\DI\ServiceCreationException::class,
-	'Multiple services of type Service found: one, two',
-);
+Assert::exception(function () use ($builder) {
+	$builder->getByType(Service::class);
+}, Nette\DI\ServiceCreationException::class, 'Multiple services of type Service found: one, two');
 
-Assert::exception(
-	fn() => $builder->getByType(Alias::class),
-	Nette\DI\ServiceCreationException::class,
-	'Multiple services of type Service found: one, two',
-);
+Assert::exception(function () use ($builder) {
+	$builder->getByType(Alias::class);
+}, Nette\DI\ServiceCreationException::class, 'Multiple services of type Service found: one, two');
 
-Assert::exception(
-	fn() => $builder->getByType('\service'),
-	Nette\DI\ServiceCreationException::class,
-	'Multiple services of type Service found: one, two',
-);
+Assert::exception(function () use ($builder) {
+	$builder->getByType('\service');
+}, Nette\DI\ServiceCreationException::class, 'Multiple services of type Service found: one, two');
 
 
 Assert::same(
 	['one' => $builder->getDefinition('one'), 'two' => $builder->getDefinition('two')],
-	$builder->findByType(Service::class),
+	$builder->findByType(Service::class)
 );
 
 Assert::same(
 	['one' => $builder->getDefinition('one'), 'two' => $builder->getDefinition('two')],
-	$builder->findByType(Alias::class),
+	$builder->findByType(Alias::class)
 );
 
 Assert::same(
 	['one' => $builder->getDefinition('one'), 'two' => $builder->getDefinition('two')],
-	$builder->findByType('\service'),
+	$builder->findByType('\service')
 );

@@ -23,17 +23,20 @@ class Foo implements IFoo
 
 class Test1
 {
-	/** @inject */
-	public stdClass $varA;
+	/** @inject @var stdClass */
+	public $varA;
+
+	/** @var stdClass @inject */
+	public $varB;
 }
 
 class Test2 extends Test1
 {
-	/** @inject */
-	public stdClass $varC;
+	/** @var stdClass @inject */
+	public $varC;
 
-	/** @inject */
-	public IFoo $varD;
+	/** @var IFoo @inject */
+	public $varD;
 }
 
 
@@ -49,5 +52,6 @@ $container = createContainer($builder);
 $test = new Test2;
 $container->callInjects($test);
 Assert::type(stdClass::class, $test->varA);
+Assert::type(stdClass::class, $test->varB);
 Assert::type(stdClass::class, $test->varC);
 Assert::type(Foo::class, $test->varD);

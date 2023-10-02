@@ -24,7 +24,7 @@ class FooExtension extends Nette\DI\CompilerExtension
 }
 
 
-testException('invalid type', function () {
+Assert::exception(function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', new FooExtension);
 	createContainer($compiler, '
@@ -34,7 +34,7 @@ testException('invalid type', function () {
 }, Nette\DI\InvalidConfigurationException::class, "The item 'foo\u{a0}›\u{a0}key' expects to be %a?%string, 123 given.");
 
 
-test('valid type', function () {
+test('valid', function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', $foo = new FooExtension);
 	createContainer($compiler, '

@@ -9,23 +9,28 @@ declare(strict_types=1);
 
 namespace Nette\DI\Definitions;
 
+use Nette;
+
 
 /**
  * Reference to service. Either by name or by type or reference to the 'self' service.
  */
 final class Reference
 {
+	use Nette\SmartObject;
+
 	public const Self = 'self';
 
 	/** @deprecated use Reference::Self */
 	public const SELF = self::Self;
 
-	private string $value;
+	/** @var string */
+	private $value;
 
 
-	public static function fromType(string $value): static
+	public static function fromType(string $value): self
 	{
-		if (!str_contains($value, '\\')) {
+		if (strpos($value, '\\') === false) {
 			$value = '\\' . $value;
 		}
 
@@ -47,13 +52,13 @@ final class Reference
 
 	public function isName(): bool
 	{
-		return !str_contains($this->value, '\\') && $this->value !== self::Self;
+		return strpos($this->value, '\\') === false && $this->value !== self::Self;
 	}
 
 
 	public function isType(): bool
 	{
-		return str_contains($this->value, '\\');
+		return strpos($this->value, '\\') !== false;
 	}
 
 

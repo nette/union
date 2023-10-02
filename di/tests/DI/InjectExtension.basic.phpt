@@ -31,8 +31,8 @@ class ConcreteDependencyB extends AbstractDependency
 
 class ParentClass
 {
-	/** @inject */
-	public stdClass $a;
+	/** @var stdClass @inject */
+	public $a;
 
 
 	public function injectA()
@@ -47,11 +47,11 @@ class ParentClass
 
 class Service extends ParentClass
 {
-	/** @inject */
-	public stdClass $c;
+	/** @var stdClass @inject */
+	public $c;
 
-	/** @inject */
-	public AbstractDependency $e;
+	/** @var AbstractDependency @inject */
+	public $e;
 
 
 	public function injectC()
@@ -99,7 +99,6 @@ services:
 		inject: true
 		setup:
 		- injectB(1)
-		- @self::injectC(1)
 		- $e(@\ConcreteDependencyB)
 ');
 
@@ -129,7 +128,7 @@ Assert::equal([
 Assert::equal([
 	new Statement([new Reference('self'), 'injectA']),
 	new Statement([new Reference('self'), 'injectB'], [1]),
-	new Statement([new Reference('self'), 'injectC'], [1]),
+	new Statement([new Reference('self'), 'injectC']),
 	new Statement([new Reference('self'), 'injectD']),
 	new Statement([new Reference('self'), '$e'], [new Reference('b')]),
 	new Statement([new Reference('self'), '$c'], [new Reference('std')]),

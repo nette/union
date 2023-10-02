@@ -24,7 +24,7 @@ class FooExtension extends Nette\DI\CompilerExtension
 }
 
 
-testException('Unexpected configuration item', function () {
+Assert::exception(function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', new FooExtension);
 	createContainer($compiler, '
@@ -34,7 +34,7 @@ testException('Unexpected configuration item', function () {
 }, Nette\DI\InvalidConfigurationException::class, "Unexpected item 'foo\u{a0}›\u{a0}unknown'.");
 
 
-testException('Mismatched data type for configuration key', function () {
+Assert::exception(function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', new FooExtension);
 	createContainer($compiler, '
@@ -44,7 +44,7 @@ testException('Mismatched data type for configuration key', function () {
 }, Nette\DI\InvalidConfigurationException::class, "The item 'foo\u{a0}›\u{a0}key' expects to be ?string, 123 given.");
 
 
-test('Successful configuration with a provided key', function () {
+test('', function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', $foo = new FooExtension);
 	createContainer($compiler, '
@@ -56,7 +56,7 @@ test('Successful configuration with a provided key', function () {
 });
 
 
-test('Successful configuration without any specific key', function () {
+test('', function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', $foo = new FooExtension);
 	createContainer($compiler, '
@@ -67,7 +67,7 @@ test('Successful configuration without any specific key', function () {
 });
 
 
-test('Successful configuration with default values', function () {
+test('', function () {
 	$compiler = new Nette\DI\Compiler;
 	$compiler->addExtension('foo', $foo = new FooExtension);
 	createContainer($compiler, '

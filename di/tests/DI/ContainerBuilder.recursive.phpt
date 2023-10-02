@@ -27,9 +27,6 @@ $builder->addDefinition('one')
 $builder->addDefinition('two')
 	->setCreator('@one::get');
 
-Assert::exception(
-	fn() => createContainer($builder),
-	Nette\DI\ServiceCreationException::class,
-	"[Service 'two']
-Circular reference detected for services: one, two.",
-);
+Assert::exception(function () use ($builder) {
+	$container = createContainer($builder);
+}, Nette\DI\ServiceCreationException::class, "Service 'two': Circular reference detected for services: one, two.");

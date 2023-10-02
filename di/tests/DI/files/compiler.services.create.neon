@@ -23,7 +23,7 @@ services:
 		factory: %class%(1)
 
 	three:
-		class: Lorem
+		type: Lorem
 		factory: Factory::createLorem
 		arguments: [1, 2]
 
