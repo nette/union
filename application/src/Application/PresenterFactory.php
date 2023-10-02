@@ -17,25 +17,27 @@ use Nette;
  */
 class PresenterFactory implements IPresenterFactory
 {
+	use Nette\SmartObject;
+
 	/** @var array[] of module => splited mask */
-	private array $mapping = [
-		'*' => ['App\\UI\\', '*\\', '**Presenter'],
+	private $mapping = [
+		'*' => ['', '*Module\\', '*Presenter'],
 		'Nette' => ['NetteModule\\', '*\\', '*Presenter'],
 	];
 
-	private array $aliases = [];
-	private array $cache = [];
+	/** @var array */
+	private $cache = [];
 
 	/** @var callable */
 	private $factory;
 
 
 	/**
-	 * @param  ?callable(string): IPresenter  $factory
+	 * @param  callable(string): IPresenter  $factory
 	 */
 	public function __construct(?callable $factory = null)
 	{
-		$this->factory = $factory ?: fn(string $class): IPresenter => new $class;
+		$this->factory = $factory ?: function (string $class): IPresenter { return new $class; };
 	}
 
 
@@ -58,6 +60,10 @@ class PresenterFactory implements IPresenterFactory
 			return $this->cache[$name];
 		}
 
+		if (!Nette\Utils\Strings::match($name, '#^[a-zA-Z\x7f-\xff][a-zA-Z0-9\x7f-\xff:]*$#D')) {
+			throw new InvalidPresenterException("Presenter name must be alphanumeric string, '$name' is invalid.");
+		}
+
 		$class = $this->formatPresenterClass($name);
 		if (!class_exists($class)) {
 			throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' was not found.");
@@ -65,6 +71,7 @@ class PresenterFactory implements IPresenterFactory
 
 		$reflection = new \ReflectionClass($class);
 		$class = $reflection->getName();
+
 		if (!$reflection->implementsInterface(IPresenter::class)) {
 			throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' is not Nette\\Application\\IPresenter implementor.");
 		} elseif ($reflection->isAbstract()) {
@@ -77,12 +84,13 @@ class PresenterFactory implements IPresenterFactory
 
 	/**
 	 * Sets mapping as pairs [module => mask]
+	 * @return static
 	 */
-	public function setMapping(array $mapping): static
+	public function setMapping(array $mapping)
 	{
 		foreach ($mapping as $module => $mask) {
 			if (is_string($mask)) {
-				if (!preg_match('#^\\\\?([\w\\\\]*\\\\)?(\w*\*\w*?\\\\)?([\w\\\\]*\*\*?\w*)$#D', $mask, $m)) {
+				if (!preg_match('#^\\\\?([\w\\\\]*\\\\)?(\w*\*\w*?\\\\)?([\w\\\\]*\*\w*)$#D', $mask, $m)) {
 					throw new Nette\InvalidStateException("Invalid mapping mask '$mask'.");
 				}
 
@@ -104,16 +112,13 @@ class PresenterFactory implements IPresenterFactory
 	 */
 	public function formatPresenterClass(string $presenter): string
 	{
-		if (!Nette\Utils\Strings::match($presenter, '#^[a-zA-Z\x7f-\xff][a-zA-Z0-9\x7f-\xff:]*$#D')) {
-			throw new InvalidPresenterException("Presenter name must be alphanumeric string, '$presenter' is invalid.");
-		}
 		$parts = explode(':', $presenter);
 		$mapping = isset($parts[1], $this->mapping[$parts[0]])
 			? $this->mapping[array_shift($parts)]
 			: $this->mapping['*'];
 
 		while ($part = array_shift($parts)) {
-			$mapping[0] .= strtr($mapping[$parts ? 1 : 2], ['**' => "$part\\$part", '*' => $part]);
+			$mapping[0] .= str_replace('*', $part, $mapping[$parts ? 1 : 2]);
 		}
 
 		return $mapping[0];
@@ -121,17 +126,20 @@ class PresenterFactory implements IPresenterFactory
 
 
 	/**
-	 * Sets pairs [alias => destination]
+	 * Formats presenter name from class name.
+	 * @internal
 	 */
-	public function setAliases(array $aliases): static
+	public function unformatPresenterClass(string $class): ?string
 	{
-		$this->aliases = $aliases;
-		return $this;
-	}
+		trigger_error(__METHOD__ . '() is deprecated.', E_USER_DEPRECATED);
+		foreach ($this->mapping as $module => $mapping) {
+			$mapping = str_replace(['\\', '*'], ['\\\\', '(\w+)'], $mapping);
+			if (preg_match("#^\\\\?$mapping[0]((?:$mapping[1])*)$mapping[2]$#Di", $class, $matches)) {
+				return ($module === '*' ? '' : $module . ':')
+					. preg_replace("#$mapping[1]#iA", '$1:', $matches[1]) . $matches[3];
+			}
+		}
 
-
-	public function getAlias(string $alias): string
-	{
-		return $this->aliases[$alias] ?? throw new Nette\InvalidStateException("Link alias '$alias' was not found.");
+		return null;
 	}
 }

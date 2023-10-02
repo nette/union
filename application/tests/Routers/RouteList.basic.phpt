@@ -6,6 +6,7 @@
 
 declare(strict_types=1);
 
+use Nette\Application\Routers\Route;
 use Nette\Application\Routers\RouteList;
 use Tester\Assert;
 
@@ -16,7 +17,7 @@ require __DIR__ . '/Route.php';
 
 
 $list = new RouteList;
-$list->addRoute('<presenter>/<action=default>/<id= \d{1,3}>');
+$list[] = new Route('<presenter>/<action=default>/<id= \d{1,3}>');
 
 
 Assert::same('http://example.com/front.homepage/', testRouteOut($list, ['presenter' => 'Front:Homepage']));

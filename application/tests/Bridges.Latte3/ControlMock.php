@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 class ControlMock extends Nette\Application\UI\Control
 {
-	public bool $snippetMode = true;
+	public $snippetMode = true;
 
 	public $payload = [];
 
@@ -38,9 +38,9 @@ class ControlMock extends Nette\Application\UI\Control
 	}
 
 
-	public function getComponents(): array
+	public function getComponents(bool $deep = false, ?string $filterType = null): Iterator
 	{
-		return [];
+		return new ArrayIterator([]);
 	}
 
 

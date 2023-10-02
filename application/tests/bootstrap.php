@@ -14,7 +14,6 @@ if (@!include __DIR__ . '/../vendor/autoload.php') {
 // configure environment
 Tester\Environment::setup();
 date_default_timezone_set('Europe/Prague');
-Mockery::setLoader(new Mockery\Loader\RequireLoader(getTempDir()));
 
 
 // output buffer level check
@@ -53,7 +52,7 @@ function test(string $title, Closure $function): void
 
 class Notes
 {
-	public static array $notes = [];
+	public static $notes = [];
 
 
 	public static function add($message): void

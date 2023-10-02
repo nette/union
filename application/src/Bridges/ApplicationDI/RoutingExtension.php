@@ -20,9 +20,13 @@ use Tracy;
  */
 final class RoutingExtension extends Nette\DI\CompilerExtension
 {
-	public function __construct(
-		private readonly bool $debugMode = false,
-	) {
+	/** @var bool */
+	private $debugMode;
+
+
+	public function __construct(bool $debugMode = false)
+	{
+		$this->debugMode = $debugMode;
 	}
 
 
@@ -31,12 +35,13 @@ final class RoutingExtension extends Nette\DI\CompilerExtension
 		return Expect::structure([
 			'debugger' => Expect::bool(),
 			'routes' => Expect::arrayOf('string'),
+			'routeClass' => Expect::string()->deprecated(),
 			'cache' => Expect::bool(false),
 		]);
 	}
 
 
-	public function loadConfiguration(): void
+	public function loadConfiguration()
 	{
 		if (!$this->config->routes) {
 			return;
@@ -47,8 +52,14 @@ final class RoutingExtension extends Nette\DI\CompilerExtension
 		$router = $builder->addDefinition($this->prefix('router'))
 			->setFactory(Nette\Application\Routers\RouteList::class);
 
-		foreach ($this->config->routes as $mask => $action) {
-			$router->addSetup('$service->addRoute(?, ?)', [$mask, $action]);
+		if ($this->config->routeClass) {
+			foreach ($this->config->routes as $mask => $action) {
+				$router->addSetup('$service[] = new ' . $this->config->routeClass . '(?, ?)', [$mask, $action]);
+			}
+		} else {
+			foreach ($this->config->routes as $mask => $action) {
+				$router->addSetup('$service->addRoute(?, ?)', [$mask, $action]);
+			}
 		}
 
 		if ($this->name === 'routing') {
@@ -57,7 +68,7 @@ final class RoutingExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function beforeCompile(): void
+	public function beforeCompile()
 	{
 		$builder = $this->getContainerBuilder();
 
@@ -81,7 +92,7 @@ final class RoutingExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function afterCompile(Nette\PhpGenerator\ClassType $class): void
+	public function afterCompile(Nette\PhpGenerator\ClassType $class)
 	{
 		if ($this->config->cache) {
 			$builder = $this->getContainerBuilder();

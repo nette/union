@@ -11,11 +11,9 @@ namespace Nette\Bridges\ApplicationDI;
 
 use Composer\Autoload\ClassLoader;
 use Nette;
-use Nette\Application\Attributes;
 use Nette\Application\UI;
 use Nette\DI\Definitions;
 use Nette\Schema\Expect;
-use Nette\Utils\Reflection;
 use Tracy;
 
 
@@ -24,18 +22,32 @@ use Tracy;
  */
 final class ApplicationExtension extends Nette\DI\CompilerExtension
 {
-	private readonly array $scanDirs;
-	private int $invalidLinkMode;
-	private array $checked = [];
+	/** @var bool */
+	private $debugMode;
+
+	/** @var array */
+	private $scanDirs;
+
+	/** @var Nette\Loaders\RobotLoader|null */
+	private $robotLoader;
+
+	/** @var int */
+	private $invalidLinkMode;
+
+	/** @var string|null */
+	private $tempDir;
 
 
 	public function __construct(
-		private readonly bool $debugMode = false,
+		bool $debugMode = false,
 		?array $scanDirs = null,
-		private readonly ?string $tempDir = null,
-		private readonly ?Nette\Loaders\RobotLoader $robotLoader = null,
+		?string $tempDir = null,
+		?Nette\Loaders\RobotLoader $robotLoader = null
 	) {
+		$this->debugMode = $debugMode;
 		$this->scanDirs = (array) $scanDirs;
+		$this->tempDir = $tempDir;
+		$this->robotLoader = $robotLoader;
 	}
 
 
@@ -43,22 +55,12 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 	{
 		return Expect::structure([
 			'debugger' => Expect::bool(),
-			'errorPresenter' => Expect::anyOf(
-				Expect::structure([
-					'4xx' => Expect::string('Nette:Error')->dynamic(),
-					'5xx' => Expect::string('Nette:Error')->dynamic(),
-				])->castTo('array'),
-				Expect::string()->dynamic(),
-			)->firstIsDefault(),
-			'catchExceptions' => Expect::bool(false)->dynamic(),
-			'mapping' => Expect::anyOf(
-				Expect::string(),
-				Expect::arrayOf('string|array'),
-			),
-			'aliases' => Expect::arrayOf('string'),
+			'errorPresenter' => Expect::string('Nette:Error')->dynamic(),
+			'catchExceptions' => Expect::bool()->dynamic(),
+			'mapping' => Expect::arrayOf('string|array'),
 			'scanDirs' => Expect::anyOf(
 				Expect::arrayOf('string')->default($this->scanDirs)->mergeDefaults(),
-				false,
+				false
 			)->firstIsDefault(),
 			'scanComposer' => Expect::bool(class_exists(ClassLoader::class)),
 			'scanFilter' => Expect::string('*Presenter'),
@@ -67,7 +69,7 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function loadConfiguration(): void
+	public function loadConfiguration()
 	{
 		$config = $this->config;
 		$builder = $this->getContainerBuilder();
@@ -77,12 +79,10 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 			? UI\Presenter::InvalidLinkTextual | ($config->silentLinks ? 0 : UI\Presenter::InvalidLinkWarning)
 			: UI\Presenter::InvalidLinkWarning;
 
-		$application = $builder->addDefinition($this->prefix('application'))
-			->setFactory(Nette\Application\Application::class);
-		if ($config->catchExceptions || !$this->debugMode) {
-			$application->addSetup('$error4xxPresenter', [is_array($config->errorPresenter) ? $config->errorPresenter['4xx'] : $config->errorPresenter]);
-			$application->addSetup('$errorPresenter', [is_array($config->errorPresenter) ? $config->errorPresenter['5xx'] : $config->errorPresenter]);
-		}
+		$builder->addDefinition($this->prefix('application'))
+			->setFactory(Nette\Application\Application::class)
+			->addSetup('$catchExceptions', [$this->debugMode ? $config->catchExceptions : true])
+			->addSetup('$errorPresenter', [$config->errorPresenter]);
 
 		$this->compiler->addExportedType(Nette\Application\Application::class);
 
@@ -96,17 +96,11 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 			->setType(Nette\Application\IPresenterFactory::class)
 			->setFactory(Nette\Application\PresenterFactory::class, [new Definitions\Statement(
 				Nette\Bridges\ApplicationDI\PresenterFactoryCallback::class,
-				[1 => $touch ?? null],
+				[1 => $this->invalidLinkMode, $touch ?? null]
 			)]);
 
 		if ($config->mapping) {
-			$presenterFactory->addSetup('setMapping', [
-				is_string($config->mapping) ? ['*' => $config->mapping] : $config->mapping,
-			]);
-		}
-
-		if ($config->aliases) {
-			$presenterFactory->addSetup('setAliases', [$config->aliases]);
+			$presenterFactory->addSetup('setMapping', [$config->mapping]);
 		}
 
 		$builder->addDefinition($this->prefix('linkGenerator'))
@@ -121,7 +115,7 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	public function beforeCompile(): void
+	public function beforeCompile()
 	{
 		$builder = $this->getContainerBuilder();
 
@@ -138,7 +132,6 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 
 		$counter = 0;
 		foreach ($this->findPresenters() as $class) {
-			$this->checkPresenter($class);
 			if (empty($all[$class])) {
 				$all[$class] = $builder->addDefinition($this->prefix((string) ++$counter))
 					->setType($class);
@@ -146,7 +139,7 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 		}
 
 		foreach ($all as $def) {
-			$def->addTag(Nette\DI\Extensions\InjectExtension::TagInject)
+			$def->addTag(Nette\DI\Extensions\InjectExtension::TAG_INJECT)
 				->setAutowired(false);
 
 			if (is_subclass_of($def->getType(), UI\Presenter::class) && $def instanceof Definitions\ServiceDefinition) {
@@ -158,7 +151,6 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	/** @return string[] */
 	private function findPresenters(): array
 	{
 		$config = $this->getConfig();
@@ -192,7 +184,9 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 			$classFile = dirname($rc->getFileName()) . '/autoload_classmap.php';
 			if (is_file($classFile)) {
 				$this->getContainerBuilder()->addDependency($classFile);
-				$classes = array_merge($classes, array_keys((fn($path) => require $path)($classFile)));
+				$classes = array_merge($classes, array_keys((function ($path) {
+					return require $path;
+				})($classFile)));
 			}
 		}
 
@@ -216,7 +210,7 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 	/** @internal */
 	public static function initializeBlueScreenPanel(
 		Tracy\BlueScreen $blueScreen,
-		Nette\Application\Application $application,
+		Nette\Application\Application $application
 	): void
 	{
 		$blueScreen->addPanel(function (?\Throwable $e) use ($application, $blueScreen): ?array {
@@ -228,17 +222,17 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 			];
 		});
 		if (
-			version_compare(Tracy\Debugger::Version, '2.9.0', '>=')
-			&& version_compare(Tracy\Debugger::Version, '3.0', '<')
+			version_compare(Tracy\Debugger::VERSION, '2.9.0', '>=')
+			&& version_compare(Tracy\Debugger::VERSION, '3.0', '<')
 		) {
-			$blueScreen->addFileGenerator(self::generateNewPresenterFileContents(...));
+			$blueScreen->addFileGenerator([self::class, 'generateNewPresenterFileContents']);
 		}
 	}
 
 
 	public static function generateNewPresenterFileContents(string $file, ?string $class = null): ?string
 	{
-		if (!$class || !str_ends_with($file, 'Presenter.php')) {
+		if (!$class || substr($file, -13) !== 'Presenter.php') {
 			return null;
 		}
 
@@ -250,42 +244,5 @@ final class ApplicationExtension extends Nette\DI\CompilerExtension
 		}
 
 		return $res . "use Nette;\n\n\nclass $class extends Nette\\Application\\UI\\Presenter\n{\n\$END\$\n}\n";
-	}
-
-
-	private function checkPresenter(string $class): void
-	{
-		if (!is_subclass_of($class, UI\Presenter::class) || isset($this->checked[$class])) {
-			return;
-		}
-		$this->checked[$class] = true;
-
-		$rc = new \ReflectionClass($class);
-		if ($rc->getParentClass()) {
-			$this->checkPresenter($rc->getParentClass()->getName());
-		}
-
-		foreach ($rc->getProperties() as $rp) {
-			if (($rp->getAttributes($attr = Attributes\Parameter::class) || $rp->getAttributes($attr = Attributes\Persistent::class))
-				&& (!$rp->isPublic() || $rp->isStatic() || $rp->isReadOnly())
-			) {
-				throw new Nette\InvalidStateException(sprintf('Property %s: attribute %s can be used only with public non-static property.', Reflection::toString($rp), $attr));
-			}
-		}
-
-		$re = $class::formatActionMethod('') . '.|' . $class::formatRenderMethod('') . '.|' . $class::formatSignalMethod('') . '.';
-		foreach ($rc->getMethods() as $rm) {
-			if (preg_match("#^$re#", $rm->getName()) && (!$rm->isPublic() || $rm->isStatic())) {
-				throw new Nette\InvalidStateException(sprintf('Method %s: this method must be public non-static.', Reflection::toString($rm)));
-			} elseif (preg_match('#^createComponent.#', $rm->getName()) && ($rm->isPrivate() || $rm->isStatic())) {
-				throw new Nette\InvalidStateException(sprintf('Method %s: this method must be non-private non-static.', Reflection::toString($rm)));
-			} elseif ($rm->getAttributes(Attributes\Requires::class, \ReflectionAttribute::IS_INSTANCEOF)
-				&& !preg_match("#^$re|createComponent.#", $rm->getName())
-			) {
-				throw new Nette\InvalidStateException(sprintf('Method %s: attribute %s can be used only with action, render, handle or createComponent methods.', Reflection::toString($rm), Attributes\Requires::class));
-			} elseif ($rm->getAttributes(Attributes\Deprecated::class) && !preg_match("#^$re#", $rm->getName())) {
-				throw new Nette\InvalidStateException(sprintf('Method %s: attribute %s can be used only with action, render or handle methods.', Reflection::toString($rm), Attributes\Deprecated::class));
-			}
-		}
 	}
 }

@@ -18,7 +18,10 @@ use Nette;
 class Form extends Nette\Forms\Form implements SignalReceiver
 {
 	/** @var array<callable(self): void>  Occurs when form is attached to presenter */
-	public array $onAnchor = [];
+	public $onAnchor = [];
+
+	/** @var bool */
+	protected $crossOrigin = false;
 
 
 	/**
@@ -27,7 +30,9 @@ class Form extends Nette\Forms\Form implements SignalReceiver
 	public function __construct(?Nette\ComponentModel\IContainer $parent = null, ?string $name = null)
 	{
 		parent::__construct();
-		$parent?->addComponent($this, $name);
+		if ($parent !== null) {
+			$parent->addComponent($this, $name);
+		}
 	}
 
 
@@ -68,7 +73,7 @@ class Form extends Nette\Forms\Form implements SignalReceiver
 			$throw = func_get_arg(0);
 		}
 
-		return $this->lookup(Presenter::class, throw: $throw ?? true);
+		return $this->lookup(Presenter::class, $throw ?? true);
 	}
 
 
@@ -77,14 +82,14 @@ class Form extends Nette\Forms\Form implements SignalReceiver
 	 */
 	final public function getPresenterIfExists(): ?Presenter
 	{
-		return $this->lookup(Presenter::class, throw: false);
+		return $this->lookup(Presenter::class, false);
 	}
 
 
 	/** @deprecated */
 	public function hasPresenter(): bool
 	{
-		return (bool) $this->lookup(Presenter::class, throw: false);
+		return (bool) $this->lookup(Presenter::class, false);
 	}
 
 
@@ -97,10 +102,19 @@ class Form extends Nette\Forms\Form implements SignalReceiver
 	}
 
 
+	/**
+	 * Disables CSRF protection using a SameSite cookie.
+	 */
+	public function allowCrossOrigin(): void
+	{
+		$this->crossOrigin = true;
+	}
+
+
 	/** @deprecated  use allowCrossOrigin() */
 	public function disableSameSiteProtection(): void
 	{
-		$this->allowCrossOrigin();
+		$this->crossOrigin = true;
 	}
 
 
@@ -125,12 +139,12 @@ class Form extends Nette\Forms\Form implements SignalReceiver
 	}
 
 
-	protected function beforeRender(): void
+	protected function beforeRender()
 	{
 		parent::beforeRender();
 		$key = ($this->isMethod('post') ? '_' : '') . Presenter::SignalKey;
-		if (!isset($this[$key]) && $this->getAction() !== '') {
-			$do = $this->lookupPath(Presenter::class) . self::NameSeparator . 'submit';
+		if (!isset($this[$key])) {
+			$do = $this->lookupPath(Presenter::class) . self::NAME_SEPARATOR . 'submit';
 			$this[$key] = (new Nette\Forms\Controls\HiddenField($do))->setOmitted();
 		}
 	}

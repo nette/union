@@ -16,11 +16,12 @@ use Nette;
 /**
  * The router broker.
  */
-class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router, \ArrayAccess
+class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router, \ArrayAccess, \Countable, \IteratorAggregate
 {
 	private const PresenterKey = 'presenter';
 
-	private ?string $module;
+	/** @var string|null */
+	private $module;
 
 
 	public function __construct(?string $module = null)
@@ -31,10 +32,12 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 
 
 	/**
-	 * Support for modules.
+	 * Maps HTTP request to an array.
 	 */
-	protected function completeParameters(array $params): ?array
+	public function match(Nette\Http\IRequest $httpRequest): ?array
 	{
+		$params = parent::match($httpRequest);
+
 		$presenter = $params[self::PresenterKey] ?? null;
 		if (is_string($presenter) && strncmp($presenter, 'Nette:', 6)) {
 			$params[self::PresenterKey] = $this->module . $presenter;
@@ -61,19 +64,25 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	}
 
 
+	/**
+	 * @param  array|string|\Closure  $metadata  default values or metadata or callback for NetteModule\MicroPresenter
+	 * @return static
+	 */
 	public function addRoute(
 		#[Language('TEXT')]
 		string $mask,
-		array|string|\Closure $metadata = [],
-		bool $oneWay = false,
-	): static
-	{
-		$this->add(new Route($mask, $metadata), $oneWay);
+		$metadata = [],
+		int $flags = 0
+	) {
+		$this->add(new Route($mask, $metadata), $flags);
 		return $this;
 	}
 
 
-	public function withModule(string $module): static
+	/**
+	 * @return static
+	 */
+	public function withModule(string $module)
 	{
 		$router = new static;
 		$router->module = $module . ':';
@@ -89,19 +98,20 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	}
 
 
+	/** @deprecated */
+	public function count(): int
+	{
+		trigger_error(__METHOD__ . '() is deprecated.', E_USER_DEPRECATED);
+		return count($this->getRouters());
+	}
+
+
 	/**
 	 * @param  mixed  $index
 	 * @param  Nette\Routing\Router  $router
 	 */
 	public function offsetSet($index, $router): void
 	{
-		if ($router instanceof Route) {
-			trigger_error('Usage `$router[] = new Route(...)` is deprecated, use `$router->addRoute(...)`.', E_USER_DEPRECATED);
-		} else {
-			$class = getclass($router);
-			trigger_error("Usage `\$router[] = new $class` is deprecated, use `\$router->add(new $class)`.", E_USER_DEPRECATED);
-		}
-
 		if ($index === null) {
 			$this->add($router);
 		} else {
@@ -112,11 +122,12 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 
 	/**
 	 * @param  int  $index
+	 * @return mixed
 	 * @throws Nette\OutOfRangeException
 	 */
-	public function offsetGet($index): Nette\Routing\Router
+	#[\ReturnTypeWillChange]
+	public function offsetGet($index)
 	{
-		trigger_error('Usage `$route = $router[...]` is deprecated, use `$router->getRouters()`.', E_USER_DEPRECATED);
 		if (!$this->offsetExists($index)) {
 			throw new Nette\OutOfRangeException('Offset invalid or out of range');
 		}
@@ -130,7 +141,6 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	 */
 	public function offsetExists($index): bool
 	{
-		trigger_error('Usage `isset($router[...])` is deprecated.', E_USER_DEPRECATED);
 		return is_int($index) && $index >= 0 && $index < count($this->getRouters());
 	}
 
@@ -141,11 +151,21 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	 */
 	public function offsetUnset($index): void
 	{
-		trigger_error('Usage `unset($router[$index])` is deprecated, use `$router->modify($index, null)`.', E_USER_DEPRECATED);
 		if (!$this->offsetExists($index)) {
 			throw new Nette\OutOfRangeException('Offset invalid or out of range');
 		}
 
 		$this->modify($index, null);
 	}
+
+
+	/** @deprecated */
+	public function getIterator(): \ArrayIterator
+	{
+		trigger_error(__METHOD__ . '() is deprecated, use getRouters().', E_USER_DEPRECATED);
+		return new \ArrayIterator($this->getRouters());
+	}
 }
+
+
+interface_exists(Nette\Application\IRouter::class);

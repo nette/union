@@ -19,7 +19,7 @@ use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
 use Latte\Runtime\Template;
-use Nette\Bridges\ApplicationLatte\SnippetRuntime;
+use Nette\Bridges\ApplicationLatte\SnippetDriver;
 
 
 /**
@@ -34,7 +34,7 @@ class SnippetAreaNode extends StatementNode
 	/** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
 	public static function create(Tag $tag, TemplateParser $parser): \Generator
 	{
-		$node = $tag->node = new static;
+		$node = new static;
 		$name = $tag->parser->parseUnquotedStringOrExpression();
 		if (
 			$name instanceof Expression\ClassConstantFetchNode
@@ -67,7 +67,7 @@ class SnippetAreaNode extends StatementNode
 
 				XX,
 			$this->block->name,
-			SnippetRuntime::TypeArea,
+			SnippetDriver::TypeArea,
 			$this->content,
 		);
 

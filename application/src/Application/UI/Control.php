@@ -19,16 +19,23 @@ use Nette;
  */
 abstract class Control extends Component implements Renderable
 {
-	public bool $snippetMode = false;
-	private TemplateFactory $templateFactory;
-	private Template $template;
-	private array $invalidSnippets = [];
+	/** @var bool */
+	public $snippetMode;
+
+	/** @var TemplateFactory */
+	private $templateFactory;
+
+	/** @var Template */
+	private $template;
+
+	/** @var array */
+	private $invalidSnippets = [];
 
 
 	/********************* template factory ****************d*g**/
 
 
-	final public function setTemplateFactory(TemplateFactory $templateFactory): static
+	final public function setTemplateFactory(TemplateFactory $templateFactory)
 	{
 		$this->templateFactory = $templateFactory;
 		return $this;
@@ -37,7 +44,7 @@ abstract class Control extends Component implements Renderable
 
 	final public function getTemplate(): Template
 	{
-		if (!isset($this->template)) {
+		if ($this->template === null) {
 			$this->template = $this->createTemplate();
 		}
 
@@ -45,10 +52,15 @@ abstract class Control extends Component implements Renderable
 	}
 
 
-	protected function createTemplate(?string $class = null): Template
+	/**
+	 * @param  string  $class
+	 */
+	protected function createTemplate(/*string $class = null*/): Template
 	{
-		$class ??= $this->formatTemplateClass();
-		$templateFactory = $this->templateFactory ?? $this->getPresenter()->getTemplateFactory();
+		$class = func_num_args() // back compatibility
+			? func_get_arg(0)
+			: $this->formatTemplateClass();
+		$templateFactory = $this->templateFactory ?: $this->getPresenter()->getTemplateFactory();
 		return $templateFactory->createTemplate($this, $class);
 	}
 
@@ -64,13 +76,13 @@ abstract class Control extends Component implements Renderable
 	{
 		if (!class_exists($class)) {
 			return null;
-		} elseif (!is_a($class, Template::class, allow_string: true)) {
+		} elseif (!is_a($class, Template::class, true)) {
 			trigger_error(sprintf(
 				'%s: class %s was found but does not implement the %s, so it will not be used for the template.',
 				static::class,
 				$class,
-				Template::class,
-			));
+				Template::class
+			), E_USER_NOTICE);
 			return null;
 		} else {
 			return $class;
@@ -89,18 +101,19 @@ abstract class Control extends Component implements Renderable
 
 	/**
 	 * Saves the message to template, that can be displayed after redirect.
+	 * @param  string|\stdClass|Nette\HtmlStringable  $message
 	 */
-	public function flashMessage(string|\stdClass|\Stringable $message, string $type = 'info'): \stdClass
+	public function flashMessage($message, string $type = 'info'): \stdClass
 	{
 		$id = $this->getParameterId('flash');
 		$flash = $message instanceof \stdClass ? $message : (object) [
 			'message' => $message,
 			'type' => $type,
 		];
-		$messages = $this->getPresenter()->getFlashSession()->get($id);
+		$messages = $this->getPresenter()->getFlashSession()->$id;
 		$messages[] = $flash;
 		$this->getTemplate()->flashes = $messages;
-		$this->getPresenter()->getFlashSession()->set($id, $messages);
+		$this->getPresenter()->getFlashSession()->$id = $messages;
 		return $flash;
 	}
 
