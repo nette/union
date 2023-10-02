@@ -18,8 +18,10 @@ use Nette\Application\UI\Renderable;
  * Latte v3 snippet driver
  * @internal
  */
-final class SnippetRuntime
+final class SnippetDriver
 {
+	use Nette\SmartObject;
+
 	public const
 		TypeStatic = 'static',
 		TypeDynamic = 'dynamic',
@@ -55,7 +57,7 @@ final class SnippetRuntime
 			($this->nestingLevel === 0 && $this->control->isControlInvalid($name))
 			|| ($type === self::TypeDynamic && ($previous = end($this->stack)) && $previous[1] === true)
 		) {
-			ob_start(fn() => null);
+			ob_start(function () {});
 			$this->nestingLevel = $type === self::TypeArea ? 0 : 1;
 			$obStarted = true;
 		} elseif ($this->nestingLevel > 0) {
@@ -64,7 +66,7 @@ final class SnippetRuntime
 
 		$this->stack[] = [$name, $obStarted];
 		if ($name !== '') {
-			$this->control->redrawControl($name, redraw: false);
+			$this->control->redrawControl($name, false);
 		}
 	}
 

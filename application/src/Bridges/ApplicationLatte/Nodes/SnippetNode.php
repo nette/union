@@ -22,7 +22,7 @@ use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
 use Latte\Runtime\Template;
-use Nette\Bridges\ApplicationLatte\SnippetRuntime;
+use Nette\Bridges\ApplicationLatte\SnippetDriver;
 
 
 /**
@@ -128,7 +128,7 @@ class SnippetNode extends StatementNode
 
 				XX,
 			$dynamic ? new AuxiliaryNode(fn() => '$ʟ_nm') : $this->block->name,
-			$dynamic ? SnippetRuntime::TypeDynamic : SnippetRuntime::TypeStatic,
+			$dynamic ? SnippetDriver::TypeDynamic : SnippetDriver::TypeStatic,
 			$this->position,
 			$inner,
 		);

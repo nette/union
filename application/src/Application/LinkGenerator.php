@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Nette\Application;
 
+use Nette;
 use Nette\Http\UrlScript;
 use Nette\Routing\Router;
 
@@ -18,11 +19,23 @@ use Nette\Routing\Router;
  */
 final class LinkGenerator
 {
-	public function __construct(
-		private Router $router,
-		private UrlScript $refUrl,
-		private ?IPresenterFactory $presenterFactory = null,
-	) {
+	use Nette\SmartObject;
+
+	/** @var Router */
+	private $router;
+
+	/** @var UrlScript */
+	private $refUrl;
+
+	/** @var IPresenterFactory|null */
+	private $presenterFactory;
+
+
+	public function __construct(Router $router, UrlScript $refUrl, ?IPresenterFactory $presenterFactory = null)
+	{
+		$this->router = $router;
+		$this->refUrl = $refUrl;
+		$this->presenterFactory = $presenterFactory;
 	}
 
 
@@ -83,12 +96,12 @@ final class LinkGenerator
 	}
 
 
-	public function withReferenceUrl(string $url): static
+	public function withReferenceUrl(string $url): self
 	{
 		return new self(
 			$this->router,
 			new UrlScript($url),
-			$this->presenterFactory,
+			$this->presenterFactory
 		);
 	}
 }

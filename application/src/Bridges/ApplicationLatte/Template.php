@@ -18,9 +18,11 @@ use Nette;
  */
 class Template implements Nette\Application\UI\Template
 {
-	private Latte\Engine $latte;
+	/** @var Latte\Engine */
+	private $latte;
 
-	private ?string $file = null;
+	/** @var string */
+	private $file;
 
 
 	public function __construct(Latte\Engine $latte)
@@ -57,10 +59,20 @@ class Template implements Nette\Application\UI\Template
 
 	/**
 	 * Renders template to string.
+	 * @param  can throw exceptions? (hidden parameter)
 	 */
 	public function __toString(): string
 	{
-		return $this->latte->renderToString($this->file, $this->getParameters());
+		try {
+			return $this->latte->renderToString($this->file, $this->getParameters());
+		} catch (\Throwable $e) {
+			if (func_num_args() || PHP_VERSION_ID >= 70400) {
+				throw $e;
+			}
+
+			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
+			return '';
+		}
 	}
 
 
@@ -69,8 +81,9 @@ class Template implements Nette\Application\UI\Template
 
 	/**
 	 * Registers run-time filter.
+	 * @return static
 	 */
-	public function addFilter(?string $name, callable $callback): static
+	public function addFilter(?string $name, callable $callback)
 	{
 		$this->latte->addFilter($name, $callback);
 		return $this;
@@ -79,8 +92,9 @@ class Template implements Nette\Application\UI\Template
 
 	/**
 	 * Registers run-time function.
+	 * @return static
 	 */
-	public function addFunction(string $name, callable $callback): static
+	public function addFunction(string $name, callable $callback)
 	{
 		$this->latte->addFunction($name, $callback);
 		return $this;
@@ -89,10 +103,22 @@ class Template implements Nette\Application\UI\Template
 
 	/**
 	 * Sets translate adapter.
+	 * @return static
 	 */
-	public function setTranslator(?Nette\Localization\Translator $translator, ?string $language = null): static
+	public function setTranslator(?Nette\Localization\Translator $translator, ?string $language = null)
 	{
-		$this->latte->addExtension(new Latte\Essential\TranslatorExtension($translator, $language));
+		if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+			$this->latte->addFilter(
+				'translate',
+				function (Latte\Runtime\FilterInfo $fi, ...$args) use ($translator): string {
+					return $translator === null
+						? $args[0]
+						: $translator->translate(...$args);
+				}
+			);
+		} else {
+			$this->latte->addExtension(new Latte\Essential\TranslatorExtension($translator, $language));
+		}
 		return $this;
 	}
 
@@ -102,8 +128,9 @@ class Template implements Nette\Application\UI\Template
 
 	/**
 	 * Sets the path to the template file.
+	 * @return static
 	 */
-	public function setFile(string $file): static
+	public function setFile(string $file)
 	{
 		$this->file = $file;
 		return $this;
@@ -123,7 +150,7 @@ class Template implements Nette\Application\UI\Template
 	{
 		$res = [];
 		foreach ((new \ReflectionObject($this))->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-			if ($prop->isInitialized($this)) {
+			if (PHP_VERSION_ID < 70400 || $prop->isInitialized($this)) {
 				$res[$prop->getName()] = $prop->getValue($this);
 			}
 		}

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Nette\Application\UI;
 
+use Nette;
+
 
 /**
  * Lazy encapsulation of Component::link().
@@ -16,11 +18,16 @@ namespace Nette\Application\UI;
  */
 final class Link
 {
-	private Component $component;
+	use Nette\SmartObject;
 
-	private string $destination;
+	/** @var Component */
+	private $component;
 
-	private array $params;
+	/** @var string */
+	private $destination;
+
+	/** @var array */
+	private $params;
 
 
 	/**
@@ -54,8 +61,9 @@ final class Link
 
 	/**
 	 * Changes link parameter.
+	 * @return static
 	 */
-	public function setParameter(string $key, $value): static
+	public function setParameter(string $key, $value)
 	{
 		$this->params[$key] = $value;
 		return $this;
@@ -64,8 +72,9 @@ final class Link
 
 	/**
 	 * Returns link parameter.
+	 * @return mixed
 	 */
-	public function getParameter(string $key): mixed
+	public function getParameter(string $key)
 	{
 		return $this->params[$key] ?? null;
 	}
@@ -94,6 +103,16 @@ final class Link
 	 */
 	public function __toString(): string
 	{
-		return $this->component->link($this->destination, $this->params);
+		try {
+			return $this->component->link($this->destination, $this->params);
+
+		} catch (\Throwable $e) {
+			if (func_num_args() || PHP_VERSION_ID >= 70400) {
+				throw $e;
+			}
+
+			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
+			return '';
+		}
 	}
 }

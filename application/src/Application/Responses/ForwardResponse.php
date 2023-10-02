@@ -17,7 +17,10 @@ use Nette;
  */
 final class ForwardResponse implements Nette\Application\Response
 {
-	private Nette\Application\Request $request;
+	use Nette\SmartObject;
+
+	/** @var Nette\Application\Request */
+	private $request;
 
 
 	public function __construct(Nette\Application\Request $request)
