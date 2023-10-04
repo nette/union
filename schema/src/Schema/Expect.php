@@ -32,6 +32,8 @@ use Nette\Schema\Elements\Type;
  */
 final class Expect
 {
+	use Nette\SmartObject;
+
 	public static function __callStatic(string $name, array $args): Type
 	{
 		$type = new Type($name);
@@ -49,7 +51,10 @@ final class Expect
 	}
 
 
-	public static function anyOf(mixed ...$set): AnyOf
+	/**
+	 * @param  mixed|Schema  ...$set
+	 */
+	public static function anyOf(...$set): AnyOf
 	{
 		return new AnyOf(...$set);
 	}
@@ -64,19 +69,25 @@ final class Expect
 	}
 
 
-	public static function from(object $object, array $items = []): Structure
+	/**
+	 * @param  object  $object
+	 */
+	public static function from($object, array $items = []): Structure
 	{
 		$ro = new \ReflectionObject($object);
 		foreach ($ro->getProperties() as $prop) {
+			$type = Helpers::getPropertyType($prop) ?? 'mixed';
 			$item = &$items[$prop->getName()];
 			if (!$item) {
-				$item = new Type((string) (Nette\Utils\Type::fromReflection($prop) ?? 'mixed'));
-				if (!$prop->isInitialized($object)) {
+				$item = new Type($type);
+				if (PHP_VERSION_ID >= 70400 && !$prop->isInitialized($object)) {
 					$item->required();
 				} else {
 					$def = $prop->getValue($object);
 					if (is_object($def)) {
 						$item = static::from($def);
+					} elseif ($def === null && !Nette\Utils\Validators::is(null, $type)) {
+						$item->required();
 					} else {
 						$item->default($def);
 					}
@@ -88,13 +99,20 @@ final class Expect
 	}
 
 
-	public static function arrayOf(string|Schema $valueType, string|Schema $keyType = null): Type
+	/**
+	 * @param  string|Schema  $valueType
+	 * @param  string|Schema|null  $keyType
+	 */
+	public static function arrayOf($valueType, $keyType = null): Type
 	{
 		return (new Type('array'))->items($valueType, $keyType);
 	}
 
 
-	public static function listOf(string|Schema $type): Type
+	/**
+	 * @param  string|Schema  $type
+	 */
+	public static function listOf($type): Type
 	{
 		return (new Type('list'))->items($type);
 	}

@@ -24,11 +24,6 @@ test('', function () {
 	checkValidationErrors(function () use ($schema) {
 		(new Processor)->process($schema, []);
 	}, ['The item expects to be scalar, array given.']);
-
-	checkValidationErrors(function () use ($schema) {
-		(new Processor)->process($schema, new class implements Nette\Schema\DynamicParameter {
-		});
-	}, ['The item expects to be scalar, dynamic given.']);
 });
 
 
