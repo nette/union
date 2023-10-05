@@ -20,6 +20,8 @@ use function array_key_exists, is_array, count, strlen;
  */
 class Route implements Router
 {
+	use Nette\SmartObject;
+
 	/** key used in metadata */
 	public const
 		Value = 'value',
@@ -29,23 +31,14 @@ class Route implements Router
 		FilterTable = 'filterTable',
 		FilterStrict = 'filterStrict';
 
-	/** @deprecated use Route::Value */
-	public const VALUE = self::Value;
-
-	/** @deprecated use Route::Pattern */
-	public const PATTERN = self::Pattern;
-
-	/** @deprecated use Route::FilterIn */
-	public const FILTER_IN = self::FilterIn;
-
-	/** @deprecated use Route::FilterOut */
-	public const FILTER_OUT = self::FilterOut;
-
-	/** @deprecated use Route::FilterTable */
-	public const FILTER_TABLE = self::FilterTable;
-
-	/** @deprecated use Route::FilterStrict */
-	public const FILTER_STRICT = self::FilterStrict;
+	/** key used in metadata */
+	public const
+		VALUE = self::Value,
+		PATTERN = self::Pattern,
+		FILTER_IN = self::FilterIn,
+		FILTER_OUT = self::FilterOut,
+		FILTER_TABLE = self::FilterTable,
+		FILTER_STRICT = self::FilterStrict;
 
 	/** key used in metadata */
 	private const
@@ -65,31 +58,37 @@ class Route implements Router
 		InPath = 1, // in brackets is default value = null
 		Constant = 2;
 
-	protected array $defaultMeta = [
+	/** @var array */
+	protected $defaultMeta = [
 		'#' => [ // default style for path parameters
 			self::Pattern => '[^/]+',
 			self::FilterOut => [self::class, 'param2path'],
 		],
 	];
 
-	private string $mask;
-	private array $sequence;
+	/** @var string */
+	private $mask;
 
-	/** regular expression pattern */
-	private string $re;
+	/** @var array */
+	private $sequence;
+
+	/** @var string  regular expression pattern */
+	private $re;
 
 	/** @var string[]  parameter aliases in regular expression */
-	private array $aliases = [];
+	private $aliases = [];
 
 	/** @var array of [value & fixity, filterIn, filterOut] */
-	private array $metadata = [];
-	private array $xlat = [];
+	private $metadata = [];
 
-	/** Host, Path, Relative */
-	private int $type;
+	/** @var array  */
+	private $xlat = [];
 
-	/** http | https */
-	private string $scheme = '';
+	/** @var int HOST, PATH, RELATIVE */
+	private $type;
+
+	/** @var string  http | https */
+	private $scheme;
 
 
 	/**
@@ -272,13 +271,12 @@ class Route implements Router
 			$parts = ip2long($host)
 				? [$host]
 				: array_reverse(explode('.', $host));
-			$port = $refUrl->getDefaultPort() === ($tmp = $refUrl->getPort()) ? '' : ':' . $tmp;
 			$url = strtr($url, [
 				'/%basePath%/' => $refUrl->getBasePath(),
-				'%tld%' => $parts[0] . $port,
-				'%domain%' => (isset($parts[1]) ? "$parts[1].$parts[0]" : $parts[0]) . $port,
+				'%tld%' => $parts[0],
+				'%domain%' => isset($parts[1]) ? "$parts[1].$parts[0]" : $parts[0],
 				'%sld%' => $parts[1] ?? '',
-				'%host%' => $host . $port,
+				'%host%' => $host,
 			]);
 		}
 
@@ -310,14 +308,6 @@ class Route implements Router
 			$fixity = $meta[self::Fixity] ?? null;
 
 			if (!isset($params[$name])) {
-				if ($fixity === self::Constant) {
-					if ($meta[self::Value] === null) {
-						continue;
-					}
-
-					return false; // wrong parameter value
-				}
-
 				continue; // retains null values
 			}
 
@@ -328,8 +318,7 @@ class Route implements Router
 			}
 
 			if ($fixity !== null) {
-				if ($params[$name] == $meta[self::Value]) { // default value may be object, intentionally ==
-					// remove default values; null values are retain
+				if ($params[$name] === $meta[self::Value]) { // remove default values; null values are retain
 					unset($params[$name]);
 					continue;
 
@@ -417,7 +406,7 @@ class Route implements Router
 			[, $this->scheme, $path] = $m;
 			return $path;
 
-		} elseif (str_starts_with($this->mask, '/')) {
+		} elseif (substr($this->mask, 0, 1) === '/') {
 			$this->type = self::Path;
 
 		} else {
@@ -577,7 +566,7 @@ class Route implements Router
 	private function parseQuery(array $parts): bool
 	{
 		$query = $parts[count($parts) - 2] ?? '';
-		if (!str_starts_with(ltrim($query), '?')) {
+		if (substr(ltrim($query), 0, 1) !== '?') {
 			return false;
 		}
 

@@ -14,8 +14,12 @@ require __DIR__ . '/../bootstrap.php';
 
 $route = new Route('<presenter>', [
 	'presenter' => [
-		Route::FilterIn => fn($s) => strrev($s),
-		Route::FilterOut => fn($s) => strrev($s),
+		Route::FilterIn => function ($s) {
+			return strrev($s);
+		},
+		Route::FilterOut => function ($s) {
+			return strrev($s);
+		},
 	],
 ]);
 

@@ -23,7 +23,11 @@ testRouteIn($route, '/?act=action', [
 	'test' => 'testvalue',
 ], '/?act=action&test=testvalue');
 
-testRouteIn($route, '/?act=default', [
+testRouteIn($route, '/?act=default', PHP_VERSION_ID < 80000 ? [
+	'presenter' => 'default',
+	'action' => 'default',
+	'test' => 'testvalue',
+] : [
 	'action' => 'default',
 	'presenter' => 'default',
 	'test' => 'testvalue',
