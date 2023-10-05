@@ -18,8 +18,6 @@ $res = ob_get_clean();
 Assert::match(
 	'%A%class SignFormData
 {
-	use \Nette\SmartObject;
-
 	public string $name;
 }
 %A%',
@@ -29,8 +27,6 @@ Assert::match(
 Assert::match(
 	'%A%class SignFormData
 {
-	use \Nette\SmartObject;
-
 	public function __construct(
 		public string $name,
 	) {

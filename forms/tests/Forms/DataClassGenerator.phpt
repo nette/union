@@ -24,8 +24,6 @@ $res = $generator->generateCode($form);
 Assert::match(
 	'class SignFormData
 {
-	use \Nette\SmartObject;
-
 	public string $name;
 	public ?int $age;
 	public SignContFormData $cont;
@@ -35,8 +33,6 @@ Assert::match(
 
 class SignContFormData
 {
-	use \Nette\SmartObject;
-
 	public ?string $name;
 }
 ',
@@ -44,7 +40,6 @@ class SignContFormData
 );
 
 $generator->propertyPromotion = true;
-$generator->useSmartObject = false;
 $res = $generator->generateCode($form);
 
 Assert::match(
