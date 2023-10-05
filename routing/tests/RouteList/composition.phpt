@@ -2,20 +2,27 @@
 
 declare(strict_types=1);
 
+use Nette\Routing\Route;
 use Nette\Routing\RouteList;
+use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-$sublist = (new RouteList)
-	->withPath('path1')
-		->addRoute('foo', ['route' => 'foo']);
+$list = new RouteList;
+$list->add($r1 = new Route('bar', ['route' => 'bar']));
+$list->add($r2 = new Route('<foo>', ['route' => 'foo']));
 
-$list = (new RouteList)
-	->withPath('path2')
-		->add($sublist);
+Assert::same(
+	[$r1, $r2],
+	$list->getRouters()
+);
 
 
-testRouteIn($list, '/path1/path2/foo');
-testRouteIn($list, '/path2/path1/foo', ['route' => 'foo', 'test' => 'testvalue'], '/path2/path1/foo?test=testvalue');
+$list->prepend($r3 = new Route('<foo>', ['route' => 'foo']));
+
+Assert::same(
+	[$r3, $r1, $r2],
+	$list->getRouters()
+);
