@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Nette\Caching\BulkReader;
-use Nette\Caching\BulkWriter;
 use Nette\Caching\Storage;
 
 class TestStorage implements Storage
@@ -54,35 +53,5 @@ class BulkReadTestStorage extends TestStorage implements BulkReader
 		}
 
 		return $result;
-	}
-}
-
-class BulkWriteTestStorage extends TestStorage implements BulkWriter
-{
-	public function bulkRead(array $keys): array
-	{
-		$result = [];
-		foreach ($keys as $key) {
-			$data = $this->read($key);
-			if ($data !== null) {
-				$result[$key] = $data;
-			}
-		}
-
-		return $result;
-	}
-
-
-	public function bulkRemove(array $keys): void
-	{
-
-	}
-
-
-	public function bulkWrite($items, array $dp): void
-	{
-		foreach ($items as $key => $data) {
-			$this->write($key, $data, $dp);
-		}
 	}
 }

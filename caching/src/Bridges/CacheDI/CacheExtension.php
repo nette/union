@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Nette\Bridges\CacheDI;
 
 use Nette;
-use Nette\Utils\FileSystem;
 
 
 /**
@@ -18,20 +17,21 @@ use Nette\Utils\FileSystem;
  */
 final class CacheExtension extends Nette\DI\CompilerExtension
 {
-	public function __construct(
-		private string $tempDir,
-	) {
+	private string $tempDir;
+
+
+	public function __construct(string $tempDir)
+	{
+		$this->tempDir = $tempDir;
 	}
 
 
 	public function loadConfiguration(): void
 	{
-		if (!FileSystem::isAbsolute($this->tempDir)) {
-			throw new Nette\InvalidArgumentException("Cache directory must be absolute, '$this->tempDir' given.");
-		}
-		FileSystem::createDir($this->tempDir);
-		if (!is_writable($this->tempDir)) {
-			throw new Nette\InvalidStateException("Make directory '$this->tempDir' writable.");
+		$dir = $this->tempDir . '/cache';
+		Nette\Utils\FileSystem::createDir($dir);
+		if (!is_writable($dir)) {
+			throw new Nette\InvalidStateException("Make directory '$dir' writable.");
 		}
 
 		$builder = $this->getContainerBuilder();
@@ -39,11 +39,19 @@ final class CacheExtension extends Nette\DI\CompilerExtension
 		if (extension_loaded('pdo_sqlite')) {
 			$builder->addDefinition($this->prefix('journal'))
 				->setType(Nette\Caching\Storages\Journal::class)
-				->setFactory(Nette\Caching\Storages\SQLiteJournal::class, [$this->tempDir . '/journal.s3db']);
+				->setFactory(Nette\Caching\Storages\SQLiteJournal::class, [$dir . '/journal.s3db']);
 		}
 
 		$builder->addDefinition($this->prefix('storage'))
 			->setType(Nette\Caching\Storage::class)
-			->setFactory(Nette\Caching\Storages\FileStorage::class, [$this->tempDir]);
+			->setFactory(Nette\Caching\Storages\FileStorage::class, [$dir]);
+
+		if ($this->name === 'cache') {
+			if (extension_loaded('pdo_sqlite')) {
+				$builder->addAlias('nette.cacheJournal', $this->prefix('journal'));
+			}
+
+			$builder->addAlias('cacheStorage', $this->prefix('storage'));
+		}
 	}
 }

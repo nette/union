@@ -17,6 +17,8 @@ use Nette;
  */
 class Cache
 {
+	use Nette\SmartObject;
+
 	/** dependency */
 	public const
 		Priority = 'priority',
@@ -64,7 +66,9 @@ class Cache
 	public const ALL = self::All;
 
 	/** @internal */
-	public const NamespaceSeparator = "\x00";
+	public const
+		NamespaceSeparator = "\x00",
+		NAMESPACE_SEPARATOR = self::NamespaceSeparator;
 
 	private Storage $storage;
 	private string $namespace;
@@ -216,45 +220,6 @@ class Cache
 	}
 
 
-	/**
-	 * Writes multiple items into cache
-	 */
-	public function bulkSave(array $items, ?array $dependencies = null): void
-	{
-		$write = $remove = [];
-
-		if (!$this->storage instanceof BulkWriter) {
-			foreach ($items as $key => $data) {
-				$this->save($key, $data, $dependencies);
-			}
-			return;
-		}
-
-		$dependencies = $this->completeDependencies($dependencies);
-		if (isset($dependencies[self::Expire]) && $dependencies[self::Expire] <= 0) {
-			$this->storage->bulkRemove(array_map(fn($key) => $this->generateKey($key), array_keys($items)));
-			return;
-		}
-
-		foreach ($items as $key => $data) {
-			$key = $this->generateKey($key);
-			if ($data === null) {
-				$remove[] = $key;
-			} else {
-				$write[$key] = $data;
-			}
-		}
-
-		if ($remove) {
-			$this->storage->bulkRemove($remove);
-		}
-
-		if ($write) {
-			$this->storage->bulkWrite($write, $dependencies);
-		}
-	}
-
-
 	private function completeDependencies(?array $dp): array
 	{
 		// convert expire into relative amount of seconds
@@ -383,7 +348,6 @@ class Cache
 	 */
 	public function start($key): ?OutputHelper
 	{
-		trigger_error(__METHOD__ . '() was renamed to capture()', E_USER_DEPRECATED);
 		return $this->capture($key);
 	}
 
