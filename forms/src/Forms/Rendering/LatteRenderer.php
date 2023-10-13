@@ -11,7 +11,6 @@ namespace Nette\Forms\Rendering;
 
 use Nette;
 use Nette\Forms\Form;
-use Nette\Utils\Html;
 
 
 /**
@@ -34,7 +33,7 @@ final class LatteRenderer
 				public $inner;
 
 
-				public function getLabel($name = null): Html|string|null
+				public function getLabel($name = null)
 				{
 					return $this->inner->getLabel()
 						? '{label ' . $this->inner->lookupPath(Form::class) . '/}'
@@ -42,7 +41,7 @@ final class LatteRenderer
 				}
 
 
-				public function getControl(): Html|string
+				public function getControl()
 				{
 					return '{input ' . $this->inner->lookupPath(Form::class) . '}';
 				}
@@ -54,7 +53,7 @@ final class LatteRenderer
 				}
 
 
-				public function getOption($key): mixed
+				public function getOption($key)
 				{
 					return $key === 'rendered'
 						? parent::getOption($key)

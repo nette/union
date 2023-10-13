@@ -14,23 +14,22 @@ use Nette\Forms;
 use Nette\Forms\Form;
 use Nette\Http\FileUpload;
 use Nette\Utils\Arrays;
-use Stringable;
 
 
 /**
  * Text box and browse button that allow users to select a file to upload to the server.
- * @extends BaseControl<FileUpload|FileUpload[]>
  */
 class UploadControl extends BaseControl
 {
 	/** validation rule */
 	public const Valid = ':uploadControlValid';
-
-	/** @deprecated use UploadControl::Valid */
 	public const VALID = self::Valid;
 
 
-	public function __construct(string|Stringable|null $label = null, bool $multiple = false)
+	/**
+	 * @param  string|object  $label
+	 */
+	public function __construct($label = null, bool $multiple = false)
 	{
 		parent::__construct($label);
 		$this->control->type = 'file';
@@ -69,9 +68,10 @@ class UploadControl extends BaseControl
 
 
 	/**
+	 * @return static
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
 		return $this;
 	}
@@ -95,18 +95,17 @@ class UploadControl extends BaseControl
 	{
 		return $this->value instanceof FileUpload
 			? $this->value->isOk()
-			: $this->value && Arrays::every($this->value, fn(FileUpload $upload): bool => $upload->isOk());
+			: $this->value && Arrays::every($this->value, function (FileUpload $upload): bool {
+				return $upload->isOk();
+			});
 	}
 
 
-	public function addRule(
-		callable|string $validator,
-		string|Stringable|null $errorMessage = null,
-		mixed $arg = null,
-	): static
+	/** @return static */
+	public function addRule($validator, $errorMessage = null, $arg = null)
 	{
 		if ($validator === Form::Image) {
-			$this->control->accept = implode(', ', Forms\Helpers::getSupportedImages());
+			$this->control->accept = implode(', ', FileUpload::IMAGE_MIME_TYPES);
 
 		} elseif ($validator === Form::MimeType) {
 			$this->control->accept = implode(', ', (array) $arg);

@@ -20,7 +20,7 @@ $form->addText('input');
 $form->addText('omittedInput')
 	->setOmitted();
 
-Assert::same(['input' => ''], $form->getValues('array'));
+Assert::same(['input' => ''], $form->getValues(true));
 
 
 Assert::true((new TextInput)->setDisabled()->isOmitted());

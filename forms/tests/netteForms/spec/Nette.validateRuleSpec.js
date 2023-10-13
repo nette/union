@@ -1,10 +1,15 @@
 describe('Nette.getValue & validateRule', function() {
-	let testContainer;
+
+	beforeEach(function() {
+		fixtures.cleanUp();
+	});
+
 
 	it('text input', function() {
-		testContainer.innerHTML = `<form><input type="text" name="input"></form>`;
+		fixtures.set('<form><input type="text" name="input"></form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.input;
 
 		expect(Nette.getValue(el)).toBe('');
@@ -64,8 +69,7 @@ describe('Nette.getValue & validateRule', function() {
 		expect(Nette.validateRule(el, 'min', -1000)).toBe(false);
 		expect(Nette.validateRule(el, 'max', -2000)).toBe(false);
 		expect(Nette.validateRule(el, 'max', -1000)).toBe(true);
-		expect(Nette.validateRule(el, 'range', [-2000, -1000])).toBe(true);
-		expect(Nette.validateRule(el, 'range', ['-1200', '-1300'])).toBe(true);
+		expect(Nette.validateRule(el, 'range', ['-2000', '-1000'])).toBe(true);
 		expect(Nette.validateRule(el, 'range', [10, null])).toBe(false);
 
 		el.value = '-12.5';
@@ -75,16 +79,16 @@ describe('Nette.getValue & validateRule', function() {
 		expect(Nette.validateRule(el, 'min', -10)).toBe(false);
 		expect(Nette.validateRule(el, 'max', -2000)).toBe(false);
 		expect(Nette.validateRule(el, 'max', -10)).toBe(true);
-		expect(Nette.validateRule(el, 'range', [-12.6, -12.4])).toBe(true);
-		expect(Nette.validateRule(el, 'range', ['-12.4', '-12.6'])).toBe(true);
+		expect(Nette.validateRule(el, 'range', ['-12.6', '-12.4'])).toBe(true);
 		expect(Nette.validateRule(el, 'range', [-5, 10])).toBe(false);
 	});
 
 
 	it('text area', function() {
-		testContainer.innerHTML = `<form><textarea name="input"></textarea></form>`;
+		fixtures.set('<form><textarea name="input"></textarea></form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.input;
 
 		expect(Nette.getValue(el)).toBe('');
@@ -102,31 +106,34 @@ describe('Nette.getValue & validateRule', function() {
 
 
 	it('upload', function() {
-		testContainer.innerHTML = `<form method="post" enctype="multipart/form-data"><input type="file" name="input"></form>`;
+		fixtures.set('<form method="post" enctype="multipart/form-data"><input type="file" name="input"></form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.input;
 
-		expect(Nette.getValue(el) instanceof FileList).toBe(true);
+		expect(Nette.getValue(el) instanceof fixtures.window().FileList).toBe(true);
 		expect(Nette.getValue(el).length).toBe(0);
 	});
 
 
 	it('multi upload', function() {
-		testContainer.innerHTML = `<form method="post" enctype="multipart/form-data"><input type="file" name="input[]" multiple></form>`;
+		fixtures.set('<form method="post" enctype="multipart/form-data"><input type="file" name="input[]" multiple></form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form['input[]'];
 
-		expect(Nette.getValue(el) instanceof FileList).toBe(true);
+		expect(Nette.getValue(el) instanceof fixtures.window().FileList).toBe(true);
 		expect(Nette.getValue(el).length).toBe(0);
 	});
 
 
 	it('checkbox', function() {
-		testContainer.innerHTML = `<form><input type="checkbox" name="input" value="r"></form>`;
+		fixtures.set('<form><input type="checkbox" name="input" value="r"></form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.input;
 
 		expect(Nette.getValue(el)).toBe(false);
@@ -143,21 +150,22 @@ describe('Nette.getValue & validateRule', function() {
 
 
 	it('checkbox list', function() {
-		testContainer.innerHTML = `<form>
-			<input type="checkbox" name="input[]" value="r" id="input-r">
-			<input type="checkbox" name="input[]" value="g" id="input-g">
-			<input type="checkbox" name="input[]" value="b" id="input-b">
-		</form>`;
+		fixtures.set('<form> \
+			<input type="checkbox" name="input[]" value="r" id="input-r"> \
+			<input type="checkbox" name="input[]" value="g" id="input-g"> \
+			<input type="checkbox" name="input[]" value="b" id="input-b"> \
+		</form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form['input[]'];
 
 		expect(Nette.getValue(el)).toEqual([]);
 		expect(Nette.validateRule(el, 'filled')).toBe(false);
 		expect(Nette.validateRule(el, 'blank')).toBe(true);
-		expect(Nette.validateRule(el, 'equal', ['r', 'g', 'b'])).toBe(false);
+		expect(Nette.validateRule(el, 'equal', ['r', 'g', 'b'])).toBe(true);
 
-		testContainer.querySelector('#input-r').checked = true;
+		doc.getElementById('input-r').checked = true;
 		expect(Nette.getValue(el)).toEqual(['r']);
 		expect(Nette.validateRule(el, 'filled')).toBe(true);
 		expect(Nette.validateRule(el, 'blank')).toBe(false);
@@ -167,7 +175,7 @@ describe('Nette.getValue & validateRule', function() {
 		expect(Nette.validateRule(el, 'minLength', 1)).toBe(true);
 		expect(Nette.validateRule(el, 'minLength', 2)).toBe(false);
 
-		testContainer.querySelector('#input-g').checked = true;
+		doc.getElementById('input-g').checked = true;
 		expect(Nette.getValue(el)).toEqual(['r', 'g']);
 		expect(Nette.validateRule(el, 'filled')).toBe(true);
 		expect(Nette.validateRule(el, 'blank')).toBe(false);
@@ -181,17 +189,18 @@ describe('Nette.getValue & validateRule', function() {
 
 
 	it('checkbox list with single item', function() {
-		testContainer.innerHTML = `<form><input type="checkbox" name="input[]" value="r" id="input-r"></form>`;
+		fixtures.set('<form><input type="checkbox" name="input[]" value="r" id="input-r"></form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form['input[]'];
 
 		expect(Nette.getValue(el)).toEqual([]);
 		expect(Nette.validateRule(el, 'filled')).toBe(false);
 		expect(Nette.validateRule(el, 'blank')).toBe(true);
-		expect(Nette.validateRule(el, 'equal', ['r', 'g', 'b'])).toBe(false);
+		expect(Nette.validateRule(el, 'equal', ['r', 'g', 'b'])).toBe(true);
 
-		testContainer.querySelector('#input-r').checked = true;
+		doc.getElementById('input-r').checked = true;
 		expect(Nette.getValue(el)).toEqual(['r']);
 		expect(Nette.validateRule(el, 'filled')).toBe(true);
 		expect(Nette.validateRule(el, 'blank')).toBe(false);
@@ -204,9 +213,10 @@ describe('Nette.getValue & validateRule', function() {
 
 
 	it('radio', function() {
-		testContainer.innerHTML = `<form><input type="radio" name="input" value="f"><form>`;
+		fixtures.set('<form><input type="radio" name="input" value="f"><form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.input;
 
 		expect(Nette.getValue(el)).toBe(null);
@@ -225,12 +235,13 @@ describe('Nette.getValue & validateRule', function() {
 
 
 	it('radio list', function() {
-		testContainer.innerHTML = `<form>
-			<input type="radio" name="input" value="m" id="input-m">
-			<input type="radio" name="input" value="f" id="input-f">
-		</form>`;
+		fixtures.set('<form> \
+			<input type="radio" name="input" value="m" id="input-m"> \
+			<input type="radio" name="input" value="f" id="input-f"> \
+		</form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.input;
 
 		expect(Nette.getValue(el)).toBe(null);
@@ -238,10 +249,10 @@ describe('Nette.getValue & validateRule', function() {
 		expect(Nette.validateRule(el, 'blank')).toBe(true);
 		expect(Nette.validateRule(el, 'equal', ['f', 'm'])).toBe(false);
 
-		testContainer.querySelector('#input-m').checked = true;
+		doc.getElementById('input-m').checked = true;
 		expect(Nette.getValue(el)).toBe('m');
 
-		testContainer.querySelector('#input-f').checked = true;
+		doc.getElementById('input-f').checked = true;
 		expect(Nette.getValue(el)).toBe('f');
 		expect(Nette.validateRule(el, 'filled')).toBe(true);
 		expect(Nette.validateRule(el, 'blank')).toBe(false);
@@ -252,22 +263,23 @@ describe('Nette.getValue & validateRule', function() {
 
 
 	it('selectbox', function() {
-		testContainer.innerHTML = `<form>
-			<select name="input">
-				<option value="">Prompt</option>
-				<optgroup label="World"><option value="bu" id="option-2">Buranda</option></optgroup>
-				<option value="?" id="option-3">other</option>
-			</select>
-		</form>`;
+		fixtures.set('<form> \
+			<select name="input"> \
+				<option value="">Prompt</option> \
+				<optgroup label="World"><option value="bu" id="option-2">Buranda</option></optgroup> \
+				<option value="?" id="option-3">other</option> \
+			</select> \
+		</form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.input;
 
 		expect(Nette.getValue(el)).toBe('');
 		expect(Nette.validateRule(el, 'filled')).toBe(false);
 		expect(Nette.validateRule(el, 'blank')).toBe(true);
 
-		testContainer.querySelector('#option-2').selected = true;
+		doc.getElementById('option-2').selected = true;
 		expect(Nette.getValue(el)).toBe('bu');
 		expect(Nette.validateRule(el, 'filled')).toBe(true);
 		expect(Nette.validateRule(el, 'blank')).toBe(false);
@@ -275,27 +287,28 @@ describe('Nette.getValue & validateRule', function() {
 		expect(Nette.validateRule(el, 'equal', 'x')).toBe(false);
 		expect(Nette.validateRule(el, 'equal', ['bu', 'x'])).toBe(true);
 
-		testContainer.querySelector('#option-3').selected = true;
+		doc.getElementById('option-3').selected = true;
 		expect(Nette.getValue(el)).toBe('?');
 	});
 
 
 	it('multi selectbox', function() {
-		testContainer.innerHTML = `<form>
-			<select name="input[]" multiple>
-				<optgroup label="World"><option value="bu" id="option-2">Buranda</option></optgroup>
-				<option value="?" id="option-3">other</option>
-			</select>
-		</form>`;
+		fixtures.set('<form> \
+			<select name="input[]" multiple> \
+				<optgroup label="World"><option value="bu" id="option-2">Buranda</option></optgroup> \
+				<option value="?" id="option-3">other</option> \
+			</select> \
+		</form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form['input[]'];
 
 		expect(Nette.getValue(el)).toEqual([]);
 		expect(Nette.validateRule(el, 'filled')).toBe(false);
 		expect(Nette.validateRule(el, 'blank')).toBe(true);
 
-		testContainer.querySelector('#option-2').selected = true;
+		doc.getElementById('option-2').selected = true;
 		expect(Nette.getValue(el)).toEqual(['bu']);
 		expect(Nette.validateRule(el, 'filled')).toBe(true);
 		expect(Nette.validateRule(el, 'blank')).toBe(false);
@@ -305,7 +318,7 @@ describe('Nette.getValue & validateRule', function() {
 		expect(Nette.validateRule(el, 'minLength', 1)).toBe(true);
 		expect(Nette.validateRule(el, 'minLength', 2)).toBe(false);
 
-		testContainer.querySelector('#option-3').selected = true;
+		doc.getElementById('option-3').selected = true;
 		expect(Nette.getValue(el)).toEqual(['bu', '?']);
 		expect(Nette.validateRule(el, 'filled')).toBe(true);
 		expect(Nette.validateRule(el, 'blank')).toBe(false);
@@ -319,23 +332,14 @@ describe('Nette.getValue & validateRule', function() {
 
 
 	it('missing name', function() {
-		testContainer.innerHTML = '<form><input></form>';
+		fixtures.set('<form><input></form>');
 
-		let form = testContainer.querySelector('form'),
+		var doc = fixtures.window().document,
+			form = doc.forms[0],
 			el = form.elements[0];
 
 		expect(Nette.getValue(el)).toEqual('');
 		el.value = ' hello ';
 		expect(Nette.getValue(el)).toBe('hello');
-	});
-
-
-	beforeEach(function() {
-		testContainer = document.createElement('div');
-		document.body.appendChild(testContainer);
-	});
-
-	afterEach(function() {
-		document.body.removeChild(testContainer);
 	});
 });

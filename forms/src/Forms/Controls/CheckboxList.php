@@ -11,7 +11,6 @@ namespace Nette\Forms\Controls;
 
 use Nette;
 use Nette\Utils\Html;
-use Stringable;
 
 
 /**
@@ -23,17 +22,20 @@ use Stringable;
  */
 class CheckboxList extends MultiChoiceControl
 {
-	/** separator element template */
-	protected Html $separator;
+	/** @var Html  separator element template */
+	protected $separator;
 
-	/** container element template */
-	protected Html $container;
+	/** @var Html  container element template */
+	protected $container;
 
-	/** item label template */
-	protected Html $itemLabel;
+	/** @var Html  item label template */
+	protected $itemLabel;
 
 
-	public function __construct(string|Stringable|null $label = null, ?array $items = null)
+	/**
+	 * @param  string|object  $label
+	 */
+	public function __construct($label = null, ?array $items = null)
 	{
 		parent::__construct($label, $items);
 		$this->control->type = 'checkbox';
@@ -74,8 +76,8 @@ class CheckboxList extends MultiChoiceControl
 					'data-nette-rules:' => [key($items) => $input->attrs['data-nette-rules']],
 				]),
 				$this->itemLabel->attrs,
-				$this->separator,
-			),
+				$this->separator
+			)
 		);
 	}
 
@@ -91,7 +93,7 @@ class CheckboxList extends MultiChoiceControl
 		$key = key([(string) $key => null]);
 		return parent::getControl()->addAttributes([
 			'id' => $this->getHtmlId() . '-' . $key,
-			'checked' => in_array($key, (array) $this->value, strict: true),
+			'checked' => in_array($key, (array) $this->value, true),
 			'disabled' => is_array($this->disabled) ? isset($this->disabled[$key]) : $this->disabled,
 			'required' => null,
 			'value' => $key,

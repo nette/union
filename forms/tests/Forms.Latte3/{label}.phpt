@@ -1,5 +1,7 @@
 <?php
 
+/** @phpVersion 8.0 */
+
 declare(strict_types=1);
 
 use Nette\Bridges\FormsLatte\FormsExtension;
@@ -7,28 +9,32 @@ use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
+}
+
 
 $latte = new Latte\Engine;
 $latte->setLoader(new Latte\Loaders\StringLoader);
 $latte->addExtension(new FormsExtension);
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabel()) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabel()) %A%',
 	$latte->compile('{label foo /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabel())?->addAttributes([\'class\' => \'foo\']) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabel())?->addAttributes([\'class\' => \'foo\']) %A%',
 	$latte->compile('{label foo class => foo /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabel())?->addAttributes([\'class\' => \'foo\']) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabel())?->addAttributes([\'class\' => \'foo\']) %A%',
 	$latte->compile('{label foo, class => foo /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabelPart(\'\')) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabelPart(\'\')) %A%',
 	$latte->compile('{label foo: /}'),
 );
 
@@ -39,31 +45,31 @@ Assert::exception(
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabelPart(\'\')) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabelPart(\'\')) %A%',
 	$latte->compile('{label foo:, /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabelPart(\'\'))?->addAttributes([\'class\' => \'foo\']) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabelPart(\'\'))?->addAttributes([\'class\' => \'foo\']) %A%',
 	$latte->compile('{label foo:, class => foo /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabelPart(\'x\')) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabelPart(\'x\')) %A%',
 	$latte->compile('{label foo:x /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabelPart(\'x\'))?->addAttributes([\'class\' => \'foo\']) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabelPart(\'x\'))?->addAttributes([\'class\' => \'foo\']) %A%',
 	$latte->compile('{label foo:x, class => foo /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabelPart(\'x\')) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabelPart(\'x\')) %A%',
 	$latte->compile('{label "foo":"x" /}'),
 );
 
 Assert::match(
-	'%A%echo ($ʟ_label = $this->global->forms->item(\'foo\')->getLabelPart(\'x\')) %A%',
+	'%A%echo ($ʟ_label = Nette\Bridges\FormsLatte\Runtime::item(\'foo\', $this->global)->getLabelPart(\'x\')) %A%',
 	$latte->compile('{label "foo" : "x" /}'),
 );

@@ -18,11 +18,12 @@ use Nette\Utils\Html;
 
 class DateInput extends Nette\Forms\Controls\BaseControl
 {
-	private string $day = '';
+	/** @var string */
+	private $day = '';
 
-	private string $month = '';
+	private $month = '';
 
-	private string $year = '';
+	private $year = '';
 
 
 	public function __construct($label = null)
@@ -87,7 +88,7 @@ class DateInput extends Nette\Forms\Controls\BaseControl
 			. Helpers::createSelectBox(
 				[1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
 				[],
-				$this->month,
+				$this->month
 			)->name($name . '[month]')
 
 			. Html::el('input', [

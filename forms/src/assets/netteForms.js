@@ -138,6 +138,7 @@
 	 * Validates form element against given rules.
 	 */
 	Nette.validateControl = function(elem, rules, onlyCheck, value, emptyOptional) {
+		var top = !rules;
 		elem = elem.tagName ? elem : elem[0]; // RadioNodeList
 		rules = rules || JSON.parse(elem.getAttribute('data-nette-rules') || '[]');
 		value = value === undefined ? {value: Nette.getEffectiveValue(elem)} : value;
@@ -327,8 +328,9 @@
 
 		dialog.setAttribute('class', 'netteFormsModal');
 		dialog.innerText = message + '\n\n';
-		dialog.append(style, button);
-		document.body.append(dialog);
+		dialog.appendChild(style);
+		dialog.appendChild(button);
+		document.body.appendChild(dialog);
 		dialog.showModal();
 	};
 
@@ -367,7 +369,7 @@
 		filled: function(elem, arg, val) {
 			return val !== '' && val !== false && val !== null
 				&& (!Array.isArray(val) || !!val.length)
-				&& (!(val instanceof FileList) || val.length);
+				&& (!window.FileList || !(val instanceof window.FileList) || val.length);
 		},
 
 		blank: function(elem, arg, val) {
@@ -456,7 +458,7 @@
 					regExp = new RegExp('^(?:' + arg + ')$', caseInsensitive ? 'i' : '');
 				}
 
-				if (val instanceof FileList) {
+				if (window.FileList && val instanceof FileList) {
 					for (var i = 0; i < val.length; i++) {
 						if (!regExp.test(val[i].name)) {
 							return false;
@@ -492,27 +494,16 @@
 		},
 
 		min: function(elem, arg, val) {
-			if (Number.isFinite(arg)) {
-				val = parseFloat(val);
-			}
-			return val >= arg;
+			return arg === null || parseFloat(val) >= arg;
 		},
 
 		max: function(elem, arg, val) {
-			if (Number.isFinite(arg)) {
-				val = parseFloat(val);
-			}
-			return val <= arg;
+			return arg === null || parseFloat(val) <= arg;
 		},
 
 		range: function(elem, arg, val) {
-			if (!Array.isArray(arg)) {
-				return null;
-			} else if (elem.type === 'time' && arg[0] > arg[1]) {
-				return val >= arg[0] || val <= arg[1];
-			}
-			return (arg[0] === null || Nette.validators.min(elem, arg[0], val))
-				&& (arg[1] === null || Nette.validators.max(elem, arg[1], val));
+			return Array.isArray(arg) ?
+				((arg[0] === null || parseFloat(val) >= arg[0]) && (arg[1] === null || parseFloat(val) <= arg[1])) : null;
 		},
 
 		submitted: function(elem) {
@@ -520,9 +511,11 @@
 		},
 
 		fileSize: function(elem, arg, val) {
-			for (var i = 0; i < val.length; i++) {
-				if (val[i].size > arg) {
-					return false;
+			if (window.FileList) {
+				for (var i = 0; i < val.length; i++) {
+					if (val[i].size > arg) {
+						return false;
+					}
 				}
 			}
 			return true;
@@ -535,7 +528,7 @@
 			}
 			re = new RegExp(re.join('|'));
 
-			if (val instanceof FileList) {
+			if (window.FileList && val instanceof FileList) {
 				for (i = 0; i < val.length; i++) {
 					if (val[i].type && !re.test(val[i].type)) {
 						return false;
@@ -548,7 +541,7 @@
 		},
 
 		image: function (elem, arg, val) {
-			return Nette.validators.mimeType(elem, arg || ['image/gif', 'image/png', 'image/jpeg', 'image/webp'], val);
+			return Nette.validators.mimeType(elem, ['image/gif', 'image/png', 'image/jpeg', 'image/webp'], val);
 		},
 
 		'static': function (elem, arg) {
@@ -689,7 +682,7 @@
 				elem = document.createElement('input');
 				elem.setAttribute('name', name);
 				elem.setAttribute('type', 'hidden');
-				form.append(elem);
+				form.appendChild(elem);
 			}
 			form.elements[name].value = values[name].join(',');
 			form.elements[name].disabled = values[name].length === 0;

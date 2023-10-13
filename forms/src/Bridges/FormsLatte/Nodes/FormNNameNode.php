@@ -42,13 +42,14 @@ final class FormNNameNode extends StatementNode
 	public function print(PrintContext $context): string
 	{
 		return $context->format(
-			'$this->global->forms->begin($form = '
+			'$form = $this->global->formsStack[] = '
 			. ($this->name instanceof StringNode
 				? '$this->global->uiControl[%node]'
-				: '(is_object($ʟ_tmp = %node) ? $ʟ_tmp : $this->global->uiControl[$ʟ_tmp])')
-			. ') %line;'
+				: 'is_object($ʟ_tmp = %node) ? $ʟ_tmp : $this->global->uiControl[$ʟ_tmp]')
+			. ' %line;'
+			. 'Nette\Bridges\FormsLatte\Runtime::initializeForm($form);'
 			. '%node '
-			. '$this->global->forms->end();',
+			. 'array_pop($this->global->formsStack);',
 			$this->name,
 			$this->position,
 			$this->content,
@@ -61,7 +62,7 @@ final class FormNNameNode extends StatementNode
 		$el = $tag->htmlElement;
 
 		$tag->replaceNAttribute(new AuxiliaryNode(fn(PrintContext $context) => $context->format(
-			'echo $this->global->forms->renderFormBegin(%dump, false) %line;',
+			'echo Nette\Bridges\FormsLatte\Runtime::renderFormBegin(end($this->global->formsStack), %dump, false) %line;',
 			array_fill_keys(FieldNNameNode::findUsedAttributes($el), null),
 			$this->position,
 		)));
@@ -69,7 +70,7 @@ final class FormNNameNode extends StatementNode
 		$el->content = new Latte\Compiler\Nodes\FragmentNode([
 			$el->content,
 			new AuxiliaryNode(fn(PrintContext $context) => $context->format(
-				'echo $this->global->forms->renderFormEnd(false) %line;',
+				'echo Nette\Bridges\FormsLatte\Runtime::renderFormEnd(end($this->global->formsStack), false) %line;',
 				$this->position,
 			)),
 		]);

@@ -14,11 +14,10 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-setUp(function () {
+before(function () {
 	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = $_FILES = [];
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
-	ob_start();
+	$_COOKIE[Nette\Http\Helpers::STRICT_COOKIE_NAME] = '1';
 	Form::initialize(true);
 });
 
@@ -194,7 +193,7 @@ test('setItems without keys', function () use ($series) {
 	$_POST = ['select' => 'red-dwarf'];
 
 	$form = new Form;
-	$input = $form->addSelect('select')->setItems(array_keys($series), useKeys: false);
+	$input = $form->addSelect('select')->setItems(array_keys($series), false);
 	Assert::same([
 		'red-dwarf' => 'red-dwarf',
 		'the-simpsons' => 'the-simpsons',
@@ -211,7 +210,7 @@ test('setItems without keys', function () use ($series) {
 
 test('setItems without keys', function () {
 	$form = new Form;
-	$input = $form->addSelect('select')->setItems(range(1, 5), useKeys: false);
+	$input = $form->addSelect('select')->setItems(range(1, 5), false);
 	Assert::same([1 => 1, 2, 3, 4, 5], $input->getItems());
 });
 
@@ -223,7 +222,7 @@ test('setItems without keys with optgroups', function () {
 	$input = $form->addSelect('select')->setItems([
 		'usa' => ['the-simpsons', 0],
 		'uk' => ['red-dwarf'],
-	], useKeys: false);
+	], false);
 
 	Assert::true($form->isValid());
 	Assert::same('red-dwarf', $input->getValue());
@@ -237,11 +236,9 @@ test('setValue() and invalid argument', function () use ($series) {
 	$input = $form->addSelect('select', null, $series);
 	$input->setValue(null);
 
-	Assert::exception(
-		fn() => $input->setValue('unknown'),
-		Nette\InvalidArgumentException::class,
-		"Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.",
-	);
+	Assert::exception(function () use ($input) {
+		$input->setValue('unknown');
+	}, Nette\InvalidArgumentException::class, "Value 'unknown' is out of allowed set ['red-dwarf', 'the-simpsons', 0, ''] in field 'select'.");
 });
 
 
@@ -260,7 +257,7 @@ test('object as item', function () {
 		->setItems([
 			'group' => [new DateTime('2013-07-05')],
 			new DateTime('2013-07-06'),
-		], useKeys: false)
+		], false)
 		->setValue('2013-07-05 00:00:00');
 
 	Assert::equal(new DateTime('2013-07-05'), $input->getSelectedItem());
