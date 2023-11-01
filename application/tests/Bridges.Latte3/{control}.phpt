@@ -2,6 +2,7 @@
 
 /**
  * Test: {control ...}
+ * @phpVersion 8.0
  */
 
 declare(strict_types=1);
@@ -9,6 +10,10 @@ declare(strict_types=1);
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
+
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
+}
 
 
 $latte = new Latte\Engine;
@@ -45,7 +50,8 @@ Assert::match(
 				%A%
 				$ʟ_tmp->renderType() /* line 1 */;
 		%A%
-		XX,
+		XX
+	,
 	$latte->compile('{control form:type}'),
 );
 

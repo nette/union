@@ -1,5 +1,7 @@
 <?php
 
+/** @phpVersion 8.0 */
+
 declare(strict_types=1);
 
 use Tester\Assert;
@@ -8,6 +10,10 @@ require __DIR__ . '/../bootstrap.php';
 Tester\Environment::bypassFinals();
 
 require __DIR__ . '/ControlMock.php';
+
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
+}
 
 
 $dataSets = [
@@ -190,7 +196,7 @@ $dataSets = [
 foreach ($dataSets as $data) {
 	//snippet mode
 	$control = new ControlMock;
-	$control->invalid = array_fill_keys($data[3], value: true);
+	$control->invalid = array_fill_keys($data[3], true);
 
 	$engine = new Latte\Engine;
 	$engine->setLoader(new Latte\Loaders\StringLoader($data[0]));
@@ -203,7 +209,7 @@ foreach ($dataSets as $data) {
 	//non snippet mode
 	$control = new ControlMock;
 	$control->snippetMode = false;
-	$control->invalid = array_fill_keys($data[3], value: true);
+	$control->invalid = array_fill_keys($data[3], true);
 
 	$engine = new Latte\Engine;
 	$engine->setLoader(new Latte\Loaders\StringLoader($data[0]));

@@ -15,11 +15,11 @@ use Nette;
 /**
  * Presenter request.
  *
- * @property-deprecated string $presenterName
- * @property-deprecated array $parameters
- * @property-deprecated array $post
- * @property-deprecated array $files
- * @property-deprecated string|null $method
+ * @property string $presenterName
+ * @property array $parameters
+ * @property array $post
+ * @property array $files
+ * @property string|null $method
  */
 final class Request
 {
@@ -29,30 +29,58 @@ final class Request
 	public const FORWARD = 'FORWARD';
 
 	/** flag */
+	public const SECURED = 'secured';
+
+	/** flag */
 	public const RESTORED = 'restored';
 
 	/** flag */
 	public const VARYING = 'varying';
+
+	/** @var string|null */
+	private $method;
+
+	/** @var array */
+	private $flags = [];
+
+	/** @var string */
+	private $name;
+
+	/** @var array */
+	private $params;
+
+	/** @var array */
+	private $post;
+
+	/** @var array */
+	private $files;
 
 
 	/**
 	 * @param  string  $name  presenter name (module:module:presenter)
 	 */
 	public function __construct(
-		private string $name,
-		private ?string $method = null,
-		private array $params = [],
-		private array $post = [],
-		private array $files = [],
-		private array $flags = [],
+		string $name,
+		?string $method = null,
+		array $params = [],
+		array $post = [],
+		array $files = [],
+		array $flags = []
 	) {
+		$this->name = $name;
+		$this->method = $method;
+		$this->params = $params;
+		$this->post = $post;
+		$this->files = $files;
+		$this->flags = $flags;
 	}
 
 
 	/**
 	 * Sets the presenter name.
+	 * @return static
 	 */
-	public function setPresenterName(string $name): static
+	public function setPresenterName(string $name)
 	{
 		$this->name = $name;
 		return $this;
@@ -70,8 +98,9 @@ final class Request
 
 	/**
 	 * Sets variables provided to the presenter.
+	 * @return static
 	 */
-	public function setParameters(array $params): static
+	public function setParameters(array $params)
 	{
 		$this->params = $params;
 		return $this;
@@ -89,8 +118,9 @@ final class Request
 
 	/**
 	 * Returns a parameter provided to the presenter.
+	 * @return mixed
 	 */
-	public function getParameter(string $key): mixed
+	public function getParameter(string $key)
 	{
 		return $this->params[$key] ?? null;
 	}
@@ -98,8 +128,9 @@ final class Request
 
 	/**
 	 * Sets variables provided to the presenter via POST.
+	 * @return static
 	 */
-	public function setPost(array $params): static
+	public function setPost(array $params)
 	{
 		$this->post = $params;
 		return $this;
@@ -109,8 +140,9 @@ final class Request
 	/**
 	 * Returns a variable provided to the presenter via POST.
 	 * If no key is passed, returns the entire array.
+	 * @return mixed
 	 */
-	public function getPost(?string $key = null): mixed
+	public function getPost(?string $key = null)
 	{
 		return func_num_args() === 0
 			? $this->post
@@ -120,8 +152,9 @@ final class Request
 
 	/**
 	 * Sets all uploaded files.
+	 * @return static
 	 */
-	public function setFiles(array $files): static
+	public function setFiles(array $files)
 	{
 		$this->files = $files;
 		return $this;
@@ -139,8 +172,9 @@ final class Request
 
 	/**
 	 * Sets the method.
+	 * @return static
 	 */
-	public function setMethod(?string $method): static
+	public function setMethod(?string $method)
 	{
 		$this->method = $method;
 		return $this;
@@ -167,8 +201,9 @@ final class Request
 
 	/**
 	 * Sets the flag.
+	 * @return static
 	 */
-	public function setFlag(string $flag, bool $value = true): static
+	public function setFlag(string $flag, bool $value = true)
 	{
 		$this->flags[$flag] = $value;
 		return $this;

@@ -20,17 +20,28 @@ use Tracy;
  */
 final class RoutingPanel implements Tracy\IBarPanel
 {
-	private Routing\Router $router;
-	private Nette\Http\IRequest $httpRequest;
-	private Nette\Application\IPresenterFactory $presenterFactory;
-	private array $routes;
-	private ?array $matched = null;
+	use Nette\SmartObject;
+
+	/** @var Routing\Router */
+	private $router;
+
+	/** @var Nette\Http\IRequest */
+	private $httpRequest;
+
+	/** @var Nette\Application\IPresenterFactory */
+	private $presenterFactory;
+
+	/** @var (array|\stdClass)[] */
+	private $routes;
+
+	/** @var array|null */
+	private $matched;
 
 
 	public function __construct(
 		Routing\Router $router,
 		Nette\Http\IRequest $httpRequest,
-		Nette\Application\IPresenterFactory $presenterFactory,
+		Nette\Application\IPresenterFactory $presenterFactory
 	) {
 		$this->router = $router;
 		$this->httpRequest = $httpRequest;
@@ -47,7 +58,7 @@ final class RoutingPanel implements Tracy\IBarPanel
 			$this->router instanceof Routing\RouteList
 				? $this->router
 				: (new Routing\RouteList)->add($this->router),
-			$this->httpRequest,
+			$this->httpRequest
 		);
 		return Nette\Utils\Helpers::capture(function () {
 			$matched = $this->matched;
@@ -81,7 +92,7 @@ final class RoutingPanel implements Tracy\IBarPanel
 			'routes' => [],
 		];
 		$httpRequest = $httpRequest
-			? (fn() => $this->prepareRequest($httpRequest))->bindTo($router, Routing\RouteList::class)()
+			? (function () use ($httpRequest) { return $this->prepareRequest($httpRequest); })->bindTo($router, Routing\RouteList::class)()
 			: null;
 		$flags = $router->getFlags();
 
@@ -91,13 +102,13 @@ final class RoutingPanel implements Tracy\IBarPanel
 				continue;
 			}
 
-			$matched = empty($flags[$i]['oneWay']) ? 'no' : 'oneway';
+			$matched = $flags[$i] & $router::ONE_WAY ? 'oneway' : 'no';
 			$params = $e = null;
 			try {
 				if (
 					$httpRequest
 					&& ($params = $innerRouter->match($httpRequest)) !== null
-					&& ($params = (fn() => $this->completeParameters($params))->bindTo($router, Routing\RouteList::class)()) !== null
+					&& ($params = (function () use ($params) { return $this->completeParameters($params); })->bindTo($router, Routing\RouteList::class)()) !== null
 				) {
 					$matched = 'may';
 					if ($this->matched === null) {
@@ -111,7 +122,7 @@ final class RoutingPanel implements Tracy\IBarPanel
 
 			$res['routes'][] = (object) [
 				'matched' => $matched,
-				'class' => $innerRouter::class,
+				'class' => get_class($innerRouter),
 				'defaults' => $innerRouter instanceof Routing\Route || $innerRouter instanceof Routing\SimpleRouter ? $innerRouter->getDefaults() : [],
 				'mask' => $innerRouter instanceof Routing\Route ? $innerRouter->getMask() : null,
 				'params' => $params,
@@ -122,7 +133,8 @@ final class RoutingPanel implements Tracy\IBarPanel
 	}
 
 
-	private function findSource(): \ReflectionClass|\ReflectionMethod|null
+	/** @return \ReflectionClass|\ReflectionMethod|null */
+	private function findSource()
 	{
 		$params = $this->matched;
 		$presenter = $params['presenter'] ?? '';

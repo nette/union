@@ -14,20 +14,22 @@ use Nette;
 
 /**
  * Helpers for Presenter & Component.
- * @property-deprecated string $name
- * @property-deprecated string $fileName
+ * @property-read string $name
+ * @property-read string $fileName
  * @internal
  */
 final class ComponentReflection extends \ReflectionClass
 {
-	/** getPersistentParams cache */
-	private static array $ppCache = [];
+	use Nette\SmartObject;
 
-	/** getPersistentComponents cache */
-	private static array $pcCache = [];
+	/** @var array getPersistentParams cache */
+	private static $ppCache = [];
 
-	/** isMethodCallable cache */
-	private static array $mcCache = [];
+	/** @var array getPersistentComponents cache */
+	private static $pcCache = [];
+
+	/** @var array isMethodCallable cache */
+	private static $mcCache = [];
 
 
 	/**
@@ -42,19 +44,20 @@ final class ComponentReflection extends \ReflectionClass
 
 		$params = [];
 		$isPresenter = $this->isSubclassOf(Presenter::class);
+		$defaults = $this->getDefaultProperties();
 		foreach ($this->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
 			if ($prop->isStatic()) {
 				continue;
-			} elseif (
-				self::parseAnnotation($prop, 'persistent')
-				|| $prop->getAttributes(Nette\Application\Attributes\Persistent::class)
+			} elseif (self::parseAnnotation($prop, 'persistent')
+				|| (PHP_VERSION_ID >= 80000 && $prop->getAttributes(Nette\Application\Attributes\Persistent::class))
 			) {
+				$default = $defaults[$prop->getName()] ?? null;
 				$params[$prop->getName()] = [
-					'def' => $prop->getDefaultValue(),
-					'type' => self::getType($prop),
+					'def' => $default,
+					'type' => self::getPropertyType($prop, $default),
 					'since' => $isPresenter ? Nette\Utils\Reflection::getPropertyDeclaringClass($prop)->getName() : null,
 				];
-			} elseif ($prop->getAttributes(Nette\Application\Attributes\Parameter::class)) {
+			} elseif (PHP_VERSION_ID >= 80000 && $prop->getAttributes(Nette\Application\Attributes\Parameter::class)) {
 				$params[$prop->getName()] = [
 					'type' => (string) ($prop->getType() ?? 'mixed'),
 				];
@@ -81,7 +84,9 @@ final class ComponentReflection extends \ReflectionClass
 	 */
 	public function getPersistentParams(): array
 	{
-		return array_filter($this->getParameters(), fn($param) => array_key_exists('since', $param));
+		return array_filter($this->getParameters(), function ($param) {
+			return array_key_exists('since', $param);
+		});
 	}
 
 
@@ -112,7 +117,7 @@ final class ComponentReflection extends \ReflectionClass
 	 */
 	public function saveState(Component $component, array &$params): void
 	{
-		$tree = self::getClassesAndTraits($component::class);
+		$tree = self::getClassesAndTraits(get_class($component));
 
 		foreach ($this->getPersistentParams() as $name => $meta) {
 			if (isset($params[$name])) {
@@ -135,7 +140,7 @@ final class ComponentReflection extends \ReflectionClass
 					$name,
 					$component instanceof Presenter ? 'presenter ' . $component->getName() : "component '{$component->getUniqueId()}'",
 					$meta['type'],
-					get_debug_type($params[$name]),
+					is_object($params[$name]) ? get_class($params[$name]) : gettype($params[$name])
 				));
 			}
 
@@ -172,7 +177,7 @@ final class ComponentReflection extends \ReflectionClass
 		$res = [];
 		foreach ($method->getParameters() as $i => $param) {
 			$name = $param->getName();
-			$type = self::getType($param);
+			$type = self::getParameterType($param);
 			if (isset($args[$name])) {
 				$res[$i] = $args[$name];
 				if (!self::convertType($res[$i], $type)) {
@@ -181,7 +186,7 @@ final class ComponentReflection extends \ReflectionClass
 						$name,
 						($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName(),
 						$type,
-						get_debug_type($args[$name]),
+						is_object($args[$name]) ? get_class($args[$name]) : gettype($args[$name])
 					));
 				}
 			} elseif ($param->isDefaultValueAvailable()) {
@@ -194,7 +199,7 @@ final class ComponentReflection extends \ReflectionClass
 				throw new Nette\InvalidArgumentException(sprintf(
 					'Missing parameter $%s required by %s()',
 					$name,
-					($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName(),
+					($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName()
 				));
 			}
 		}
@@ -208,18 +213,24 @@ final class ComponentReflection extends \ReflectionClass
 	 */
 	public static function convertType(&$val, string $types): bool
 	{
-		$scalars = ['string' => 1, 'int' => 1, 'float' => 1, 'bool' => 1, 'true' => 1, 'false' => 1];
+		$scalars = ['string' => 1, 'int' => 1, 'float' => 1, 'bool' => 1, 'true' => 1, 'false' => 1, 'boolean' => 1, 'double' => 1, 'integer' => 1];
 		$testable = ['iterable' => 1, 'object' => 1, 'array' => 1, 'null' => 1];
 
 		foreach (explode('|', ltrim($types, '?')) as $type) {
-			if (match (true) {
-				isset($scalars[$type]) => self::castScalar($val, $type),
-				isset($testable[$type]) => "is_$type"($val),
-				$type === 'scalar' => !is_array($val), // special type due to historical reasons
-				$type === 'mixed' => true,
-				$type === 'callable' => false, // intentionally disabled for security reasons
-				default => $val instanceof $type,
-			}) {
+			if (isset($scalars[$type])) {
+				$ok = self::castScalar($val, $type);
+			} elseif (isset($testable[$type])) {
+				$ok = call_user_func("is_$type", $val);
+			} elseif ($type === 'scalar') { // special type due to historical reasons
+				$ok = !is_array($val);
+			} elseif ($type === 'mixed') {
+				$ok = true;
+			} elseif ($type === 'callable') { // intentionally disabled for security reasons
+				$ok = false;
+			} else {
+				$ok = $val instanceof $type;
+			}
+			if ($ok) {
 				return true;
 			}
 		}
@@ -238,7 +249,7 @@ final class ComponentReflection extends \ReflectionClass
 		}
 
 		$tmp = ($val === false ? '0' : (string) $val);
-		if ($type === 'float') {
+		if ($type === 'double' || $type === 'float') {
 			$tmp = preg_replace('#\.0*$#D', '', $tmp);
 		}
 
@@ -256,6 +267,7 @@ final class ComponentReflection extends \ReflectionClass
 
 	/**
 	 * Returns an annotation value.
+	 * @param  \ReflectionClass|\ReflectionMethod  $ref
 	 */
 	public static function parseAnnotation(\Reflector $ref, string $name): ?array
 	{
@@ -277,15 +289,22 @@ final class ComponentReflection extends \ReflectionClass
 	}
 
 
-	public static function getType(\ReflectionParameter|\ReflectionProperty $item): string
+	public static function getParameterType(\ReflectionParameter $param): string
 	{
-		if ($type = $item->getType()) {
-			return (string) $type;
-		}
-		$default = $item instanceof \ReflectionProperty || $item->isDefaultValueAvailable()
-			? $item->getDefaultValue()
-			: null;
-		return $default === null ? 'scalar' : get_debug_type($default);
+		$default = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
+		$type = $param->getType();
+		return $type
+			? ($type instanceof \ReflectionNamedType ? $type->getName() : (string) $type)
+			: ($default === null ? 'scalar' : gettype($default));
+	}
+
+
+	public static function getPropertyType(\ReflectionProperty $prop, $default): string
+	{
+		$type = PHP_VERSION_ID < 70400 ? null : $prop->getType();
+		return $type
+			? ($type instanceof \ReflectionNamedType ? $type->getName() : (string) $type)
+			: ($default === null ? 'scalar' : gettype($default));
 	}
 
 
@@ -300,8 +319,9 @@ final class ComponentReflection extends \ReflectionClass
 
 	/**
 	 * Returns an annotation value.
+	 * @return mixed
 	 */
-	public function getAnnotation(string $name): mixed
+	public function getAnnotation(string $name)
 	{
 		$res = self::parseAnnotation($this, $name);
 		return $res ? end($res) : null;
@@ -346,3 +366,6 @@ final class ComponentReflection extends \ReflectionClass
 		return $res;
 	}
 }
+
+
+class_exists(PresenterComponentReflection::class);

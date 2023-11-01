@@ -16,7 +16,7 @@ require __DIR__ . '/Route.php';
 
 $route = new Route('<presenter>', [
 	'presenter' => [
-		Route::FilterTable => [
+		Route::FILTER_TABLE => [
 			'produkt' => 'Product',
 			'kategorie' => 'Category',
 			'zakaznik' => 'Customer',
