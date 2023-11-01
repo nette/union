@@ -73,20 +73,8 @@ class DateTime extends \DateTime implements \JsonSerializable
 		float $second = 0.0,
 	): static
 	{
-		$s = sprintf('%04d-%02d-%02d %02d:%02d:%02.5F', $year, $month, $day, $hour, $minute, $second);
-		if (
-			!checkdate($month, $day, $year)
-			|| $hour < 0
-			|| $hour > 23
-			|| $minute < 0
-			|| $minute > 59
-			|| $second < 0
-			|| $second >= 60
-		) {
-			throw new Nette\InvalidArgumentException("Invalid date '$s'");
-		}
-
-		return new static($s);
+		self::check($year, $month, $day, $hour, $minute, $second);
+		return new static(sprintf('%04d-%02d-%02d %02d:%02d:%02.5F', $year, $month, $day, $hour, $minute, $second));
 	}
 
 
@@ -95,7 +83,7 @@ class DateTime extends \DateTime implements \JsonSerializable
 	 */
 	public static function createFromFormat(
 		string $format,
-		string $time,
+		string $datetime,
 		string|\DateTimeZone|null $timezone = null,
 	): static|false
 	{
@@ -106,8 +94,36 @@ class DateTime extends \DateTime implements \JsonSerializable
 			$timezone = new \DateTimeZone($timezone);
 		}
 
-		$date = parent::createFromFormat($format, $time, $timezone);
+		$date = parent::createFromFormat($format, $datetime, $timezone);
 		return $date ? static::from($date) : false;
+	}
+
+
+	/**
+	 * Throws an exception if the date and time are not valid.
+	 */
+	public static function check(
+		int $year = 1,
+		int $month = 1,
+		int $day = 1,
+		int $hour = 0,
+		int $minute = 0,
+		float $second = 0,
+		int $microsecond = 0,
+	): void
+	{
+		$microsecond2 = round($second * 1_000_000) % 1_000_000 + $microsecond;
+		match (true) {
+			$month < 1 || $month > 12 => throw new Nette\InvalidArgumentException("Month value ($month) is out of range."),
+			$day < 1 || $day > 31 => throw new Nette\InvalidArgumentException("Day value ($day) is out of range."),
+			$hour < 0 || $hour > 23 => throw new Nette\InvalidArgumentException("Hour value ($hour) is out of range."),
+			$minute < 0 || $minute > 59 => throw new Nette\InvalidArgumentException("Minute value ($minute) is out of range."),
+			$second < 0 || $second >= 60 => throw new Nette\InvalidArgumentException("Second value ($second) is out of range."),
+			$microsecond < 0 || $microsecond >= 1_000_000 => throw new Nette\InvalidArgumentException("Microsecond value ($microsecond) is out of range."),
+			$microsecond2 >= 1_000_000 => throw new Nette\InvalidArgumentException("Combination of second and microsecond ($microsecond2) is out of range."),
+			!checkdate($month, $day, $year) => throw new Nette\InvalidArgumentException('The date ' . sprintf('%04d-%02d-%02d', $year, $month, $day) . ' is not valid.'),
+			default => null,
+		};
 	}
 
 
