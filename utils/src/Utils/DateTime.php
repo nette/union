@@ -127,6 +127,30 @@ class DateTime extends \DateTime implements \JsonSerializable
 	}
 
 
+	public function __construct(string $datetime = 'now', ?\DateTimeZone $timezone = null)
+	{
+		parent::__construct($datetime, $timezone);
+		$errors = self::getLastErrors();
+		if ($errors && $errors['warnings']) {
+			throw new Nette\InvalidArgumentException(Arrays::first($errors['warnings']) . " '$datetime'");
+		}
+	}
+
+
+	public function setDate(int $year, int $month, int $day): static
+	{
+		self::check($year, $month, $day);
+		return parent::setDate($year, $month, $day);
+	}
+
+
+	public function setTime(int $hour, int $minute, int $second = 0, int $microsecond = 0): static
+	{
+		self::check(hour: $hour, minute: $minute, second: $second, microsecond: $microsecond);
+		return parent::setTime($hour, $minute, $second, $microsecond);
+	}
+
+
 	/**
 	 * Returns JSON representation in ISO 8601 (used by JavaScript).
 	 */
