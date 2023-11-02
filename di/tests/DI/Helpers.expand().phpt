@@ -32,29 +32,29 @@ Assert::same(
 	Helpers::expand('%keyA%', [
 		'keyA' => ['key1' => 123, 'key2' => '%keyB%'],
 		'keyB' => 'abc',
-	], true)
+	], recursive: true),
 );
 Assert::same( // no double expand
 	'%foo%',
-	Helpers::expand('%string%', ['string' => '%%foo%'], true)
+	Helpers::expand('%string%', ['string' => '%%foo%'], true),
 );
 Assert::same( // no double expand
 	'%foo%',
 	Helpers::expand('%ref.a%', [
 		'ref' => '%array%',
 		'array' => ['a' => '%%foo%'],
-	], true)
+	], true),
 );
 
 Assert::equal(new PhpLiteral('func()'), Helpers::expand('%key%', ['key' => new PhpLiteral('func()')]));
 
 Assert::equal(
 	new DynamicParameter("func()['foo']"),
-	Helpers::expand('%key.foo%', ['key' => new DynamicParameter('func()')])
+	Helpers::expand('%key.foo%', ['key' => new DynamicParameter('func()')]),
 );
 Assert::equal(
 	new Statement('::implode', ['', ['text', new DynamicParameter('func()'), '']]),
-	Helpers::expand('text%key%', ['key' => new DynamicParameter('func()')])
+	Helpers::expand('text%key%', ['key' => new DynamicParameter('func()')]),
 );
 
 
@@ -79,5 +79,5 @@ Assert::exception(function () {
 
 
 Assert::same(['key1' => 'hello', 'key2' => '*%key1%*'], Helpers::expand('%parameters%', ['key1' => 'hello', 'key2' => '*%key1%*']));
-Assert::same(['key1' => 'hello', 'key2' => '*hello*'], Helpers::expand('%parameters%', ['key1' => 'hello', 'key2' => '*%key1%*'], true));
+Assert::same(['key1' => 'hello', 'key2' => '*hello*'], Helpers::expand('%parameters%', ['key1' => 'hello', 'key2' => '*%key1%*'], recursive: true));
 Assert::same('own', Helpers::expand('%parameters%', ['key1' => 'hello', 'key2' => '*%key1%*', 'parameters' => 'own']));

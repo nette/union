@@ -43,7 +43,7 @@ $container = createContainer($builder);
 
 Assert::type(Service::class, $container->getByType(Service::class));
 
-Assert::null($container->getByType(Child::class, false));
+Assert::null($container->getByType(Child::class, throw: false));
 
 Assert::type(Service2::class, $container->getByType(Service2::class));
 
@@ -51,7 +51,7 @@ Assert::exception(function () use ($container) {
 	$container->getByType(stdClass::class);
 }, Nette\DI\MissingServiceException::class, 'Multiple services of type stdClass found: one, two.');
 
-Assert::null($container->getByType('unknown', false));
+Assert::null($container->getByType('unknown', throw: false));
 
 Assert::exception(function () use ($container) {
 	$container->getByType('unknown');

@@ -154,6 +154,6 @@ test('Not circular reference', function () {
 
 	Assert::same(
 		['array' => ['foo' => 'foo', 'bar' => 'foo']],
-		$container->getParameters()
+		$container->getParameters(),
 	);
 });
