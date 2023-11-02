@@ -16,6 +16,12 @@ namespace Nette\Http;
  */
 interface IResponse
 {
+	/** @deprecated */
+	public const PERMANENT = 2116333333;
+
+	/** @deprecated */
+	public const BROWSER = 0;
+
 	/** HTTP 1.1 response code */
 	public const
 		S100_Continue = 100,
@@ -337,8 +343,9 @@ interface IResponse
 
 	/**
 	 * Sets HTTP response code.
+	 * @return static
 	 */
-	function setCode(int $code, ?string $reason = null): static;
+	function setCode(int $code, ?string $reason = null);
 
 	/**
 	 * Returns HTTP response code.
@@ -347,18 +354,21 @@ interface IResponse
 
 	/**
 	 * Sends a HTTP header and replaces a previous one.
+	 * @return static
 	 */
-	function setHeader(string $name, string $value): static;
+	function setHeader(string $name, string $value);
 
 	/**
 	 * Adds HTTP header.
+	 * @return static
 	 */
-	function addHeader(string $name, string $value): static;
+	function addHeader(string $name, string $value);
 
 	/**
 	 * Sends a Content-type HTTP header.
+	 * @return static
 	 */
-	function setContentType(string $type, ?string $charset = null): static;
+	function setContentType(string $type, ?string $charset = null);
 
 	/**
 	 * Redirects to a new URL.
@@ -367,8 +377,9 @@ interface IResponse
 
 	/**
 	 * Sets the time (like '20 minutes') before a page cached on a browser expires, null means "must-revalidate".
+	 * @return static
 	 */
-	function setExpiration(?string $expire): static;
+	function setExpiration(?string $expire);
 
 	/**
 	 * Checks if headers have been sent.
@@ -387,25 +398,21 @@ interface IResponse
 
 	/**
 	 * Sends a cookie.
+	 * @param  string|int|\DateTimeInterface $expire  time, value null means "until the browser session ends"
+	 * @return static
 	 */
 	function setCookie(
 		string $name,
 		string $value,
-		?int $expire,
+		$expire,
 		?string $path = null,
 		?string $domain = null,
-		bool $secure = false,
-		bool $httpOnly = true,
-		string $sameSite = self::SameSiteLax,
-	): static;
+		?bool $secure = null,
+		?bool $httpOnly = null
+	);
 
 	/**
 	 * Deletes a cookie.
 	 */
-	function deleteCookie(
-		string $name,
-		?string $path = null,
-		?string $domain = null,
-		bool $secure = false,
-	);
+	function deleteCookie(string $name, ?string $path = null, ?string $domain = null, ?bool $secure = null);
 }

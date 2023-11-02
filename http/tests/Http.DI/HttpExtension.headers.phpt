@@ -21,12 +21,13 @@ $compiler = new DI\Compiler;
 $compiler->addExtension('http', new HttpExtension);
 $loader = new DI\Config\Loader;
 $config = $loader->load(Tester\FileMock::create(<<<'EOD'
-	http:
-		headers:
-			A: b
-			C:
-			D: 0
-	EOD, 'neon'));
+http:
+	headers:
+		A: b
+		C:
+		D: 0
+EOD
+	, 'neon'));
 
 eval($compiler->addConfig($config)->compile());
 
@@ -47,8 +48,6 @@ echo str_repeat(' ', ini_get('output_buffering') + 1);
 
 Assert::true(headers_sent());
 
-Assert::exception(
-	fn() => $container->initialize(),
-	Nette\InvalidStateException::class,
-	'Cannot send header after %a%',
-);
+Assert::exception(function () use ($container) {
+	$container->initialize();
+}, Nette\InvalidStateException::class, 'Cannot send header after %a%');

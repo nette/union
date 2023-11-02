@@ -21,4 +21,9 @@ $session->setOptions([
 
 $session->start();
 
-Assert::contains('Set-Cookie: PHPSESSID=' . $session->getId() . '; path=/; HttpOnly; SameSite=Lax', headers_list());
+Assert::contains(
+	PHP_VERSION_ID >= 70300
+		? 'Set-Cookie: PHPSESSID=' . $session->getId() . '; path=/; HttpOnly; SameSite=Lax'
+		: 'Set-Cookie: PHPSESSID=' . $session->getId() . '; path=/; SameSite=Lax; HttpOnly',
+	headers_list()
+);

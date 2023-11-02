@@ -24,6 +24,8 @@ $container->initialize();
 
 $headers = headers_list();
 Assert::contains(
-	'Set-Cookie: _nss=1; path=/; HttpOnly; SameSite=Strict',
-	$headers,
+	PHP_VERSION_ID >= 70300
+		? 'Set-Cookie: _nss=1; path=/; HttpOnly; SameSite=Strict'
+		: 'Set-Cookie: _nss=1; path=/; SameSite=Strict; HttpOnly',
+	$headers
 );

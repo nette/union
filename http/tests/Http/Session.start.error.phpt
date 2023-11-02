@@ -18,7 +18,6 @@ ini_set('session.gc_probability', '0');
 
 $session = new Session(new Nette\Http\Request(new Nette\Http\UrlScript), new Nette\Http\Response);
 
-Assert::exception(
-	fn() => $session->start(),
-	Nette\InvalidStateException::class,
-);
+Assert::exception(function () use ($session) {
+	$session->start();
+}, Nette\InvalidStateException::class);

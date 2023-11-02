@@ -31,8 +31,7 @@ Assert::true(file_exists(getTempDir() . '/sess_' . $session->getId()));
 
 $session->close();
 $session->setOptions(['autoStart' => false]);
-Assert::error(
-	fn() => $session->autoStart(true),
-	E_USER_WARNING,
-);
+Assert::error(function () use ($session) {
+	$session->autoStart(true);
+}, E_USER_WARNING);
 Assert::false($session->isStarted());
