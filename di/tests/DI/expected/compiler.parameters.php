@@ -34,26 +34,20 @@ class Container extends Nette\DI\Container
 
 	protected function getDynamicParameter(string|int $key): mixed
 	{
-		switch (true) {
-			case $key === 'dynamic': return 123;
-			case $key === 'dynamicArray': return [
+		return match($key) {
+			'dynamic' => 123,
+			'dynamicArray' => [
 			'dynamic' => $this->getParameter('dynamic'),
 			'inner' => $this->getParameter('dynamic')['foo'],
 			'expr' => trim(' a '),
-		];
-			case $key === 'arrayDynamic': return [
-			'dynamic' => $this->getParameter('dynamic'),
-			'inner' => $this->getParameter('dynamic')['foo'],
-		];
-			case $key === 'refDynamic': return $this->getParameter('dynamic');
-			case $key === 'refDynamic2': return $this->getParameter('dynamic')['foo'];
-			case $key === 'refArrayD1': return [
-			'dynamic' => $this->getParameter('dynamic'),
-			'inner' => $this->getParameter('dynamic')['foo'],
-		];
-			case $key === 'refArrayD2': return $this->getParameter('dynamic');
-			case $key === 'refArrayD3': return $this->getParameter('dynamic')['foo'];
-			default: return parent::getDynamicParameter($key);
+		],
+			'arrayDynamic' => ['dynamic' => $this->getParameter('dynamic'), 'inner' => $this->getParameter('dynamic')['foo']],
+			'refDynamic' => $this->getParameter('dynamic'),
+			'refDynamic2' => $this->getParameter('dynamic')['foo'],
+			'refArrayD1' => ['dynamic' => $this->getParameter('dynamic'), 'inner' => $this->getParameter('dynamic')['foo']],
+			'refArrayD2' => $this->getParameter('dynamic'),
+			'refArrayD3' => $this->getParameter('dynamic')['foo'],
+			default => parent::getDynamicParameter($key),
 		};
 	}
 
