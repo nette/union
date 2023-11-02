@@ -57,7 +57,7 @@ final class SnippetRuntime
 			($this->nestingLevel === 0 && $this->control->isControlInvalid($name))
 			|| ($type === self::TypeDynamic && ($previous = end($this->stack)) && $previous[1] === true)
 		) {
-			ob_start(function () {});
+			ob_start(fn() => null);
 			$this->nestingLevel = $type === self::TypeArea ? 0 : 1;
 			$obStarted = true;
 		} elseif ($this->nestingLevel > 0) {
@@ -68,7 +68,7 @@ final class SnippetRuntime
 		if ($type !== self::TypeArea) {
 			$this->control->snippetMode = false;
 		}
-		$this->control->redrawControl($name, false);
+		$this->control->redrawControl($name, redraw: false);
 	}
 
 
