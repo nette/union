@@ -41,9 +41,11 @@ test('Statement as parameter', function () {
 
 	Assert::same([], $container->parameters);
 	Assert::same([], $container->getParameters());
-	Assert::exception(function () use ($container) {
-		$container->getParameter('bar');
-	}, Nette\InvalidStateException::class, "Parameter 'bar' not found. Check if 'di › export › parameters' is enabled.");
+	Assert::exception(
+		fn() => $container->getParameter('bar'),
+		Nette\InvalidStateException::class,
+		"Parameter 'bar' not found. Check if 'di › export › parameters' is enabled.",
+	);
 	Assert::same('a', $container->getService('one')->arg);
 });
 
