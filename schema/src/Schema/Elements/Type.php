@@ -26,7 +26,7 @@ final class Type implements Schema
 	/** @var array{?float, ?float} */
 	private array $range = [null, null];
 	private ?string $pattern = null;
-	private bool $merge = false;
+	private bool $merge = true;
 
 
 	public function __construct(string $type)
@@ -75,7 +75,7 @@ final class Type implements Schema
 	/**
 	 * @internal  use arrayOf() or listOf()
 	 */
-	public function items(string|Schema $valueType = 'mixed', string|Schema|null $keyType = null): self
+	public function items(string|Schema $valueType = 'mixed', string|Schema $keyType = null): self
 	{
 		$this->itemsValue = $valueType instanceof Schema
 			? $valueType

@@ -21,7 +21,7 @@ Installation:
 composer require nette/schema
 ```
 
-It requires PHP version 8.1 and supports PHP up to 8.4.
+It requires PHP version 8.1 and supports PHP up to 8.3.
 
 
 [Support Me](https://github.com/sponsors/dg)
@@ -177,7 +177,7 @@ The parameter can also be a schema, so we can write:
 Expect::arrayOf(Expect::bool())
 ```
 
-The default value is an empty array. If you specify a default value and call `mergeDefaults()`, it will be merged with the passed data.
+The default value is an empty array. If you specify a default value, it will be merged with the passed data. This can be disabled using `mergeDefaults(false)`.
 
 
 Enumeration: anyOf()
@@ -486,9 +486,12 @@ You can generate structure schema from the class. Example:
 ```php
 class Config
 {
-	public string $name;
-	public ?string $password;
-	public bool $admin = false;
+	/** @var string */
+	public $name;
+	/** @var string|null */
+	public $password;
+	/** @var bool */
+	public $admin = false;
 }
 
 $schema = Expect::from(new Config);
@@ -500,6 +503,19 @@ $data = [
 $normalized = $processor->process($schema, $data);
 // $normalized instanceof Config
 // $normalized = {'name' => 'jeff', 'password' => null, 'admin' => false}
+```
+
+If you are using PHP 7.4 or higher, you can use native types:
+
+```php
+class Config
+{
+	public string $name;
+	public ?string $password;
+	public bool $admin = false;
+}
+
+$schema = Expect::from(new Config);
 ```
 
 Anonymous classes are also supported:

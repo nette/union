@@ -64,42 +64,30 @@ final class Expect
 	}
 
 
-	public static function from(object|string $object, array $items = []): Structure
+	public static function from(object $object, array $items = []): Structure
 	{
-		$ro = new \ReflectionClass($object);
+		$ro = new \ReflectionObject($object);
 		$props = $ro->hasMethod('__construct')
 			? $ro->getMethod('__construct')->getParameters()
 			: $ro->getProperties();
 
 		foreach ($props as $prop) {
-			\assert($prop instanceof \ReflectionProperty || $prop instanceof \ReflectionParameter);
-			if ($item = &$items[$prop->getName()]) {
-				continue;
-			}
-
-			$item = new Type($propType = (string) (Nette\Utils\Type::fromReflection($prop) ?? 'mixed'));
-			if (class_exists($propType)) {
-				$item = static::from($propType);
-			}
-
-			$hasDefault = match (true) {
-				$prop instanceof \ReflectionParameter => $prop->isOptional(),
-				is_object($object) => $prop->isInitialized($object),
-				default => $prop->hasDefaultValue(),
-			};
-			if ($hasDefault) {
-				$default = match (true) {
-					$prop instanceof \ReflectionParameter => $prop->getDefaultValue(),
-					is_object($object) => $prop->getValue($object),
-					default => $prop->getDefaultValue(),
-				};
-				if (is_object($default)) {
-					$item = static::from($default);
+			$item = &$items[$prop->getName()];
+			if (!$item) {
+				$type = Helpers::getPropertyType($prop) ?? 'mixed';
+				$item = new Type($type);
+				if ($prop instanceof \ReflectionProperty ? $prop->isInitialized($object) : $prop->isOptional()) {
+					$def = ($prop instanceof \ReflectionProperty ? $prop->getValue($object) : $prop->getDefaultValue());
+					if (is_object($def)) {
+						$item = static::from($def);
+					} elseif ($def === null && !Nette\Utils\Validators::is(null, $type)) {
+						$item->required();
+					} else {
+						$item->default($def);
+					}
 				} else {
-					$item->default($default);
+					$item->required();
 				}
-			} else {
-				$item->required();
 			}
 		}
 
@@ -107,7 +95,7 @@ final class Expect
 	}
 
 
-	public static function arrayOf(string|Schema $valueType, string|Schema|null $keyType = null): Type
+	public static function arrayOf(string|Schema $valueType, string|Schema $keyType = null): Type
 	{
 		return (new Type('array'))->items($valueType, $keyType);
 	}

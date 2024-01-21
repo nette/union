@@ -14,18 +14,24 @@ interface Schema
 {
 	/**
 	 * Normalization.
+	 * @return mixed
 	 */
-	function normalize(mixed $value, Context $context): mixed;
+	function normalize(mixed $value, Context $context);
 
 	/**
 	 * Merging.
+	 * @return mixed
 	 */
-	function merge(mixed $value, mixed $base): mixed;
+	function merge(mixed $value, mixed $base);
 
 	/**
 	 * Validation and finalization.
+	 * @return mixed
 	 */
-	function complete(mixed $value, Context $context): mixed;
+	function complete(mixed $value, Context $context);
 
-	function completeDefault(Context $context): mixed;
+	/**
+	 * @return mixed
+	 */
+	function completeDefault(Context $context);
 }
