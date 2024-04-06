@@ -13,6 +13,6 @@ use Attribute;
 
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Parameter
+class Parameter
 {
 }

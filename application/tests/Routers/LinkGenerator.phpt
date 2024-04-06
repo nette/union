@@ -6,9 +6,7 @@
 
 declare(strict_types=1);
 
-namespace App\UI\Homepage {
-
-	use Nette;
+namespace {
 
 	require __DIR__ . '/../bootstrap.php';
 
@@ -26,7 +24,7 @@ namespace App\UI\Homepage {
 
 }
 
-namespace App\UI\Module\My {
+namespace ModuleModule {
 
 	use Nette;
 
@@ -67,7 +65,7 @@ namespace {
 	Assert::exception(function () use ($pf) {
 		$generator = new LinkGenerator(new Routers\SimpleRouter, new Http\UrlScript('http://nette.org/en/'), $pf);
 		$generator->link('default');
-	}, LogicException::class, "Presenter must be specified in 'default'.");
+	}, Nette\Application\UI\InvalidLinkException::class, "Invalid link destination 'default'.");
 
 
 	Assert::exception(function () use ($pf) {
@@ -79,7 +77,7 @@ namespace {
 	Assert::exception(function () use ($pf) {
 		$generator = new LinkGenerator(new Routers\Route('/', 'Homepage:'), new Http\UrlScript('http://nette.org/en/'), $pf);
 		$generator->link('Homepage:missing', [10]);
-	}, Nette\Application\UI\InvalidLinkException::class, "Unable to pass parameters to action 'Homepage:missing', missing corresponding method App\\UI\\Homepage\\HomepagePresenter::renderMissing().");
+	}, Nette\Application\UI\InvalidLinkException::class, "Unable to pass parameters to action 'Homepage:missing', missing corresponding method.");
 
 
 	test('', function () {

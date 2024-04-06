@@ -7,7 +7,6 @@
 declare(strict_types=1);
 
 use Nette\Application;
-use Nette\Application\Attributes\Persistent;
 use Nette\Http;
 use Tester\Assert;
 
@@ -17,11 +16,11 @@ require __DIR__ . '/../bootstrap.php';
 
 class TestControl extends Application\UI\Control
 {
-	#[Persistent]
-	public array $order = [];
+	/** @persistent array */
+	public $order = [];
 
-	#[Persistent]
-	public int $round = 0;
+	/** @persistent int */
+	public $round = 0;
 
 
 	public function handleClick($x, $y)
@@ -51,22 +50,22 @@ class TestControl extends Application\UI\Control
 
 class TestPresenter extends Application\UI\Presenter
 {
-	#[Persistent]
+	/** @persistent */
 	public $p;
 
-	#[Persistent]
+	/** @persistent */
 	public $pint = 10;
 
-	#[Persistent]
+	/** @persistent */
 	public $parr = [];
 
-	#[Persistent]
+	/** @persistent */
 	public $pbool = true;
 
-	#[Persistent]
+	/** @persistent */
 	public array $parrn;
 
-	#[Persistent]
+	/** @persistent */
 	public ?bool $pbooln = null;
 
 
@@ -87,7 +86,7 @@ class TestPresenter extends Application\UI\Presenter
 		Assert::same('/index.php?sort%5By%5D%5Basc%5D=1&action=default&presenter=Test', $this->link('this', ['sort' => ['y' => ['asc' => true]]]));
 		Assert::same(['sort' => ['y' => ['asc' => true]], 'pint' => null, 'parr' => null, 'pbool' => null, 'mycontrol-order' => null, 'mycontrol-round' => null, 'action' => 'default'], $this->getLastCreatedRequest()->getParameters());
 
-		Assert::same("#error: Unable to pass parameters to action 'Test:product', missing corresponding method TestPresenter::renderProduct().", $this->link('product', 1));
+		Assert::same("#error: Unable to pass parameters to action 'Test:product', missing corresponding method.", $this->link('product', 1));
 		Assert::same('/index.php?a=1&action=product&presenter=Test', $this->link('product', ['a' => 1]));
 		Assert::same('#error: Passed more parameters than method TestPresenter::actionParams() expects.', $this->link('params', 1, 2, 3, 4, 5));
 
@@ -295,7 +294,7 @@ class TestPresenter extends Application\UI\Presenter
 
 class OtherPresenter extends TestPresenter
 {
-	#[Persistent]
+	/** @persistent */
 	public $p = 20;
 }
 

@@ -125,7 +125,7 @@ class Form extends Nette\Forms\Form implements SignalReceiver
 	}
 
 
-	protected function beforeRender(): void
+	protected function beforeRender()
 	{
 		parent::beforeRender();
 		$key = ($this->isMethod('post') ? '_' : '') . Presenter::SignalKey;

@@ -11,6 +11,10 @@ use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
+}
+
 
 class MyExtension extends Latte\Extension
 {
@@ -62,8 +66,6 @@ $extensions = Assert::with($latte, fn() => $this->extensions);
 Assert::equal([
 	new Latte\Essential\CoreExtension,
 	new Latte\Sandbox\SandboxExtension,
-	new Nette\Bridges\ApplicationLatte\UIExtension(null),
-	new Nette\Bridges\FormsLatte\FormsExtension,
 	new MyExtension,
 	new MyExtension(1),
 	new MyExtension(2),

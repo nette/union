@@ -20,6 +20,7 @@ final class PresenterFactoryCallback
 {
 	public function __construct(
 		private readonly Nette\DI\Container $container,
+		private readonly int $invalidLinkMode,
 		private readonly ?string $touchToRefresh,
 	) {
 	}
@@ -29,23 +30,36 @@ final class PresenterFactoryCallback
 	{
 		$services = $this->container->findByType($class);
 		if (count($services) > 1) {
-			$services = array_values(array_filter($services, fn($service) => $this->container->getServiceType($service) === $class));
-			if (count($services) > 1) {
-				throw new Nette\Application\InvalidPresenterException("Multiple services of type $class found: " . implode(', ', $services) . '.');
+			$exact = array_keys(array_map($this->container->getServiceType(...), $services), $class, strict: true);
+			if (count($exact) === 1) {
+				return $this->container->createService($services[$exact[0]]);
 			}
+
+			throw new Nette\Application\InvalidPresenterException("Multiple services of type $class found: " . implode(', ', $services) . '.');
+
+		} elseif (!$services) {
+			if ($this->touchToRefresh) {
+				touch($this->touchToRefresh);
+			}
+
+			try {
+				$presenter = $this->container->createInstance($class);
+				$this->container->callInjects($presenter);
+			} catch (Nette\DI\MissingServiceException | Nette\DI\ServiceCreationException $e) {
+				if ($this->touchToRefresh && class_exists($class)) {
+					throw new \Exception("Refresh your browser. New presenter $class was found.", 0, $e);
+				}
+
+				throw $e;
+			}
+
+			if ($presenter instanceof Nette\Application\UI\Presenter && !isset($presenter->invalidLinkMode)) {
+				$presenter->invalidLinkMode = $this->invalidLinkMode;
+			}
+
+			return $presenter;
 		}
 
-		if (count($services) === 1) {
-			return $this->container->createService($services[0]);
-		}
-
-		if ($this->touchToRefresh && class_exists($class)) {
-			touch($this->touchToRefresh);
-			echo 'Class ' . htmlspecialchars($class) . ' was not found in DI container.<br><br>If you just created this presenter, it should be enough to refresh the page. It will happen automatically in 5 seconds.<br><br>Otherwise, please check the configuration of your DI container.';
-			header('Refresh: 5');
-			exit;
-		}
-
-		throw new Nette\Application\InvalidPresenterException("No services of type $class found.");
+		return $this->container->createService($services[0]);
 	}
 }

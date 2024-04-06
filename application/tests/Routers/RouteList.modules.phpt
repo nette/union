@@ -6,6 +6,7 @@
 
 declare(strict_types=1);
 
+use Nette\Application\Routers\Route;
 use Nette\Application\Routers\RouteList;
 
 
@@ -15,12 +16,12 @@ require __DIR__ . '/Route.php';
 
 
 $list = new RouteList;
-$list->addRoute('auth/<presenter>[/<action>]', [
+$list[] = new Route('auth/<presenter>[/<action>]', [
 	'module' => 'Auth',
 	'presenter' => 'Homepage',
 	'action' => 'default',
 ]);
-$list->addRoute('<presenter>[/<action>]', [
+$list[] = new Route('<presenter>[/<action>]', [
 	'module' => 'Default',
 	'presenter' => 'Homepage',
 	'action' => 'default',

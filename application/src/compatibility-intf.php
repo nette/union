@@ -9,6 +9,17 @@ declare(strict_types=1);
 
 namespace Nette\Application;
 
+use Nette;
+
+if (false) {
+	/** @deprecated use Nette\Routing\Router */
+	interface IRouter extends Nette\Routing\Router
+	{
+	}
+} elseif (!interface_exists(IRouter::class)) {
+	class_alias(Nette\Routing\Router::class, IRouter::class);
+}
+
 if (false) {
 	/** @deprecated use Nette\Application\Response */
 	interface IResponse extends Response

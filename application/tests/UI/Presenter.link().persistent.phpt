@@ -7,7 +7,6 @@
 declare(strict_types=1);
 
 use Nette\Application;
-use Nette\Application\Attributes\Persistent;
 use Nette\Http;
 use Tester\Assert;
 
@@ -17,13 +16,13 @@ require __DIR__ . '/../bootstrap.php';
 
 trait PersistentParam1
 {
-	#[Persistent]
+	/** @persistent */
 	public $t1;
 }
 
 trait PersistentParam2A
 {
-	#[Persistent]
+	/** @persistent */
 	public $t2;
 }
 
@@ -34,7 +33,7 @@ trait PersistentParam2B
 
 trait PersistentParam3
 {
-	#[Persistent]
+	/** @persistent */
 	public $t3;
 }
 
@@ -42,7 +41,7 @@ class BasePresenter extends Application\UI\Presenter
 {
 	use PersistentParam1;
 
-	#[Persistent]
+	/** @persistent */
 	public $p1;
 }
 
@@ -51,7 +50,7 @@ class TestPresenter extends BasePresenter
 {
 	use PersistentParam2B;
 
-	#[Persistent]
+	/** @persistent */
 	public $p2;
 
 
@@ -82,10 +81,10 @@ class SecondPresenter extends BasePresenter
 {
 	use PersistentParam3;
 
-	#[Persistent]
+	/** @persistent */
 	public $p1 = 20;
 
-	#[Persistent]
+	/** @persistent */
 	public $p3;
 }
 
@@ -98,7 +97,7 @@ class ThirdPresenter extends BasePresenter
 
 class FourthPresenter extends BasePresenter
 {
-	#[Persistent]
+	#[Application\Attributes\Persistent]
 	public $p1;
 }
 

@@ -24,7 +24,7 @@ class TestPresenter extends Application\UI\Presenter
 	}
 
 
-	public function sendResponse(Application\Response $response): never
+	public function sendResponse(Application\Response $response): void
 	{
 		parent::sendResponse($this->response = $response);
 	}
@@ -36,7 +36,7 @@ $presenter->setParent(null, 'test');
 $presenter->injectPrimary(
 	new Http\Request(new Http\UrlScript('http://localhost')),
 	new Http\Response,
-	new Application\PresenterFactory,
+	null,
 	new Application\Routers\SimpleRouter,
 );
 

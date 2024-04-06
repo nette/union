@@ -38,3 +38,6 @@ final class SimpleRouter extends Nette\Routing\SimpleRouter implements Nette\Rou
 		parent::__construct($defaults);
 	}
 }
+
+
+interface_exists(Nette\Application\IRouter::class);

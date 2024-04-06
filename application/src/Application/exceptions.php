@@ -20,11 +20,6 @@ class AbortException extends \LogicException
 {
 }
 
-/** @internal */
-final class SwitchException extends AbortException
-{
-}
-
 
 /**
  * Application fatal error.

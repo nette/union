@@ -95,13 +95,6 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	 */
 	public function offsetSet($index, $router): void
 	{
-		if ($router instanceof Route) {
-			trigger_error('Usage `$router[] = new Route(...)` is deprecated, use `$router->addRoute(...)`.', E_USER_DEPRECATED);
-		} else {
-			$class = getclass($router);
-			trigger_error("Usage `\$router[] = new $class` is deprecated, use `\$router->add(new $class)`.", E_USER_DEPRECATED);
-		}
-
 		if ($index === null) {
 			$this->add($router);
 		} else {
@@ -116,7 +109,6 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	 */
 	public function offsetGet($index): Nette\Routing\Router
 	{
-		trigger_error('Usage `$route = $router[...]` is deprecated, use `$router->getRouters()`.', E_USER_DEPRECATED);
 		if (!$this->offsetExists($index)) {
 			throw new Nette\OutOfRangeException('Offset invalid or out of range');
 		}
@@ -130,7 +122,6 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	 */
 	public function offsetExists($index): bool
 	{
-		trigger_error('Usage `isset($router[...])` is deprecated.', E_USER_DEPRECATED);
 		return is_int($index) && $index >= 0 && $index < count($this->getRouters());
 	}
 
@@ -141,7 +132,6 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 	 */
 	public function offsetUnset($index): void
 	{
-		trigger_error('Usage `unset($router[$index])` is deprecated, use `$router->modify($index, null)`.', E_USER_DEPRECATED);
 		if (!$this->offsetExists($index)) {
 			throw new Nette\OutOfRangeException('Offset invalid or out of range');
 		}
@@ -149,3 +139,6 @@ class RouteList extends Nette\Routing\RouteList implements Nette\Routing\Router,
 		$this->modify($index, null);
 	}
 }
+
+
+interface_exists(Nette\Application\IRouter::class);

@@ -1,18 +1,41 @@
 <?php
 
 /**
- * Test: UIExtension filters
+ * Test: TemplateFactory filters
  */
 
 declare(strict_types=1);
 
+use Nette\Bridges\ApplicationLatte\TemplateFactory;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
+if (version_compare(Latte\Engine::VERSION, '3', '<')) {
+	Tester\Environment::skip('Test for Latte 3');
+}
 
-$latte = new Latte\Engine;
-$latte->addExtension(new Nette\Bridges\ApplicationLatte\UIExtension(null));
+
+class LatteFactory implements Nette\Bridges\ApplicationLatte\LatteFactory
+{
+	private $engine;
+
+
+	public function __construct(Latte\Engine $engine)
+	{
+		$this->engine = $engine;
+	}
+
+
+	public function create(): Latte\Engine
+	{
+		return $this->engine;
+	}
+}
+
+$factory = new TemplateFactory(new LatteFactory(new Latte\Engine));
+$latte = $factory->createTemplate()->getLatte();
+
 
 setlocale(LC_TIME, 'C');
 date_default_timezone_set('Europe/Prague');

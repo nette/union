@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 class ParamPresenter extends Nette\Application\UI\Presenter
 {
-	#[Nette\Application\Attributes\Persistent]
+	/** @persistent */
 	public $bool = true;
 
 

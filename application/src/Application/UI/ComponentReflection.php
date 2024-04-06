@@ -9,26 +9,24 @@ declare(strict_types=1);
 
 namespace Nette\Application\UI;
 
-use Nette\Application\Attributes;
-use Nette\Utils\Reflection;
+use Nette;
 
 
 /**
  * Helpers for Presenter & Component.
- * @property-deprecated string $name
- * @property-deprecated string $fileName
+ * @property-read string $name
+ * @property-read string $fileName
  * @internal
  */
 final class ComponentReflection extends \ReflectionClass
 {
 	private static array $ppCache = [];
 	private static array $pcCache = [];
-	private static array $armCache = [];
+	private static array $mcCache = [];
 
 
 	/**
-	 * Returns array of class properties that are public and have attribute #[Persistent] or #[Parameter].
-	 * @return array<string, array{def: mixed, type: string, since: ?string}>
+	 * Returns array of class properties that are public and have attribute #[Persistent] or #[Parameter] or annotation @persistent.
 	 */
 	public function getParameters(): array
 	{
@@ -44,14 +42,14 @@ final class ComponentReflection extends \ReflectionClass
 				continue;
 			} elseif (
 				self::parseAnnotation($prop, 'persistent')
-				|| $prop->getAttributes(Attributes\Persistent::class)
+				|| $prop->getAttributes(Nette\Application\Attributes\Persistent::class)
 			) {
 				$params[$prop->getName()] = [
 					'def' => $prop->getDefaultValue(),
-					'type' => ParameterConverter::getType($prop),
-					'since' => $isPresenter ? Reflection::getPropertyDeclaringClass($prop)->getName() : null,
+					'type' => self::getType($prop),
+					'since' => $isPresenter ? Nette\Utils\Reflection::getPropertyDeclaringClass($prop)->getName() : null,
 				];
-			} elseif ($prop->getAttributes(Attributes\Parameter::class)) {
+			} elseif ($prop->getAttributes(Nette\Application\Attributes\Parameter::class)) {
 				$params[$prop->getName()] = [
 					'type' => (string) ($prop->getType() ?? 'mixed'),
 				];
@@ -74,8 +72,7 @@ final class ComponentReflection extends \ReflectionClass
 
 
 	/**
-	 * Returns array of persistent properties. They are public and have attribute #[Persistent].
-	 * @return array<string, array{def: mixed, type: string, since: string}>
+	 * Returns array of persistent properties. They are public and have attribute #[Persistent] or annotation @persistent.
 	 */
 	public function getPersistentParams(): array
 	{
@@ -83,11 +80,6 @@ final class ComponentReflection extends \ReflectionClass
 	}
 
 
-	/**
-	 * Returns array of persistent components. They are tagged with class-level attribute
-	 * #[Persistent] or annotation @persistent or returned by Presenter::getPersistentComponents().
-	 * @return array<string, array{since: string}>
-	 */
 	public function getPersistentComponents(): array
 	{
 		$class = $this->getName();
@@ -96,14 +88,12 @@ final class ComponentReflection extends \ReflectionClass
 			return $components;
 		}
 
-		$attrs = $this->getAttributes(Attributes\Persistent::class);
-		$names = $attrs
-			? $attrs[0]->getArguments()
-			: (array) self::parseAnnotation($this, 'persistent');
-		$names = array_merge($names, $class::getPersistentComponents());
-		$components = array_fill_keys($names, ['since' => $class]);
-
+		$components = [];
 		if ($this->isSubclassOf(Presenter::class)) {
+			foreach ($class::getPersistentComponents() as $name => $meta) {
+				$components[is_string($meta) ? $meta : $name] = ['since' => $class];
+			}
+
 			$parent = new self($this->getParentClass()->getName());
 			$components = $parent->getPersistentComponents() + $components;
 		}
@@ -113,43 +103,154 @@ final class ComponentReflection extends \ReflectionClass
 
 
 	/**
+	 * Saves state information for next request.
+	 */
+	public function saveState(Component $component, array &$params): void
+	{
+		$tree = self::getClassesAndTraits($component::class);
+
+		foreach ($this->getPersistentParams() as $name => $meta) {
+			if (isset($params[$name])) {
+				// injected value
+
+			} elseif (
+				array_key_exists($name, $params) // nulls are skipped
+				|| (isset($meta['since']) && !isset($tree[$meta['since']])) // not related
+				|| !isset($component->$name)
+			) {
+				continue;
+
+			} else {
+				$params[$name] = $component->$name; // object property value
+			}
+
+			if (!self::convertType($params[$name], $meta['type'])) {
+				throw new InvalidLinkException(sprintf(
+					"Value passed to persistent parameter '%s' in %s must be %s, %s given.",
+					$name,
+					$component instanceof Presenter ? 'presenter ' . $component->getName() : "component '{$component->getUniqueId()}'",
+					$meta['type'],
+					get_debug_type($params[$name]),
+				));
+			}
+
+			if ($params[$name] === $meta['def'] || ($meta['def'] === null && $params[$name] === '')) {
+				$params[$name] = null; // value transmit is unnecessary
+			}
+		}
+	}
+
+
+	/**
 	 * Is a method callable? It means class is instantiable and method has
 	 * public visibility, is non-static and non-abstract.
 	 */
 	public function hasCallableMethod(string $method): bool
 	{
-		return $this->isInstantiable()
-			&& $this->hasMethod($method)
-			&& ($rm = $this->getMethod($method))
-			&& $rm->isPublic() && !$rm->isAbstract() && !$rm->isStatic();
+		$class = $this->getName();
+		$cache = &self::$mcCache[strtolower($class . ':' . $method)];
+		if ($cache === null) {
+			try {
+				$cache = false;
+				$rm = new \ReflectionMethod($class, $method);
+				$cache = $this->isInstantiable() && $rm->isPublic() && !$rm->isAbstract() && !$rm->isStatic();
+			} catch (\ReflectionException) {
+			}
+		}
+
+		return $cache;
 	}
 
 
-	/** Returns action*() or render*() method if available */
-	public function getActionRenderMethod(string $action): ?\ReflectionMethod
+	public static function combineArgs(\ReflectionFunctionAbstract $method, array $args): array
 	{
-		$class = $this->name;
-		return self::$armCache[$class][$action] ??=
-			$this->hasCallableMethod($name = $class::formatActionMethod($action))
-			|| $this->hasCallableMethod($name = $class::formatRenderMethod($action))
-				? parent::getMethod($name)
-				: null;
+		$res = [];
+		foreach ($method->getParameters() as $i => $param) {
+			$name = $param->getName();
+			$type = self::getType($param);
+			if (isset($args[$name])) {
+				$res[$i] = $args[$name];
+				if (!self::convertType($res[$i], $type)) {
+					throw new Nette\InvalidArgumentException(sprintf(
+						'Argument $%s passed to %s() must be %s, %s given.',
+						$name,
+						($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName(),
+						$type,
+						get_debug_type($args[$name]),
+					));
+				}
+			} elseif ($param->isDefaultValueAvailable()) {
+				$res[$i] = $param->getDefaultValue();
+			} elseif ($type === 'scalar' || $param->allowsNull()) {
+				$res[$i] = null;
+			} elseif ($type === 'array' || $type === 'iterable') {
+				$res[$i] = [];
+			} else {
+				throw new Nette\InvalidArgumentException(sprintf(
+					'Missing parameter $%s required by %s()',
+					$name,
+					($method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' : '') . $method->getName(),
+				));
+			}
+		}
+
+		return $res;
 	}
 
 
-	/** Returns handle*() method if available */
-	public function getSignalMethod(string $signal): ?\ReflectionMethod
+	/**
+	 * Lossless type conversion.
+	 */
+	public static function convertType(mixed &$val, string $types): bool
 	{
-		$class = $this->name;
-		return $this->hasCallableMethod($name = $class::formatSignalMethod($signal))
-			? parent::getMethod($name)
-			: null;
+		$scalars = ['string' => 1, 'int' => 1, 'float' => 1, 'bool' => 1, 'true' => 1, 'false' => 1];
+		$testable = ['iterable' => 1, 'object' => 1, 'array' => 1, 'null' => 1];
+
+		foreach (explode('|', ltrim($types, '?')) as $type) {
+			if (match (true) {
+				isset($scalars[$type]) => self::castScalar($val, $type),
+				isset($testable[$type]) => "is_$type"($val),
+				$type === 'scalar' => !is_array($val), // special type due to historical reasons
+				$type === 'mixed' => true,
+				$type === 'callable' => false, // intentionally disabled for security reasons
+				default => $val instanceof $type,
+			}) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * Lossless type casting.
+	 */
+	private static function castScalar(mixed &$val, string $type): bool
+	{
+		if (!is_scalar($val)) {
+			return false;
+		}
+
+		$tmp = ($val === false ? '0' : (string) $val);
+		if ($type === 'float') {
+			$tmp = preg_replace('#\.0*$#D', '', $tmp);
+		}
+
+		$orig = $tmp;
+		$spec = ['true' => true, 'false' => false];
+		isset($spec[$type]) ? $tmp = $spec[$type] : settype($tmp, $type);
+		if ($orig !== ($tmp === false ? '0' : (string) $tmp)) {
+			return false; // data-loss occurs
+		}
+
+		$val = $tmp;
+		return true;
 	}
 
 
 	/**
 	 * Returns an annotation value.
-	 * @deprecated
 	 */
 	public static function parseAnnotation(\Reflector $ref, string $name): ?array
 	{
@@ -167,20 +268,24 @@ final class ComponentReflection extends \ReflectionClass
 			}
 		}
 
-		$alt = match ($name) {
-			'persistent' => '#[Nette\Application\Attributes\Persistent]',
-			'deprecated' => '#[Nette\Application\Attributes\Deprecated]',
-			'crossOrigin' => '#[Nette\Application\Attributes\Request(sameOrigin: false)]',
-			default => 'alternative'
-		};
-		trigger_error("Annotation @$name is deprecated, use $alt (used in " . Nette\Utils\Reflection::toString($ref) . ')', E_USER_DEPRECATED);
 		return $res;
+	}
+
+
+	public static function getType(\ReflectionParameter|\ReflectionProperty $item): string
+	{
+		if ($type = $item->getType()) {
+			return (string) $type;
+		}
+		$default = $item instanceof \ReflectionProperty || $item->isDefaultValueAvailable()
+			? $item->getDefaultValue()
+			: null;
+		return $default === null ? 'scalar' : get_debug_type($default);
 	}
 
 
 	/**
 	 * Has class specified annotation?
-	 * @deprecated
 	 */
 	public function hasAnnotation(string $name): bool
 	{
@@ -190,7 +295,6 @@ final class ComponentReflection extends \ReflectionClass
 
 	/**
 	 * Returns an annotation value.
-	 * @deprecated
 	 */
 	public function getAnnotation(string $name): mixed
 	{
@@ -218,9 +322,25 @@ final class ComponentReflection extends \ReflectionClass
 	}
 
 
-	/** @deprecated  */
-	public static function combineArgs(\ReflectionFunctionAbstract $method, array $args): array
+	/**
+	 * return string[]
+	 */
+	public static function getClassesAndTraits(string $class): array
 	{
-		return ParameterConverter::toArguments($method, $args);
+		$res = [$class => $class] + class_parents($class);
+		$addTraits = function (string $type) use (&$res, &$addTraits): void {
+			$res += class_uses($type);
+			foreach (class_uses($type) as $trait) {
+				$addTraits($trait);
+			}
+		};
+		foreach ($res as $type) {
+			$addTraits($type);
+		}
+
+		return $res;
 	}
 }
+
+
+class_exists(PresenterComponentReflection::class);
