@@ -15,7 +15,8 @@ const
 	HINT_CTRL = 'Ctrl-Click to open in editor',
 	HINT_ALT = 'Alt-Click to expand/collapse all child nodes';
 
-class Dumper {
+class Dumper
+{
 	static init(context) {
 		// full lazy
 		(context || document).querySelectorAll('[data-tracy-snapshot][data-tracy-dump]').forEach((pre) => { // <pre>
@@ -145,19 +146,19 @@ function build(data, repository, collapsed, parentIds, keyType) {
 		return createEl(null, null, [
 			createEl(
 				'span',
-				{ class: 'tracy-dump-' + type.replace('ean', '') },
-				[data + ''],
-			),
+				{'class': 'tracy-dump-' + type.replace('ean', '')},
+				[data + '']
+			)
 		]);
 
 	} else if (type === 'string') {
 		data = {
 			string: data.replace(/&/g, '&amp;').replace(/</g, '&lt;'),
-			length: [...data].length,
+			length: [...data].length
 		};
 
 	} else if (Array.isArray(data)) {
-		data = { array: null, items: data };
+		data = {array: null, items: data};
 
 	} else if (data.ref) {
 		id = data.ref;
@@ -174,8 +175,8 @@ function build(data, repository, collapsed, parentIds, keyType) {
 			return createEl(null, null, [
 				createEl(
 					'span',
-					{ class: 'tracy-dump-string' },
-					{ html: '<span class="tracy-dump-lq">\'</span>' + s + '<span>\'</span>' },
+					{'class': 'tracy-dump-string'},
+					{html: '<span class="tracy-dump-lq">\'</span>' + s + '<span>\'</span>'}
 				),
 			]);
 
@@ -195,10 +196,10 @@ function build(data, repository, collapsed, parentIds, keyType) {
 				createEl(
 					'span',
 					{
-						class: classes[typeof keyType === 'string' ? PROP_PRIVATE : keyType],
-						title: typeof keyType === 'string' ? 'declared in ' + keyType : null,
+						'class': classes[typeof keyType === 'string' ? PROP_PRIVATE : keyType],
+						'title': typeof keyType === 'string' ? 'declared in ' + keyType : null,
 					},
-					{ html: s },
+					{html: s}
 				),
 			]);
 		}
@@ -207,15 +208,15 @@ function build(data, repository, collapsed, parentIds, keyType) {
 		if (count) {
 			let collapsed = count >= COLLAPSE_COUNT;
 			return createEl(null, null, [
-				createEl('span', { class: collapsed ? 'tracy-toggle tracy-collapsed' : 'tracy-toggle' }, ['string']),
+				createEl('span', {'class': collapsed ? 'tracy-toggle tracy-collapsed' : 'tracy-toggle'}, ['string']),
 				'\n',
 				createEl(
 					'div',
 					{
-						class: 'tracy-dump-string' + (collapsed ? ' tracy-collapsed' : ''),
-						title: data.length + (data.bin ? ' bytes' : ' characters'),
+						'class': 'tracy-dump-string' + (collapsed ? ' tracy-collapsed' : ''),
+						'title': data.length + (data.bin ? ' bytes' : ' characters'),
 					},
-					{ html: '<span class="tracy-dump-lq">\'</span>' + s + '<span>\'</span>' },
+					{html: '<span class="tracy-dump-lq">\'</span>' + s + '<span>\'</span>'}
 				),
 			]);
 		}
@@ -224,21 +225,21 @@ function build(data, repository, collapsed, parentIds, keyType) {
 			createEl(
 				'span',
 				{
-					class: 'tracy-dump-string',
-					title: data.length + (data.bin ? ' bytes' : ' characters'),
+					'class': 'tracy-dump-string',
+					'title': data.length + (data.bin ? ' bytes' : ' characters'),
 				},
-				{ html: '<span>\'</span>' + s + '<span>\'</span>' },
+				{html: '<span>\'</span>' + s + '<span>\'</span>'}
 			),
 		]);
 
 	} else if (data.number) {
 		return createEl(null, null, [
-			createEl('span', { class: 'tracy-dump-number' }, [data.number]),
+			createEl('span', {'class': 'tracy-dump-number'}, [data.number])
 		]);
 
 	} else if (data.text !== undefined) {
 		return createEl(null, null, [
-			createEl('span', { class: 'tracy-dump-virtual' }, [data.text]),
+			createEl('span', {class: 'tracy-dump-virtual'}, [data.text])
 		]);
 
 	} else { // object || resource || array
@@ -249,17 +250,17 @@ function build(data, repository, collapsed, parentIds, keyType) {
 
 		let span = data.array !== undefined
 			? [
-					createEl('span', { class: 'tracy-dump-array' }, ['array']),
-					' (' + (data.length || data.items.length) + ')',
-				]
+				createEl('span', {'class': 'tracy-dump-array'}, ['array']),
+				' (' + (data.length || data.items.length) + ')'
+			]
 			: [
-					createEl('span', {
-						'class': data.object ? 'tracy-dump-object' : 'tracy-dump-resource',
-						'title': data.editor ? 'Declared in file ' + data.editor.file + ' on line ' + data.editor.line + (data.editor.url ? '\n' + HINT_CTRL : '') + '\n' + HINT_ALT : null,
-						'data-tracy-href': data.editor ? data.editor.url : null,
-					}, nameEl),
-					...(id ? [' ', createEl('span', { class: 'tracy-dump-hash' }, [data.resource ? '@' + id.substr(1) : '#' + id])] : []),
-				];
+				createEl('span', {
+					'class': data.object ? 'tracy-dump-object' : 'tracy-dump-resource',
+					title: data.editor ? 'Declared in file ' + data.editor.file + ' on line ' + data.editor.line + (data.editor.url ? '\n' + HINT_CTRL : '') + '\n' + HINT_ALT : null,
+					'data-tracy-href': data.editor ? data.editor.url : null
+				}, nameEl),
+				...(id ? [' ', createEl('span', {'class': 'tracy-dump-hash'}, [data.resource ? '@' + id.substr(1) : '#' + id])] : [])
+			];
 
 		parentIds = parentIds ? parentIds.slice() : [];
 		let recursive = id && parentIds.indexOf(id) > -1;
@@ -271,7 +272,7 @@ function build(data, repository, collapsed, parentIds, keyType) {
 		}
 
 		collapsed = collapsed === true || data.collapsed || (data.items && data.items.length >= collapseCount);
-		let toggle = createEl('span', { class: collapsed ? 'tracy-toggle tracy-collapsed' : 'tracy-toggle' }, span);
+		let toggle = createEl('span', {'class': collapsed ? 'tracy-toggle tracy-collapsed' : 'tracy-toggle'}, span);
 
 		return createEl(null, null, [
 			toggle,
@@ -284,7 +285,7 @@ function build(data, repository, collapsed, parentIds, keyType) {
 
 function buildStruct(data, repository, toggle, collapsed, parentIds) {
 	if (Array.isArray(data)) {
-		data = { items: data };
+		data = {items: data};
 
 	} else if (data.ref) {
 		parentIds = parentIds.slice();
@@ -294,11 +295,11 @@ function buildStruct(data, repository, toggle, collapsed, parentIds) {
 
 	let cut = data.items && data.length > data.items.length;
 	let type = data.object ? TYPE_OBJECT : data.resource ? TYPE_RESOURCE : TYPE_ARRAY;
-	let div = createEl('div', { class: collapsed ? 'tracy-collapsed' : null });
+	let div = createEl('div', {'class': collapsed ? 'tracy-collapsed' : null});
 
 	if (collapsed) {
 		let handler;
-		toggle.addEventListener('tracy-toggle', handler = function () {
+		toggle.addEventListener('tracy-toggle', handler = function() {
 			toggle.removeEventListener('tracy-toggle', handler);
 			createItems(div, data.items, type, repository, parentIds, null);
 			if (cut) {
@@ -350,7 +351,7 @@ function createItems(el, items, type, repository, parentIds, collapsed) {
 		createEl(el, null, [
 			build(key, null, null, null, type === TYPE_ARRAY ? TYPE_ARRAY : vis),
 			type === TYPE_ARRAY ? ' => ' : ': ',
-			...(ref ? [createEl('span', { class: 'tracy-dump-hash' }, ['&' + ref]), ' '] : []),
+			...(ref ? [createEl('span', {'class': 'tracy-dump-hash'}, ['&' + ref]), ' '] : []),
 			tmp = build(val, repository, collapsed, parentIds),
 			tmp.lastElementChild.tagName === 'DIV' ? '' : '\n',
 		]);
@@ -369,7 +370,7 @@ function toggleChildren(cont, usedIds) {
 			Tracy.Toggle.toggle(el, false);
 		} else {
 			usedIds[id] = true;
-			Tracy.Toggle.toggle(el, true, { usedIds: usedIds });
+			Tracy.Toggle.toggle(el, true, {usedIds: usedIds});
 		}
 	});
 }

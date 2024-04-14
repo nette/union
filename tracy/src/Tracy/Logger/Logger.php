@@ -15,22 +15,23 @@ namespace Tracy;
  */
 class Logger implements ILogger
 {
-	/** name of the directory where errors should be logged */
-	public ?string $directory = null;
+	/** @var string|null name of the directory where errors should be logged */
+	public $directory;
 
-	/** email or emails to which send error notifications */
-	public string|array|null $email = null;
+	/** @var string|array|null email or emails to which send error notifications */
+	public $email;
 
-	/** sender of email notifications */
-	public ?string $fromEmail = null;
+	/** @var string|null sender of email notifications */
+	public $fromEmail;
 
-	/** interval for sending email is 2 days */
-	public mixed $emailSnooze = '2 days';
+	/** @var mixed interval for sending email is 2 days */
+	public $emailSnooze = '2 days';
 
 	/** @var callable handler for sending emails */
 	public $mailer;
 
-	private ?BlueScreen $blueScreen = null;
+	/** @var BlueScreen|null */
+	private $blueScreen;
 
 
 	public function __construct(?string $directory, string|array|null $email = null, ?BlueScreen $blueScreen = null)
@@ -77,7 +78,10 @@ class Logger implements ILogger
 	}
 
 
-	public static function formatMessage(mixed $message): string
+	/**
+	 * @param  mixed  $message
+	 */
+	public static function formatMessage($message): string
 	{
 		if ($message instanceof \Throwable) {
 			foreach (Helpers::getExceptionChain($message) as $exception) {
@@ -97,7 +101,10 @@ class Logger implements ILogger
 	}
 
 
-	public static function formatLogLine(mixed $message, ?string $exceptionFile = null): string
+	/**
+	 * @param  mixed  $message
+	 */
+	public static function formatLogLine($message, ?string $exceptionFile = null): string
 	{
 		return implode(' ', [
 			date('[Y-m-d H-i-s]'),
@@ -120,7 +127,7 @@ class Logger implements ILogger
 			];
 		}
 
-		$hash = substr(hash('xxh128', serialize($data)), 0, 10);
+		$hash = substr(md5(serialize($data)), 0, 10);
 		$dir = strtr($this->directory . '/', '\\/', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR);
 		foreach (new \DirectoryIterator($this->directory) as $file) {
 			if (strpos($file->getBasename(), $hash)) {
@@ -145,7 +152,10 @@ class Logger implements ILogger
 	}
 
 
-	protected function sendEmail(mixed $message): void
+	/**
+	 * @param  mixed  $message
+	 */
+	protected function sendEmail($message): void
 	{
 		$snooze = is_numeric($this->emailSnooze)
 			? $this->emailSnooze
@@ -164,9 +174,10 @@ class Logger implements ILogger
 
 	/**
 	 * Default mailer.
+	 * @param  mixed  $message
 	 * @internal
 	 */
-	public function defaultMailer(mixed $message, string $email): void
+	public function defaultMailer($message, string $email): void
 	{
 		$host = preg_replace('#[^\w.-]+#', '', $_SERVER['SERVER_NAME'] ?? php_uname('n'));
 		$parts = str_replace(

@@ -17,7 +17,7 @@ use ErrorException;
  */
 class Debugger
 {
-	public const Version = '3.0-dev';
+	public const Version = '2.10.6';
 
 	/** server modes for Debugger::enable() */
 	public const
@@ -326,7 +326,10 @@ class Debugger
 				$handler($exception);
 			}
 		} catch (\Throwable $e) {
-			self::tryLog($e, self::EXCEPTION);
+			try {
+				self::log($e, self::EXCEPTION);
+			} catch (\Throwable) {
+			}
 		}
 	}
 
@@ -408,7 +411,7 @@ class Debugger
 			self::$bar = new Bar;
 			self::$bar->addPanel($info = new DefaultBarPanel('info'), 'Tracy:info');
 			$info->cpuUsage = self::$cpuUsage;
-			self::$bar->addPanel(new DefaultBarPanel('warnings'), 'Tracy:warnings'); // filled by errorHandler()
+			self::$bar->addPanel(new DefaultBarPanel('errors'), 'Tracy:errors'); // filled by errorHandler()
 		}
 
 		return self::$bar;
@@ -558,17 +561,6 @@ class Debugger
 	public static function log(mixed $message, string $level = ILogger::INFO): mixed
 	{
 		return self::getLogger()->log($message, $level);
-	}
-
-
-	/** @internal */
-	public static function tryLog(mixed $message, string $level = ILogger::INFO): ?\Throwable
-	{
-		try {
-			self::log($message, $level);
-		} catch (\Throwable $e) {
-		}
-		return $e ?? null;
 	}
 
 

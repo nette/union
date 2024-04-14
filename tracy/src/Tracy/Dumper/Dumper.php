@@ -155,7 +155,8 @@ class Dumper
 
 		$sent = true;
 
-		$nonceAttr = Helpers::getNonceAttr();
+		$nonce = Helpers::getNonce();
+		$nonceAttr = $nonce ? ' nonce="' . Helpers::escapeHtml($nonce) . '"' : '';
 		$s = file_get_contents(__DIR__ . '/../assets/toggle.css')
 			. file_get_contents(__DIR__ . '/assets/dumper-light.css')
 			. file_get_contents(__DIR__ . '/assets/dumper-dark.css');

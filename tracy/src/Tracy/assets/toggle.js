@@ -5,7 +5,8 @@
 const MOVE_THRESHOLD = 100;
 
 // enables <a class="tracy-toggle" href="#"> or <span data-tracy-ref="#"> toggling
-class Toggle {
+class Toggle
+{
 	static init() {
 		let start;
 		document.documentElement.addEventListener('mousedown', (e) => {
@@ -24,7 +25,7 @@ class Toggle {
 				e.stopImmediatePropagation();
 			}
 		});
-		Toggle.init = function () {};
+		Toggle.init = function() {};
 	}
 
 
@@ -40,7 +41,7 @@ class Toggle {
 
 		el.dispatchEvent(new CustomEvent('tracy-beforetoggle', {
 			bubbles: true,
-			detail: { collapsed: !expand, originalEvent: e },
+			detail: {collapsed: !expand, originalEvent: e}
 		}));
 
 		if (!ref || ref === '#') {
@@ -59,7 +60,7 @@ class Toggle {
 
 		el.dispatchEvent(new CustomEvent('tracy-toggle', {
 			bubbles: true,
-			detail: { relatedTarget: dest, collapsed: !expand, originalEvent: e },
+			detail: {relatedTarget: dest, collapsed: !expand, originalEvent: e}
 		}));
 	}
 
@@ -90,7 +91,7 @@ class Toggle {
 
 		window.addEventListener('pagehide', () => {
 			toggles = saved.map((el) => {
-				let item = { path: [], text: el.textContent, expand: !el.classList.contains('tracy-collapsed') };
+				let item = {path: [], text: el.textContent, expand: !el.classList.contains('tracy-collapsed')};
 				do {
 					item.path.unshift(Array.from(el.parentNode.children).indexOf(el));
 					el = el.parentNode;

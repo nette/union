@@ -179,7 +179,7 @@ class BlueScreen
 		], Debugger::$customCssFiles));
 		$css = Helpers::minifyCss(implode('', $css));
 
-		$nonceAttr = $toScreen ? Helpers::getNonceAttr() : null;
+		$nonce = $toScreen ? Helpers::getNonce() : null;
 		$actions = $toScreen ? $this->renderActions($exception) : [];
 
 		require $template;

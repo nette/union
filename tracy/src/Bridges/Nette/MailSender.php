@@ -18,7 +18,9 @@ use Tracy;
  */
 class MailSender
 {
-	private Nette\Mail\Mailer $mailer;
+	use Nette\SmartObject;
+
+	private Nette\Mail\IMailer $mailer;
 
 	/** sender of email notifications */
 	private ?string $fromEmail = null;
@@ -27,7 +29,7 @@ class MailSender
 	private ?string $host = null;
 
 
-	public function __construct(Nette\Mail\Mailer $mailer, ?string $fromEmail = null, ?string $host = null)
+	public function __construct(Nette\Mail\IMailer $mailer, ?string $fromEmail = null, ?string $host = null)
 	{
 		$this->mailer = $mailer;
 		$this->fromEmail = $fromEmail;
