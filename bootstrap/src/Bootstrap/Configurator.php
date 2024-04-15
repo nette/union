@@ -28,7 +28,7 @@ class Configurator
 	public const COOKIE_SECRET = self::CookieSecret;
 
 
-	/** @var array<callable(self, DI\Compiler): void>  Occurs after the compiler is created */
+	/** @var callable[]  function (Configurator $sender, DI\Compiler $compiler); Occurs after the compiler is created */
 	public array $onCompile = [];
 
 	public array $defaultExtensions = [
@@ -169,14 +169,13 @@ class Configurator
 		$loaderRc = class_exists(ClassLoader::class)
 			? new \ReflectionClass(ClassLoader::class)
 			: null;
-		$rootDir = class_exists(InstalledVersions::class) && ($tmp = InstalledVersions::getRootPackage()['install_path'] ?? null)
-			? rtrim(Nette\Utils\FileSystem::normalizePath($tmp), '\\/')
-			: null;
 		return [
 			'appDir' => isset($trace[1]['file']) ? dirname($trace[1]['file']) : null,
 			'wwwDir' => isset($last['file']) ? dirname($last['file']) : null,
 			'vendorDir' => $loaderRc ? dirname($loaderRc->getFileName(), 2) : null,
-			'rootDir' => $rootDir,
+			'rootDir' => class_exists(InstalledVersions::class)
+				? rtrim(Nette\Utils\FileSystem::normalizePath(InstalledVersions::getRootPackage()['install_path']), '\\/')
+				: null,
 			'debugMode' => $debugMode,
 			'productionMode' => !$debugMode,
 			'consoleMode' => PHP_SAPI === 'cli',
@@ -344,7 +343,7 @@ class Configurator
 	/**
 	 * Detects debug mode by IP addresses or computer names whitelist detection.
 	 */
-	public static function detectDebugMode(string|array|null $list = null): bool
+	public static function detectDebugMode(string|array $list = null): bool
 	{
 		$addr = $_SERVER['REMOTE_ADDR'] ?? php_uname('n');
 		$secret = is_string($_COOKIE[self::CookieSecret] ?? null)
