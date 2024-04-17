@@ -122,20 +122,10 @@ class Resolver
 
 			$this->addDependency($reflection);
 
-			$type = Nette\Utils\Type::fromReflection($reflection) ?? ($annotation = Helpers::getReturnTypeAnnotation($reflection));
-			if ($type && !in_array($type->getSingleName(), ['object', 'mixed'], strict: true)) {
-				if (isset($annotation)) {
-					trigger_error('Annotation @return should be replaced with native return type at ' . Callback::toString($entity), E_USER_DEPRECATED);
-				}
-
-				return Helpers::ensureClassType(
-					$type,
-					sprintf('return type of %s()', Callback::toString($entity)),
-					allowNullable: true,
-				);
-			}
-
-			return null;
+			$type = Nette\Utils\Type::fromReflection($reflection);
+			return $type && !in_array($type->getSingleName(), ['object', 'mixed'], strict: true)
+				? Helpers::ensureClassType($type, sprintf('return type of %s()', Callback::toString($entity)), allowNullable: true)
+				: null;
 
 		} elseif ($entity instanceof Reference) { // alias or factory
 			return $this->resolveReferenceType($entity);
@@ -202,13 +192,6 @@ class Resolver
 				break;
 
 			case $entity === 'not':
-				if (count($arguments) !== 1) {
-					throw new ServiceCreationException(sprintf('Function %s() expects 1 parameter, %s given.', $entity, count($arguments)));
-				}
-
-				$entity = ['', '!'];
-				break;
-
 			case $entity === 'bool':
 			case $entity === 'int':
 			case $entity === 'float':
@@ -216,9 +199,6 @@ class Resolver
 				if (count($arguments) !== 1) {
 					throw new ServiceCreationException(sprintf('Function %s() expects 1 parameter, %s given.', $entity, count($arguments)));
 				}
-
-				$arguments = [$arguments[0], $entity];
-				$entity = [Helpers::class, 'convertType'];
 				break;
 
 			case is_string($entity): // create class
@@ -303,9 +283,21 @@ class Resolver
 
 		try {
 			$arguments = $this->completeArguments($arguments);
+
 		} catch (ServiceCreationException $e) {
-			if (!str_contains($e->getMessage(), ' (used in')) {
-				$e->setMessage($e->getMessage() . " (used in {$this->entityToString($entity)})");
+			if (!str_contains($e->getMessage(), "\nRelated to")) {
+				if (is_string($entity)) {
+					$desc = $entity . '::__construct()';
+				} else {
+					$desc = Helpers::entityToString($entity);
+					$desc = preg_replace('~@self::~A', '', $desc);
+				}
+
+				if ($currentServiceAllowed) {
+					$desc .= ' in setup';
+				}
+
+				$e->setMessage($e->getMessage() . "\nRelated to $desc.");
 			}
 
 			throw $e;
@@ -354,12 +346,11 @@ class Resolver
 		}
 
 		if ($item instanceof Definition) {
-			$name = current(array_keys($this->builder->getDefinitions(), $item, strict: true));
-			if ($name === false) {
-				throw new ServiceCreationException(sprintf("Service '%s' not found in definitions.", $item->getName()));
-			}
+			if ($this->builder->getDefinition($item->getName()) !== $item) {
+				throw new ServiceCreationException(sprintf("Service '%s' does not match the expected service.", $item->getName()));
 
-			$item = new Reference($name);
+			}
+			$item = new Reference($item->getName());
 		}
 
 		if ($item instanceof Reference) {
@@ -443,56 +434,20 @@ class Resolver
 
 	private function completeException(\Throwable $e, Definition $def): ServiceCreationException
 	{
-		if ($e instanceof ServiceCreationException && str_starts_with($e->getMessage(), "Service '")) {
+		$message = $e->getMessage();
+		if ($e instanceof ServiceCreationException && str_starts_with($message, '[Service ')) {
 			return $e;
 		}
 
-		$name = $def->getName();
-		$type = $def->getType();
-		if ($name && !ctype_digit($name)) {
-			$message = "Service '$name'" . ($type ? " (type of $type)" : '') . ': ';
-		} elseif ($type) {
-			$message = "Service of type $type: ";
-		} elseif ($def instanceof Definitions\ServiceDefinition && $def->getEntity()) {
-			$message = 'Service (' . $this->entityToString($def->getEntity()) . '): ';
-		} else {
-			$message = '';
+		if ($tmp = $def->getType()) {
+			$message = str_replace(" $tmp::", ' ' . preg_replace('~.*\\\\~', '', $tmp) . '::', $message);
 		}
 
-		$message .= $type
-			? str_replace("$type::", preg_replace('~.*\\\\~', '', $type) . '::', $e->getMessage())
-			: $e->getMessage();
+		$message = '[' . $def->getDescriptor() . "]\n" . $message;
 
 		return $e instanceof ServiceCreationException
 			? $e->setMessage($message)
 			: new ServiceCreationException($message, 0, $e);
-	}
-
-
-	private function entityToString($entity): string
-	{
-		$referenceToText = fn(Reference $ref): string => $ref->isSelf() && $this->currentService
-				? '@' . $this->currentService->getName()
-				: '@' . $ref->getValue();
-		if (is_string($entity)) {
-			return $entity . '::__construct()';
-		} elseif ($entity instanceof Reference) {
-			$entity = $referenceToText($entity);
-		} elseif (is_array($entity)) {
-			if (!str_contains($entity[1], '$')) {
-				$entity[1] .= '()';
-			}
-
-			if ($entity[0] instanceof Reference) {
-				$entity[0] = $referenceToText($entity[0]);
-			} elseif (!is_string($entity[0])) {
-				return $entity[1];
-			}
-
-			return implode('::', $entity);
-		}
-
-		return (string) $entity;
 	}
 
 
@@ -518,7 +473,7 @@ class Resolver
 
 	/**
 	 * Add missing arguments using autowiring.
-	 * @param  (callable(string $type, bool $single): (object|object[]|null))  $getter
+	 * @param  (callable(string, bool): (object|object[]|null))  $getter
 	 * @throws ServiceCreationException
 	 */
 	public static function autowireArguments(
@@ -592,7 +547,7 @@ class Resolver
 
 	/**
 	 * Resolves missing argument using autowiring.
-	 * @param  (callable(string $type, bool $single): (object|object[]|null))  $getter
+	 * @param  (callable(string, bool): (object|object[]|null))  $getter
 	 * @throws ServiceCreationException
 	 */
 	private static function autowireArgument(\ReflectionParameter $parameter, callable $getter): mixed
@@ -607,20 +562,20 @@ class Resolver
 			} catch (MissingServiceException) {
 				$res = null;
 			} catch (ServiceCreationException $e) {
-				throw new ServiceCreationException("{$e->getMessage()} (required by $desc)", 0, $e);
+				throw new ServiceCreationException(sprintf("%s\nRequired by %s.", $e->getMessage(), $desc), 0, $e);
 			}
 
 			if ($res !== null || $parameter->isOptional()) {
 				return $res;
 			} elseif (class_exists($class) || interface_exists($class)) {
 				throw new ServiceCreationException(sprintf(
-					'Service of type %s required by %s not found. Did you add it to configuration file?',
+					"Service of type %s required by %s not found.\nDid you add it to configuration file?",
 					$class,
 					$desc,
 				));
 			} else {
 				throw new ServiceCreationException(sprintf(
-					"Class '%s' required by %s not found. Check the parameter type and 'use' statements.",
+					"Class '%s' required by %s not found.\nCheck the parameter type and 'use' statements.",
 					$class,
 					$desc,
 				));

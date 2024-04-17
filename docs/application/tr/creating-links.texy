@@ -38,7 +38,7 @@ Adlandırılmış parametreleri geçmek de mümkündür. Aşağıdaki bağlantı
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-`ProductPresenter::renderShow()` yönteminin imzasında `$lang` yoksa, parametrenin değerini `$lang = $this->getParameter('lang')` kullanarak okuyabilir.
+`ProductPresenter::renderShow()` yönteminin imzasında `$lang` yoksa, parametrenin değerini `$lang = $this->getParameter('lang')` kullanarak veya [özellikten |presenters#Request Parameters] alabilir.
 
 Parametreler bir dizide saklanıyorsa, `...` operatörü (veya Latte 2.x'te `(expand)` operatörü) ile genişletilebilirler:
 
@@ -140,7 +140,7 @@ Hedef `this` geçerli sayfaya bir bağlantı oluşturacaktır:
 <a n:href="this">refresh</a>
 ```
 
-Aynı zamanda, imzasında belirtilen tüm parametreler `render<View>()` veya `action<Action>()` yöntemi aktarılır. Yani `Product:show` ve `id:123` sayfalarındaysak, `this` bağlantısı da bu parametreyi geçirecektir.
+Aynı zamanda, imzasında belirtilen tüm parametreler `action<Action>()` veya `render<View>()` yönteminde, eğer `action<Action>()` tanımlanmamışsa, aktarılır. Yani `Product:show` ve `id:123` sayfalarındaysak, `this` bağlantısı da bu parametreyi geçirecektir.
 
 Elbette parametreleri doğrudan belirtmek de mümkündür:
 
@@ -213,7 +213,7 @@ Bileşendeki Bağlantılar .[#toc-links-in-component]
 Bileşen şablonunda sunum yapanlara bağlantı vermek istiyorsak `{plink}` etiketini kullanırız:
 
 ```latte
-<a href="{plink Home:default}">home</a>
+<a href={plink Home:default}>home</a>
 ```
 
 veya kodda
@@ -221,6 +221,30 @@ veya kodda
 ```php
 $this->getPresenter()->link('Home:default')
 ```
+
+
+Takma Adlar .[#toc-aliases]{data-version:v3.2.2}
+================================================
+
+Bazen bir Presenter:action çiftine kolayca hatırlanabilir bir takma ad atamak yararlı olabilir. Örneğin, `Front:Home:default` ana sayfasını basitçe `home` veya `Admin:Dashboard:default` ana sayfasını `admin` olarak adlandırabilirsiniz.
+
+Takma adlar [yapılandırmada |configuration] `application › aliases` anahtarı altında tanımlanır:
+
+```neon
+application:
+    aliases:
+        home: Front:Home:default
+        admin: Admin:Dashboard:default
+        sign: Front:Sign:in
+```
+
+Bağlantılarda, örneğin at sembolü kullanılarak yazılırlar:
+
+```latte
+<a n:href="@admin">administration</a>
+```
+
+ `redirect()` ve benzeri gibi bağlantılarla çalışan tüm yöntemlerde desteklenirler.
 
 
 Geçersiz Bağlantılar .[#toc-invalid-links]

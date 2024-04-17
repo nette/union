@@ -23,18 +23,7 @@ class Helpers
 
 	/** maximum SQL length */
 	public static int $maxLength = 100;
-
-	public static array $typePatterns = [
-		'^_' => IStructure::FIELD_TEXT, // PostgreSQL arrays
-		'(TINY|SMALL|SHORT|MEDIUM|BIG|LONG)(INT)?|INT(EGER|\d+| IDENTITY)?|(SMALL|BIG|)SERIAL\d*|COUNTER|YEAR|BYTE|LONGLONG|UNSIGNED BIG INT' => IStructure::FIELD_INTEGER,
-		'(NEW)?DEC(IMAL)?(\(.*)?|NUMERIC|(SMALL)?MONEY|CURRENCY|NUMBER' => IStructure::FIELD_DECIMAL,
-		'REAL|DOUBLE( PRECISION)?|FLOAT\d*' => IStructure::FIELD_FLOAT,
-		'BOOL(EAN)?' => IStructure::FIELD_BOOL,
-		'TIME' => IStructure::FIELD_TIME,
-		'DATE' => IStructure::FIELD_DATE,
-		'(SMALL)?DATETIME(OFFSET)?\d*|TIME(STAMP.*)?' => IStructure::FIELD_DATETIME,
-		'BYTEA|(TINY|MEDIUM|LONG|)BLOB|(LONG )?(VAR)?BINARY|IMAGE' => IStructure::FIELD_BINARY,
-	];
+	public static array $typePatterns = [];
 
 
 	/**
@@ -165,6 +154,7 @@ class Helpers
 
 	/**
 	 * Common column type detection.
+	 * @return array<Type::*>
 	 */
 	public static function detectTypes(\PDOStatement $statement): array
 	{
@@ -173,7 +163,7 @@ class Helpers
 		for ($col = 0; $col < $count; $col++) {
 			$meta = $statement->getColumnMeta($col);
 			if (isset($meta['native_type'])) {
-				$types[$meta['name']] = self::detectType($meta['native_type']);
+				$types[$meta['name']] = RowNormalizer::detectType($meta['native_type']);
 			}
 		}
 
@@ -181,66 +171,17 @@ class Helpers
 	}
 
 
-	/**
-	 * Heuristic column type detection.
-	 * @internal
-	 */
+	/** @deprecated  use RowNormalizer::detectType() */
 	public static function detectType(string $type): string
 	{
-		static $cache;
-		if (!isset($cache[$type])) {
-			$cache[$type] = 'string';
-			foreach (self::$typePatterns as $s => $val) {
-				if (preg_match("#^($s)$#i", $type)) {
-					return $cache[$type] = $val;
-				}
-			}
-		}
-
-		return $cache[$type];
+		return RowNormalizer::detectType($type);
 	}
 
 
-	/** @internal */
+	/** @deprecated  use RowNormalizer */
 	public static function normalizeRow(array $row, ResultSet $resultSet): array
 	{
-		foreach ($resultSet->getColumnTypes() as $key => $type) {
-			$value = $row[$key];
-			if ($value === null || $value === false || $type === IStructure::FIELD_TEXT) {
-				// do nothing
-			} elseif ($type === IStructure::FIELD_INTEGER) {
-				$row[$key] = is_float($tmp = $value * 1) ? $value : $tmp;
-
-			} elseif ($type === IStructure::FIELD_FLOAT || $type === IStructure::FIELD_DECIMAL) {
-				if (is_string($value) && ($pos = strpos($value, '.')) !== false) {
-					$value = rtrim(rtrim($pos === 0 ? "0$value" : $value, '0'), '.');
-				}
-
-				$row[$key] = (float) $value;
-
-			} elseif ($type === IStructure::FIELD_BOOL) {
-				$row[$key] = $value && $value !== 'f' && $value !== 'F';
-
-			} elseif ($type === IStructure::FIELD_DATETIME || $type === IStructure::FIELD_DATE) {
-				$row[$key] = str_starts_with($value, '0000-00')
-					? null
-					: new Nette\Utils\DateTime($value);
-
-			} elseif ($type === IStructure::FIELD_TIME) {
-				$row[$key] = (new Nette\Utils\DateTime($value))->setDate(1, 1, 1);
-
-			} elseif ($type === IStructure::FIELD_TIME_INTERVAL) {
-				preg_match('#^(-?)(\d+)\D(\d+)\D(\d+)(\.\d+)?$#D', $value, $m);
-				$row[$key] = new \DateInterval("PT$m[2]H$m[3]M$m[4]S");
-				$row[$key]->f = isset($m[5]) ? (float) $m[5] : 0.0;
-				$row[$key]->invert = (int) (bool) $m[1];
-
-			} elseif ($type === IStructure::FIELD_UNIX_TIMESTAMP) {
-				$row[$key] = Nette\Utils\DateTime::from($value);
-			}
-		}
-
-		return $row;
+		return (new RowNormalizer)($row, $resultSet);
 	}
 
 
@@ -303,6 +244,7 @@ class Helpers
 		Tracy\BlueScreen $blueScreen,
 	): ?ConnectionPanel
 	{
+		trigger_error(__METHOD__ . '() is deprecated, use Nette\Bridges\DatabaseTracy\ConnectionPanel::initialize()', E_USER_DEPRECATED);
 		return ConnectionPanel::initialize($connection, true, $name, $explain, $bar, $blueScreen);
 	}
 
@@ -317,6 +259,7 @@ class Helpers
 		?Tracy\BlueScreen $blueScreen = null,
 	): ?ConnectionPanel
 	{
+		trigger_error(__METHOD__ . '() is deprecated, use Nette\Bridges\DatabaseTracy\ConnectionPanel::initialize()', E_USER_DEPRECATED);
 		return ConnectionPanel::initialize($connection, $addBarPanel, $name, $explain, $bar, $blueScreen);
 	}
 
@@ -324,17 +267,16 @@ class Helpers
 	/**
 	 * Reformat source to key -> value pairs.
 	 */
-	public static function toPairs(array $rows, string|int|null $key = null, string|int|null $value = null): array
+	public static function toPairs(array $rows, string|int|\Closure|null $key, string|int|null $value): array
 	{
-		if (!$rows) {
-			return [];
-		}
-
-		$keys = array_keys((array) reset($rows));
-		if (!count($keys)) {
-			throw new \LogicException('Result set does not contain any column.');
-
-		} elseif ($key === null && $value === null) {
+		if ($key === null && $value === null) {
+			if (!$rows) {
+				return [];
+			}
+			$keys = array_keys((array) reset($rows));
+			if (!count($keys)) {
+				throw new \LogicException('Result set does not contain any column.');
+			}
 			if (count($keys) === 1) {
 				[$value] = $keys;
 			} else {
@@ -346,6 +288,15 @@ class Helpers
 		if ($key === null) {
 			foreach ($rows as $row) {
 				$return[] = ($value === null ? $row : $row[$value]);
+			}
+		} elseif ($key instanceof \Closure) {
+			foreach ($rows as $row) {
+				$tuple = $key($row);
+				if (count($tuple) === 1) {
+					$return[] = $tuple[0];
+				} else {
+					$return[$tuple[0]] = $tuple[1];
+				}
 			}
 		} else {
 			foreach ($rows as $row) {
@@ -360,11 +311,11 @@ class Helpers
 	/**
 	 * Finds duplicate columns in select statement
 	 */
-	public static function findDuplicates(\PDOStatement $statement): string
+	public static function findDuplicates(ResultDriver $result): string
 	{
 		$cols = [];
-		for ($i = 0; $i < $statement->columnCount(); $i++) {
-			$meta = $statement->getColumnMeta($i);
+		for ($i = 0; $i < $result->getColumnCount(); $i++) {
+			$meta = $result->getColumnMeta($i);
 			$cols[$meta['name']][] = $meta['table'] ?? '';
 		}
 

@@ -42,7 +42,9 @@ class PhpGenerator
 			->addBody('parent::__construct($params);');
 
 		foreach ($this->builder->exportMeta() as $key => $value) {
-			$class->inheritProperty($key)->setValue($value);
+			$class->inheritProperty($key)
+				->setComment(null)
+				->setValue($value);
 		}
 
 		$definitions = $this->builder->getDefinitions();
@@ -53,7 +55,6 @@ class PhpGenerator
 		}
 
 		$class->getMethod(Container::getMethodName(ContainerBuilder::ThisContainer))
-			->setReturnType($className)
 			->setBody('return $this;');
 
 		$class->inheritMethod('initialize');
@@ -94,7 +95,7 @@ declare(strict_types=1);
 			return $method;
 
 		} catch (\Throwable $e) {
-			throw new ServiceCreationException("Service '$name': " . $e->getMessage(), 0, $e);
+			throw new ServiceCreationException(sprintf("[%s]\n%s", $def->getDescriptor(), $e->getMessage()), 0, $e);
 		}
 	}
 
@@ -110,6 +111,15 @@ declare(strict_types=1);
 		switch (true) {
 			case is_string($entity) && str_contains($entity, '?'): // PHP literal
 				return $this->formatPhp($entity, $arguments);
+
+			case $entity === 'not':
+				return $this->formatPhp('!(?)', $arguments);
+
+			case $entity === 'bool':
+			case $entity === 'int':
+			case $entity === 'float':
+			case $entity === 'string':
+				return $this->formatPhp('?::?(?, ?)', [Helpers::class, 'convertType', $arguments[0], $entity]);
 
 			case is_string($entity): // create class
 				return $arguments

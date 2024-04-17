@@ -7,9 +7,9 @@ Poznejme spolu Nette Framework, při vytváření jednoduchého blogu s komentá
 Již po prvních dvou kapitolách budeme mít svůj vlastní funkční blog a budeme moci publikovat své skvělé příspěvky, i když funkce budou zatím do značné míry omezeny. Měli byste si přečíst také následující kapitoly, kde si naprogramujeme přidávání komentářů, editování článků a na závěr blog zabezpečíme.
 
 .[tip]
-Tento návod předpokládá, že jste přečetli stránku [Instalace |nette:installation] a úspěšně si připravili potřebné nástroje.
+Tento návod předpokládá, že jste přečetli stránku [Instalace |nette:installation] a úspěšně si připravili potřebné nástroje. Také předpokládá, že rozumíte [objektově orientovanému programování v PHP |nette:introduction-to-object-oriented-programming].
 
-Používejte prosím PHP 8.0 nebo novější. Kompletní aplikaci najdete [na GitHubu |https://github.com/nette-examples/quickstart/tree/v4.0].
+Používejte prosím PHP 8.1 nebo novější. Kompletní aplikaci najdete [na GitHubu |https://github.com/nette-examples/quickstart/tree/v4.0].
 
 
 Uvítací stránka
@@ -45,9 +45,9 @@ Web Project má následující strukturu:
 /--pre
 <b>nette-blog/</b>
 ├── <b>app/</b>              ← adresář s aplikací
-│   ├── <b>Presenters/</b>   ← třídy presenterů
-│   │   └── <b>templates/</b>← šablony
-│   ├── <b>Router/</b>       ← konfigurace URL adres
+│   ├── <b>Core/</b>         ← základní třídy nutné pro chod
+│   ├── <b>UI/</b>           ← presentery, šablony & spol.
+│   │   └── <b>Home/</b>     ← adresář presenteru Home
 │   └── <b>Bootstrap.php</b> ← zaváděcí třída Bootstrap
 ├── <b>bin/</b>              ← skripty spouštěné z příkazové řádky
 ├── <b>config/</b>           ← konfigurační soubory
@@ -67,7 +67,7 @@ Nejdůležitější složka je pro nás `app/`. Zde nalezneme soubor `Bootstrap.
 Úklid
 =====
 
-Web Project obsahuje úvodní stránku, kterou smažeme předtím, než začneme něco programovat. Bez obav tedy nahradíme obsah souboru `app/Presenters/templates/Home/default.latte` za "Hello world!".
+Web Project obsahuje úvodní stránku, kterou smažeme předtím, než začneme něco programovat. Bez obav tedy nahradíme obsah souboru `app/UI/Home/default.latte` za "Hello world!".
 
 
 [* qs-hello.webp .{url:-} *]
@@ -76,9 +76,9 @@ Web Project obsahuje úvodní stránku, kterou smažeme předtím, než začneme
 Tracy (debugger)
 ================
 
-Extrémně důležitý nástroj pro vývoj je [ladicí nástroj Tracy |tracy:]. Vyzkoušejte si vyvolání nějaké chyby v souboru `app/Presenters/HomePresenter.php` (např. odstraněním složené závorky v definici třídy HomePresenter) a podívejte se, co se stane. Vyskočí oznamovací stránka, která chybu srozumitelně popisuje.
+Extrémně důležitý nástroj pro vývoj je [ladicí nástroj Tracy |tracy:]. Vyzkoušejte si vyvolání nějaké chyby v souboru `app/UI/Home/HomePresenter.php` (např. odstraněním složené závorky v definici třídy HomePresenter) a podívejte se, co se stane. Vyskočí oznamovací stránka, která chybu srozumitelně popisuje.
 
-[* qs-tracy.webp .{url:-}(debugger screen) *]
+[* qs-tracy.avif .{url:-}(debugger screen) *]
 
 Tracy nám ohromně pomůže, až budeme hledat chyby v aplikaci. Také si všimněte plovoucího Tracy Baru v pravém dolním rohu obrazovky, který obsahuje informace z běhu aplikace.
 
@@ -89,7 +89,7 @@ V produkčním módu je Tracy samozřejmě vypnuta a nezobrazuje žádné citliv
 ```php .{file:app/Bootstrap.php}
 ...
 $configurator->setDebugMode(false);
-$configurator->enableTracy($appDir . '/log');
+$configurator->enableTracy($rootDir . '/log');
 ...
 ```
 

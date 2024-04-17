@@ -39,17 +39,16 @@ class HiddenField extends BaseControl
 
 	/**
 	 * Sets control's value.
-	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue($value): static
 	{
 		if ($value === null) {
 			$value = '';
 		} elseif ($value instanceof \BackedEnum) {
 			$value = $value->value;
 		} elseif (!is_scalar($value) && !$value instanceof Stringable) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->name));
+			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->getName()));
 		}
 
 		if (!$this->persistValue) {
@@ -73,6 +72,12 @@ class HiddenField extends BaseControl
 	{
 		$this->nullable = $value;
 		return $this;
+	}
+
+
+	public function isNullable(): bool
+	{
+		return $this->nullable;
 	}
 
 

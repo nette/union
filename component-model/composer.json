@@ -15,7 +15,7 @@
 		}
 	],
 	"require": {
-		"php": "8.1 - 8.3",
+		"php": "8.1 - 8.4",
 		"nette/utils": "^4.0"
 	},
 	"require-dev": {
@@ -33,7 +33,7 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "3.1-dev"
+			"dev-master": "4.0-dev"
 		}
 	}
 }

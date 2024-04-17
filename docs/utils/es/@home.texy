@@ -13,13 +13,14 @@ En el paquete `nette/utils` encontrará un conjunto de clases útiles para el us
 | [Generación de cadenas aleatorias |random] | Nette\Utils\Random
 | [Generar código HTML |html-elements] | Nette\Utils\Html
 | [Generar PHP Reflection |reflection] | Nette\Utils\Reflection
+| [Iterables |iterables] | Nette\Utils\Iterables
 | [Imágenes |Images] | Nette\Utils\Image
 | [JSON] | Nette\Utils\Json
 | [Matrices |Arrays] | Nette\Utils\Arrays
-| [Modelo de objeto |smartobject] | Nette\SmartObject & Nette\StaticClass
 | [Paginador |Paginator] | Nette\Utils\Paginator
 | [Sistema de archivos |filesystem] | Nette\Utils\FileSystem
 | [Tipos |type] | Nette\Utils\Type
+| [SmartObject] & [StaticClass] | Nette\SmartObject & Nette\StaticClass
 | [Validadores |Validators] | Nette\Utils\Validators
 
 
@@ -34,8 +35,8 @@ composer require nette/utils
 
 | versión | compatible con PHP
 |-----------|-------------------
-| Nette Utils 4.0 | PHP 8.0 - 8.2
-| Nette Utils 3.2 | PHP 7.2 - 8.2
+| Nette Utils 4.0 | PHP 8.0 – 8.4
+| Nette Utils 3.2 | PHP 7.2 – 8.3
 | Nette Utils 3.0 - 3.1 | PHP 7.1 - 8.0
 | Nette Utils 2.5 | PHP 5.6 - 8.0
 

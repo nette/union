@@ -1,23 +1,24 @@
 - [Getting Started |Guide]
-- Concepts
+- [Why Use Templates? |why-use]
+- Concepts ⚗️
 	- [Safety First]
 	- [Template Inheritance]
 	- [Type System]
 	- [Sandbox]
 
-- For Designers
+- For Designers 🎨
 	- [Syntax]
 	- [Tags]
 	- [Filters]
 	- [Functions]
 	- [Tips and Tricks |recipes]
 
-- For Developers
+- For Developers 🧮
 	- [Practices for Developers |develop]
 	- [Extending Latte]
 	- [Creating an Extension |creating-extension]
 
-- [Cookbook |cookbook/@home]
+- [Cookbook 💡|cookbook/@home]
 	- [Migration from Twig |cookbook/migration-from-twig]
 	- [Migration from Latte 2 |cookbook/migration-from-latte2]
 	- [… more |cookbook/@home]

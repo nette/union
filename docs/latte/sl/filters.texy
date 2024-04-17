@@ -11,14 +11,16 @@ Filtri so funkcije, ki spremenijo ali oblikujejo podatke v želeno obliko. To je
 | `bytes` | [oblikuje velikost v bajtih |#bytes]
 | `clamp` | [vpne vrednost v območje |#clamp]
 | `dataStream` | [Pretvorba protokola URI podatkov |#datastream]
-| `date` | [oblikuje datum |#date]
+| `date` | [oblikovanje datuma in časa |#date]
 | `explode` | [razdeli niz z danim ločilom |#explode]
 | `first` | [vrne prvi element polja ali znak niza |#first]
+| `group` | [združevanje podatkov po različnih merilih |#group]
 | `implode` | [združi polje z nizom |#implode]
 | `indent` | [besedilo z leve strani odriva s številom tabulatorjev |#indent]
 | `join` | [združi polje z nizom |#implode]
 | `last` | [vrne zadnji element polja ali znak niza |#last]
 | `length` | [vrne dolžino niza ali polja |#length]
+| `localDate` | [oblikovanje datuma in časa v skladu z lokalnim jezikom |#localDate]
 | `number` | [oblikovanje števila |#number]
 | `padLeft` | [dopolni niz do dane dolžine z leve |#padLeft]
 | `padRight` | [dopolni niz do dane dolžine od desne |#padRight]
@@ -118,8 +120,8 @@ Filtri .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Filter, ki poenostavi navajanje linearnih podatkov v obliki tabele. Vrne polje z danim številom elementov. Če navedete drugi parameter, se ta uporabi za dopolnitev manjkajočih elementov v zadnji vrstici.
 
 ```latte
@@ -152,6 +154,8 @@ Izpisuje:
 </table>
 ```
 
+Oglejte si tudi oznako [group |#group] in [iterateWhile |tags#iterateWhile].
+
 
 breakLines .[filter]
 --------------------
@@ -165,7 +169,7 @@ Pred vse nove vrstice vstavi prelome vrstic HTML.
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Oblikuje velikost v bajtih v človeku berljivo obliko.
+Oblikuje velikost v bajtih v človeku razumljivo obliko. Če je nastavljen [lokalni jezik, |develop#locale] se uporabijo ustrezna decimalna ločila in ločila v tisočih.
 
 ```latte
 {$size|bytes}     0 B, 1.25 GB, …
@@ -203,8 +207,8 @@ Uveljavlja čiščenje URL-jev. Preveri, ali spremenljivka vsebuje spletni naslo
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">checked</a>
-<a data-href="{$link}">unchecked</a>
+<a data-href={$link|checkUrl}>checked</a>
+<a data-href={$link}>unchecked</a>
 ```
 
 Izpisuje:
@@ -217,8 +221,8 @@ Izpisuje:
 Glej tudi [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 Vrne vrednost, ki je omejena na vključujoče območje min in max.
 
 ```latte
@@ -235,7 +239,7 @@ Pretvori vsebino v podatkovno shemo URI. Uporablja se lahko za vstavljanje slik 
 Imejmo sliko v spremenljivki `$img = Image::fromFile('obrazek.gif')`, potem
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 natisne na primer:
@@ -252,12 +256,13 @@ Zahteva razširitev PHP `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Vrne datum v danem formatu z uporabo možnosti funkcij PHP [php:strftime] ali [php:date]. Filter dobi datum kot časovni žig UNIX, niz ali objekt tipa `DateTime`.
+Oblikuje datum in čas v skladu z masko, ki jo uporablja funkcija PHP [php:date]. Filter sprejme datum v obliki časovnega žiga UNIX, kot niz ali kot objekt `DateTimeInterface`.
 
 ```latte
-{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
+
+Glej tudi [localDate |#localDate].
 
 
 escapeUrl .[filter]
@@ -271,8 +276,8 @@ Izbriše spremenljivko, ki se uporabi kot parameter v naslovu URL.
 Glej tudi [poizvedbo |#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Razdeli niz z danim ločilom in vrne polje nizov. Vzdevek za `split`.
 
 ```latte
@@ -294,8 +299,8 @@ Uporabite lahko tudi vzdevek `split`:
 Glej tudi [implode |#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Vrne prvi element polja ali znak niza:
 
 ```latte
@@ -330,6 +335,25 @@ Prvo črko vrednosti pretvori v veliko črko. Zahteva razširitev PHP `mbstring`
 Oglejte si tudi [velika začetnica |#capitalize], [mala |#lower] [začetnica |#capitalize], [velika |#upper] začetnica.
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+Filter razvrsti podatke v skupine glede na različna merila.
+
+V tem primeru so vrstice v tabeli razvrščene po stolpcu `categoryId`. Rezultat je polje polj, kjer je ključ vrednost v stolpcu `categoryId`. Preberite [podrobna navodila |cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+Oglejte si tudi [paket |#batch], funkcijo [group |functions#group] in oznako [iterateWhile |tags#iterateWhile].
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Vrne niz, ki je sestavljen iz nizov v polju. Vzdevek za `join`.
@@ -339,7 +363,7 @@ Vrne niz, ki je sestavljen iz nizov v polju. Vzdevek za `join`.
 {=[1, 2, 3]|implode:'|'}  {* izhodi '1|2|3' *}
 ```
 
-Uporabite lahko tudi vzdevek `join`: .{data-version:2.10.2}
+Uporabite lahko tudi vzdevek `join`:
 
 ```latte
 {=[1, 2, 3]|join}         {* izhodi '123' *}
@@ -367,8 +391,8 @@ Natisne:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Vrne zadnji element polja ali znak niza:
 
 ```latte
@@ -396,6 +420,53 @@ Vrne dolžino niza ali polja.
 ```
 
 
+localDate(string format = null, string date = null, string time = null) .[filter]
+---------------------------------------------------------------------------------
+Oblikuje datum in čas glede na [lokalno okolje, |develop#locale] kar zagotavlja dosleden in lokaliziran prikaz časovnih podatkov v različnih jezikih in regijah. Filter sprejme datum kot časovni žig UNIX, niz ali objekt `DateTimeInterface`.
+
+**a) Uporaba oblike**
+
+Parameter `format` opisuje, katere časovne komponente je treba prikazati. Uporablja črkovne kode, pri čemer število ponovitev vpliva na širino izpisa:
+
+| Leto | `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
+| Mesec | `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `Jul` / `July`
+| Dan | `d` / `dd` | `1` / `01`
+| Ura | `j` | v želeni obliki v lokalnem okolju
+| Minuta | `m` / `mm` | `5` / `05` <small>(2 števki v kombinaciji s sekundami)</small>
+| Sekunda | `s` / `ss` | `8` / `08` <small>(2 števki v kombinaciji z minutami)</small>
+
+Vrstni red kod v formatu ni pomemben, saj bo vrstni red komponent prikazan v skladu s konvencijami lokalnega okolja. Zato je oblika neodvisna od lokalnega okolja.
+Na primer, format `yyyyMMMMd` bo v lokalnem okolju `en_US` prikazal `April 15, 2024`, medtem ko bo v lokalnem okolju `cs_CZ` prikazal `15. dubna 2024`. Podobno bo samo format `MMMM` prikazal `duben`, itd.
+
+**b) Uporaba prednastavljenih slogov**
+
+Parametra `date` in `time` določata stopnjo podrobnosti prikaza datuma in časa. Izbirate lahko med več ravnmi: `full`, `long`, `medium`, `short`. Prikažete lahko samo datum, samo čas ali oboje:
+
+```latte
+{$date|localDate: date: short}              {* 1/23/78 *}
+{$date|localDate: date: medium}             {* Jan 23, 1978 *}
+{$date|localDate: date: long}               {* January 23, 1978 *}
+{$date|localDate: date: full}               {* Monday, January 23, 1978 *}
+{$date|localDate: time: short}              {* 2:30 PM *}
+{$date|localDate: date: long, time: medium} {* January 23, 1978 at 2:30:59 PM *}
+izpis se razlikuje glede na lokalno okolje
+```
+
+Za datum lahko uporabite tudi predpono `relative-` (npr. `relative-short`), ki za datume blizu sedanjosti prikaže `yesterday`, `today` ali `tomorrow`; sicer se prikaže na standardni način.
+
+```latte
+{$date|localDate: date: relative-short}    {* yesterday *}
+```
+
+Če uporabite filter brez parametrov, bo datum prikazan na ravni `long`:
+
+```latte
+{$date|localDate}   {* April 15, 2024 *}
+```
+
+Glejte tudi [datum |#date].
+
+
 lower .[filter]
 ---------------
 Pretvori vrednost v male črke. Zahteva razširitev PHP `mbstring`.
@@ -416,8 +487,8 @@ Preprečuje samodejno prečiščevanje URL. Latte [samodejno preveri, |safety-fi
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">checked</a>
-<a href="{$link|nocheck}">unchecked</a>
+<a href={$link}>checked</a>
+<a href={$link|nocheck}>unchecked</a>
 ```
 
 Izpisi:
@@ -453,7 +524,7 @@ Zloraba filtra `noescape` lahko privede do ranljivosti XSS! Nikoli ga ne uporabl
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Oblikuje število na določeno število decimalnih mest. Določite lahko tudi znak za decimalno vejico in ločilo tisočic.
+Oblikuje število na določeno število decimalnih mest. Če je nastavljen [lokalni jezik, |develop#locale] se uporabijo ustrezna ločila za decimalke in tisočinke.
 
 ```latte
 {1234.20 |number}              1,234
@@ -461,6 +532,54 @@ Oblikuje število na določeno število decimalnih mest. Določite lahko tudi zn
 {1234.20 |number:2}            1,234.20
 {1234.20 |number:2, ',', ' '}  1 234,20
 ```
+
+
+number(string format) .[filter]
+-------------------------------
+S parametrom `format` lahko videz številk določite točno po svojih potrebah. Zahteva nastavljeno [lokalno okolje |develop#locale]. Oblika je sestavljena iz več posebnih znakov, katerih popoln opis je na voljo v dokumentaciji "DecimalFormat"::https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns 
+
+- <c id=6/> obvezna številka, ki je vedno prikazana, tudi če je enaka nič
+- `#` neobvezna števka, prikazana samo, če ima število na tem mestu števko
+- `@` pomembna števka, pomaga prikazati število z določenim številom pomembnih števk
+- `.` označuje, kje mora biti decimalno ločilo (vejica ali pika, odvisno od lokalnega okolja)
+- `,` se uporablja za ločevanje skupin številk, običajno tisočic
+- `%` pomnoži število s 100 in doda znak odstotka
+
+Oglejmo si nekaj primerov. V prvem primeru sta dve decimalki obvezni, v drugem pa neobvezni. Tretji primer prikazuje polnilo z ničlami na obeh straneh, četrti pa prikazuje samo obstoječe števke:
+
+```latte
+{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
+{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
+{1.23  |number: '000.000'}      {* 001.230 *}
+{1.2   |number: '##.##'}        {* 1.2 *}
+```
+
+Pomembne števke določajo, koliko števk, ne glede na decimalno vejico, naj se prikaže, pri čemer se število po potrebi zaokroži:
+
+```latte
+{1234|number: '@@'}             {* 1200 *}
+{1234|number: '@@@'}            {* 1230 *}
+{1234|number: '@@@#'}           {* 1234 *}
+{1.2345|number: '@@@'}          {* 1.23 *}
+{0.00123|number: '@@'}          {* 0.0012 *}
+```
+
+Enostaven način za prikaz števila v odstotkih. Število pomnožimo s 100 in dodamo znak `%`:
+
+```latte
+{0.1234|number: '#.##%'}        {* 12.34% *}
+```
+
+Za pozitivna in negativna števila, ločena z znakom `;`, lahko določimo drugačno obliko. Tako lahko na primer pozitivna števila prikažemo z znakom `+`:
+
+```latte
+{42|number: '#.##;(#.##)'}      {* 42 *}
+{-42|number: '#.##;(#.##)'}     {* (42) *}
+{42|number: '+#.##;-#.##'}      {* +42 *}
+{-42|number: '+#.##;-#.##'}     {* -42 *}
+```
+
+Ne pozabite, da se dejanski videz številk lahko razlikuje glede na nastavitve lokalnega okolja. V nekaterih državah se na primer namesto pike kot decimalno ločilo uporablja vejica. Ta filter to samodejno upošteva, zato vam ni treba skrbeti za to.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -481,8 +600,8 @@ Podloži niz na določeno dolžino z drugim nizom z desne.
 ```
 
 
-query  .[filter]{data-version:2.10}
------------------------------------
+query  .[filter]
+----------------
 Dinamično ustvari poizvedbeni niz v naslovu URL:
 
 ```latte
@@ -502,8 +621,8 @@ Ključi z vrednostjo `null` so izpuščeni.
 Glej tudi [escapeUrl |#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Vrne naključni element polja ali znak niza:
 
 ```latte
@@ -531,7 +650,7 @@ Zamenja vse pojavitve iskanega niza z nadomestnim nizom.
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Izvede se lahko več zamenjav naenkrat: .{data-version:2.10.2}
+Izvede se lahko več zamenjav naenkrat:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* izhodi 'lehho worhd' *}
@@ -573,8 +692,8 @@ Zaokroži število na določeno natančnost.
 Glej tudi [strop |#ceil], [dno |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Izvleče rezino polja ali niza.
 
 ```latte
@@ -591,9 +710,9 @@ Filter rezine deluje kot funkcija PHP `array_slice` za polja in `mb_substr` za n
 Filter bo privzeto spremenil vrstni red in ponastavil ključe celoštevilskega polja. To obnašanje lahko spremenite z nastavitvijo vrednosti preserveKeys na true. Vrstični ključi se vedno ohranijo, ne glede na ta parameter.
 
 
-sort  .[filter]{data-version:2.9}
----------------------------------
-Filter, ki razvrsti polje in ohrani povezavo indeksov.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+Filter razvrsti elemente polja ali iteratorja, pri čemer ohrani njihove asociativne ključe. Ko je nastavljen [lokalni jezik, |develop#locale] razvrščanje sledi njegovim pravilom, razen če je določena primerjalna funkcija po meri.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +728,41 @@ Polje je razvrščeno v obratnem vrstnem redu.
 {/foreach}
 ```
 
-Kot parameter lahko posredujete svojo primerjalno funkcijo: .{data-version:2.10.2}
+Za razvrščanje lahko določite primerjalno funkcijo po meri (primer prikazuje, kako obrniti razvrščanje od največjega do najmanjšega):
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+Filter `|sort` omogoča tudi razvrščanje elementov po ključu:
 
-spaceless  .[filter]{data-version:2.10.2}
------------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+Če želite tabelo razvrstiti po določenem stolpcu, lahko uporabite parameter `by`. Vrednost `'name'` v primeru določa, da se razvrščanje opravi po `$row->name` ali `$row['name']`, odvisno od tega, ali je `$row` polje ali objekt:
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+Določite lahko tudi funkcijo povratnega klica, ki določi vrednost, po kateri se bo razvrščalo:
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+Na enak način lahko uporabite tudi parameter `byKey`.
+
+
+spaceless  .[filter]
+--------------------
 Odstrani nepotrebne bele lise iz izpisa. Uporabite lahko tudi vzdevek `strip`.
 
 ```latte
@@ -655,8 +800,8 @@ Izvleče rezino niza. Ta filter je bil nadomeščen s filtrom za [rezine |#slice
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 Prevaja izraze v druge jezike. Če želite, da je filter na voljo, morate [nastaviti prevajalnik |develop#TranslatorExtension]. Za [prevajanje |tags#Translation] lahko uporabite tudi [oznake |tags#Translation].
 
 ```latte

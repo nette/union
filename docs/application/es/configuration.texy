@@ -14,10 +14,14 @@ application:
 	debugger: ...           # (bool) por defecto true
 
 	# ¿se llamará al presentador de errores en caso de error?
-	catchExceptions: ...    # (bool) por defecto a true en modo producción
+	# sólo tiene efecto en modo desarrollador
+	catchExceptions: ...    # (bool) por defecto true
 
 	# nombre del presentador de errores
-	errorPresenter: Error   # (string) por defecto 'Nette:Error'
+	errorPresenter: Error   # (string|array) por defecto 'Nette:Error'
+
+	# define alias para presentadores y eventos
+	aliases: ...
 
 	# define las reglas para resolver el nombre del presentador a una clase
 	mapping: ...
@@ -27,9 +31,18 @@ application:
 	silentLinks: ...        # (bool) por defecto false
 ```
 
-Debido a que los presentadores de errores no son llamados por defecto en modo desarrollo y los errores son mostrados por Tracy, cambiar el valor `catchExceptions` a `true` ayuda a verificar que los presentadores de errores funcionan correctamente durante el desarrollo.
+A partir de la versión 3.2 de `nette/application` es posible definir un par de presentadores de errores:
+
+```neon
+application:
+	errorPresenter:
+		4xx: Error4xx   # para Nette\Application\BadRequestException
+		5xx: Error5xx   # para otras excepciones
+```
 
 La opción `silentLinks` determina cómo se comporta Nette en modo desarrollo cuando falla la generación de enlaces (por ejemplo, porque no hay presentador, etc). El valor por defecto `false` significa que Nette activa `E_USER_WARNING`. El valor `true` suprime este mensaje de error. En un entorno de producción, siempre se invoca `E_USER_WARNING`. También podemos influir en este comportamiento configurando la variable del presentador [$invalidLinkMode |creating-links#Invalid Links].
+
+[Los alias simplifican las referencias a |creating-links#aliases] los presentadores más utilizados.
 
 El [mapeo define las reglas |modules#mapping] por las cuales el nombre de la clase se deriva del nombre del presentador.
 
@@ -76,6 +89,12 @@ latte:
 	# genera plantillas con declare(strict_types=1)
 	strictTypes: ...     # (bool) por defecto false
 
+	# activa el [modo de análisis sintáctico estric |latte:develop#strict mode]to
+	strictParsing: ...   # (bool) por defecto es false
+
+	# habilita la [comprobación del código generado |latte:develop#Checking Generated Code]
+	phpLinter: ...       # (string) por defecto es null
+
 	# clase de $this->plantilla
 	templateClass: App\MyTemplateClass # por defecto Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -85,7 +104,7 @@ Si está utilizando la versión 3 de Latte, puede añadir una nueva [extensión 
 ```neon
 latte:
 	extensions:
-		- Latte\Essential\TranslatorExtension
+		- Latte\Essential\TranslatorExtension(@Nette\Localization\Translator)
 ```
 
 /--comment
@@ -152,3 +171,18 @@ Puede establecer directivas PHP. Una visión general de todas las directivas se 
 php:
 	date.timezone: Europe/Prague
 ```
+
+
+Servicios DI .[#toc-di-services]
+================================
+
+Estos servicios se añaden al contenedor DI:
+
+| Nombre | Tipo | Descripción
+|----------------------------------------------------------
+| `application.application` | [api:Nette\Application\Application] | [Lanzador de aplicaciones completo |how-it-works#Nette Application]
+| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [Generador de enlaces |creating-links#LinkGenerator]
+| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | fábrica de presentadores
+| `application.###` | [api:Nette\Application\UI\Presenter] | presentadores individuales
+| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | fábrica para `Latte\Engine`
+| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | fábrica para [`$this->template` |templates]

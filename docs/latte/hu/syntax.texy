@@ -98,7 +98,7 @@ Nyomtatás:
 A `tag-` előtag használatával a funkciót csak a HTML-címkékre alkalmazzuk:
 
 ```latte
-<p><a href="{$url}" n:tag-if="$url">Title</a></p>
+<p><a href={$url} n:tag-if="$url">Title</a></p>
 ```
 
 A `$url` változó értékétől függően ez kiírásra kerül:
@@ -153,6 +153,20 @@ Vagy közvetlenül az értékre (a [`{=expr}` | https://latte.nette.org/hu/tags#
 ```latte
 <h1>{='  Hello world  '|trim}<h1>
 ```
+
+
+Dinamikus HTML címkék .[#toc-dynamic-html-tags]
+===============================================
+
+A Latte támogatja a dinamikus HTML címkéket, amelyek akkor hasznosak, ha a címkék nevének rugalmasságára van szükség:
+
+```latte
+<h{$level}>Heading</h{$level}>
+```
+
+Például a fenti kód képes generálni `<h1>Heading</h1>` vagy `<h2>Heading</h2>` a `$level` változó értékétől függően. A Latte dinamikus HTML-címkéket mindig párosítani kell. Alternatívájuk az [n:tag |tags#n:tag].
+
+Mivel a Latte egy biztonságos templating rendszer, ellenőrzi, hogy a kapott tag neve érvényes-e, és nem tartalmaz-e nem kívánt vagy rosszindulatú értékeket. Azt is biztosítja, hogy a végcímke neve mindig megegyezik a nyitócímke nevével.
 
 
 Hozzászólások .[#toc-comments]
@@ -238,35 +252,19 @@ A `in` operátor a `in_array()` függvény helyettesítésére használható. Az
 ```
 
 
-.{data-version:2.9}
-Választható láncolás a meghatározatlan biztonságos operátorral .[#toc-optional-chaining-with-undefined-safe-operator]
----------------------------------------------------------------------------------------------------------------------
-
-Az undefined-safe operátor `??->` hasonló a nullsafe operátorhoz `?->`, de nem okoz hibát, ha egy változó, tulajdonság vagy index egyáltalán nem létezik.
-
-```latte
-{$order??->id}
-```
-
-ezzel azt akarjuk mondani, hogy ha a `$order` definiált és nem null, akkor a `$order->id` lesz kiszámítva, de ha a `$order` null vagy nem létezik, akkor hagyjuk abba, amit csinálunk, és csak nullát adunk vissza.
-
-```latte
-{$user??->address??->street}
-// roughly means isset($user) && isset($user->address) ? $user->address->street : null
-```
-
-
 Egy ablak a történelembe .[#toc-a-window-into-history]
 ------------------------------------------------------
 
 A Latte története során számos szintaktikai cukorkával rukkolt elő, amelyek néhány évvel később megjelentek magában a PHP-ben is. Például a Latte-ban lehetséges volt tömböket írni úgy, hogy `[1, 2, 3]` `array(1, 2, 3)` helyett, vagy használni a nullsafe operátort `$obj?->foo` jóval azelőtt, hogy ez magában a PHP-ben lehetséges lett volna. A Latte bevezette a `(expand) $arr` tömbbővítő operátort is, amely a mai PHP `...$arr` operátornak felel meg.
 
+Az undefined-safe `??->` operátor, amely hasonló a nullsafe `?->` operátorhoz, de nem okoz hibát, ha a változó nem létezik, történelmi okokból jött létre, és ma már a standard PHP `?->` operátor használatát javasoljuk.
+
 
 PHP korlátozások a Latte-ban .[#toc-php-limitations-in-latte]
 =============================================================
 
-A Latte-ban csak PHP kifejezéseket lehet írni. Vagyis nem lehet osztályokat deklarálni vagy [vezérlési struktúrákat |https://www.php.net/manual/en/language.control-structures.php] használni, mint például a `if`, `foreach`, `switch`, `return`, `try`, `throw` és mások, amelyek helyett a Latte kínálja a [címkéket |tags].
-Szintén nem használhatsz [attribútumokat |https://www.php.net/manual/en/language.attributes.php], [backtickeket |https://www.php.net/manual/en/language.operators.execution.php] vagy [mágikus konstansokat |https://www.php.net/manual/en/language.constants.magic.php], mert annak nem lenne értelme.
-Nem használhatod még a `unset`, `echo`, `include`, `require`, `exit`, `eval`, mert ezek nem függvények, hanem speciális PHP nyelvi konstrukciók, tehát nem kifejezések.
+Latte-ban csak PHP-kifejezéseket lehet írni. Vagyis pontosvesszővel végződő utasítások nem használhatók. Nem lehet osztályokat deklarálni vagy [vezérlési struktúrákat |https://www.php.net/manual/en/language.control-structures.php] használni, mint például a `if`, `foreach`, `switch`, `return`, `try`, `throw` és mások, amelyek helyett a Latte kínálja a [címkéket |tags].
+Nem használhatsz [attribútumokat |https://www.php.net/manual/en/language.attributes.php], [backtickeket |https://www.php.net/manual/en/language.operators.execution.php] és [varázslatos konstansokat |https://www.php.net/manual/en/language.constants.magic.php] sem.
+A `unset`, `echo`, `include`, `require`, `exit`, `eval` nem is használható, mivel ezek nem függvények, hanem speciális PHP nyelvi konstrukciók, tehát nem kifejezések. Csak a többsoros megjegyzések támogatottak `/* ... */`.
 
 Ezeket a korlátozásokat azonban megkerülheti a [RawPhpExtension |develop#RawPhpExtension] kiterjesztés aktiválásával, amely lehetővé teszi, hogy a sablon szerzőjének felelősségére bármilyen PHP kódot használjon a `{php ...}` tagben.

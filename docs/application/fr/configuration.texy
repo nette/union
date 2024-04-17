@@ -13,11 +13,15 @@ application:
 	# affiche le panneau "Nette Application" dans Tracy BlueScreen ?
 	debugger: ...           # (bool) par défaut à true
 
-	# le présentateur d'erreur sera-t-il appelé en cas d'erreur ?
-	catchExceptions: ...    # (bool) vaut true par défaut en mode production
+	# le présentateur d'erreurs sera-t-il appelé en cas d'erreur ?
+	# n'a d'effet qu'en mode développeur
+catchExceptions : ...    # (bool) valeur par défaut : true
 
 	# nom du présentateur d'erreur
-	errorPresenter: Error   # (string) vaut par défaut 'Nette:Error'.
+	errorPresenter: Error   # (string|array) vaut par défaut 'Nette:Error'.
+
+	# définit des alias pour les présentateurs et les événements
+	aliases: ...
 
 	# définit les règles pour résoudre le nom du présentateur vers une classe
 	mapping: ...
@@ -27,9 +31,18 @@ application:
 	silentLinks: ...        # (bool) valeur par défaut: false
 ```
 
-Comme les présentateurs d'erreurs ne sont pas appelés par défaut en mode développement et que les erreurs sont affichées par Tracy, le fait de changer la valeur `catchExceptions` en `true` permet de vérifier que les présentateurs d'erreurs fonctionnent correctement pendant le développement.
+Depuis la version 3.2 de `nette/application`, il est possible de définir une paire de présentateurs d'erreurs :
+
+```neon
+application:
+	errorPresenter:
+		4xx: Error4xx   # pour NetteApplicationBadRequestException
+		5xx: Error5xx   # pour les autres exceptions
+```
 
 L'option `silentLinks` détermine comment Nette se comporte en mode développeur lorsque la génération de liens échoue (par exemple, parce qu'il n'y a pas de présentateur, etc). La valeur par défaut `false` signifie que Nette déclenche `E_USER_WARNING`. Le réglage sur `true` supprime ce message d'erreur. Dans un environnement de production, `E_USER_WARNING` est toujours invoqué. Nous pouvons également influencer ce comportement en définissant la variable du présentateur [$invalidLinkMode |creating-links#Invalid Links].
+
+Les [alias simplifient le référencement des |creating-links#aliases] présentateurs fréquemment utilisés.
 
 Le [mappage définit les règles |modules#mapping] selon lesquelles le nom de la classe est dérivé du nom du présentateur.
 
@@ -76,6 +89,12 @@ latte:
 	# génère des modèles avec declare(strict_types=1)
 	strictTypes: ...     # (bool) vaut false par défaut
 
+	# active le [mode strict de l'analyseur |latte:develop#strict mode]
+	strictParsing : ...   # (bool) la valeur par défaut est false
+
+	# permet de [vérifier le code généré |latte:develop#Checking Generated Code]
+	phpLinter : ...       # (string) la valeur par défaut est null
+
 	# classe de $this->template
 	templateClass: App\MyTemplateClass # Valeur par défaut: Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -85,7 +104,7 @@ Si vous utilisez la version 3 de Latte, vous pouvez ajouter une nouvelle [extens
 ```neon
 latte:
 	extensions:
-		- Latte\Essential\TranslatorExtension
+		- Latte\Essential\TranslatorExtension(@Nette\Localization\Translator)
 ```
 
 /--comment
@@ -152,3 +171,18 @@ Vous pouvez définir des directives PHP. Un aperçu de toutes les directives peu
 php:
 	date.timezone: Europe/Prague
 ```
+
+
+Services DI .[#toc-di-services]
+===============================
+
+Ces services sont ajoutés au conteneur DI :
+
+| Nom | Type | Description
+|----------------------------------------------------------
+| `application.application` | [api:Nette\Application\Application] | [Lanceur d'applications complet |how-it-works#Nette Application]
+| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
+| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | presenter factory
+| `application.###` | [api:Nette\Application\UI\Presenter] | présentateurs individuels
+| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | usine pour `Latte\Engine`
+| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | usine pour [`$this->template` |templates]

@@ -67,7 +67,7 @@ Belirli bir türdeki tüm hizmetleri toplu olarak nasıl düzenleyebilirim? Beli
 ```neon
 decorator:
 	# bu sınıfın veya arayüzün örneği olan tüm hizmetler için
-	App\Presenters\BasePresenter:
+	App\UI\BasePresenter:
 		setup:
 			- setProjectId(10)     # bu yöntemi çağır
 			- $absoluteUrls = true # ve değişkeni ayarlayın
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-`$container->parameters` dizisini kullanmıyorsanız, parametre dışa aktarımını devre dışı bırakabilirsiniz. Ayrıca, yalnızca `$container->findByTag(...)` yöntemini kullanarak hizmet aldığınız etiketleri dışa aktarabilirsiniz.
+`$container->getParameters()` dizisini kullanmıyorsanız, parametre dışa aktarımını devre dışı bırakabilirsiniz. Ayrıca, yalnızca `$container->findByTag(...)` yöntemini kullanarak hizmet aldığınız etiketleri dışa aktarabilirsiniz.
 Yöntemi hiç çağırmazsanız, `false` ile etiket dışa aktarımını tamamen devre dışı bırakabilirsiniz.
 
 Kullandığınız sınıfları `$container->getByType()` yöntemine parametre olarak belirterek [otomatik kablolama |autowiring] için meta verileri önemli ölçüde azaltabilirsiniz.
@@ -191,20 +191,15 @@ Sınıfların hangi dizinlerde (ve alt dizinlerde) aranması gerektiğini belirt
 
 ```neon
 search:
-	# bölüm adlarını kendiniz seçersiniz
-	myForms:
-		in: %appDir%/Forms
-
-	model:
-		in: %appDir%/Model
+	-	in: %appDir%/Forms
+	-	in: %appDir%/Model
 ```
 
 Ancak genellikle, tüm sınıfları ve arayüzleri eklemek istemeyiz, bu yüzden onları filtreleyebiliriz:
 
 ```neon
 search:
-	myForms:
-		in: %appDir%/Forms
+	-	in: %appDir%/Forms
 
 		# dosya adına göre filtreleme (string|string[])
 		files:
@@ -220,7 +215,7 @@ Ya da aşağıdaki sınıflardan en az birini miras alan veya uygulayan sınıfl
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		extends:
 			- App\*Form
 		implements:
@@ -231,8 +226,9 @@ Ayrıca negatif kurallar da tanımlayabilirsiniz, yani sınıf adı maskeleri ve
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		exclude:
+dosyalar: ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -242,7 +238,7 @@ Eklenen hizmetler için etiketler belirlenebilir:
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		tags: ...
 ```
 

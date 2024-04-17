@@ -1,5 +1,5 @@
-Migrace z Latte v2 na v3
-************************
+Migrace z Latte 2 na 3
+**********************
 
 .[perex]
 Latte 3 má kompletně přepsaným kompilátor a formálně přesně definovanou gramatiku. Ta by měla co nejvíce odpovídat Latte 2, ale existují konstrukce, které je třeba drobně upravit.
@@ -128,6 +128,26 @@ $latte->addExtension(new Nette\Bridges\CacheLatte\CacheExtension($cacheStorage))
 ```
 
 
+Tracy
+-----
+
+Panel pro Tracy se nyní aktivuje také jako rozšíření.
+
+Starý kód pro Latte 2:
+
+```php
+$latte = new Latte\Engine;
+Latte\Bridges\Tracy\LattePanel::initialize($latte);
+```
+
+Nový kód pro Latte 3:
+
+```php
+$latte = new Latte\Engine;
+$latte->addExtension(new Latte\Bridges\Tracy\TracyExtension);
+```
+
+
 Překlady
 --------
 
@@ -145,19 +165,19 @@ Nový kód pro Latte 3:
 $latte->addExtension(new Latte\Essential\TranslatorExtension($translator));
 ```
 
-V presenterech se automaticky aktivuje tím, že nastavíte šabloně translator metodou `$template->setTranslator($translator)`. Bez toho značky pro překlad nebudou k dispozici a je potřeba rozšíření zaregistrovat ručně, nebo pomocí konfiguračního souboru.
+V presenterech se automaticky aktivuje tím, že nastavíte šabloně translator metodou `$template->setTranslator($translator)`. Bez toho značky pro překlad nebudou k dispozici a je potřeba rozšíření zaregistrovat ručně, nebo pomocí konfiguračního souboru, viz dále.
 
 
 Konfigurační soubor
 ===================
 
-V Latte 2 bylo možné registrovat nové tagy pomocí [konfiguračního souboru |application:configuration#Šablony Latte] v sekci `latte › macros`. Ve verzi 3 se přidávají celé rozšíření tímto způsobem:
+V Latte 2 bylo možné registrovat nové tagy pomocí [konfiguračního souboru |application:configuration#Šablony Latte] v sekci `latte › macros`. Ve verzi 3 se přidávají rozšíření tímto způsobem:
 
 ```neon
 latte:
 	extensions:
 		- App\Templating\LatteExtension
-		- Latte\Essential\TranslatorExtension
+		- Latte\Essential\TranslatorExtension(@Nette\Localization\Translator)
 ```
 
 

@@ -32,7 +32,7 @@ echo $url; // https://doc.nette.org/en/?action=edit
 echo $url->getHost(); // nette.org
 ```
 
-Przeglądarki nie wysyłają fragmentu do serwera, więc `$url->getFragment()` zwróci pusty ciąg.
+Ostrzeżenie: Przeglądarki nie wysyłają fragmentu do serwera, więc `$url->getFragment()` zwróci pusty ciąg znaków.
 
 
 getQuery(string $key=null): string|array|null .[method]
@@ -139,11 +139,6 @@ Zwraca wszystkie nagłówki HTTP jako tablicę asocjacyjną.
 $headers = $httpRequest->getHeaders();
 echo $headers['Content-Type'];
 ```
-
-
-getReferer(): ?Nette\Http\UrlImmutable .[method]
-------------------------------------------------
-Z jakiego adresu URL przyszedł użytkownik? Uważaj, w ogóle nie jest niezawodny.
 
 
 isSecured(): bool .[method]
@@ -356,6 +351,17 @@ Nie należy ufać wartości zwracanej przez tę metodę. Klient mógł wysłać 
 getSanitizedName(): string .[method]
 ------------------------------------
 Zwraca oczyszczoną nazwę pliku. Zawiera tylko znaki ASCII `[a-zA-Z0-9.-]`. Jeśli nazwa nie zawiera takich znaków, zwraca `'unknown'`. Jeśli plik jest obrazem JPEG, PNG, GIF lub WebP, zwraca również prawidłowe rozszerzenie.
+
+.[caution]
+Wymaga rozszerzenia PHP `fileinfo`.
+
+
+getSuggestedExtension(): ?string .[method]{data-version:3.2.4}
+--------------------------------------------------------------
+Zwraca odpowiednie rozszerzenie pliku (bez kropki) odpowiadające wykrytemu typowi MIME.
+
+.[caution]
+Wymaga rozszerzenia PHP `fileinfo`.
 
 
 getUntrustedFullPath(): string .[method]

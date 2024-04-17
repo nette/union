@@ -87,7 +87,7 @@ class PollControl extends Control
 A  megjelenítése .[#toc-rendering]
 ==================================
 
-Azt már tudjuk, hogy a `{control componentName}` címkét egy komponens megrajzolására használjuk. Valójában a komponens `render()` metódusát hívja meg, amelyben a renderelésről gondoskodunk. A prezenterhez hasonlóan van egy [Latte |latte:] sablonunk a `$this->template` változóban, amelynek átadjuk a paramétereket. A prezenterben való használattal ellentétben itt meg kell adnunk egy sablonfájlt, és hagynunk kell, hogy renderelje:
+Azt már tudjuk, hogy a `{control componentName}` címkét egy komponens megrajzolására használjuk. Valójában a komponens `render()` metódusát hívja meg, amelyben a renderelésről gondoskodunk. A prezenterhez hasonlóan van egy [Latte sablonunk |templates] a `$this->template` változóban, amelynek átadjuk a paramétereket. A prezenterben való használattal ellentétben itt meg kell adnunk egy sablonfájlt, és hagynunk kell, hogy renderelje:
 
 ```php .{file:PollControl.php}
 public function render(): void
@@ -233,31 +233,34 @@ A sablonban ezek az üzenetek a `$flashes` változóban állnak rendelkezésre, 
 Állandó paraméterek .[#toc-persistent-parameters]
 =================================================
 
-Gyakran van szükség arra, hogy egy komponensben valamilyen paramétert a komponenssel való munka teljes ideje alatt megőrizzünk. Ez lehet például az oldalszám a lapozásban. Ezt a paramétert a `@persistent` megjegyzéssel állandónak kell jelölni.
+A tartós paraméterek a komponensek állapotának különböző kérések közötti fenntartására szolgálnak. Értékük a linkre való kattintás után is ugyanaz marad. A munkamenetadatokkal ellentétben ezek az URL-ben kerülnek átvitelre. És automatikusan továbbításra kerülnek, beleértve az ugyanazon az oldalon lévő más komponensekben létrehozott linkeket is.
+
+Például van egy tartalom lapozó komponens. Egy oldalon több ilyen komponens is lehet. És azt szeretné, hogy minden komponens az aktuális oldalon maradjon, amikor a linkre kattint. Ezért az oldalszámot (`page`) állandó paraméterré tesszük.
+
+A perzisztens paraméter létrehozása rendkívül egyszerű a Nette-ben. Csak hozzon létre egy nyilvános tulajdonságot, és címkézze meg az attribútummal: (korábban a `/** @persistent */` volt használatos).
 
 ```php
-class PollControl extends Control
+use Nette\Application\Attributes\Persistent; // ez a sor fontos
+
+class PaginatingControl extends Control
 {
-	/** @persistent */
-	public int $page = 1;
+	#[Persistent]
+	public int $page = 1; // nyilvánosnak kell lennie
 }
 ```
 
-Ez a paraméter automatikusan átadásra kerül minden linkben a `GET` paraméterként, amíg a felhasználó el nem hagyja az oldalt ezzel a komponenssel.
+Javasoljuk, hogy a tulajdonsághoz adja meg az adattípust (pl. `int`), és alapértelmezett értéket is megadhat. A paraméterek értékei [érvényesíthetők |#Validation of Persistent Parameters].
 
-.[caution]
-Soha ne bízzon vakon a tartós paraméterekben, mert könnyen meghamisíthatók (az URL felülírásával). Ellenőrizze például, hogy az oldalszám a megfelelő intervallumon belül van-e.
+A tartós paraméterek értékét a hivatkozás létrehozásakor módosíthatja:
 
-A PHP 8-ban attribútumokat is használhat a perzisztens paraméterek jelölésére:
+```latte
+<a n:href="this page: $page + 1">next</a>
+```
 
-```php
-use Nette\Application\Attributes\Persistent;
+Vagy *visszaállítható*, azaz eltávolítható az URL-ből. Ekkor az alapértelmezett értéket veszi fel:
 
-class PollControl extends Control
-{
-	#[Persistent]
-	public int $page = 1;
-}
+```latte
+<a n:href="this page: null">reset</a>
 ```
 
 
@@ -344,7 +347,7 @@ services:
 Végül ezt a gyárat fogjuk használni a prezenterünkben:
 
 ```php
-class PollPresenter extends Nette\UI\Application\Presenter
+class PollPresenter extends Nette\Application\UI\Presenter
 {
 	public function __construct(
 		private PollControlFactory $pollControlFactory,
@@ -377,8 +380,8 @@ A komponensek mélysége .[#toc-components-in-depth]
 A komponensek egy Nette alkalmazásban a webalkalmazás újrafelhasználható részei, amelyeket oldalakba ágyazunk be, ez a fejezet témája. Pontosan milyen képességekkel rendelkezik egy ilyen komponens?
 
 1) egy sablonban megjeleníthető.
-2) tudja, hogy egy [AJAX-kérés |ajax#invalidation] során melyik részét kell renderelni (snippet)
-3) képes az állapotát egy URL-ben tárolni (perzisztencia paraméterek)
+2) tudja, hogy egy AJAX-kérés során [melyik |ajax#snippets] részét kell megjelenítenie (snippetek).
+3) képes az állapotát egy URL-ben tárolni (állandó paraméterek).
 4) képes reagálni a felhasználói műveletekre (jelek)
 5) hierarchikus struktúrát hoz létre (ahol a gyökér a bemutató)
 
@@ -401,6 +404,33 @@ A komponens életciklusa .[#toc-life-cycle-of-component]
 -------------------------------------------------------
 
 [* lifecycle-component.svg *] *** *A komponens életciklusa* .<>
+
+
+A tartós paraméterek validálása .[#toc-validation-of-persistent-parameters]
+---------------------------------------------------------------------------
+
+Az URL-ekből kapott [állandó paraméterek |#persistent parameters] értékeit a `loadState()` módszer írja a tulajdonságokba. A módszer azt is ellenőrzi, hogy a tulajdonsághoz megadott adattípus megfelel-e, ellenkező esetben 404-es hibával válaszol, és az oldal nem jelenik meg.
+
+Soha ne bízzunk vakon a perzisztens paraméterekben, mert azokat a felhasználó könnyen felülírhatja az URL-ben. Például így ellenőrizzük, hogy a `$this->page` oldalszám nagyobb-e 0-nál. Erre jó megoldás a fent említett `loadState()` metódus felülírása:
+
+```php
+class PaginatingControl extends Control
+{
+	#[Persistent]
+	public int $page = 1;
+
+	public function loadState(array $params): void
+	{
+		parent::loadState($params); // itt van beállítva a $this->page
+		// követi a felhasználói értékek ellenőrzését:
+		if ($this->page < 1) {
+			$this->error();
+		}
+	}
+}
+```
+
+Az ellenkező folyamatot, vagyis az értékek begyűjtését a perzisztens tulajdonságokból a `saveState()` metódus kezeli.
 
 
 Mélységi jelek .[#toc-signals-in-depth]

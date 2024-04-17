@@ -68,24 +68,22 @@ final class LiteralNode extends Node
 
 	public static function baseConvert(string $number, int $base): string|int
 	{
-		if (!extension_loaded('bcmath')) {
+		if (strlen($number) < 16) {
 			$res = base_convert($number, $base, 10);
-			if (is_float($res)) {
-				throw new Exception("The number '$number' is too large, enable 'bcmath' extension to handle it.");
+		} elseif (!extension_loaded('bcmath')) {
+			throw new Exception("The number '$number' is too large, enable 'bcmath' extension to handle it.");
+		} else {
+			$res = '0';
+			for ($i = 0; $i < strlen($number); $i++) {
+				$char = $number[$i];
+				$char = match (true) {
+					$char >= 'a' => ord($char) - 87,
+					$char >= 'A' => ord($char) - 55,
+					default => $char,
+				};
+				$res = bcmul($res, (string) $base, 0);
+				$res = bcadd($res, (string) $char, 0);
 			}
-			return $res;
-		}
-
-		$res = '0';
-		for ($i = 0; $i < strlen($number); $i++) {
-			$char = $number[$i];
-			$char = match (true) {
-				$char >= 'a' => ord($char) - 87,
-				$char >= 'A' => ord($char) - 55,
-				default => $char,
-			};
-			$res = bcmul($res, (string) $base, 0);
-			$res = bcadd($res, (string) $char, 0);
 		}
 
 		return is_int($num = $res * 1) ? $num : $res;

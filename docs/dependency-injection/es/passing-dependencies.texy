@@ -96,9 +96,9 @@ final class MyClass extends BaseClass
 
 El problema surge cuando queremos cambiar el constructor de la clase `BaseClass`, por ejemplo cuando se añade una nueva dependencia. Entonces tenemos que modificar también todos los constructores de los hijos. Lo que convierte tal modificación en un infierno.
 
-¿Cómo evitarlo? La solución es **priorizar la composición sobre la herencia**.
+¿Cómo evitarlo? La solución es **priorizar la [composición sobre la herencia** |faq#Why composition is preferred over inheritance].
 
-Así que diseñemos el código de otra manera. Evitaremos las clases abstractas `Base*`. En lugar de que `MyClass` obtenga alguna funcionalidad heredando de `BaseClass`, tendrá esa funcionalidad pasada como una dependencia:
+Así que vamos a diseñar el código de forma diferente. Evitaremos las clases [abstractas |nette:introduction-to-object-oriented-programming#abstract-classes] `Base*`. En lugar de que `MyClass` obtenga alguna funcionalidad heredando de `BaseClass`, tendrá esa funcionalidad pasada como una dependencia:
 
 ```php
 final class SomeFunctionality
@@ -128,7 +128,7 @@ final class MyClass
 Inyección de Setter .[#toc-setter-injection]
 ============================================
 
-Las dependencias se pasan llamando a un método que las almacena en una propiedad privada. La convención de nomenclatura habitual para estos métodos es de la forma `set*()`, por lo que se denominan setters.
+Las dependencias se pasan llamando a un método que las almacena en una propiedad privada. La convención de nomenclatura habitual para estos métodos es de la forma `set*()`, que es por lo que se llaman setters, pero por supuesto pueden llamarse de cualquier otra forma.
 
 ```php
 class MyClass
@@ -168,8 +168,7 @@ La llamada al setter se define en la configuración del contenedor DI en [secci�
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- setCache
 ```
@@ -196,8 +195,7 @@ La configuración de la variable se define en la configuración del contenedor D
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- $cache = @\Cache
 ```

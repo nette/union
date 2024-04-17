@@ -17,6 +17,8 @@
 - [Як повернутися на попередню сторінку |restore-request]
 - [Пагінація результатів бази даних |Pagination]
 - [Динамічні фрагменти |dynamic-snippets]
+- [Як використовувати атрибут #Requires |attribute-requires]
+- [Як правильно використовувати POST-посилання |post-links]
 
 </div>
 <div>
@@ -36,10 +38,12 @@
 Спільне
 -------
 - [Як завантажити конфігураційний файл |bootstrap:]
+- [Як писати мікросайти |microsites]
 - [Чому Nette використовує нотацію констант у регістрі PascalCase? |https://blog.nette.org/uk/sob-mense-kriku-v-kodi]
 - [Чому Nette не використовує суфікс Interface? |https://blog.nette.org/uk/prefiksi-ta-sufiksi-ne-potribni-v-nazvah-interfejsiv]
 - [Поради щодо використання Composer |composer]
 - [Поради щодо редакторів та інструментів |editors-and-tools]
+- [Вступ до об'єктно-орієнтованого програмування |nette:introduction-to-object-oriented-programming]
 
 </div>
 <div>

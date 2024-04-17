@@ -13,9 +13,11 @@ use Nette;
 
 
 /**
- * ComponentContainer is default implementation of IContainer.
+ * Manages a collection of child components.
  *
- * @property-read IComponent[] $components
+ * @template T of IComponent
+ * @implements IContainer<T>
+ * @property-read T[] $components
  */
 class Container extends Component implements IContainer
 {
@@ -30,11 +32,10 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Adds the component to the container.
-	 * @return static
+	 * Adds a child component to the container.
 	 * @throws Nette\InvalidStateException
 	 */
-	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null)
+	public function addComponent(IComponent $component, ?string $name, ?string $insertBefore = null): static
 	{
 		if ($name === null) {
 			$name = $component->getName();
@@ -91,7 +92,7 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Removes the component from the container.
+	 * Removes a child component from the container.
 	 */
 	public function removeComponent(IComponent $component): void
 	{
@@ -106,7 +107,7 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Returns component specified by name or path.
+	 * Retrieves a child component by name or creates it if it doesn't exist.
 	 * @param  bool  $throw  throw exception if component doesn't exist?
 	 * @return ($throw is true ? IComponent : ?IComponent)
 	 */
@@ -153,7 +154,7 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Component factory. Delegates the creation of components to a createComponent<Name> method.
+	 * Creates a new component. Delegates creation to createComponent<Name> method if it exists.
 	 */
 	protected function createComponent(string $name): ?IComponent
 	{
@@ -178,7 +179,7 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Returns immediate child components.
+	 * Returns all immediate child components.
 	 * @return array<int|string,IComponent>
 	 */
 	final public function getComponents(): iterable
@@ -217,7 +218,8 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Descendant can override this method to disallow insert a child by throwing an Nette\InvalidStateException.
+	 * Validates a child component before it's added to the container.
+	 * Descendant classes can override this to implement custom validation logic.
 	 * @throws Nette\InvalidStateException
 	 */
 	protected function validateChildComponent(IComponent $child): void
@@ -229,7 +231,7 @@ class Container extends Component implements IContainer
 
 
 	/**
-	 * Object cloning.
+	 * Handles object cloning. Clones all child components and re-sets their parents.
 	 */
 	public function __clone()
 	{

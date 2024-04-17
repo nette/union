@@ -7,9 +7,9 @@ Yorumlarla basit bir blog oluştururken Nette Framework'ü tanıyın. Hadi başl
 İlk iki bölümden sonra, kendi çalışan blogunuza sahip olacaksınız ve harika gönderilerinizi yayınlamaya hazır olacaksınız, ancak bu iki bölümü tamamladıktan sonra özellikler oldukça sınırlı olacaktır. Kullanıcılarınız için işleri daha güzel hale getirmek için sonraki bölümleri de okumalı ve uygulamanızı geliştirmeye devam etmelisiniz.
 
 .[tip]
-Bu eğitimde [Kurulum |nette:installation] belgesini tamamladığınız ve araçlarınızı başarıyla kurduğunuz varsayılmaktadır.
+Bu öğretici, [Kurulum |nette:installation] belgesini tamamladığınızı ve araçlarınızı başarıyla kurduğunuzu varsayar. Ayrıca [PHP'de nesne yönelimli programlamayı |nette:introduction-to-object-oriented-programming] anladığınızı varsayar.
 
-Lütfen PHP 8.0 veya üstünü kullanın. Uygulamanın tamamını [GitHub |https://github.com/nette-examples/quickstart/tree/v4.0]'da bulabilirsiniz.
+Lütfen PHP 8.1 veya üstünü kullanın. Uygulamanın tamamını [GitHub |https://github.com/nette-examples/quickstart/tree/v4.0]'da bulabilirsiniz.
 
 
 Karşılama Sayfası .[#toc-the-welcome-page]
@@ -45,9 +45,9 @@ Web Projesi aşağıdaki yapıya sahiptir:
 /--pre
 <b>nette-blog/</b>
 ├── <b>app/</b>              ← application directory
-│   ├── <b>Presenters/</b>   ← presenter classes
-│   │   └── <b>templates/</b>← templates
-│   ├── <b>Router/</b>       ← configuration of URL addresses
+│   ├── <b>Core/</b>         ← temel gerekli sınıflar
+│   ├── <b>UI/</b>           ← presenters, templates & co.
+│   │   └── <b>Home/</b>     ← Home sunucu dizini
 │   └── <b>Bootstrap.php</b> ← booting class Bootstrap
 ├── <b>bin/</b>              ← scripts for the command line
 ├── <b>config/</b>           ← configuration files
@@ -67,7 +67,7 @@ Sizin için en önemli dizin `app/`. Orada `Bootstrap.php` dosyasını bulabilir
 Temizlik .[#toc-cleanup]
 ========================
 
-Web Projesi, kaldırabileceğimiz bir karşılama sayfası içerir - `app/Presenters/templates/Home/default.latte` dosyasını silmekten ve "Merhaba dünya!" metniyle değiştirmekten çekinmeyin.
+Web Projesi, kaldırabileceğimiz bir karşılama sayfası içerir - `app/UI/Home/default.latte` dosyasını silmekten ve "Merhaba dünya!" metniyle değiştirmekten çekinmeyin.
 
 
 [* qs-hello.webp .{url:-} *]
@@ -76,9 +76,9 @@ Web Projesi, kaldırabileceğimiz bir karşılama sayfası içerir - `app/Presen
 Tracy (Hata Ayıklayıcı) .[#toc-tracy-debugger]
 ==============================================
 
-Geliştirme için son derece önemli bir araç [Tracy adlı bir hata ayıklayıcıdır |tracy:]. `app/Presenters/HomePresenter.php` dosyanızda bazı hatalar yapmaya çalışın (örneğin HomePresenter sınıfının tanımından bir küme parantezini kaldırın) ve ne olacağını görün. Anlaşılabilir bir hata açıklamasıyla birlikte kırmızı ekranlı bir sayfa açılacaktır.
+Geliştirme için son derece önemli bir araç [Tracy adlı bir hata ayıklayıcıdır |tracy:]. `app/UI/Home/HomePresenter.php` dosyanızda bazı hatalar yapmaya çalışın (örneğin HomePresenter sınıfının tanımından bir küme parantezini kaldırın) ve ne olacağını görün. Anlaşılabilir bir hata açıklamasıyla birlikte kırmızı ekranlı bir sayfa açılacaktır.
 
-[* qs-tracy.webp .{url:-}(debugger screen) *]
+[* qs-tracy.avif .{url:-}(debugger screen) *]
 
 Tracy, hataları ararken size önemli ölçüde yardımcı olacaktır. Ayrıca, önemli çalışma zamanı verileri hakkında sizi bilgilendiren sağ alt köşedeki yüzen Tracy Çubuğuna da dikkat edin.
 
@@ -89,7 +89,7 @@ Tracy, hataları ararken size önemli ölçüde yardımcı olacaktır. Ayrıca, 
 ```php .{file:app/Bootstrap.php}
 ...
 $configurator->setDebugMode(false);
-$configurator->enableTracy(__DIR__ . '/../log');
+$configurator->enableTracy($rootDir . '/log');
 ...
 ```
 

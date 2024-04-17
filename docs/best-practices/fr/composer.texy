@@ -142,6 +142,12 @@ Ou directement dans le fichier `composer.json` :
 ```
 
 
+Ignorer la version de PHP .[#toc-ignoring-php-version]
+======================================================
+
+Les paquets spécifient généralement la version la plus basse de PHP avec laquelle ils sont compatibles et la version la plus haute avec laquelle ils ont été testés. Si vous prévoyez d'utiliser une version plus récente de PHP, peut-être à des fins de test, Composer refusera d'installer un tel paquet. La solution est d'utiliser l'option `--ignore-platform-req=php+`, qui permet à Composer d'ignorer les limites supérieures de la version de PHP requise.
+
+
 Faux rapports .[#toc-false-reports]
 ===================================
 
@@ -183,7 +189,7 @@ Toutefois, il est également possible d'utiliser Composer pour charger d'autres 
 
 Par la suite, il est nécessaire d'exécuter la commande `composer dumpautoload` à chaque modification et de laisser les tables d'autoloadage se régénérer. Ceci est extrêmement gênant, et il est de loin préférable de confier cette tâche à [RobotLoader |robot-loader:], qui effectue la même activité automatiquement en arrière-plan et beaucoup plus rapidement.
 
-La deuxième option consiste à suivre le [système PSR-4 |https://www.php-fig.org/psr/psr-4/]. Pour faire simple, il s'agit d'un système où les espaces de noms et les noms de classes correspondent à la structure des répertoires et aux noms de fichiers, c'est-à-dire que `App\Router\RouterFactory` est situé dans le fichier `/path/to/App/Router/RouterFactory.php`. Exemple de configuration :
+La deuxième option consiste à suivre le [système PSR-4 |https://www.php-fig.org/psr/psr-4/]. Pour faire simple, il s'agit d'un système où les espaces de noms et les noms de classes correspondent à la structure des répertoires et aux noms de fichiers, c'est-à-dire que `App\Core\RouterFactory` est situé dans le fichier `/path/to/App/Core/RouterFactory.php`. Exemple de configuration :
 
 ```js
 {

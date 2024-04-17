@@ -11,8 +11,6 @@ namespace Nette\Database;
 
 use JetBrains\PhpStorm\Language;
 use Nette\Utils\Arrays;
-use PDO;
-use PDOException;
 
 
 /**
@@ -25,12 +23,11 @@ class Connection
 
 	/** @var array<callable(self, ResultSet|DriverException): void>  Occurs after query is executed */
 	public array $onQuery = [];
-	private Driver $driver;
+	private ?Driver $driver = null;
 	private SqlPreprocessor $preprocessor;
-	private ?PDO $pdo = null;
 
 	/** @var callable(array, ResultSet): array */
-	private $rowNormalizer = [Helpers::class, 'normalizeRow'];
+	private $rowNormalizer;
 	private ?string $sql = null;
 	private int $transactionDepth = 0;
 
@@ -43,6 +40,8 @@ class Connection
 		private readonly ?string $password = null,
 		private readonly array $options = [],
 	) {
+		$this->rowNormalizer = new RowNormalizer;
+
 		if (empty($options['lazy'])) {
 			$this->connect();
 		}
@@ -51,23 +50,21 @@ class Connection
 
 	public function connect(): void
 	{
-		if ($this->pdo) {
+		if ($this->driver) {
 			return;
 		}
 
-		try {
-			$this->pdo = new PDO($this->dsn, $this->user, $this->password, $this->options);
-			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		} catch (PDOException $e) {
-			throw ConnectionException::from($e);
+		$dsn = explode(':', $this->dsn)[0];
+		$class = empty($this->options['driverClass'])
+			? 'Nette\Database\Drivers\\' . ucfirst(str_replace('sql', 'Sql', $dsn)) . 'Driver'
+			: $this->options['driverClass'];
+		if (!class_exists($class)) {
+			throw new ConnectionException("Invalid data source '$dsn'.");
 		}
 
-		$class = empty($this->options['driverClass'])
-			? 'Nette\Database\Drivers\\' . ucfirst(str_replace('sql', 'Sql', $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME))) . 'Driver'
-			: $this->options['driverClass'];
 		$this->driver = new $class;
+		$this->driver->connect($this->dsn, $this->user, $this->password, $this->options);
 		$this->preprocessor = new SqlPreprocessor($this);
-		$this->driver->initialize($this, $this->options);
 		Arrays::invoke($this->onConnect, $this);
 	}
 
@@ -81,7 +78,7 @@ class Connection
 
 	public function disconnect(): void
 	{
-		$this->pdo = null;
+		$this->driver = null;
 	}
 
 
@@ -91,10 +88,11 @@ class Connection
 	}
 
 
-	public function getPdo(): PDO
+	/** deprecated use getDriver()->getPdo() */
+	public function getPdo(): \PDO
 	{
 		$this->connect();
-		return $this->pdo;
+		return $this->driver->getPdo();
 	}
 
 
@@ -108,8 +106,15 @@ class Connection
 	/** @deprecated use getDriver() */
 	public function getSupplementalDriver(): Driver
 	{
+		trigger_error(__METHOD__ . '() is deprecated, use getDriver()', E_USER_DEPRECATED);
 		$this->connect();
 		return $this->driver;
+	}
+
+
+	public function getReflection(): Reflection
+	{
+		return new Reflection($this->getDriver());
 	}
 
 
@@ -122,22 +127,15 @@ class Connection
 
 	public function getInsertId(?string $sequence = null): string
 	{
-		try {
-			$res = $this->getPdo()->lastInsertId($sequence);
-			return $res === false ? '0' : $res;
-		} catch (PDOException $e) {
-			throw $this->driver->convertException($e);
-		}
+		$this->connect();
+		return $this->driver->getInsertId($sequence);
 	}
 
 
-	public function quote(string $string, int $type = PDO::PARAM_STR): string
+	public function quote(string $string): string
 	{
-		try {
-			return $this->getPdo()->quote($string, $type);
-		} catch (PDOException $e) {
-			throw DriverException::from($e);
-		}
+		$this->connect();
+		return $this->driver->quote($string);
 	}
 
 
@@ -207,7 +205,7 @@ class Connection
 		[$this->sql, $params] = $this->preprocess($sql, ...$params);
 		try {
 			$result = new ResultSet($this, $this->sql, $params, $this->rowNormalizer);
-		} catch (PDOException $e) {
+		} catch (DriverException $e) {
 			Arrays::invoke($this->onQuery, $this, $e);
 			throw $e;
 		}
@@ -220,6 +218,7 @@ class Connection
 	/** @deprecated  use query() */
 	public function queryArgs(string $sql, array $params): ResultSet
 	{
+		trigger_error(__METHOD__ . '() is deprecated, use query()', E_USER_DEPRECATED);
 		return $this->query($sql, ...$params);
 	}
 

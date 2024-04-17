@@ -45,45 +45,39 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 	/**
 	 * Fill-in with default values.
+	 * @param  array|\Traversable|\stdClass  $values
 	 */
-	public function setDefaults(array|object $data, bool $erase = false): static
+	public function setDefaults(array|object $values, bool $erase = false): static
 	{
 		$form = $this->getForm(false);
-		if (!$form || !$form->isAnchored() || !$form->isSubmitted()) {
-			$this->setValues($data, $erase);
-		}
-
+		$this->setValues($values, $erase, $form?->isAnchored() && $form->isSubmitted());
 		return $this;
 	}
 
 
 	/**
 	 * Fill-in with values.
+	 * @param  array|\Traversable|\stdClass  $values
 	 * @internal
 	 */
-	public function setValues(array|object $data, bool $erase = false): static
+	public function setValues(array|object $values, bool $erase = false, bool $onlyDisabled = false): static
 	{
-		if ($data instanceof \Traversable) {
-			$values = iterator_to_array($data);
-
-		} elseif (is_object($data) || is_array($data) || $data === null) {
-			$values = (array) $data;
+		if (is_object($values) && !($values instanceof \Traversable || $values instanceof \stdClass)) {
+			trigger_error(__METHOD__ . ': argument should be array|Traversable|stdClass, ' . get_debug_type($values) . ' given.');
 		}
+
+		$values = $values instanceof \Traversable
+			? iterator_to_array($values)
+			: (array) $values;
 
 		foreach ($this->getComponents() as $name => $control) {
 			if ($control instanceof Control) {
-				if (array_key_exists($name, $values)) {
-					$control->setValue($values[$name]);
-
-				} elseif ($erase) {
-					$control->setValue(null);
+				if ((array_key_exists($name, $values) && (!$onlyDisabled || $control->isDisabled())) || $erase) {
+					$control->setValue($values[$name] ?? null);
 				}
 			} elseif ($control instanceof self) {
-				if (isset($values[$name])) {
-					$control->setValues($values[$name], $erase);
-
-				} elseif ($erase) {
-					$control->setValues([], $erase);
+				if (isset($values[$name]) || $erase) {
+					$control->setValues($values[$name] ?? [], $erase, $onlyDisabled);
 				}
 			}
 		}
@@ -137,56 +131,60 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	public function getUntrustedValues(string|object|null $returnType = null, ?array $controls = null): object|array
 	{
 		if (is_object($returnType)) {
-			$obj = $returnType;
-			$rc = new \ReflectionClass($obj);
+			$resultObj = $returnType;
+			$properties = (new \ReflectionClass($resultObj))->getProperties();
 
 		} else {
 			$returnType = ($returnType ?? $this->mappedType ?? ArrayHash::class);
 			$rc = new \ReflectionClass($returnType === self::Array ? \stdClass::class : $returnType);
-			if ($rc->hasMethod('__construct') && $rc->getMethod('__construct')->getNumberOfRequiredParameters()) {
-				$obj = new \stdClass;
-				$useConstructor = true;
+			$constructor = $rc->hasMethod('__construct') ? $rc->getMethod('__construct') : null;
+			if ($constructor?->getNumberOfRequiredParameters()) {
+				$resultObj = new \stdClass;
+				$properties = $constructor->getParameters();
 			} else {
-				$obj = $rc->newInstance();
+				$constructor = null;
+				$resultObj = $rc->newInstance();
+				$properties = $rc->getProperties();
 			}
 		}
+
+		$properties = array_combine(array_map(fn($p) => $p->getName(), $properties), $properties);
 
 		foreach ($this->getComponents() as $name => $control) {
 			$allowed = $controls === null || in_array($this, $controls, true) || in_array($control, $controls, true);
 			$name = (string) $name;
+			$property = $properties[$name] ?? null;
 			if (
 				$control instanceof Control
 				&& $allowed
 				&& !$control->isOmitted()
 			) {
-				$obj->$name = $control->getValue();
+				$resultObj->$name = Helpers::tryEnumConversion($control->getValue(), $property);
 
 			} elseif ($control instanceof self) {
 				$type = $returnType === self::Array && !$control->mappedType
 					? self::Array
-					: ($rc->hasProperty($name) ? Helpers::getSingleType($rc->getProperty($name)) : null);
-				$obj->$name = $control->getUntrustedValues($type, $allowed ? null : $controls);
+					: ($property ? Helpers::getSingleType($property) : null);
+				$resultObj->$name = $control->getUntrustedValues($type, $allowed ? null : $controls);
 			}
 		}
 
-		if (isset($useConstructor)) {
-			return new $returnType(...(array) $obj);
-		}
-
-		return $returnType === self::Array
-			? (array) $obj
-			: $obj;
+		return match (true) {
+			isset($constructor) => new $returnType(...(array) $resultObj),
+			$returnType === self::Array => (array) $resultObj,
+			default => $resultObj,
+		};
 	}
 
 
 	/** @deprecated use getUntrustedValues() */
 	public function getUnsafeValues($returnType, ?array $controls = null)
 	{
+		trigger_error(__METHOD__ . '() was renamed to getUntrustedValues()', E_USER_DEPRECATED);
 		return $this->getUntrustedValues($returnType, $controls);
 	}
 
 
-	/** @return static */
 	public function setMappedType(string $type): static
 	{
 		$this->mappedType = $type;
@@ -286,21 +284,23 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 		?string $insertBefore = null,
 	): static
 	{
-		parent::addComponent($component, $name, $insertBefore);
-		if ($this->currentGroup !== null) {
-			$this->currentGroup->add($component);
+		if (!$component instanceof Control && !$component instanceof self) {
+			throw new Nette\InvalidStateException("Component '$name' of type " . get_debug_type($component) . ' is not intended to be used in the form.');
 		}
 
+		parent::addComponent($component, $name, $insertBefore);
+		$this->currentGroup?->add($component);
 		return $this;
 	}
 
 
 	/**
-	 * Iterates over all form controls.
+	 * Retrieves the entire hierarchy of form controls including nested.
+	 * @return list<Control>
 	 */
-	public function getControls(): \Iterator
+	public function getControls(): array
 	{
-		return $this->getComponents(true, Control::class);
+		return array_values(array_filter($this->getComponentTree(), fn($c) => $c instanceof Control));
 	}
 
 
@@ -566,6 +566,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	/** @deprecated  use addImageButton() */
 	public function addImage(): Controls\ImageButton
 	{
+		trigger_error(__METHOD__ . '() was renamed to addImageButton()', E_USER_DEPRECATED);
 		return $this->addImageButton(...func_get_args());
 	}
 
@@ -577,10 +578,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	{
 		$control = new self;
 		$control->currentGroup = $this->currentGroup;
-		if ($this->currentGroup !== null) {
-			$this->currentGroup->add($control);
-		}
-
+		$this->currentGroup?->add($control);
 		return $this[$name] = $control;
 	}
 
@@ -588,7 +586,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	/********************* extension methods ****************d*g**/
 
 
-	public function __call(string $name, array $args): mixed
+	public function __call(string $name, array $args)
 	{
 		if (isset(self::$extMethods[$name])) {
 			return (self::$extMethods[$name])($this, ...$args);

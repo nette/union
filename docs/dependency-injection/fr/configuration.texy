@@ -67,7 +67,7 @@ Comment modifier en masse tous les services d'un certain type ? Vous avez besoin
 ```neon
 decorator:
 	# pour tous les services qui sont des instances de cette classe ou interface
-	App\Presenters\BasePresenter:
+	App\UI\BasePresenter:
 		setup:
 			- setProjectId(10)      # appelle cette méthode
 			- $absoluteUrls = true  # et définir la variable
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Si vous n'utilisez pas le tableau `$container->parameters`, vous pouvez désactiver l'exportation des paramètres. En outre, vous pouvez exporter uniquement les balises par lesquelles vous obtenez des services en utilisant la méthode `$container->findByTag(...)`.
+Si vous n'utilisez pas le tableau `$container->getParameters()`, vous pouvez désactiver l'exportation des paramètres. En outre, vous pouvez exporter uniquement les balises par lesquelles vous obtenez des services en utilisant la méthode `$container->findByTag(...)`.
 Si vous n'appelez pas du tout la méthode, vous pouvez désactiver complètement l'exportation des balises avec `false`.
 
 Vous pouvez réduire considérablement les métadonnées pour le [câblage automatique |autowiring] en spécifiant les classes que vous utilisez comme paramètre de la méthode `$container->getByType()`.
@@ -191,20 +191,15 @@ Il suffit de préciser dans quels répertoires (et sous-répertoires) les classe
 
 ```neon
 recherche:
-	# vous choisissez vous-même les noms des sections
-	mesFormulaires:
-		in: %appDir%/Forms
-
-	modèle:
-		in: %appDir%/Model
+	-	in: %appDir%/Forms
+	-	in: %appDir%/Model
 ```
 
 En général, cependant, nous ne voulons pas ajouter toutes les classes et interfaces, nous pouvons donc les filtrer :
 
 ```neon
 recherche:
-	mesFormulaires:
-		in: %appDir%/Forms
+	-	in: %appDir%/Forms
 
 		# filtrer par nom de fichier (string|string[])
 		files:
@@ -220,7 +215,7 @@ Ou nous pouvons sélectionner les classes qui héritent ou implémentent au moin
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		extends:
 			- App\*Form
 		implements:
@@ -231,8 +226,9 @@ Vous pouvez également définir des règles négatives, c'est-à-dire des masque
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		exclude:
+fichiers : ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -242,7 +238,7 @@ Des étiquettes peuvent être définies pour les services ajoutés :
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		tags: ...
 ```
 

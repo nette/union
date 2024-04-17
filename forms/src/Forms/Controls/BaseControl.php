@@ -44,9 +44,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	protected mixed $value = null;
 	protected Html $control;
 	protected Html $label;
-
-	/** @var bool|bool[] */
-	protected bool|array $disabled = false;
+	protected bool $disabled = false;
 
 	/** @var callable[][]  extension methods */
 	private static array $extMethods = [];
@@ -133,10 +131,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets control's value.
-	 * @return static
 	 * @internal
 	 */
-	public function setValue(mixed $value)
+	public function setValue($value): static
 	{
 		$this->value = $value;
 		return $this;
@@ -147,7 +144,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	 * Returns control's value.
 	 * @return mixed
 	 */
-	public function getValue()
+	public function getValue(): mixed
 	{
 		return $this->value;
 	}
@@ -165,11 +162,10 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Sets control's default value.
-	 * @return static
 	 */
-	public function setDefaultValue($value)
+	public function setDefaultValue($value): static
 	{
-		$form = $this->getForm(false);
+		$form = $this->getForm(throw: false);
 		if ($this->isDisabled() || !$form || !$form->isAnchored() || !$form->isSubmitted()) {
 			$this->setValue($value);
 		}
@@ -180,13 +176,13 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Disables or enables control.
-	 * @return static
 	 */
-	public function setDisabled(bool $value = true)
+	public function setDisabled(bool $state = true): static
 	{
-		if ($this->disabled = (bool) $value) {
+		$this->disabled = $state;
+		if ($state) {
 			$this->setValue(null);
-		} elseif (($form = $this->getForm(false)) && $form->isAnchored() && $form->isSubmitted()) {
+		} elseif (($form = $this->getForm(throw: false)) && $form->isAnchored() && $form->isSubmitted()) {
 			$this->loadHttpData();
 		}
 
@@ -199,16 +195,16 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	 */
 	public function isDisabled(): bool
 	{
-		return $this->disabled === true;
+		return $this->disabled;
 	}
 
 
 	/**
 	 * Sets whether control value is excluded from $form->getValues() result.
 	 */
-	public function setOmitted(bool $value = true): static
+	public function setOmitted(bool $state = true): static
 	{
-		$this->omitted = $value;
+		$this->omitted = $state;
 		return $this;
 	}
 
@@ -227,9 +223,8 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Generates control's HTML element.
-	 * @return Html|string
 	 */
-	public function getControl()
+	public function getControl(): Html|string
 	{
 		$this->setOption('rendered', true);
 		$el = clone $this->control;
@@ -239,15 +234,15 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 			'required' => $this->isRequired(),
 			'disabled' => $this->isDisabled(),
 			'data-nette-rules' => Nette\Forms\Helpers::exportRules($this->rules) ?: null,
+			'data-nette-error' => $this->hasErrors(),
 		]);
 	}
 
 
 	/**
 	 * Generates label's HTML element.
-	 * @return Html|string|null
 	 */
-	public function getLabel(string|Stringable|null $caption = null)
+	public function getLabel(string|Stringable|null $caption = null): Html|string|null
 	{
 		$label = clone $this->label;
 		$label->for = $this->getHtmlId();
@@ -395,13 +390,13 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 
 	/**
 	 * Adds a validation rule.
-	 * @return static
 	 */
 	public function addRule(
 		callable|string $validator,
 		string|Stringable|null $errorMessage = null,
 		mixed $arg = null,
-	) {
+	): static
+	{
 		$this->rules->addRule($validator, $errorMessage, $arg);
 		return $this;
 	}
@@ -556,7 +551,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements Con
 	/********************* extension methods ****************d*g**/
 
 
-	public function __call(string $name, array $args): mixed
+	public function __call(string $name, array $args)
 	{
 		$class = static::class;
 		do {

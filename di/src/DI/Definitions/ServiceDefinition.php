@@ -16,9 +16,9 @@ use Nette\DI\ServiceCreationException;
 /**
  * Definition of standard service.
  *
- * @property string|null $class
- * @property Statement $factory
- * @property Statement[] $setup
+ * @property-deprecated string|null $class
+ * @property-deprecated Statement $factory
+ * @property-deprecated Statement[] $setup
  */
 final class ServiceDefinition extends Definition
 {
@@ -33,6 +33,17 @@ final class ServiceDefinition extends Definition
 	public function __construct()
 	{
 		$this->creator = new Statement(null);
+	}
+
+
+	public function getDescriptor(): string
+	{
+		$entity = $this->getEntity();
+		if ($entity && $this->isAnonymous()) {
+			return 'Service ' . (is_string($entity) ? "of type $entity" : Nette\DI\Helpers::entityToString($entity));
+		}
+
+		return parent::getDescriptor();
 	}
 
 
@@ -204,6 +215,3 @@ final class ServiceDefinition extends Definition
 		$this->setup = unserialize(serialize($this->setup));
 	}
 }
-
-
-class_exists(Nette\DI\ServiceDefinition::class);

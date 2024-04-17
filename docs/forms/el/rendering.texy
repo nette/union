@@ -1,15 +1,17 @@
 Μορφές απόδοσης
 ***************
 
-Η εμφάνιση των φορμών μπορεί να διαφέρει σημαντικά. Στην πραγματικότητα, υπάρχουν δύο ακραίες καταστάσεις. Η μία πλευρά είναι η ανάγκη να αποδώσετε ένα σύνολο πολύ παρόμοιων φορμών από την αρχή, με ελάχιστη έως καθόλου προσπάθεια. Συνήθως πρόκειται για διαχειρίσεις και back-ends.
+Η εμφάνιση των μορφών μπορεί να είναι πολύ διαφορετική. Στην πράξη, μπορούμε να συναντήσουμε δύο άκρα. Από τη μία πλευρά, υπάρχει η ανάγκη απόδοσης μιας σειράς φορμών σε μια εφαρμογή που είναι οπτικά παρόμοιες μεταξύ τους και εκτιμούμε την εύκολη απόδοση χωρίς πρότυπο με τη χρήση του `$form->render()`. Αυτή είναι συνήθως η περίπτωση των διοικητικών διεπαφών.
 
-Η άλλη πλευρά είναι οι μικροσκοπικές γλυκές φόρμες, κάθε μία από τις οποίες είναι ένα κομμάτι τέχνης. Η διάταξή τους μπορεί να γραφτεί καλύτερα σε HTML. Φυσικά, εκτός από αυτά τα άκρα, υπάρχουν πολλές φόρμες ακριβώς στο ενδιάμεσο.
+Από την άλλη πλευρά, υπάρχουν διάφορες φόρμες όπου η κάθε μία είναι μοναδική. Η εμφάνισή τους περιγράφεται καλύτερα με τη χρήση της γλώσσας HTML στο πρότυπο. Και φυσικά, εκτός από τα δύο προαναφερθέντα άκρα, θα συναντήσουμε πολλές φόρμες που βρίσκονται κάπου ενδιάμεσα.
 
 
-Latte .[#toc-latte]
-===================
+Απεικόνιση με Latte .[#toc-rendering-with-latte]
+================================================
 
 Το [σύστημα προτύπων Latte |latte:] διευκολύνει ουσιαστικά την απόδοση των μορφών και των στοιχείων τους. Αρχικά, θα δείξουμε πώς να αποδίδουμε τις φόρμες χειροκίνητα, στοιχείο προς στοιχείο, για να αποκτήσουμε πλήρη έλεγχο του κώδικα. Αργότερα θα δείξουμε πώς να [αυτοματοποιήσουμε |#Automatic rendering] την εν λόγω απόδοση.
+
+Μπορείτε να έχετε την πρόταση ενός προτύπου Latte για τη φόρμα που δημιουργείται χρησιμοποιώντας τη μέθοδο `Nette\Forms\Blueprint::latte($form)`, η οποία θα την εξάγει στη σελίδα του προγράμματος περιήγησης. Στη συνέχεια, πρέπει απλώς να επιλέξετε τον κώδικα με ένα κλικ και να τον αντιγράψετε στο έργο σας. .{data-version:3.1.15}
 
 
 `{control}`
@@ -88,12 +90,6 @@ protected function createComponentSignInForm(): Form
 ```
 
 
-Πρόταση κώδικα `{formPrint}` .[#toc-formprint]
-----------------------------------------------
-
-Μπορείτε να δημιουργήσετε έναν παρόμοιο κωδικό Latte για μια φόρμα χρησιμοποιώντας την ετικέτα `{formPrint}`. Αν το τοποθετήσετε σε ένα πρότυπο, θα δείτε το σχέδιο κώδικα αντί για την κανονική απόδοση. Στη συνέχεια, απλά επιλέξτε το και αντιγράψτε το στο έργο σας.
-
-
 `{label}` `{input}`
 -------------------
 
@@ -150,6 +146,12 @@ protected function createComponentSignInForm(): Form
 	{inputError username}
 </div>
 ```
+
+
+`{form}`
+--------
+
+Ετικέτες `{form signInForm}...{/form}` είναι μια εναλλακτική λύση για `<form n:name="signInForm">...</form>`.
 
 
 Αυτόματη απόδοση .[#toc-automatic-rendering]
@@ -231,15 +233,15 @@ protected function createComponentSignInForm(): Form
 Ειδικές περιπτώσεις .[#toc-special-cases]
 -----------------------------------------
 
-Αν χρειάζεται να αποδώσετε μόνο το εσωτερικό περιεχόμενο μιας φόρμας χωρίς `<form>` & `</form>` ετικέτες HTML, για παράδειγμα, σε μια αίτηση AJAX, μπορείτε να ανοίξετε και να κλείσετε τη φόρμα με το `{formContext} … {/formContext}`. Λειτουργεί παρόμοια με το `{form}` με μια λογική έννοια, εδώ σας επιτρέπει να χρησιμοποιήσετε άλλες ετικέτες για να σχεδιάσετε στοιχεία της φόρμας, αλλά ταυτόχρονα δεν σχεδιάζει τίποτα.
+Αν θέλετε να αποδώσετε μόνο το εσωτερικό μέρος της φόρμας χωρίς ετικέτες HTML `<form>`, για παράδειγμα κατά την αποστολή αποσπασμάτων, αποκρύψτε τα χρησιμοποιώντας το χαρακτηριστικό `n:tag-if`:
 
 ```latte
-{formContext signForm}
+<form n:name=signInForm n:tag-if=false>
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-{/formContext}
+</form>
 ```
 
 Η ετικέτα `formContainer` βοηθά στην απόδοση των εισόδων μέσα σε ένα δοχείο φόρμας.
@@ -256,8 +258,8 @@ protected function createComponentSignInForm(): Form
 ```
 
 
-Χωρίς Latte .[#toc-without-latte]
-=================================
+Εκτέλεση χωρίς Latte .[#toc-rendering-without-latte]
+====================================================
 
 Ο ευκολότερος τρόπος για να αποδώσετε μια φόρμα είναι να καλέσετε:
 
@@ -321,13 +323,13 @@ Renderer .[#toc-renderer]
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
 </tr>
 
 <tr>
@@ -357,12 +359,12 @@ $form->render();
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -428,6 +430,8 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
+Ο renderer σχεδιάζει πρώτα τις ομάδες και στη συνέχεια τα στοιχεία που δεν ανήκουν σε καμία ομάδα.
+
 
 Υποστήριξη Bootstrap .[#toc-bootstrap-support]
 ----------------------------------------------
@@ -438,7 +442,7 @@ $form->addSelect('country', 'Country:', $countries);
 Χαρακτηριστικά HTML .[#toc-html-attributes]
 ===========================================
 
-Μπορείτε να ορίσετε οποιαδήποτε χαρακτηριστικά HTML σε στοιχεία ελέγχου φόρμας χρησιμοποιώντας το `setHtmlAttribute(string $name, $value = true)`:
+Για να ορίσετε αυθαίρετα χαρακτηριστικά HTML για στοιχεία φόρμας, χρησιμοποιήστε τη μέθοδο `setHtmlAttribute(string $name, $value = true)`:
 
 ```php
 $form->addInteger('number', 'Number:')
@@ -448,11 +452,11 @@ $form->addSelect('rank', 'Order by:', ['price', 'name'])
 	->setHtmlAttribute('onchange', 'submit()'); // καλεί τη συνάρτηση JS submit() κατά την αλλαγή
 
 
-// applying on <form>
+// Για να ορίσετε τα χαρακτηριστικά του ίδιου του <form>
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Ρύθμιση τύπου εισόδου:
+Καθορισμός του τύπου του στοιχείου:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -460,8 +464,11 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-Μπορούμε να ορίσουμε το χαρακτηριστικό HTML σε μεμονωμένα στοιχεία σε λίστες ραδιοφώνου ή checkbox με διαφορετικές τιμές για κάθε ένα από αυτά.
-Προσέξτε την άνω και κάτω τελεία μετά το `style:` για να διασφαλίσετε ότι η τιμή επιλέγεται με βάση το κλειδί:
+.[warning]
+Ο καθορισμός του τύπου και άλλων χαρακτηριστικών χρησιμεύει μόνο για οπτικούς σκοπούς. Η επαλήθευση της ορθότητας της εισόδου πρέπει να γίνεται στο διακομιστή, κάτι που μπορείτε να εξασφαλίσετε επιλέγοντας ένα κατάλληλο [στοιχείο ελέγχου φόρμας | controls] και καθορίζοντας [κανόνες επικύρωσης | validation].
+
+Για μεμονωμένα στοιχεία σε λίστες ραδιοφώνου ή checkbox, μπορούμε να ορίσουμε ένα χαρακτηριστικό HTML με διαφορετικές τιμές για καθένα από αυτά.
+Παρατηρήστε την άνω και κάτω τελεία μετά το `style:`, η οποία διασφαλίζει ότι η τιμή επιλέγεται με βάση το κλειδί:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -478,10 +485,9 @@ Renders:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-Για ένα λογικό χαρακτηριστικό HTML (το οποίο δεν έχει τιμή, όπως το `readonly`), μπορείτε να χρησιμοποιήσετε ένα ερωτηματικό:
+Για τον καθορισμό boolean χαρακτηριστικών, όπως το `readonly`, μπορούμε να χρησιμοποιήσουμε τον συμβολισμό με ερωτηματικό:
 
 ```php
-$colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // χρήση πίνακα για πολλαπλά κλειδιά, π.χ. ['r', 'g']
 ```
@@ -535,9 +541,6 @@ $html->class('distinctive');         // <label class="distinctive">
 
 ```php
 $input = $form->addCheckbox('send');
-echo $input->getControl();
-// <label><input type="checkbox" name="send"></label>
-
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

@@ -20,13 +20,10 @@ Valida automáticamente UTF-8, recorta los espacios en blanco a izquierda y dere
 
 La longitud máxima puede limitarse mediante `setMaxLength()`. La [función addFilter() |validation#Modifying Input Values] permite cambiar el valor introducido por el usuario.
 
-Utilice `setHtmlType()` para cambiar el [carácter |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types] del elemento de entrada a `search`, `tel`, `url`, `range`, `date`, `datetime-local`, `month`, `time`, `week`, `color`. En lugar de los tipos `number` y `email`, recomendamos utilizar [addInteger |#addInteger] y [addEmail |#addEmail], que proporcionan validación del lado del servidor.
+Puede cambiar el carácter visual de un campo de texto a tipos como `search`, `tel`, o `url` utilizando `setHtmlType()`, como se ve en la [especificación |https://developer.mozilla.org/en-US/docs/Learn/Forms/HTML5_input_types]. Recuerde que el cambio de tipo es sólo visual y no realiza funciones de validación. Para el tipo `url`, es conveniente añadir una [regla URL |validation#Text inputs] específica.
 
-```php
-$form->addText('color', 'Elige color:')
-	->setHtmlType('color')
-	->addRule($form::Pattern, 'valor no válido', '[0-9a-f]{6}');
-```
+.[note]
+Para otros tipos de entrada como `number`, `range`, `email`, `date`, `datetime-local`, `time`, y `color`, utilice métodos especializados como [addInteger |#addInteger], [addFloat |#addFloat], [addEmail |#addEmail] [addDate |#addDate], [addTime |#addTime], [addDateTime |#addDateTime], y [addColor |#addColor], que aseguran la validación del lado del servidor. Los tipos `month` y `week` aún no son totalmente compatibles con todos los navegadores.
 
 Se puede establecer el llamado empty-value para el elemento, que es algo así como el valor por defecto, pero si el usuario no lo sobrescribe, devuelve cadena vacía o `null`.
 
@@ -58,10 +55,27 @@ addInteger(string|int $name, $label=null): TextInput .[method]
 Añade un campo de entrada para números enteros (clase [TextInput |api:Nette\Forms\Controls\TextInput]). Devuelve un entero o `null` si el usuario no introduce nada.
 
 ```php
-$form->addInteger('level', 'Nivel:')
-	->setDefaultValue(0)
-	->addRule($form::Range, 'El nivel debe estar entre %d y %d.', [0, 100]);
+$form->addInteger('año', 'Año:')
+	->addRule($form::Range, 'El año debe estar en el rango %d a %d.', [1900, 2023 |1900, 2023]);
 ```
+
+El elemento se representa como `<input type="numeric">`. Utilizando el método `setHtmlType()`, puede cambiar el tipo a `range` para mostrarlo como un deslizador, o a `text` si prefiere un campo de texto estándar sin el comportamiento especial de `numeric`.
+
+
+addFloat(string|int $name, $label=null): TextInput .[method]{data-version:3.1.12}
+=================================================================================
+
+Adds a field for entering a decimal number ([TextInput |api:Nette\Forms\Controls\TextInput] class). Returns either float or `null`, if the user does not specify anything.
+
+```php
+$form->addFloat('nivel', 'Nivel:')
+	->setDefaultValue(0)
+->addRule($form::Range, 'El nivel debe estar en el rango %d a %d.', [0, 100 |0, 100]);
+```
+
+El elemento se representa como `<input type="numeric">`. Utilizando el método `setHtmlType()`, puede cambiar el tipo a `range` para mostrarlo como un deslizador, o a `text` si prefiere un campo de texto estándar sin el comportamiento especial de `numeric`.
+
+Nette y el navegador Chrome aceptan tanto una coma como un punto como separadores decimales. Para que esta funcionalidad esté disponible en Firefox, se recomienda establecer el atributo `lang` para el elemento específico o para toda la página, por ejemplo, `<html lang="cs">`.
 
 
 addEmail(string|int $name, $label=null): TextInput .[method]
@@ -124,6 +138,12 @@ Puede utilizar `setDisabled(['r', 'g'])` para desactivar elementos individuales.
 El elemento comprueba automáticamente que no ha habido falsificación y que los elementos seleccionados son realmente uno de los ofrecidos y no han sido desactivados. Se puede utilizar el método `getRawValue()` para recuperar los elementos enviados sin esta importante comprobación.
 
 Cuando se establecen valores por defecto, también comprueba que son uno de los elementos ofrecidos, de lo contrario lanza una excepción. Esta comprobación puede desactivarse con `checkDefaultValue(false)`.
+
+Si está enviando un formulario utilizando el método `GET`, puede elegir un método de transferencia de datos más compacto que ahorra en el tamaño de la cadena de consulta. Esto se activa configurando el atributo HTML del formulario:
+
+```php
+$form->setHtmlAttribute('data-nette-compact');
+```
 
 
 addRadioList(string|int $name, $label=null, array $items=null): RadioList .[method]
@@ -246,6 +266,79 @@ No confíe en los nombres de archivo originales devueltos por el método `FileUp
 Las reglas `MimeType` y `Image` detectan el tipo de archivo o imagen requerido por su firma. No se comprueba la integridad de todo el archivo. Puedes averiguar si una imagen no está corrupta, por ejemplo, intentando [cargarla |http:request#toImage].
 
 
+addDate(string|int $name, $label=null): DateTimeControl .[method]{data-version:3.1.14}
+======================================================================================
+
+Añade un campo que permite al usuario introducir fácilmente una fecha consistente en año, mes y día (clase [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
+
+Para el valor predeterminado, acepta objetos que implementen la regla `DateTimeInterface`, una cadena con la hora o un número que represente una marca de tiempo UNIX. Lo mismo ocurre con los argumentos de regla `Min`, `Max`, o `Range`, que definen la fecha mínima y máxima permitidas.
+
+```php
+$form->addDate('date', 'Date:')
+	->setDefaultValue(new DateTime)
+	->addRule($form::Min, 'The date must be at least a month old.', new DateTime('-1 month'));
+```
+
+Por defecto, devuelve un objeto `DateTimeImmutable`. Mediante el método `setFormat()`, puede especificar un [formato de texto |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] o una marca de tiempo:
+
+```php
+$form->addDate('date', 'Date:')
+	->setFormat('Y-m-d');
+```
+
+
+addTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
+=================================================================================================================
+
+Añade un campo que permite al usuario introducir fácilmente la hora consistente en horas, minutos y, opcionalmente, segundos (clase [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
+
+Por defecto, acepta objetos que implementen la clase `DateTimeInterface`, una cadena con la hora o un número que represente una marca de tiempo UNIX. Sólo se utiliza la información horaria de estas entradas; la fecha se ignora. Lo mismo ocurre con los argumentos de regla `Min`, `Max` o `Range`, que definen el tiempo mínimo y máximo permitido. Si el valor mínimo establecido es superior al máximo, se crea un intervalo de tiempo que abarca la medianoche.
+
+```php
+$form->addTime('time', 'Time:', withSeconds: true)
+	->addRule($form::Range, 'Time must be between %d and %d.', ['12:30', '13:30']);
+```
+
+Por defecto, devuelve un objeto `DateTimeImmutable` (con fecha de 1 de enero del año 1). Mediante el método `setFormat()`, puede especificar un [formato de texto |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters]:
+
+```php
+$form->addTime('time', 'Time:')
+	->setFormat('H:i');
+```
+
+
+addDateTime(string|int $name, $label=null, bool $withSeconds = false): DateTimeControl .[method]{data-version:3.1.14}
+=====================================================================================================================
+
+Añade un campo que permite al usuario introducir fácilmente tanto la fecha como la hora consistente en año, mes, día, horas, minutos y opcionalmente segundos (clase [DateTimeControl |api:Nette\Forms\Controls\DateTimeControl]).
+
+Para el valor por defecto, acepta bien objetos que implementen el `DateTimeInterface`, una cadena con la hora, o un número que represente una marca de tiempo UNIX. Lo mismo se aplica a los argumentos de regla `Min`, `Max`, o `Range`, que definen la fecha mínima y máxima permitidas.
+
+```php
+$form->addDateTime('datetime', 'Date and Time:')
+	->setDefaultValue(new DateTime)
+	->addRule($form::Min, 'The date must be at least a month old.', new DateTime('-1 month'));
+```
+
+Por defecto, devuelve un objeto `DateTimeImmutable`. Mediante el método `setFormat()`, puede especificar un [formato de texto |https://www.php.net/manual/en/datetime.format.php#refsect1-datetime.format-parameters] o una marca de tiempo:
+
+```php
+$form->addDateTime('datetime')
+	->setFormat(DateTimeControl::FormatTimestamp);
+```
+
+
+addColor(string|int $name, $label=null): ColorPicker .[method]{data-version:3.1.14}
+===================================================================================
+
+Añade un campo de selección de color (clase [ColorPicker |api:Nette\Forms\Controls\ColorPicker]). El color es una cadena con el formato `#rrggbb`. Si el usuario no hace una selección, el color devuelto por defecto es el negro `#000000`.
+
+```php
+$form->addColor('color', 'Color:')
+	->setDefaultValue('#3C8ED7');
+```
+
+
 addHidden(string|int $name, string $default=null): HiddenField .[method]
 ========================================================================
 
@@ -256,6 +349,8 @@ $form->addHidden('userid');
 ```
 
 Utiliza `setNullable()` para cambiarlo y que devuelva `null` en lugar de una cadena vacía. La [función addFilter() |validation#Modifying Input Values] permite cambiar el valor enviado.
+
+Aunque el elemento esté oculto, es **importante darse cuenta** de que su valor aún puede ser modificado o suplantado por un atacante. Verifica y valida siempre todos los valores recibidos en el servidor para evitar riesgos de seguridad asociados a la manipulación de datos.
 
 
 addSubmit(string|int $name, $caption=null): SubmitButton .[method]
@@ -377,7 +472,7 @@ Los siguientes métodos pueden ser llamados para los elementos `addText()`, `add
 
 
 Valores omitidos .[#toc-omitted-values]
----------------------------------------
+=======================================
 
 Si no nos interesa el valor introducido por el usuario, podemos utilizar `setOmitted()` para omitirlo del resultado proporcionado por el método `$form->getValues​()` o pasado a los manejadores. Esto es adecuado para varias contraseñas de verificación, campos antispam, etc.
 
@@ -390,24 +485,26 @@ $form->addPassword('passwordVerify', 'Contraseña de nuevo:')
 
 
 Desactivar entradas .[#toc-disabling-inputs]
---------------------------------------------
+============================================
 
-Para desactivar una entrada, puede llamar a `setDisabled()`. Un campo de este tipo no puede ser editado por el usuario.
+Las entradas pueden desactivarse utilizando `setDisabled()`. Una entrada desactivada no puede ser editada por el usuario.
 
 ```php
 $form->addText('username', 'User name:')
 	->setDisabled();
 ```
 
-Tenga en cuenta que el navegador no envía los campos deshabilitados al servidor en absoluto, por lo que ni siquiera los encontrará en los datos devueltos por la función `$form->getValues()`.
+Las entradas deshabilitadas no son enviadas al servidor por el navegador, por lo que no las encontrará en los datos devueltos por la función `$form->getValues()`. Sin embargo, si configuras `setOmitted(false)`, Nette incluirá su valor por defecto en estos datos.
 
-Si establece un valor predeterminado para un campo, debe hacerlo sólo después de desactivarlo:
+Cuando se llama a `setDisabled()`, **el valor de la entrada se borra** por razones de seguridad. Si establece un valor por defecto, es necesario hacerlo después de su desactivación:
 
 ```php
 $form->addText('username', 'User name:')
 	->setDisabled()
 	->setDefaultValue($userName);
 ```
+
+Una alternativa a las entradas deshabilitadas son los campos con el atributo HTML `readonly`, que el navegador envía al servidor. Aunque el campo sólo es legible, es **importante darse cuenta** de que su valor aún puede ser modificado o suplantado por un atacante.
 
 
 Controles personalizados .[#toc-custom-controls]

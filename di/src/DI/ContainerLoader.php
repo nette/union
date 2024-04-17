@@ -18,8 +18,8 @@ use Nette;
 class ContainerLoader
 {
 	public function __construct(
-		private string $tempDirectory,
-		private bool $autoRebuild = false,
+		private readonly string $tempDirectory,
+		private readonly bool $autoRebuild = false,
 	) {
 	}
 
@@ -40,7 +40,7 @@ class ContainerLoader
 
 	public function getClassName(mixed $key): string
 	{
-		return 'Container_' . substr(md5(serialize($key)), 0, 10);
+		return 'Container_' . substr(hash('xxh128', serialize($key)), 0, 10);
 	}
 
 

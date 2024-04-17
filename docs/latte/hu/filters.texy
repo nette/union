@@ -7,63 +7,65 @@ A szűrők olyan függvények, amelyek megváltoztatják vagy formázzák az ada
 .[table-latte-filters]
 |## String / tömb átalakítás
 | `batch` | [lineáris adatok listázása egy táblázatban |#batch]
-| `breakLines` | [HTML sorkizárt beillesztése az újsorok előtt |#breakLines].
+| `breakLines` | [HTML sorkizárt beillesztése az újsorok előtt |#breakLines]
 | `bytes` | [méretformázás bájtban |#bytes]
-| `clamp` | [az értéket a tartományba szorítja |#clamp].
+| `clamp` | [az értéket a tartományba szorítja |#clamp]
 | `dataStream` | [Adat URI protokoll átalakítás |#datastream]
-| `date` | [dátumformázás |#date]
-| `explode` | [a karakterláncot a megadott elválasztóval osztja fel |#explode].
-| `first` | [visszaadja a tömb első elemét vagy a karakterlánc első karakterét |#first].
-| `implode` | [egy tömböt egy karakterlánccal kapcsol össze |#implode].
+| `date` | [dátum és idő formázása |#date]
+| `explode` | [a karakterláncot a megadott elválasztóval osztja fel |#explode]
+| `first` | [visszaadja a tömb első elemét vagy a karakterlánc első karakterét |#first]
+| `group` | [adatok csoportosítása különböző kritériumok |#group] szerint
+| `implode` | [egy tömböt egy karakterlánccal kapcsol össze |#implode]
 | `indent` | [a szöveget balról behúzza a tabulátorok számával |#indent]
-| `join` | [egy tömböt egy karakterlánchoz kapcsol |#implode].
-| `last` | [visszaadja a tömb utolsó elemét vagy a karakterlánc utolsó karakterét |#last].
-| `length` | [egy karakterlánc vagy tömb hosszát adja vissza |#length].
+| `join` | [egy tömböt egy karakterlánchoz kapcsol |#implode]
+| `last` | [visszaadja a tömb utolsó elemét vagy a karakterlánc utolsó karakterét |#last]
+| `length` | [egy karakterlánc vagy tömb hosszát adja vissza |#length]
+| `localDate` | [A dátum és az idő formázása a helyi beállításoknak megfelelően |#localDate]
 | `number` | [formázza a számot |#number]
-| `padLeft` | [balról balra kiegészíti a karakterláncot a megadott hosszúságúra |#padLeft].
-| `padRight` | [a stringet jobbról a megadott hosszúságra egészíti ki |#padRight].
-| `random` | [visszaadja a tömb véletlenszerű elemét vagy a karakterlánc karakterét |#random].
+| `padLeft` | [balról balra kiegészíti a karakterláncot a megadott hosszúságúra |#padLeft]
+| `padRight` | [a stringet jobbról a megadott hosszúságra egészíti ki |#padRight]
+| `random` | [visszaadja a tömb véletlenszerű elemét vagy a karakterlánc karakterét |#random]
 | `repeat` | [megismétli a karakterláncot |#repeat]
-| `replace` | [a keresett karakterlánc minden előfordulását helyettesíti a helyettesítő karakterlánccal |#replace].
-| `replaceRE` | [az összes előfordulást a reguláris kifejezésnek megfelelően helyettesíti |#replaceRE].
-| `reverse` | [megfordítja az UTF-8 karakterláncot vagy tömböt |#reverse].
-| `slice` | [kivonja egy tömb vagy egy karakterlánc egy szeletét |#slice].
+| `replace` | [a keresett karakterlánc minden előfordulását helyettesíti a helyettesítő karakterlánccal |#replace]
+| `replaceRE` | [az összes előfordulást a reguláris kifejezésnek megfelelően helyettesíti |#replaceRE]
+| `reverse` | [megfordítja az UTF-8 karakterláncot vagy tömböt |#reverse]
+| `slice` | [kivonja egy tömb vagy egy karakterlánc egy szeletét |#slice]
 | `sort` | [rendezi a tömböt |#sort]
-| `spaceless` | [eltávolítja a szóközöket |#spaceless], hasonlóan a [spaceless |tags] taghez.
-| `split` | [egy karakterláncot a megadott elválasztójel alapján szétválaszt |#explode].
+| `spaceless` | [eltávolítja a szóközöket |#spaceless], hasonlóan a [spaceless |tags] taghez
+| `split` | [egy karakterláncot a megadott elválasztójel alapján szétválaszt |#explode]
 | `strip` | [eltávolítja a szóközöket |#spaceless]
-| `stripHtml` | [eltávolítja a HTML-címkéket és a HTML-elemeket szöveggé alakítja át |#stripHtml].
+| `stripHtml` | [eltávolítja a HTML-címkéket és a HTML-elemeket szöveggé alakítja át |#stripHtml]
 | `substr` | [visszaadja a karakterlánc egy részét |#substr]
-| `trim` | [eltávolítja a szóközöket a karakterláncból |#trim].
+| `trim` | [eltávolítja a szóközöket a karakterláncból |#trim]
 | `translate` | [fordítás más nyelvekre |#translate]
-| `truncate` | [lerövidíti a hosszúságot, megőrizve az egész szavakat |#truncate].
-| `webalize` | [az UTF-8 karakterláncot az URL-ben használt formához igazítja |#webalize].
+| `truncate` | [lerövidíti a hosszúságot, megőrizve az egész szavakat |#truncate]
+| `webalize` | [az UTF-8 karakterláncot az URL-ben használt formához igazítja |#webalize]
 
 .[table-latte-filters]
 |## Betűhüvelyezés
 | `capitalize` | [kisbetűs, minden szó első betűje nagybetűs |#capitalize]
-| `firstUpper` | [az első betűt nagybetűvé teszi |#firstUpper].
+| `firstUpper` | [az első betűt nagybetűvé teszi |#firstUpper]
 | `lower` | [a karakterláncot kisbetűvé teszi |#lower]
 | `upper` | [nagybetűvé teszi a karakterláncot |#upper]
 
 .[table-latte-filters]
 |## Számok kerekítése
-| `ceil` | [kerekít egy számot egy adott pontosságig |#ceil].
-| `floor` | [Egy számot adott pontosságra kerekít lefelé |#floor].
-| `round` | [kerekít egy számot adott pontosságra |#round].
+| `ceil` | [kerekít egy számot egy adott pontosságig |#ceil]
+| `floor` | [Egy számot adott pontosságra kerekít lefelé |#floor]
+| `round` | [kerekít egy számot adott pontosságra |#round]
 
 .[table-latte-filters]
 |## Escaping
 | `escapeUrl` | [az URL-ben szereplő paramétert elrejti |#escapeUrl]
-| `noescape` | [változó nyomtatása szaggatás nélkül |#noescape].
-| `query` | [lekérdezési karakterláncot generál az URL-ben |#query].
+| `noescape` | [változó nyomtatása szaggatás nélkül |#noescape]
+| `query` | [lekérdezési karakterláncot generál az URL-ben |#query]
 
 A HTML (`escapeHtml` és `escapeHtmlComment`), XML (`escapeXml`), JavaScript (`escapeJs`), CSS (`escapeCss`) és iCalendar (`escapeICal`) számára is vannak escaping szűrők, amelyeket a Latte a [kontextustudatos escapingnek |safety-first#Context-aware escaping] köszönhetően maga használ, és nem kell megírni őket.
 
 .[table-latte-filters]
 |## Biztonság
-| `checkUrl` | [szanálja a href attribútumon belül használt karakterláncot |#checkUrl].
-| `nocheck` | [megakadályozza az automatikus URL-szanálást |#nocheck].
+| `checkUrl` | [szanálja a href attribútumon belül használt karakterláncot |#checkUrl]
+| `nocheck` | [megakadályozza az automatikus URL-szanálást |#nocheck]
 
 A `src` és a `href` attribútumokat [automatikusan ellenőrzi |safety-first#link checking], így a `checkUrl` szűrőt szinte nem is kell használni.
 
@@ -118,8 +120,8 @@ Szűrők .[#toc-filters]
 ======================
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Szűrő, amely leegyszerűsíti a lineáris adatok táblázatos formában történő felsorolását. Egy tömb tömböt ad vissza a megadott számú elemmel. Ha megad egy második paramétert, akkor ezt az utolsó sor hiányzó elemeinek kitöltésére használja.
 
 ```latte
@@ -152,6 +154,8 @@ Nyomtatás:
 </table>
 ```
 
+Lásd még a [group |#group] és az [iterateWhile |tags#iterateWhile] címkét.
+
 
 breakLines .[filter]
 --------------------
@@ -165,7 +169,7 @@ HTML-sorszünetet illeszt be minden újsor előtt.
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Bájtban megadott méretet formázza ember által olvashatóvá.
+A bájtokban megadott méretet ember által olvasható formába formázza. Ha a [nyelvi tartomány |develop#locale] be van állítva, akkor a megfelelő tizedes és ezres elválasztójeleket használja.
 
 ```latte
 {$size|bytes}     0 B, 1.25 GB, …
@@ -203,8 +207,8 @@ Kényszeríti az URL szanálását. Ellenőrzi, hogy a változó tartalmaz-e web
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">checked</a>
-<a data-href="{$link}">unchecked</a>
+<a data-href={$link|checkUrl}>checked</a>
+<a data-href={$link}>unchecked</a>
 ```
 
 Nyomtat:
@@ -217,8 +221,8 @@ Nyomtat:
 Lásd [mégeck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 A min és max tartományba szorított értéket adja vissza.
 
 ```latte
@@ -235,7 +239,7 @@ A tartalmat adat URI-sémává alakítja át. Használható képek HTML- vagy CS
 Legyen egy kép egy változóban `$img = Image::fromFile('obrazek.gif')`, akkor
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 Kinyomtatja például:
@@ -252,12 +256,13 @@ PHP-bővítményt igényel: `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Visszaad egy dátumot a megadott formátumban a [php:strftime] vagy [php:date] PHP függvények opcióinak használatával. A szűrő a dátumot UNIX időbélyegként, stringként vagy a `DateTime` típusú objektumként kapja meg.
+A dátumot és az időt a [php:date] PHP-funkció által használt maszknak megfelelően formázza. A szűrő elfogadja a dátumot UNIX időbélyeg formátumban, sztringként vagy `DateTimeInterface` objektumként.
 
 ```latte
-{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
+
+Lásd még [localDate |#localDate].
 
 
 escapeUrl .[filter]
@@ -271,8 +276,8 @@ Kikerül egy változót, amelyet URL-ben paraméterként kell használni.
 Lásd még [query |#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Egy karakterláncot a megadott elválasztójel alapján szétválaszt, és karakterláncok tömbjét adja vissza. Alias a `split` számára.
 
 ```latte
@@ -294,8 +299,8 @@ Használhatja a `split` aliast is:
 Lásd még: [implode |#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Visszaadja a tömb első elemét vagy a karakterlánc első karakterét:
 
 ```latte
@@ -330,6 +335,25 @@ Az érték első betűjét nagybetűvé alakítja. PHP-bővítményt igényel `m
 Lásd még [nagybetű |#capitalize], [kisbetű |#lower], [nagybetű |#upper].
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+A szűrő különböző kritériumok szerint csoportosítja az adatokat.
+
+Ebben a példában a táblázat sorai a `categoryId` oszlop alapján vannak csoportosítva. A kimenet egy tömb tömbökből álló tömb, ahol a kulcs a `categoryId` oszlopban szereplő érték. Olvassa el a [részletes utasításokat |cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+Lásd még a [batch |#batch], a [group |functions#group] függvény és az [iterateWhile |tags#iterateWhile] tag.
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Visszaad egy stringet, amely a tömbben lévő stringek összevonása. Alias a következőhöz: `join`.
@@ -339,7 +363,7 @@ Visszaad egy stringet, amely a tömbben lévő stringek összevonása. Alias a k
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-A `join` alias is használható: .{data-version:2.10.2}
+A `join` alias is használható:
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -367,8 +391,8 @@ Nyomtatás:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Visszaadja a tömb utolsó elemét vagy a karakterlánc utolsó karakterét:
 
 ```latte
@@ -396,6 +420,53 @@ Egy karakterlánc vagy tömb hosszát adja vissza.
 ```
 
 
+localDate(string format = null, string date = null, string time = null) .[filter]
+---------------------------------------------------------------------------------
+A dátum és az idő formázása a [nyelvterületnek |develop#locale] megfelelően, így biztosítva az időadatok konzisztens és lokalizált megjelenítését a különböző nyelveken és régiókban. A szűrő a dátumot UNIX időbélyegként, stringként vagy `DateTimeInterface` objektumként fogadja el.
+
+**a) A formátum használata**
+
+A `format` paraméter leírja, hogy mely időösszetevőket kell megjeleníteni. Betűkódokat használ, ahol az ismétlések száma befolyásolja a kimenet szélességét:
+
+| Év | `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
+| Hónap | `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `Jul` / / `July`
+| Nap | `d` / `dd` | `1` / `01`
+| Óra | `j` | a helyi nyelvterület által preferált formátumban.
+| Perc | `m` / `mm` | `5` / `05` <small>(2 számjegy, ha másodpercekkel kombinálják)</small>
+| Másodperc | `s` / `ss` | `8` / `08` <small>(2 számjegy, ha percekkel kombinálva)</small>
+
+A kódok sorrendje a formátumban nem számít, mivel az összetevők sorrendje a helyi konvencióknak megfelelően jelenik meg. Ezért a formátum helytől független.
+Például a `yyyyMMMMd` formátum a `en_US` nyelvterületen a `April 15, 2024`, míg a `cs_CZ` nyelvterületen a `15. dubna 2024` formátumot jeleníti meg. Hasonlóképpen, a `MMMM` csak a `duben`, stb. fog megjelenni.
+
+**b) Előre beállított stílusok használata**
+
+A `date` és a `time` paraméterek határozzák meg a dátum és az idő megjelenítésének részletességét. Több szint közül választhat: `full`, `long`, `medium`, `short`. Megjelenítheti csak a dátumot, csak az időt vagy mindkettőt:
+
+```latte
+{$date|localDate: date: short}              {* 1/23/78 *}
+{$date|localDate: date: medium}             {* Jan 23, 1978 *}
+{$date|localDate: date: long}               {* January 23, 1978 *}
+{$date|localDate: date: full}               {* Monday, January 23, 1978 *}
+{$date|localDate: time: short}              {* 2:30 PM *}
+{$date|localDate: date: long, time: medium} {* January 23, 1978 at 2:30:59 PM *}
+a kimenet változik a nyelvjárástól függően
+```
+
+A dátumhoz használhatja a `relative-` előtagot is (pl. `relative-short`), amely a jelenhez közeli dátumok esetében a `yesterday`, `today` vagy `tomorrow`, egyébként a szokásos módon jelenik meg.
+
+```latte
+{$date|localDate: date: relative-short}    {* yesterday *}
+```
+
+Ha a szűrőt paraméterek nélkül használja, a dátum a `long` szinten jelenik meg:
+
+```latte
+{$date|localDate}   {* April 15, 2024 *}
+```
+
+Lásd még [dátum |#date].
+
+
 lower .[filter]
 ---------------
 Egy értéket kisbetűvé alakít. PHP-bővítményt igényel `mbstring`.
@@ -416,8 +487,8 @@ Ha a hivatkozás más sémát használ, például `javascript:` vagy `data:`, é
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">checked</a>
-<a href="{$link|nocheck}">unchecked</a>
+<a href={$link}>checked</a>
+<a href={$link|nocheck}>unchecked</a>
 ```
 
 Nyomtatások:
@@ -453,7 +524,7 @@ A `noescape` szűrő visszaélése XSS sebezhetőséghez vezethet! Soha ne haszn
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Egy számot adott számú tizedesjegyig formáz. Megadhatja a tizedesvessző és az ezres elválasztó karakterét is.
+Egy számot a megadott számú tizedesjegyig formáz. Ha a [nyelvi terület |develop#locale] be van állítva, akkor a megfelelő tizedes és ezres elválasztójeleket használja.
 
 ```latte
 {1234.20 |number}              1,234
@@ -461,6 +532,54 @@ Egy számot adott számú tizedesjegyig formáz. Megadhatja a tizedesvessző és
 {1234.20 |number:2}            1,234.20
 {1234.20 |number:2, ',', ' '}  1 234,20
 ```
+
+
+number(string format) .[filter]
+-------------------------------
+A `format` paraméter lehetővé teszi, hogy a számok megjelenését pontosan az Ön igényei szerint határozza meg. Beállított [nyelvterületet |develop#locale] igényel. A formátum több speciális karakterből áll, amelyek teljes leírása a "DecimalFormat":https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns dokumentációban található:
+
+- <c id=6/> kötelező számjegy, mindig megjelenik, még akkor is, ha nulla.
+- `#` opcionális számjegy, csak akkor jelenik meg, ha a számnak van számjegye az adott helyen.
+- `@` szignifikáns számjegy, segít a számot bizonyos számú szignifikáns számjeggyel megjeleníteni.
+- `.` a tizedesvessző helyét jelöli (vessző vagy pont, a területi adattól függően).
+- `,` számjegycsoportok, általában ezrek elválasztására szolgál.
+- `%` megszorozza a számot 100-zal, és hozzáadja a százalékjelet.
+
+Nézzünk néhány példát. Az első példában a két tizedesjegy kötelező, a másodikban opcionális. A harmadik példa mindkét oldalon nullákkal való kitöltést mutat, a negyedik példa pedig csak a meglévő számjegyeket jeleníti meg:
+
+```latte
+{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
+{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
+{1.23  |number: '000.000'}      {* 001.230 *}
+{1.2   |number: '##.##'}        {* 1.2 *}
+```
+
+A szignifikáns számjegyek határozzák meg, hogy a tizedesvesszőtől függetlenül hány számjegyet kell megjeleníteni, szükség esetén kerekítve a számot:
+
+```latte
+{1234|number: '@@'}             {* 1200 *}
+{1234|number: '@@@'}            {* 1230 *}
+{1234|number: '@@@#'}           {* 1234 *}
+{1.2345|number: '@@@'}          {* 1.23 *}
+{0.00123|number: '@@'}          {* 0.0012 *}
+```
+
+Egy szám százalékban történő megjelenítésének egyszerű módja. A számot megszorozzuk 100-zal, és hozzáadjuk a `%` jelet:
+
+```latte
+{0.1234|number: '#.##%'}        {* 12.34% *}
+```
+
+A pozitív és negatív számok számára eltérő formátumot határozhatunk meg, amelyet egy `;` karakterrel választunk el. Így például a pozitív számok a `+` jellel jeleníthetők meg:
+
+```latte
+{42|number: '#.##;(#.##)'}      {* 42 *}
+{-42|number: '#.##;(#.##)'}     {* (42) *}
+{42|number: '+#.##;-#.##'}      {* +42 *}
+{-42|number: '+#.##;-#.##'}     {* -42 *}
+```
+
+Ne feledje, hogy a számok tényleges megjelenése a helyi beállításoktól függően változhat. Egyes országokban például pont helyett vesszőt használnak tizedesválasztóként. Ez a szűrő automatikusan figyelembe veszi ezt, így nem kell aggódnia emiatt.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -481,8 +600,8 @@ Egy adott hosszúságú karakterláncot egy másik, jobbról jövő karakterlán
 ```
 
 
-query  .[filter]{data-version:2.10}
------------------------------------
+query  .[filter]
+----------------
 Dinamikusan generál egy lekérdezési karakterláncot az URL-ben:
 
 ```latte
@@ -502,8 +621,8 @@ A `null` értékű kulcsok nem szerepelnek.
 Lásd még [escapeUrl |#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Visszaadja a tömb véletlenszerű elemét vagy a karakterlánc karakterét:
 
 ```latte
@@ -531,7 +650,7 @@ A keresett karakterlánc minden előfordulását helyettesítő karakterlánccal
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Egyszerre több csere is elvégezhető: .{data-version:2.10.2}
+Egyszerre több csere is elvégezhető:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -573,8 +692,8 @@ Egy számot adott pontosságra kerekít.
 Lásd még [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Egy tömb vagy egy karakterlánc egy szeletének kivonása.
 
 ```latte
@@ -591,9 +710,9 @@ Ha a length értéke pozitív, akkor a szekvencia legfeljebb ennyi elemet tartal
 A Filter alapértelmezés szerint átrendezi és visszaállítja az integer tömb kulcsát. Ez a viselkedés megváltoztatható a preserveKeys true értékre állításával. A string kulcsok ettől a paramétertől függetlenül mindig megmaradnak.
 
 
-sort  .[filter]{data-version:2.9}
----------------------------------
-Szűrő, amely egy tömböt rendezi és fenntartja az index hozzárendelést.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+A szűrő egy tömb vagy iterátor elemeit rendezi, miközben megőrzi az asszociatív kulcsokat. Ha egy [területi |develop#locale] beállítás van megadva, a rendezés annak szabályait követi, kivéve, ha egyéni összehasonlító függvény van megadva.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +728,41 @@ A tömb fordított sorrendbe rendezve.
 {/foreach}
 ```
 
-Saját összehasonlító függvényt adhat át paraméterként: .{data-version:2.10.2}
+Megadhat egy egyéni összehasonlító függvényt a rendezéshez (a példa azt mutatja, hogyan lehet a legnagyobbtól a legkisebbig megfordítani a rendezést):
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+A `|sort` szűrő lehetővé teszi az elemek kulcs szerinti rendezését is:
 
-spaceless  .[filter]{data-version:2.10.2}
------------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+Ha egy táblázatot egy adott oszlop szerint kell rendezni, használhatja a `by` paramétert. A példában szereplő `'name'` érték azt adja meg, hogy a rendezés a `$row->name` vagy a szerint történjen. `$row['name']`, attól függően, hogy a `$row` egy tömb vagy egy objektum:
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+Meghatározhat egy visszahívási függvényt is, amely meghatározza a rendezés értékét:
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+A `byKey` paraméter ugyanígy használható.
+
+
+spaceless  .[filter]
+--------------------
 Eltávolítja a felesleges szóközöket a kimenetből. Használhatod a `strip` aliast is.
 
 ```latte
@@ -655,8 +800,8 @@ Kivonja egy karakterlánc egy szeletét. Ezt a szűrőt felváltotta a [slice |#
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 Kifejezéseket fordít le más nyelvekre. Ahhoz, hogy a szűrő elérhető legyen, be kell [állítania a fordítót |develop#TranslatorExtension]. A [címkéket |tags#Translation] is használhatja [a fordításhoz |tags#Translation].
 
 ```latte

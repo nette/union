@@ -38,7 +38,7 @@ It is also possible to pass named parameters. The following link passes paramete
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-If method `ProductPresenter::renderShow()` does not have `$lang` in its signature, it can read the value of the parameter using `$lang = $this->getParameter('lang')`.
+If the method `ProductPresenter::renderShow()` does not have `$lang` in its signature, it can retrieve the value of the parameter using `$lang = $this->getParameter('lang')` or from the [property |presenters#Request Parameters].
 
 If the parameters are stored in an array, they can be expanded with the `...` operator (or `(expand)` operator in Latte 2.x):
 
@@ -140,7 +140,7 @@ The target `this` will create a link to the current page:
 <a n:href="this">refresh</a>
 ```
 
-At the same time, all parameters specified in the signature of the `render<View>()` or `action<Action>()` method are transferred. So if we are on the `Product:show` and `id:123` pages, the link to `this` will also pass this parameter.
+At the same time, all parameters specified in the signature of the `action<Action>()` or `render<View>()` method, if the `action<Action>()` is not defined, are transferred. So if we are on the `Product:show` and `id:123` pages, the link to `this` will also pass this parameter.
 
 Of course, it is possible to specify the parameters directly:
 
@@ -213,7 +213,7 @@ Because [components] are separate reusable units that should have no relations t
 If we want to link to presenters in the component template, we use the tag `{plink}`:
 
 ```latte
-<a href="{plink Home:default}">home</a>
+<a href={plink Home:default}>home</a>
 ```
 
 or in the code
@@ -221,6 +221,30 @@ or in the code
 ```php
 $this->getPresenter()->link('Home:default')
 ```
+
+
+Aliases .{data-version:v3.2.2}
+==============================
+
+Sometimes it's useful to assign an easily memorable alias to a Presenter:action pair. For example, you could name the homepage `Front:Home:default` simply as `home` or `Admin:Dashboard:default` as `admin`.
+
+Aliases are defined in the [configuration|configuration] under the key `application › aliases`:
+
+```neon
+application:
+    aliases:
+        home: Front:Home:default
+        admin: Admin:Dashboard:default
+        sign: Front:Sign:in
+```
+
+In links, they are written using the at symbol, for example:
+
+```latte
+<a n:href="@admin">administration</a>
+```
+
+They are supported in all methods that work with links, such as `redirect()` and similar.
 
 
 Invalid Links

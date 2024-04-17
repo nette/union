@@ -1,15 +1,17 @@
 Rendering dei moduli
 ********************
 
-L'aspetto dei moduli può essere molto diverso. In effetti, esistono due estremi. Da un lato c'è la necessità di renderizzare da capo un insieme di moduli molto simili, con uno sforzo minimo. Di solito le amministrazioni e i back-end.
+L'aspetto delle forme può essere molto vario. In pratica, si possono incontrare due estremi. Da un lato, c'è la necessità di rendere una serie di moduli in un'applicazione che siano visivamente simili tra loro e si apprezza la facilità di renderli senza un modello usando `$form->render()`. Questo è solitamente il caso delle interfacce amministrative.
 
-L'altro estremo è costituito da moduli piccoli e dolci, ognuno dei quali è un'opera d'arte. Il loro layout può essere scritto al meglio in HTML. Naturalmente, oltre a questi estremi, esistono molte forme intermedie.
+D'altra parte, esistono vari moduli, ognuno dei quali è unico. Il loro aspetto è meglio descritto utilizzando il linguaggio HTML nel template. E naturalmente, oltre ai due estremi citati, incontreremo molti moduli che si collocano a metà strada.
 
 
-Latte .[#toc-latte]
-===================
+Rendering con Latte .[#toc-rendering-with-latte]
+================================================
 
 Il [sistema di template Latte |latte:] facilita fondamentalmente il rendering dei moduli e dei loro elementi. In primo luogo, mostreremo come rendere i moduli manualmente, elemento per elemento, per ottenere il pieno controllo sul codice. In seguito mostreremo come [automatizzare |#Automatic rendering] tale rendering.
+
+È possibile far generare la proposta di un modello Latte per il modulo utilizzando il metodo `Nette\Forms\Blueprint::latte($form)`, che lo invierà alla pagina del browser. È quindi sufficiente selezionare il codice con un clic e copiarlo nel progetto. .{data-version:3.1.15}
 
 
 `{control}`
@@ -88,12 +90,6 @@ Elementi di form più complessi, come RadioList o CheckboxList, possono essere r
 ```
 
 
-Proposta di codice `{formPrint}` .[#toc-formprint]
---------------------------------------------------
-
-È possibile generare un codice Latte simile per un modulo usando il tag `{formPrint}`. Se lo si inserisce in un modello, si vedrà la bozza di codice invece del normale rendering. È sufficiente selezionarlo e copiarlo nel progetto.
-
-
 `{label}` `{input}`
 -------------------
 
@@ -150,6 +146,12 @@ Possiamo rilevare la presenza di un errore usando il metodo `hasErrors()` e impo
 	{inputError username}
 </div>
 ```
+
+
+`{form}`
+--------
+
+I tag `{form signInForm}...{/form}` sono un'alternativa a `<form n:name="signInForm">...</form>`.
 
 
 Rendering automatico .[#toc-automatic-rendering]
@@ -231,15 +233,15 @@ In questo modo sarà un po' più facile da usare:
 Casi speciali .[#toc-special-cases]
 -----------------------------------
 
-Se si ha bisogno di rendere solo il contenuto interno di un modulo senza `<form>` & `</form>` HTML, ad esempio in una richiesta AJAX, si può aprire e chiudere il modulo con `{formContext} … {/formContext}`. Funziona in modo simile a `{form}` in senso logico, ma permette di usare altri tag per disegnare gli elementi del modulo, ma allo stesso tempo non disegna nulla.
+Se si ha bisogno di rendere solo la parte interna del modulo senza tag HTML `<form>`ad esempio per l'invio di snippet, è possibile nasconderli utilizzando l'attributo `n:tag-if`:
 
 ```latte
-{formContext signForm}
+<form n:name=signInForm n:tag-if=false>
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-{/formContext}
+</form>
 ```
 
 Il tag `formContainer` aiuta a rendere gli input all'interno di un contenitore di form.
@@ -256,8 +258,8 @@ Il tag `formContainer` aiuta a rendere gli input all'interno di un contenitore d
 ```
 
 
-Senza Latte .[#toc-without-latte]
-=================================
+Rendering senza Latte .[#toc-rendering-without-latte]
+=====================================================
 
 Il modo più semplice per rendere un modulo è chiamare:
 
@@ -321,13 +323,13 @@ Se non si imposta un renderer personalizzato, verrà utilizzato il renderer pred
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
 </tr>
 
 <tr>
@@ -357,12 +359,12 @@ Il risultato è il seguente snippet:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -428,6 +430,8 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
+Il renderer disegna prima i gruppi e poi gli elementi che non appartengono a nessun gruppo.
+
 
 Supporto Bootstrap .[#toc-bootstrap-support]
 --------------------------------------------
@@ -438,7 +442,7 @@ Supporto Bootstrap .[#toc-bootstrap-support]
 Attributi HTML .[#toc-html-attributes]
 ======================================
 
-È possibile impostare qualsiasi attributo HTML ai controlli dei moduli utilizzando `setHtmlAttribute(string $name, $value = true)`:
+Per impostare attributi HTML arbitrari per gli elementi del modulo, utilizzare il metodo `setHtmlAttribute(string $name, $value = true)`:
 
 ```php
 $form->addInteger('number', 'Number:')
@@ -448,11 +452,11 @@ $form->addSelect('rank', 'Ordina per:', ['prezzo', 'nome'])
 	->setHtmlAttribute('onchange', 'submit()'); // richiama la funzione JS submit() al momento della modifica
 
 
-// applicazione su <form>
+// Per impostare gli attributi dello stesso <form>
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Impostazione del tipo di input:
+Specificare il tipo di elemento:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -460,8 +464,11 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-È possibile impostare l'attributo HTML per le singole voci degli elenchi di radio o di caselle di controllo con valori diversi per ciascuna di esse.
-Notate i due punti dopo `style:` per garantire che il valore sia selezionato per chiave:
+.[warning]
+L'impostazione del tipo e degli altri attributi serve solo a fini visivi. La verifica della correttezza dell'input deve avvenire sul server, cosa che si può garantire scegliendo un [controllo di forma | controls] appropriato e specificando [le regole di convalida | validation].
+
+Per i singoli elementi degli elenchi di radio o di caselle di controllo, possiamo impostare un attributo HTML con valori diversi per ciascuno di essi.
+Notate i due punti dopo `style:`, che assicurano che il valore sia selezionato in base alla chiave:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -478,10 +485,9 @@ Rende:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-Per un attributo HTML logico (che non ha valore, come `readonly`), si può usare un punto interrogativo:
+Per impostare attributi booleani, come `readonly`, si può usare la notazione con il punto interrogativo:
 
 ```php
-$colors = ['r' => 'rosso', 'g' => 'verde', 'b' => 'blu'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // utilizzare un array per più chiavi, ad esempio ['r', 'g'].
 ```
@@ -535,9 +541,6 @@ Per gli elementi Checkbox, CheckboxList e RadioList è possibile influenzare il 
 
 ```php
 $input = $form->addCheckbox('send');
-echo $input->getControl();
-// <label><input type="checkbox" name="send"></label>
-
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

@@ -96,9 +96,9 @@ final class MyClass extends BaseClass
 
 O problema ocorre quando queremos mudar o construtor da classe `BaseClass`, por exemplo, quando uma nova dependência é acrescentada. Então temos que modificar todos os construtores das crianças também. O que faz de tal modificação um inferno.
 
-Como evitar isso? A solução é **priorizar a composição sobre a herança***.
+Como evitar isso? A solução é **priorizar a [composição em vez da herança** |faq#Why composition is preferred over inheritance].
 
-Portanto, vamos projetar o código de forma diferente. Evitaremos as aulas abstratas `Base*`. Ao invés de `MyClass` obter alguma funcionalidade herdando de `BaseClass`, terá essa funcionalidade passada como uma dependência:
+Portanto, vamos projetar o código de forma diferente. Evitaremos classes `Base*` [abstratas |nette:introduction-to-object-oriented-programming#abstract-classes]. Em vez de `MyClass` obter alguma funcionalidade herdando de `BaseClass`, essa funcionalidade será passada como uma dependência:
 
 ```php
 final class SomeFunctionality
@@ -128,7 +128,7 @@ final class MyClass
 Injeção de setter .[#toc-setter-injection]
 ==========================================
 
-As dependências são passadas chamando um método que as armazena em uma propriedade privada. A convenção usual de nomenclatura destes métodos é a forma `set*()`, razão pela qual eles são chamados de setters.
+As dependências são passadas chamando um método que as armazena em uma propriedade privada. A convenção usual de nomes para estes métodos é a forma `set*()`, razão pela qual eles são chamados de setters, mas é claro que eles podem ser chamados de qualquer outra coisa.
 
 ```php
 class MyClass
@@ -168,8 +168,7 @@ A chamada do setter é definida na configuração do recipiente DI na [configura
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- setCache
 ```
@@ -196,8 +195,7 @@ A configuração da variável é definida na configuração do recipiente DI na 
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- $cache = @\Cache
 ```

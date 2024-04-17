@@ -44,7 +44,7 @@ Tout d'abord, nous devons créer un formulaire qui permettra aux utilisateurs de
 
 Nette Framework a un concept de *composants*. Un **composant** est une classe réutilisable ou un morceau de code, qui peut être attaché à un autre composant. Même un présentateur est un composant. Chaque composant est créé à l'aide de la fabrique de composants. Définissons donc la fabrique du formulaire de commentaires dans `PostPresenter`.
 
-```php .{file:app/Presenters/PostPresenter.php}
+```php .{file:app/UI/Post/PostPresenter.php}
 protected function createComponentCommentForm(): Form
 {
 	$form = new Form; // signifie Nette\Application\UI\Form
@@ -67,7 +67,7 @@ Nous allons l'expliquer un peu. La première ligne crée une nouvelle instance d
 
 Une fois le composant de formulaire défini dans un présentateur, nous pouvons le rendre (l'afficher) dans un modèle. Pour ce faire, placez la balise `{control}` à la fin du modèle de détail de l'article, dans `Post/show.latte`. Comme le nom du composant est `commentForm` (dérivé du nom de la méthode `createComponentCommentForm`), la balise ressemblera à ceci
 
-```latte .{file:app/Presenters/templates/Post/show.latte}
+```latte .{file:app/UI/Post/show.latte}
 ...
 <h2>Post new comment</h2>
 
@@ -85,13 +85,13 @@ Avez-vous essayé de soumettre des données ? Vous avez peut-être remarqué que
 Placez la ligne suivante avant la ligne `return` dans la fabrique du composant `commentForm`:
 
 ```php
-$form->onSuccess[] = [$this, 'commentFormSucceeded'];
+$form->onSuccess[] = $this->commentFormSucceeded(...);
 ```
 
 Elle signifie "après que le formulaire ait été soumis avec succès, appelez la méthode `commentFormSucceeded` du présentateur actuel". Cette méthode n'existe pas encore, alors créons-la.
 
-```php .{file:app/Presenters/PostPresenter.php}
-public function commentFormSucceeded(\stdClass $data): void
+```php .{file:app/UI/Post/PostPresenter.php}
+private function commentFormSucceeded(\stdClass $data): void
 {
 	$postId = $this->getParameter('postId');
 
@@ -113,7 +113,7 @@ La nouvelle méthode a un argument qui est l'instance du formulaire soumis, cré
 
 Il y a deux autres appels de méthode à expliquer. La redirection redirige littéralement vers la page actuelle. Vous devez le faire à chaque fois que le formulaire est soumis, valide et que l'opération de rappel a fait ce qu'elle devait faire. En outre, lorsque vous redirigez la page après avoir soumis le formulaire, vous ne verrez pas le message bien connu `Would you like to submit the post data again?` que vous pouvez parfois voir dans le navigateur. (En général, après avoir soumis un formulaire par la méthode `POST`, vous devriez toujours rediriger l'utilisateur vers une action `GET` ).
 
-Le message `flashMessage` sert à informer l'utilisateur du résultat d'une opération quelconque. Comme il s'agit d'une redirection, le message ne peut pas être transmis directement au modèle et rendu. Il y a donc cette méthode qui le stocke et le rend disponible au prochain chargement de la page. Les messages flash sont rendus dans le fichier `app/Presenters/templates/@layout.latte` par défaut, et cela ressemble à ceci :
+Le message `flashMessage` sert à informer l'utilisateur du résultat d'une opération quelconque. Comme il s'agit d'une redirection, le message ne peut pas être transmis directement au modèle et rendu. Il y a donc cette méthode qui le stocke et le rend disponible au prochain chargement de la page. Les messages flash sont rendus dans le fichier `app/UI/@layout.latte` par défaut, et cela ressemble à ceci :
 
 ```latte
 <div n:foreach="$flashes as $flash" n:class="flash, $flash->type">
@@ -133,7 +133,7 @@ Nette Database Explorer utilise les clés étrangères pour résoudre les relati
 
 Comme vous vous en souvenez peut-être, nous avons passé la variable `$post` au modèle dans `PostPresenter::renderShow()` et maintenant nous voulons itérer à travers tous les commentaires qui ont la colonne `post_id` égale à notre `$post->id`. Vous pouvez le faire en appelant `$post->related('comments')`. C'est aussi simple que cela. Regardez le code résultant.
 
-```php .{file:app/Presenters/PostPresenter.php}
+```php .{file:app/UI/Post/PostPresenter.php}
 public function renderShow(int $postId): void
 {
 	...
@@ -144,7 +144,7 @@ public function renderShow(int $postId): void
 
 Et le modèle :
 
-```latte .{file:app/Presenters/templates/Post/show.latte}
+```latte .{file:app/UI/Post/show.latte}
 ...
 <h2>Comments</h2>
 

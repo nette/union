@@ -96,9 +96,9 @@ final class MyClass extends BaseClass
 
 A probléma akkor jelentkezik, amikor a `BaseClass` osztály konstruktorát meg akarjuk változtatni, például egy új függőség hozzáadásakor. Ekkor a gyerekek összes konstruktorát is módosítani kell. Ami pokollá teszi az ilyen módosítást.
 
-Hogyan lehet ezt megelőzni? A megoldás az, hogy **prioritást adunk a kompozíciónak az örökléssel szemben**.
+Hogyan lehet ezt megelőzni? A megoldás az, hogy **elsőbbséget adunk a [kompozíciónak az örökléssel szemben** |faq#Why composition is preferred over inheritance].
 
-Tehát tervezzük meg a kódot másképp. Kerüljük az absztrakt `Base*` osztályokat. Ahelyett, hogy a `MyClass` a `BaseClass` örökölése révén kapna bizonyos funkciókat, ahelyett, hogy a függőségként kapná meg ezeket a funkciókat:
+Tervezzük meg tehát a kódot másképp. Kerüljük az [absztrakt |nette:introduction-to-object-oriented-programming#abstract-classes] `Base*` osztályokat. Ahelyett, hogy a `MyClass` a `BaseClass` osztályból örökölve kapna bizonyos funkciókat, ahelyett, hogy függőségként átadnánk ezeket a funkciókat:
 
 ```php
 final class SomeFunctionality
@@ -128,7 +128,7 @@ final class MyClass
 Setter injektálás .[#toc-setter-injection]
 ==========================================
 
-A függőségek átadása egy olyan metódus meghívásával történik, amely egy privát tulajdonságban tárolja őket. Ezeknek a metódusoknak a szokásos elnevezési konvenciója a `set*()`, ezért hívják őket settereknek.
+A függőségek átadása egy olyan metódus meghívásával történik, amely egy privát tulajdonságban tárolja őket. Ezeknek a metódusoknak a szokásos elnevezési konvenciója a `set*()`, ezért hívják őket settereknek, de természetesen hívhatók máshogy is.
 
 ```php
 class MyClass
@@ -168,8 +168,7 @@ A setter hívás a DI konténer konfigurációjában a [setup szakaszban |servic
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- setCache
 ```
@@ -196,8 +195,7 @@ A változó beállítását a DI konténer konfigurációjában, a [setup szakas
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- $cache = @\Cache
 ```

@@ -158,7 +158,7 @@ A `forward()` azonnal átvált az új bemutatóra HTTP átirányítás nélkül:
 $this->forward('Product:show');
 ```
 
-Példa ideiglenes átirányításra 302 vagy 303 HTTP-kóddal:
+Példa egy úgynevezett ideiglenes átirányításra 302-es HTTP-kóddal (vagy 303-as kóddal, ha az aktuális kérési mód POST):
 
 ```php
 $this->redirect('Product:show', $id);
@@ -170,7 +170,7 @@ A 301-es kódú HTTP-kóddal történő állandó átirányítás eléréséhez 
 $this->redirectPermanent('Product:show', $id);
 ```
 
-A `redirectUrl()` módszerrel átirányíthat egy másik, az alkalmazáson kívüli URL-címre:
+A `redirectUrl()` módszerrel átirányíthat egy másik, az alkalmazáson kívüli URL-címre. A HTTP-kódot a második paraméterként lehet megadni, az alapértelmezett érték 302 (vagy 303, ha az aktuális kérési mód POST):
 
 ```php
 $this->redirectUrl('https://nette.org');
@@ -236,49 +236,83 @@ public function actionData(): void
 ```
 
 
-Tartós paraméterek .[#toc-persistent-parameters]
-================================================
+Kérési paraméterek .[#toc-request-parameters]
+=============================================
 
-A tartós paraméterek **automatikusan** kerülnek átvitelre a hivatkozásokban. Ez azt jelenti, hogy nem kell őket explicit módon megadni minden egyes `link()` vagy `n:href` sablonban, de ettől még átvitelre kerülnek.
+A bemutató, valamint minden komponens a HTTP-kérésből kapja a paramétereit. Értékeik a `getParameter($name)` módszerrel vagy a `getParameters()` segítségével kérhetők le. Az értékek karakterláncok vagy karakterláncok tömbjei, lényegében közvetlenül az URL-ből nyert nyers adatok.
 
-Ha az alkalmazásunknak több nyelvi változata van, akkor az aktuális nyelv olyan paraméter, amelynek mindig az URL része kell, hogy legyen. És hihetetlenül fárasztó lenne minden linkben megemlíteni. A Nette esetében erre nincs szükség. Egyszerűen csak a `lang` paramétert jelöljük így állandónak:
+A további kényelem érdekében javasoljuk, hogy a paraméterek tulajdonságokon keresztül legyenek elérhetők. Egyszerűen jegyzeteljük őket a `#[Parameter]` attribútummal:
 
 ```php
-class ProductPresenter extends Nette\Application\UI\Presenter
+use Nette\Application\Attributes\Parameter;  // ez a sor fontos
+
+class HomePresenter extends Nette\Application\UI\Presenter
 {
-	/** @persistent */
-	public string $lang;
+	#[Parameter]
+	public string $theme; // nyilvánosnak kell lennie
 }
 ```
 
-Ha a `lang` paraméter aktuális értéke `'en'`, akkor a sablonban a `link()` vagy `n:href` címmel létrehozott URL a `lang=en` címet fogja tartalmazni. Remek!
+A tulajdonságok esetében javasoljuk, hogy adja meg az adattípust (pl. `string`). A Nette ezután automatikusan ennek alapján alakítja ki az értéket. A paraméterek értékei is [érvényesíthetők |#Validation of Parameters].
 
-Azonban a `lang` paramétert is hozzáadhatjuk, és ezzel megváltoztathatjuk az értékét:
-
-```latte
-<a n:href="Product:show $id, lang: en">detail in English</a>
-```
-
-Vagy fordítva, eltávolíthatjuk a null értékre állításával:
+A hivatkozás létrehozásakor közvetlenül megadhatja a paraméterek értékét:
 
 ```latte
-<a n:href="Product:show $id, lang: null">click here</a>
+<a n:href="Home:default theme: dark">click</a>
 ```
 
-A tartós változót nyilvánosnak kell deklarálni. Megadhatunk egy alapértelmezett értéket is. Ha a paraméter értéke megegyezik az alapértelmezett értékkel, akkor az URL-ben nem fog szerepelni.
 
-A perzisztencia tükrözi a prezenter osztályok hierarchiáját, így egy bizonyos prezenterben vagy tulajdonságban definiált paraméter automatikusan átkerül minden olyan prezenterbe, amelyik tőle öröklődik vagy ugyanazt a tulajdonságot használja.
+Tartós paraméterek .[#toc-persistent-parameters]
+================================================
 
-A PHP 8-ban attribútumokat is használhat a perzisztens paraméterek jelölésére:
+A perzisztens paraméterek a különböző kérések közötti állapot fenntartására szolgálnak. Értékük a linkre való kattintás után is ugyanaz marad. A munkamenetadatokkal ellentétben ezek az URL-ben kerülnek átadásra. Ez teljesen automatikus, így nincs szükség a `link()` vagy a `n:href` oldalon történő kifejezett megadásukra.
+
+Felhasználási példa? Van egy többnyelvű alkalmazása. Az aktuális nyelv egy olyan paraméter, amelynek mindig az URL része kell, hogy legyen. De hihetetlenül fárasztó lenne minden linkben feltüntetni. Ezért egy állandó paramétert hozol létre, amelynek a neve `lang`, és ez önmagát hordozza. Király!
+
+A tartós paraméter létrehozása rendkívül egyszerű a Nette-ben. Csak hozzon létre egy nyilvános tulajdonságot, és jelölje meg az attribútummal: (korábban a `/** @persistent */` volt használatos).
 
 ```php
-use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Persistent; // ez a sor fontos
 
 class ProductPresenter extends Nette\Application\UI\Presenter
 {
 	#[Persistent]
+	public string $lang; // nyilvánosnak kell lennie
+}
+```
+
+Ha a `$this->lang` értéke például `'en'`, akkor a `link()` vagy `n:href` használatával létrehozott linkek a `lang=en` paramétert is tartalmazni fogják. És amikor a linkre kattintunk, akkor ismét a `$this->lang = 'en'` lesz.
+
+A tulajdonságok esetében javasoljuk, hogy adja meg az adattípust (pl. `string`), és megadhatja az alapértelmezett értéket is. A paraméterek értékei [érvényesíthetők |#Validation of Parameters].
+
+A perzisztens paraméterek alapértelmezés szerint egy adott bemutató összes művelete között átadásra kerülnek. Több prezenter között történő átadásukhoz vagy meg kell határozni őket:
+
+- egy közös ősben, amelytől az előadók öröklik a paramétereket.
+- abban a tulajdonságban, amelyet az előadók használnak:
+
+```php
+trait LanguageAware
+{
+	#[Persistent]
 	public string $lang;
 }
+
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	use LanguageAware;
+}
+```
+
+Megváltoztathatja egy állandó paraméter értékét a hivatkozás létrehozásakor:
+
+```latte
+<a n:href="Product:show $id, lang: cs">detail in Czech</a>
+```
+
+Vagy *visszaállítható*, azaz eltávolítható az URL-ből. Ekkor az alapértelmezett értéket veszi fel:
+
+```latte
+<a n:href="Product:show $id, lang: null">click</a>
 ```
 
 
@@ -299,16 +333,37 @@ Mélyebbre ásva .[#toc-going-deeper]
 Amit eddig ebben a fejezetben bemutattunk, valószínűleg elegendő lesz. A következő sorok azoknak szólnak, akiket a prezenterek mélységében érdekelnek, és mindent tudni akarnak.
 
 
-Követelmények és paraméterek .[#toc-requirement-and-parameters]
----------------------------------------------------------------
+A paraméterek validálása .[#toc-validation-of-parameters]
+---------------------------------------------------------
 
-A bemutató által kezelt kérés a [api:Nette\Application\Request] objektum, amelyet a bemutató `getRequest()` metódusa ad vissza. Ez paraméterek tömbjét tartalmazza, és mindegyik paraméter vagy valamelyik komponenshez, vagy közvetlenül a prezentálóhoz tartozik (amely valójában szintén egy komponens, bár egy speciális komponens). A Nette tehát a `loadState(array $params)` metódus meghívásával osztja újra a paramétereket, és az egyes komponensek (és a prezenter) között átadja a metódust, amelyet a [komponensek |Components] fejezetben ismertetünk részletesebben. A paramétereket a `getParameters(): array` metódus segítségével lehet beszerezni, külön-külön a `getParameter($name)` segítségével. A paraméterértékek karakterláncok vagy karakterláncok tömbjei, ezek alapvetően közvetlenül az URL-ből nyert nyers adatok.
+Az URL-ekből kapott [kérési paraméterek |#request parameters] és [állandó paraméterek |#persistent parameters] értékeit a `loadState()` módszer írja a tulajdonságokba. Azt is ellenőrzi, hogy a tulajdonságban megadott adattípus megfelel-e, ellenkező esetben 404-es hibával válaszol, és az oldal nem jelenik meg.
+
+Soha ne bízzon vakon a paraméterekben, mert azokat a felhasználó könnyen felülírhatja az URL-ben. Például így ellenőrizzük, hogy a `$this->lang` szerepel-e a támogatott nyelvek között. Ennek jó módja a fent említett `loadState()` metódus felülírása:
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $lang;
+
+	public function loadState(array $params): void
+	{
+		parent::loadState($params); // itt van beállítva a $this->lang
+		// követi a felhasználói értékek ellenőrzését:
+		if (!in_array($this->lang, ['en', 'cs'])) {
+			$this->error();
+		}
+	}
+}
+```
 
 
 A kérelem mentése és visszaállítása .[#toc-save-and-restore-the-request]
 ------------------------------------------------------------------------
 
-Az aktuális kérést elmentheti egy munkamenetbe, vagy visszaállíthatja a munkamenetből, és hagyhatja, hogy az előadó újra végrehajtsa azt. Ez például akkor hasznos, ha egy felhasználó kitölt egy űrlapot, és a bejelentkezése lejár. Annak érdekében, hogy ne veszítsünk el adatokat, a bejelentkezési oldalra való átirányítás előtt az aktuális kérést a munkamenetbe mentjük a `$reqId = $this->storeRequest()` segítségével, amely egy rövid karakterlánc formájában visszaad egy azonosítót, és paraméterként átadja a bejelentkezési prezenternek.
+A kérés, amelyet a bemutató kezel, egy objektum [api:Nette\Application\Request] és a bemutató `getRequest()` metódusa adja vissza.
+
+Az aktuális kérést elmentheti egy munkamenetbe, vagy visszaállíthatja a munkamenetből, és hagyhatja, hogy a prezenter ismét futtassa. Ez például akkor hasznos, ha egy felhasználó kitölt egy űrlapot, és a bejelentkezése lejár. Annak érdekében, hogy ne veszítsünk el adatokat, a bejelentkezési oldalra való átirányítás előtt az aktuális kérést a munkamenetbe mentjük a `$reqId = $this->storeRequest()` segítségével, amely egy rövid karakterlánc formájában visszaad egy azonosítót, és paraméterként átadja a bejelentkezési prezenternek.
 
 A bejelentkezés után meghívjuk a `$this->restoreRequest($reqId)` metódust, amely átveszi a kérést a munkamenetből, és továbbítja azt. A módszer ellenőrzi, hogy a kérést ugyanaz a felhasználó hozta-e létre, mint aki most bejelentkezett. Ha egy másik felhasználó jelentkezik be, vagy a kulcs érvénytelen, akkor nem tesz semmit, és a program folytatódik.
 
@@ -390,6 +445,51 @@ $callback = function (Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $ht
 };
 $this->sendResponse(new Responses\CallbackResponse($callback));
 ```
+
+
+Hozzáférés korlátozása `#[Requires]` .[#toc-access-restriction-using-requires]{data-version:3.2.2}
+--------------------------------------------------------------------------------------------------
+
+A `#[Requires]` attribútum speciális lehetőségeket biztosít az előadókhoz és módszereikhez való hozzáférés korlátozására. Használható HTTP-módszerek megadására, AJAX-kérések megkövetelésére, az azonos eredetű hozzáférések korlátozására és a hozzáférésnek csak a továbbításra való korlátozására. Az attribútum alkalmazható a prezenter osztályokra, valamint az egyes metódusokra, mint például a `action<Action>()`, `render<View>()`, `handle<Signal>()`, és `createComponent<Name>()`.
+
+Ezeket a korlátozásokat megadhatja:
+- a HTTP-módszerekre: `#[Requires(methods: ['GET', 'POST'])]`
+- AJAX-kérést igényel: `#[Requires(ajax: true)]`
+- hozzáférés csak ugyanabból az eredetből: `#[Requires(sameOrigin: true)]`
+- hozzáférés csak továbbítással: `#[Requires(forward: true)]`
+- korlátozások bizonyos műveletekre: `#[Requires(actions: 'default')]`
+
+A részletekért lásd [Hogyan használjuk a Requires attribútum használata |best-practices:attribute-requires].
+
+
+HTTP módszer ellenőrzése .[#toc-http-method-check]
+--------------------------------------------------
+
+A Nette rendszerben az előadók elsősorban biztonsági okokból automatikusan ellenőrzik minden bejövő kérés HTTP-módszerét. Alapértelmezés szerint a `GET`, `POST`, `HEAD`, `PUT`, `DELETE`, `PATCH` módszerek engedélyezettek.
+
+Ha további módszereket, például a `OPTIONS`, szeretne engedélyezni, akkor használhatja a `#[Requires]` attribútumot (a Nette Application v3.2-től):
+
+```php
+#[Requires(methods: ['GET', 'POST', 'HEAD', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])]
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+}
+```
+
+A 3.1-es verzióban az ellenőrzést a `checkHttpMethod()` végzi, amely ellenőrzi, hogy a kérelemben megadott módszer szerepel-e a `$presenter->allowedMethods` tömbben. Adjon hozzá egy ilyen módszert:
+
+```php
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+    protected function checkHttpMethod(): void
+    {
+        $this->allowedMethods[] = 'OPTIONS';
+        parent::checkHttpMethod();
+    }
+}
+```
+
+Fontos hangsúlyozni, hogy ha engedélyezi a `OPTIONS` módszert, akkor azt megfelelően kell kezelnie a prezenteren belül is. Ezt a módszert gyakran használják úgynevezett preflight-kérelemként, amelyet a böngészők automatikusan elküldenek a tényleges kérés előtt, amikor meg kell határozni, hogy a kérés engedélyezett-e a CORS (Cross-Origin Resource Sharing) irányelv szempontjából. Ha engedélyezi ezt a módszert, de nem valósít meg megfelelő választ, az következetlenségekhez és potenciális biztonsági problémákhoz vezethet.
 
 
 További olvasmányok .[#toc-further-reading]

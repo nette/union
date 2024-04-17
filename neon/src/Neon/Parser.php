@@ -233,7 +233,7 @@ final class Parser
 	}
 
 
-	private function injectPos(Node $node, int $start = null, int $end = null): Node
+	private function injectPos(Node $node, ?int $start = null, ?int $end = null): Node
 	{
 		$node->startTokenPos = $start ?? $this->stream->getIndex();
 		$node->start = $this->stream->tokens[$node->startTokenPos]->position;

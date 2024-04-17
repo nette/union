@@ -9,7 +9,7 @@ Below is a minimal template that illustrates a few basics elements: tags, n:attr
 
 ```latte
 {* this is a comment *}
-<ul n:if="$items">                {* n:if is n:atribut *}
+<ul n:if="$items">                {* n:if is n:attribute *}
 {foreach $items as $item}         {* tag representing foreach loop *}
 	<li>{$item|capitalize}</li>   {* tag that prints a variable with a filter *}
 {/foreach}                        {* end of cycle *}
@@ -98,7 +98,7 @@ Prints:
 Or by using `tag-` prefix the functionality is applied on the HTML tags only:
 
 ```latte
-<p><a href="{$url}" n:tag-if="$url">Title</a></p>
+<p><a href={$url} n:tag-if="$url">Title</a></p>
 ```
 
 Depending on the value of `$url` variable this will print:
@@ -153,6 +153,20 @@ Or directly on value (in combination with [`{=expr}`| https://latte.nette.org/en
 ```latte
 <h1>{='  Hello world  '|trim}<h1>
 ```
+
+
+Dynamic HTML Tags
+=================
+
+Latte supports dynamic HTML tags, which are useful when you need flexibility in tag names:
+
+```latte
+<h{$level}>Heading</h{$level}>
+```
+
+For example, the code above can generate `<h1>Heading</h1>` or `<h2>Heading</h2>` depending on the value of the variable `$level`. Dynamic HTML tags in Latte must always be paired. Their alternative is the [n:tag |tags#n:tag].
+
+Because Latte is a secure templating system, it checks that the resulting tag name is valid and contains no unwanted or malicious values. It also ensures that the end tag name is always the same as the opening tag name.
 
 
 Comments
@@ -238,35 +252,19 @@ The `in` operator can be used to replace the `in_array()` function. The comparis
 ```
 
 
-.{data-version:2.9}
-Optional Chaining with Undefined-Safe Operator
-----------------------------------------------
-
-The undefined-safe operator `??->` is similar to the nullsafe operator `?->`, but does not raise an error if a variable, property, or index does not exist at all.
-
-```latte
-{$order??->id}
-```
-
-this is a way of saying that when `$order` is defined and not null, `$order->id` will be computed, but when `$order` is null or doesn't exist, stop what we’re doing and just return null.
-
-```latte
-{$user??->address??->street}
-// roughly means isset($user) && isset($user->address) ? $user->address->street : null
-```
-
-
 A Window into History
 ---------------------
 
 Latte has come up with a number of syntactic candies over the course of its history, which appeared in PHP itself a few years later. For example, in Latte it was possible to write arrays as `[1, 2, 3]` instead of `array(1, 2, 3)` or use the nullsafe operator `$obj?->foo` long before it was possible in PHP itself. Latte also introduced the array expansion operator `(expand) $arr`, which is the equivalent of today's `...$arr` operator from PHP.
 
+The undefined-safe operator `??->`, which is similar to the nullsafe operator `?->`, but does not raise an error if the variable does not exist, was created for historical reasons and today we recommend using the standard PHP operator `?->`.
+
 
 PHP Limitations in Latte
 ========================
 
-Only PHP expressions can be written in Latte. That is, you cannot declare classes or use [control structures |https://www.php.net/manual/en/language.control-structures.php], such as `if`, `foreach`, `switch`, `return`, `try`, `throw` and others, instead of which Latte offers its [tags].
-You also can't use [attributes |https://www.php.net/manual/en/language.attributes.php], [backticks |https://www.php.net/manual/en/language.operators.execution.php] or [magic constants |https://www.php.net/manual/en/language.constants.magic.php], because that wouldn't make sense.
-You can't even use `unset`, `echo`, `include`, `require`, `exit`, `eval`, because they are not functions, but special PHP language constructs, and thus not expressions.
+Only PHP expressions can be written in Latte. That is, statements ending with a semicolon cannot be used. You cannot declare classes or use [control structures |https://www.php.net/manual/en/language.control-structures.php], such as `if`, `foreach`, `switch`, `return`, `try`, `throw` and others, instead of which Latte offers its [tags].
+You also can't use [attributes |https://www.php.net/manual/en/language.attributes.php], [backticks |https://www.php.net/manual/en/language.operators.execution.php] or any of [magic constants |https://www.php.net/manual/en/language.constants.magic.php].
+You can't even use `unset`, `echo`, `include`, `require`, `exit`, `eval`, because they are not functions, but special PHP language constructs, and thus not expressions. Only multi-line comments are supported `/* ... */`.
 
 However, you can work around these limitations by activating the [RawPhpExtension |develop#RawPhpExtension] extension, which allows you to use any PHP code in the `{php ...}` tag at the responsibility of the template author.

@@ -216,7 +216,7 @@ $router->addRoute('//www.%sld%.%tld%/%basePath%/<presenter>/<action', /* ... */)
 Advanced Notation
 -----------------
 
-The second parameter of the route, which we often write in the format `Presenter:action`, is an abbreviation, which we can also write in the form of a field, where we directly state the (default) values ​​of individual parameters:
+The target of a route, usually written in the form `Presenter:action`, can also be expressed using an array that defines individual parameters and their default values:
 
 ```php
 $router->addRoute('<presenter>/<action>[/<id \d+>]', [
@@ -225,7 +225,7 @@ $router->addRoute('<presenter>/<action>[/<id \d+>]', [
 ]);
 ```
 
-Or we can use this form, notice the rewriting of the validation regular expression:
+For a more detailed specification, an even more extended form can be used, where in addition to default values, other parameter properties can be set, such as a validation regular expression (see the `id` parameter):
 
 ```php
 use Nette\Routing\Route;
@@ -243,7 +243,7 @@ $router->addRoute('<presenter>/<action>[/<id>]', [
 ]);
 ```
 
-These more talkative formats are useful for adding other metadata.
+It is important to note that if the parameters defined in the array are not included in the path mask, their values cannot be changed, not even using query parameters specified after a question mark in the URL.
 
 
 Filters and Translations
@@ -340,6 +340,29 @@ $router->addRoute('product/<id>', 'Product:detail');
 ```
 
 When accessing the old URL, the presenter automatically redirects to the new URL so that search engines do not index these pages twice (see [#SEO and canonization]).
+
+
+Dynamic Routing with Callbacks
+------------------------------
+
+Dynamic routing with callbacks allows you to directly assign functions (callbacks) to routes, which will be executed when the specified path is visited. This flexible feature enables you to quickly and efficiently create various endpoints for your application:
+
+```php
+$router->addRoute('test', function () {
+	echo 'You are at the /test address';
+});
+```
+
+You can also define parameters in the mask, which will be automatically passed to your callback:
+
+```php
+$router->addRoute('<lang cs|en>', function (string $lang) {
+	echo match ($lang) {
+		'cs' => 'Welcome to the Czech version of our website!',
+		'en' => 'Welcome to the English version of our website!',
+	};
+});
+```
 
 
 Modules
@@ -454,10 +477,10 @@ $router->addRoute('index<?.html \.html?|\.php|>', /* ... */);
 Integration
 ===========
 
-In order to connect the our router into the application, we must tell the DI container about it. The easiest way is to prepare the factory that will build the router object and tell the container configuration to use it. So let's say we write a method for this purpose `App\Router\RouterFactory::createRouter()`:
+In order to connect the our router into the application, we must tell the DI container about it. The easiest way is to prepare the factory that will build the router object and tell the container configuration to use it. So let's say we write a method for this purpose `App\Core\RouterFactory::createRouter()`:
 
 ```php
-namespace App\Router;
+namespace App\Core;
 
 use Nette\Application\Routers\RouteList;
 
@@ -476,7 +499,7 @@ Then we write in [configuration |dependency-injection:services]:
 
 ```neon
 services:
-	- App\Router\RouterFactory::createRouter
+	- App\Core\RouterFactory::createRouter
 ```
 
 Any dependencies, such as a database connection etc., are passed to the factory method as its parameters using [autowiring |dependency-injection:autowiring]:
@@ -640,7 +663,7 @@ By separated usage, we mean the use of the router's capabilities in an applicati
 So again we will create a method that will build a router, for example:
 
 ```php
-namespace App\Router;
+namespace App\Core;
 
 use Nette\Routing\RouteList;
 
@@ -671,7 +694,7 @@ $httpRequest = $container->getByType(Nette\Http\IRequest::class);
 Or we will create objects directly:
 
 ```php
-$router = App\Router\RouterFactory::createRouter();
+$router = App\Core\RouterFactory::createRouter();
 $httpRequest = (new Nette\Http\RequestFactory)->fromGlobals();
 ```
 

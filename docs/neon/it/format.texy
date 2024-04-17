@@ -4,7 +4,7 @@ Formato NEON
 .[perex]
 NEON è un formato di dati strutturati leggibili dall'uomo. In Nette viene utilizzato per i file di configurazione. Viene utilizzato anche per i dati strutturati, come le impostazioni, le traduzioni delle lingue, ecc. [Provatelo nella sandbox |https://ne-on.org].
 
-NEON sta per *Nette Object Notation*. È meno complesso e sgraziato di XML o JSON, ma offre funzionalità simili. È molto simile a YAML. Il vantaggio principale è che NEON ha le cosiddette [entità |#entities], grazie alle quali la configurazione dei servizi DI è così sexy. E permette di usare le tabulazioni per l'indentazione.
+NEON è l'acronimo di *Nette Object Notation*. È meno complessa e sgraziata di XML o JSON, ma offre funzionalità simili. È molto simile a YAML. Il vantaggio principale è che NEON ha le cosiddette [entità |#entities], grazie alle quali la configurazione dei servizi DI è [così sexy |https://gist.github.com/dg/26baf3ce8f29d0f751e9dddfaa06504f]. E permette di usare le tabulazioni per l'indentazione.
 
 NEON è costruito da zero per essere semplice da usare.
 
@@ -119,11 +119,11 @@ I valori delle mappature e delle sequenze possono essere altre mappature e seque
 
 ```neon
 pets:
- - Cat
- - Dog
+   - Cat
+   - Dog
 cars:
- - Volvo
- - Skoda
+   - Volvo
+   - Skoda
 ```
 
 In PHP, la stessa struttura sarebbe scritta come:
@@ -160,6 +160,28 @@ item: [
 	 - Dog
 ]
 ```
+
+Nel caso precedente, abbiamo scritto una mappatura i cui elementi erano sequenze. Proviamo ora a fare il contrario e a creare una sequenza contenente delle mappature:
+
+```neon
+-
+	name: John
+	age: 35
+-
+	name: Peter
+	age: 28
+```
+
+Non è necessario che i punti elenco siano su righe separate; possono anche essere disposti in questo modo:
+
+```neon
+- name: John
+  age: 35
+- name: Peter
+  age: 28
+```
+
+Sta a voi decidere se allineare i tasti in una colonna usando spazi o tabulazioni.
 
 Poiché PHP utilizza la stessa struttura per le mappature e le sequenze, cioè gli array, entrambi possono essere uniti. L'indentazione è la stessa questa volta:
 

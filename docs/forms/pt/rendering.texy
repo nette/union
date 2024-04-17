@@ -1,15 +1,17 @@
 Prestação de formulários
 ************************
 
-As aparências dos formulários podem ser muito diferentes. Na verdade, existem dois extremos. Um lado é a necessidade de tornar um conjunto de formas muito semelhantes novamente, com pouco ou nenhum esforço. Normalmente administrações e back-ends.
+A aparência das formas pode ser muito diversificada. Na prática, podemos encontrar dois extremos. Por um lado, há a necessidade de renderizar uma série de formulários em uma aplicação que são visualmente semelhantes entre si, e apreciamos a fácil renderização sem um modelo usando `$form->render()`. Este é geralmente o caso das interfaces administrativas.
 
-O outro lado são pequenas formas doces, sendo cada uma delas uma obra de arte. Seu layout pode ser melhor escrito em HTML. É claro que, além desses extremos, há muitos formulários entre eles.
+Por outro lado, existem várias formas onde cada uma é única. Sua aparência é melhor descrita usando a linguagem HTML no modelo. E é claro que, além dos dois extremos mencionados, vamos encontrar muitos formulários que se enquadram em algum lugar no meio.
 
 
-Latte .[#toc-latte]
-===================
+Renderização com Latte .[#toc-rendering-with-latte]
+===================================================
 
 O [sistema de modelos Latte |latte:] facilita fundamentalmente a renderização de formulários e seus elementos. Primeiro, mostraremos como renderizar formulários manualmente, elemento por elemento, para obter controle total sobre o código. Mais tarde, mostraremos como [automatizar |#Automatic rendering] tal renderização.
+
+Você pode ter a proposta de um modelo Latte para o formulário gerado usando o método `Nette\Forms\Blueprint::latte($form)`, que o enviará para a página do navegador. Em seguida, basta selecionar o código com um clique e copiá-lo em seu projeto. .{data-version:3.1.15}
 
 
 `{control}`
@@ -88,12 +90,6 @@ Elementos de formulário mais complexos, tais como RadioList ou CheckboxList, po
 ```
 
 
-Proposta de Código `{formPrint}` .[#toc-formprint]
---------------------------------------------------
-
-Você pode gerar um código Latte similar para um formulário usando a tag `{formPrint}`. Se você colocá-lo em um modelo, você verá o rascunho do código ao invés da renderização normal. Então basta selecioná-lo e copiá-lo para seu projeto.
-
-
 `{label}` `{input}`
 -------------------
 
@@ -150,6 +146,12 @@ Podemos detectar a presença de um erro usando o método `hasErrors()` e definir
 	{inputError username}
 </div>
 ```
+
+
+`{form}`
+--------
+
+Etiquetas `{form signInForm}...{/form}` são uma alternativa para `<form n:name="signInForm">...</form>`.
 
 
 Renderização automática .[#toc-automatic-rendering]
@@ -231,15 +233,15 @@ Você só precisa importar o bloco em um lugar, no início do modelo de layout:
 Casos especiais .[#toc-special-cases]
 -------------------------------------
 
-Se você precisar apenas renderizar o conteúdo interno de uma forma sem `<form>` & `</form>` Tags HTML, por exemplo, em um pedido AJAX, você pode abrir e fechar o formulário com `{formContext} … {/formContext}`. Funciona de forma similar a `{form}` em um sentido lógico, aqui permite que você use outras tags para desenhar elementos do formulário, mas ao mesmo tempo não desenha nada.
+Se você precisar renderizar somente a parte interna do formulário sem tags HTML `<form>`por exemplo, ao enviar snippets, oculte-os usando o atributo `n:tag-if`:
 
 ```latte
-{formContext signForm}
+<form n:name=signInForm n:tag-if=false>
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-{/formContext}
+</form>
 ```
 
 A etiqueta `formContainer` ajuda na renderização de entradas dentro de um contêiner de formulário.
@@ -256,8 +258,8 @@ A etiqueta `formContainer` ajuda na renderização de entradas dentro de um cont
 ```
 
 
-Sem o Latte .[#toc-without-latte]
-=================================
+Renderização sem Latte .[#toc-rendering-without-latte]
+======================================================
 
 A maneira mais fácil de entregar um formulário é telefonar:
 
@@ -321,13 +323,13 @@ Se não definirmos um renderizador personalizado, será usado o renderizador pad
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
 </tr>
 
 <tr>
@@ -357,12 +359,12 @@ Resultados no seguinte trecho:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -428,6 +430,8 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
+O renderizador desenha primeiro os grupos e depois os elementos que não pertencem a nenhum grupo.
+
 
 Suporte de Bootstrap .[#toc-bootstrap-support]
 ----------------------------------------------
@@ -438,7 +442,7 @@ Você pode encontrar [exemplos de |https://github.com/nette/forms/tree/master/ex
 Atributos HTML .[#toc-html-attributes]
 ======================================
 
-Você pode definir quaisquer atributos HTML para controles de formulários usando `setHtmlAttribute(string $name, $value = true)`:
+Para definir atributos HTML arbitrários para elementos de formulário, use o método `setHtmlAttribute(string $name, $value = true)`:
 
 ```php
 $form->addInteger('número', 'Número:')
@@ -448,11 +452,11 @@ $form->addSelect('rank', 'Order by:', ['price', 'name'])
 	->setHtmlAttribute('onchange', 'submit()'); // chama a função JS submit() on change
 
 
-// aplicando em <form>
+// Para definir os atributos do próprio <form>
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Tipo de ajuste de entrada:
+Especificando o tipo de elemento:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -460,8 +464,11 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-Podemos definir atributo HTML a itens individuais em listas de rádio ou checkbox com valores diferentes para cada um deles.
-Observe os dois pontos após `style:` para garantir que o valor seja selecionado por chave:
+.[warning]
+A definição do tipo e de outros atributos serve apenas para fins visuais. A verificação da exatidão da entrada deve ocorrer no servidor, o que pode ser garantido pela escolha de um [controle de formulário | controls] apropriado e pela especificação de [regras de validação | validation].
+
+Para itens individuais em listas de rádio ou caixas de seleção, podemos definir um atributo HTML com valores diferentes para cada um deles.
+Observe os dois pontos após `style:`, o que garante que o valor seja selecionado com base na chave:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -478,10 +485,9 @@ Renderizadores:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-Para um atributo HTML lógico (que não tem valor, como `readonly`), você pode usar um ponto de interrogação:
+Para definir atributos booleanos, como `readonly`, podemos usar a notação com um ponto de interrogação:
 
 ```php
-$colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // use array para múltiplas chaves, por exemplo ['r', 'g'].
 ```
@@ -535,9 +541,6 @@ Para os itens Checkbox, CheckboxList e RadioList você pode influenciar o modelo
 
 ```php
 $input = $form->addCheckbox('enviar');
-echo $input->getControl();
-// <label><input type="checkbox" name="send"></label>
-
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

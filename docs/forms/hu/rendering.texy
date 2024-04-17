@@ -1,15 +1,17 @@
 Forms Rendering
 ***************
 
-Az űrlapok megjelenése nagymértékben eltérhet egymástól. Valójában két szélsőség létezik. Az egyik oldal az, amikor egy sor nagyon hasonló űrlapot kell újra és újra megjeleníteni, kevés vagy semmi erőfeszítéssel. Általában adminisztrációk és back-endek.
+A formák megjelenése nagyon változatos lehet. A gyakorlatban két szélsőséggel találkozhatunk. Egyrészt szükség van arra, hogy egy alkalmazásban egy sor, egymáshoz vizuálisan hasonló űrlapot jelenítsünk meg, és értékeljük a `$form->render()` segítségével történő egyszerű, sablon nélküli megjelenítést. Ez általában az adminisztrációs felületek esetében fordul elő.
 
-A másik oldal az apró, édes formák, amelyek mindegyike egy-egy műalkotás. Ezek elrendezése a legjobban HTML-ben írható meg. Természetesen ezeken a végleteken kívül is sok űrlap létezik a kettő között.
+Másrészt vannak különböző űrlapok, ahol mindegyik egyedi. Megjelenésüket a legjobban a sablonban található HTML nyelv segítségével lehet leírni. És természetesen a két említett szélsőség mellett számos olyan űrlappal is találkozunk, amelyek valahol a kettő között helyezkednek el.
 
 
-Latte .[#toc-latte]
-===================
+Renderelés Latte-val .[#toc-rendering-with-latte]
+=================================================
 
 A [Latte templating rendszer |latte:] alapvetően megkönnyíti az űrlapok és elemeik megjelenítését. Először megmutatjuk, hogyan lehet az űrlapokat manuálisan, elemenként renderelni, hogy teljes kontrollt kapjunk a kód felett. Később megmutatjuk, hogyan lehet [automatizálni |#Automatic rendering] ezt a renderelést.
+
+A `Nette\Forms\Blueprint::latte($form)` metódus segítségével létrehozhatja a Latte sablon javaslatát az űrlaphoz, amely a böngészőoldalra kimeneti azt. Ezután csak ki kell választania a kódot egy kattintással, és be kell másolnia a projektjébe. .{data-version:3.1.15}
 
 
 `{control}`
@@ -88,12 +90,6 @@ Az összetettebb űrlapelemek, mint például a RadioList vagy CheckboxList, ele
 ```
 
 
-Kódjavaslat `{formPrint}` .[#toc-formprint]
--------------------------------------------
-
-Hasonló Latte kódot generálhat egy űrlaphoz a `{formPrint}` tag használatával. Ha ezt egy sablonba helyezi, a normál megjelenítés helyett a kódtervezetet fogja látni. Ezután csak válassza ki, és másolja be a projektjébe.
-
-
 `{label}` `{input}`
 -------------------
 
@@ -150,6 +146,12 @@ A `hasErrors()` metódus segítségével észlelhetjük a hiba jelenlétét, és
 	{inputError username}
 </div>
 ```
+
+
+`{form}`
+--------
+
+Címkék `{form signInForm}...{/form}` alternatívája a `<form n:name="signInForm">...</form>`.
 
 
 Automatikus renderelés .[#toc-automatic-rendering]
@@ -231,15 +233,15 @@ A blokkot csak egy helyre kell importálnia, az elrendezési sablon elejére:
 Speciális esetek .[#toc-special-cases]
 --------------------------------------
 
-Ha csak egy űrlap belső tartalmát kell megjelenítenie anélkül, hogy a `<form>` & `</form>` HTML-címkéket, például egy AJAX-kérés során, akkor a `{formContext} … {/formContext}` segítségével nyithatja meg és zárhatja be az űrlapot. Logikai értelemben hasonlóan működik, mint a `{form}`, itt lehetővé teszi, hogy más címkéket használjon az űrlapelemek megrajzolásához, ugyanakkor nem rajzol semmit.
+Ha csak az űrlap belső részét kell megjelenítenie HTML címkék nélkül `<form>`, például a snippetek elküldésekor, rejtse el őket a `n:tag-if` attribútummal:
 
 ```latte
-{formContext signForm}
+<form n:name=signInForm n:tag-if=false>
 	<div>
 		<label n:name=username>Username: <input n:name=username></label>
 		{inputError username}
 	</div>
-{/formContext}
+</form>
 ```
 
 A `formContainer` címke az űrlapkonténeren belüli bemenetek megjelenítését segíti.
@@ -256,8 +258,8 @@ A `formContainer` címke az űrlapkonténeren belüli bemenetek megjelenítésé
 ```
 
 
-Latte nélkül .[#toc-without-latte]
-==================================
+Renderelés Latte nélkül .[#toc-rendering-without-latte]
+=======================================================
 
 A legegyszerűbb módja egy űrlap megjelenítésének a következő hívás:
 
@@ -321,13 +323,13 @@ Ha nem állítunk be egyéni renderelőt, akkor az alapértelmezett renderelőt 
 <tr class="required">
 	<th><label class="required" for="frm-name">Name:</label></th>
 
-	<td><input type="text" class="text" name="name" id="frm-name" value=""></td>
+	<td><input type="text" class="text" name="name" id="frm-name" required value=""></td>
 </tr>
 
 <tr class="required">
 	<th><label class="required" for="frm-age">Age:</label></th>
 
-	<td><input type="text" class="text" name="age" id="frm-age" value=""></td>
+	<td><input type="text" class="text" name="age" id="frm-age" required value=""></td>
 </tr>
 
 <tr>
@@ -357,12 +359,12 @@ Az eredmény a következő részlet:
 <dl>
 	<dt><label class="required" for="frm-name">Name:</label></dt>
 
-	<dd><input type="text" class="text" name="name" id="frm-name" value=""></dd>
+	<dd><input type="text" class="text" name="name" id="frm-name" required value=""></dd>
 
 
 	<dt><label class="required" for="frm-age">Age:</label></dt>
 
-	<dd><input type="text" class="text" name="age" id="frm-age" value=""></dd>
+	<dd><input type="text" class="text" name="age" id="frm-age" required value=""></dd>
 
 
 	<dt><label>Gender:</label></dt>
@@ -428,6 +430,8 @@ $form->addText('city', 'City:');
 $form->addSelect('country', 'Country:', $countries);
 ```
 
+A renderelő először a csoportokat rajzolja ki, majd azokat az elemeket, amelyek nem tartoznak egyik csoporthoz sem.
+
 
 Bootstrap támogatás .[#toc-bootstrap-support]
 ---------------------------------------------
@@ -438,7 +442,7 @@ Bootstrap támogatás .[#toc-bootstrap-support]
 HTML attribútumok .[#toc-html-attributes]
 =========================================
 
-A `setHtmlAttribute(string $name, $value = true)` segítségével bármilyen HTML-attribútumot beállíthat az űrlapvezérlőkhöz:
+Az űrlapelemek tetszőleges HTML-attribútumainak beállításához használja a `setHtmlAttribute(string $name, $value = true)` metódust:
 
 ```php
 $form->addInteger('number', 'Szám:')
@@ -448,11 +452,11 @@ $form->addSelect('rank', 'Order by:', ['price', 'name'])
 	->setHtmlAttribute('onchange', 'submit()'); // változáskor meghívja a submit() JS függvényt.
 
 
-// <form>-ra való alkalmazás
+// A <form> attribútumainak beállítása.
 $form->setHtmlAttribute('id', 'myForm');
 ```
 
-Input type beállítása:
+Az elem típusának megadása:
 
 ```php
 $form->addText('tel', 'Your telephone:')
@@ -460,8 +464,11 @@ $form->addText('tel', 'Your telephone:')
 	->setHtmlAttribute('placeholder', 'Please, fill in your telephone');
 ```
 
-HTML attribútumot állíthatunk be a rádió- vagy jelölőnégyzet-listák egyes elemeihez, mindegyikhez különböző értékekkel.
-Figyeljük meg a kettőspontot a `style:` után, hogy az értéket a kulcs szerint válasszuk ki:
+.[warning]
+A típus és egyéb attribútumok beállítása csak vizuális célokat szolgál. A bevitel helyességének ellenőrzésének a kiszolgálón kell megtörténnie, amit egy megfelelő [űrlapvezérlő | controls] kiválasztásával és [érvényesítési szabályok | validation] megadásával biztosíthat.
+
+A rádió- vagy jelölőnégyzet-listák egyes elemeihez beállíthatunk egy HTML-attribútumot, amelynek értékei eltérőek lehetnek.
+Vegyük észre a kettőspontot a `style:` után, ami biztosítja, hogy az értéket a kulcs alapján válasszuk ki:
 
 ```php
 $colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
@@ -478,10 +485,9 @@ Renders:
 <label><input type="checkbox" name="colors[]" value="b">blue</label>
 ```
 
-A logikai HTML-attribútumok (amelyeknek nincs értéke, mint például a `readonly`) esetében kérdőjelet használhat:
+A boolean attribútumok beállításához, mint például a `readonly`, használhatjuk a kérdőjellel ellátott jelölést:
 
 ```php
-$colors = ['r' => 'red', 'g' => 'green', 'b' => 'blue'];
 $form->addCheckboxList('colors', 'Colors:', $colors)
 	->setHtmlAttribute('readonly?', 'r'); // több kulcs esetén használjunk tömböt, pl. ['r', 'g']
 ```
@@ -535,9 +541,6 @@ A Checkbox, CheckboxList és RadioList elemek esetében befolyásolhatja az elem
 
 ```php
 $input = $form->addCheckbox('send');
-echo $input->getControl();
-// <label><input type="checkbox" name="send"></label>
-
 $html = $input->getContainerPrototype();
 $html->setName('div'); // <div>
 $html->class('check'); // <div class="check">

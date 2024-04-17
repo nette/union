@@ -13,11 +13,15 @@ application:
 	# prikazuje ploščo "Nette Application" v programu Tracy BlueScreen?
 	debugger: ...           # (bool) privzeto je true
 
-	# ali se ob napaki pokliče error-presenter?
-	catchExceptions: ...    # (bool) privzeto true v produkcijskem načinu
+	# se bo ob napaki poklical predstavnik napak?
+	# učinkuje samo v načinu za razvijalce
+	catchExceptions: ...    # (bool) privzeto true
 
 	# ime programa error-presenter
-	errorPresenter: Error   # (string) privzeto 'Nette:Error'
+	errorPresenter: Error   # (string|array) privzeto 'Nette:Error'
+
+	# določa vzdevke za voditelje in dogodke
+	aliases: ...
 
 	# določa pravila za razrešitev imena predstavnika na razred
 	mapping: ...
@@ -27,9 +31,18 @@ application:
 	silentLinks: ...        # (bool) privzeto je false
 ```
 
-Ker se v razvojnem načinu predstavniki napak privzeto ne kličejo, napake pa prikazuje Tracy, sprememba vrednosti `catchExceptions` v `true` pomaga preveriti, ali predstavniki napak med razvojem delujejo pravilno.
+Od različice `nette/application` 3.2 je mogoče določiti par predstavnikov napak:
+
+```neon
+application:
+	errorPresenter:
+		4xx: Error4xx   # za Nette\Application\BadRequestException
+		5xx: Error5xx   # za druge izjeme
+```
 
 Možnost `silentLinks` določa, kako se Nette obnaša v razvojnem načinu, ko generiranje povezav ne uspe (na primer ker ni predstavnika itd.). Privzeta vrednost `false` pomeni, da Nette sproži `E_USER_WARNING`. Nastavitev na `true` to sporočilo o napaki odpravi. V produkcijskem okolju se vedno sproži `E_USER_WARNING`. Na to obnašanje lahko vplivamo tudi z nastavitvijo spremenljivke presenterja [$invalidLinkMode |creating-links#Invalid Links].
+
+[Psevdonimi poenostavijo sklicevanje na |creating-links#aliases] pogosto uporabljene predstavnike.
 
  [Prikazovanje določa pravila, |modules#mapping] po katerih se ime razreda izpelje iz imena predstavnika.
 
@@ -76,6 +89,12 @@ latte:
 	# generira predloge z declare(strict_types=1)
 	strictTypes: ...     # (bool) privzeto je false
 
+	# omogoči [strogi način pregledovalnika |latte:develop#strict mode]
+	strictParsing: ...   # (bool) privzeto je false
+
+	# omogoča [preverjanje ustvarjene kode |latte:develop#Checking Generated Code]
+	phpLinter: ...       # (string) privzeto je null
+
 	# razred $this->template
 	templateClass: App\MyTemplateClass # privzeto je Nette\Bridges\ApplicationLatte\DefaultTemplate
 ```
@@ -85,7 +104,7 @@ latte:
 ```neon
 latte:
 	extensions:
-		- Latte\Essential\TranslatorExtension
+		- Latte\Essential\TranslatorExtension(@Nette\Localization\Translator)
 ```
 
 /--comment
@@ -152,3 +171,18 @@ Nastavite lahko direktive PHP. Pregled vseh direktiv je na voljo na [php.net |ht
 php:
 	date.timezone: Europe/Prague
 ```
+
+
+Storitve DI .[#toc-di-services]
+===============================
+
+Te storitve so dodane vsebniku DI:
+
+| Ime | Vrsta | Opis
+|----------------------------------------------------------
+| `application.application` | [api:Nette\Application\Application] | [zaganjalnik celotne aplikacije |how-it-works#Nette Application]
+| `application.linkGenerator` | [api:Nette\Application\LinkGenerator] | [LinkGenerator |creating-links#LinkGenerator]
+| `application.presenterFactory` | [api:Nette\Application\PresenterFactory] | presenter factory
+| `application.###` | [api:Nette\Application\UI\Presenter] | posamezni predavatelji
+| `latte.latteFactory` | [api:Nette\Bridges\ApplicationLatte\LatteFactory] | tovarna za `Latte\Engine`
+| `latte.templateFactory` | [api:Nette\Application\UI\TemplateFactory] | tovarna za [`$this->template` |templates]

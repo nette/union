@@ -38,7 +38,7 @@
 <a n:href="Product:show $product->id, lang: en">detail</a>
 ```
 
-Εάν η μέθοδος `ProductPresenter::renderShow()` δεν έχει στην υπογραφή της την `$lang`, μπορεί να διαβάσει την τιμή της παραμέτρου χρησιμοποιώντας την `$lang = $this->getParameter('lang')`.
+Εάν η μέθοδος `ProductPresenter::renderShow()` δεν έχει στην υπογραφή της την `$lang`, μπορεί να ανακτήσει την τιμή της παραμέτρου χρησιμοποιώντας την `$lang = $this->getParameter('lang')` ή από την [ιδιότητα |presenters#Request Parameters].
 
 Εάν οι παράμετροι είναι αποθηκευμένες σε πίνακα, μπορούν να επεκταθούν με τον τελεστή `...` (ή `(expand)` στο Latte 2.x):
 
@@ -140,7 +140,7 @@ $url = $this->link('Product:show', [$product->id, 'lang' => 'cs']);
 <a n:href="this">refresh</a>
 ```
 
-Ταυτόχρονα, όλες οι παράμετροι που καθορίζονται στην υπογραφή της εντολής `render<View>()` ή `action<Action>()` μεταφέρονται. Έτσι, αν βρισκόμαστε στις σελίδες `Product:show` και `id:123`, ο σύνδεσμος προς την `this` θα μεταφέρει και αυτή την παράμετρο.
+Ταυτόχρονα, όλες οι παράμετροι που καθορίζονται στην υπογραφή της `action<Action>()` ή `render<View>()` μεθόδου, εάν η `action<Action>()` δεν έχει οριστεί, μεταφέρονται. Έτσι, αν βρισκόμαστε στις σελίδες `Product:show` και `id:123`, ο σύνδεσμος προς την `this` θα μεταφέρει και αυτή την παράμετρο.
 
 Φυσικά, είναι δυνατόν να καθορίσετε τις παραμέτρους απευθείας:
 
@@ -213,7 +213,7 @@ $url = $this->link('Product:show', [$product->id, 'lang' => 'cs']);
 Αν θέλουμε να συνδέσουμε με παρουσιαστές στο πρότυπο συστατικού, χρησιμοποιούμε την ετικέτα `{plink}`:
 
 ```latte
-<a href="{plink Home:default}">home</a>
+<a href={plink Home:default}>home</a>
 ```
 
 ή στον κώδικα
@@ -221,6 +221,30 @@ $url = $this->link('Product:show', [$product->id, 'lang' => 'cs']);
 ```php
 $this->getPresenter()->link('Home:default')
 ```
+
+
+Ψευδώνυμα .[#toc-aliases]{data-version:v3.2.2}
+==============================================
+
+Μερικές φορές είναι χρήσιμο να αντιστοιχίσετε ένα εύκολα απομνημονεύσιμο ψευδώνυμο σε ένα ζεύγος Παρουσιαστής:ενέργεια. Για παράδειγμα, θα μπορούσατε να ονομάσετε την αρχική σελίδα `Front:Home:default` απλά ως `home` ή `Admin:Dashboard:default` ως `admin`.
+
+Τα ψευδώνυμα ορίζονται στη [ρύθμιση παρα |configuration] μέτρων κάτω από το κλειδί `application › aliases`:
+
+```neon
+application:
+    aliases:
+        home: Front:Home:default
+        admin: Admin:Dashboard:default
+        sign: Front:Sign:in
+```
+
+Στους συνδέσμους, γράφονται χρησιμοποιώντας το σύμβολο at, για παράδειγμα:
+
+```latte
+<a n:href="@admin">administration</a>
+```
+
+Υποστηρίζονται σε όλες τις μεθόδους που λειτουργούν με συνδέσμους, όπως το `redirect()` και παρόμοια.
 
 
 Άκυροι σύνδεσμοι .[#toc-invalid-links]

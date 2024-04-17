@@ -266,6 +266,25 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
+Utilisation avec PSR-16 .[#toc-using-with-psr-16]
+=================================================
+
+Pour utiliser Nette Cache avec l'interface PSR-16, vous pouvez utiliser le site `PsrCacheAdapter`. Il permet une intégration transparente entre Nette Cache et tout code ou bibliothèque qui attend un cache compatible PSR-16.
+
+```php
+$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
+```
+
+Vous pouvez désormais utiliser `$psrCache` comme cache PSR-16 :
+
+```php
+$psrCache->set('key', 'value', 3600); // mémorise la valeur pour 1 heure
+$value = $psrCache->get('key', 'default');
+```
+
+L'adaptateur supporte toutes les méthodes définies dans PSR-16, y compris `getMultiple()`, `setMultiple()`, et `deleteMultiple()`.
+
+
 Mise en cache de la sortie .[#toc-output-caching]
 =================================================
 
@@ -442,6 +461,30 @@ Vous pouvez changer le journal dans la configuration :
 services:
 	cache.journal: MyJournal
 ```
+
+
+Services DI .[#toc-di-services]
+===============================
+
+Ces services sont ajoutés au conteneur DI :
+
+| Nom | Type | Description
+|----------------------------------------------------------
+| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
+| `cache.storage` | [api:Nette\Caching\Storage] | repository
+
+
+Désactiver le cache .[#toc-turning-off-cache]
+=============================================
+
+L'une des façons de désactiver la mise en cache dans l'application est de définir le stockage sur [DevNullStorage |#DevNullStorage]:
+
+```neon
+services:
+	cache.storage: Nette\Caching\Storages\DevNullStorage
+```
+
+Ce paramètre n'affecte pas la mise en cache des modèles dans Latte ou le conteneur DI, car ces bibliothèques n'utilisent pas les services de nette/caching et gèrent leur cache de manière indépendante. De plus, leur cache n ['a pas besoin d'être désactivé |nette:troubleshooting#how-to-disable-cache-during-development] en mode développement.
 
 
 {{leftbar: nette:@menu-topics}}

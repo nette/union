@@ -1,0 +1,257 @@
+グループ化について知りたかったことのすべて
+*********************
+
+.[perex]
+テンプレートでデータを扱うとき、特定の条件に従ってデータをグループ化したり、特別に表示したりする必要性にしばしば遭遇します。この目的のために、Latteはいくつかの強力なツールを提供しています。
+
+フィルタとファンクション`|group` は指定された条件に基づいて効率的にデータをグループ化することができます。`|batch` フィルタはデータを一定のバッチに分割することを容易にし、`{iterateWhile}` タグは条件によってより複雑なサイクル制御の可能性を提供します。
+これらのタグはそれぞれデータ操作のための特別なオプションを提供し、ラテのテンプレートで情報をダイナミックかつ構造的に表示するために不可欠なツールとなっています。
+
+
+フィルタと関数`group` .[#toc-filter-and-function-group]
+================================================
+
+アイテムがカテゴリーに分けられたデータベース・テーブル`items` を想像してください：
+
+| id｜カテゴリーID｜名前
+|------------------
+| 1｜アップル
+| 2｜1｜バナナ
+| 3｜2｜PHP
+| 4｜3｜グリーン
+| 5｜3｜赤
+| 6｜3｜青
+
+ラテテンプレートを使った単純な全項目リストは次のようになる：
+
+```latte
+<ul>
+{foreach $items as $item}
+	<li>{$item->name}</li>
+{/foreach}
+</ul>
+```
+
+しかし、アイテムをカテゴリーごとにグループ化したい場合は、各カテゴリーが独自のリストを持つようにアイテムを分割する必要があります。その結果、次のようになる：
+
+```latte
+<ul>
+	<li>Apple</li>
+	<li>Banana</li>
+</ul>
+
+<ul>
+	<li>PHP</li>
+</ul>
+
+<ul>
+	<li>Green</li>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+このタスクは、`|group` を使って簡単かつエレガントに解決できる。パラメータとして`categoryId` を指定する。つまり、`$item->categoryId` の値に基づいて、アイテムがより小さな配列に分割されることを意味する（`$item` が配列の場合、次のようになる）。 `$item['categoryId']`):
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+	<ul>
+		{foreach $categoryItems as $item}
+			<li>{$item->name}</li>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+フィルタはLatteの関数として使うこともできるので、別の構文も用意されている：`{foreach group($items, categoryId) ...}`.
+
+より複雑な条件に従ってアイテムをグループ化したい場合は、filterパラメータに関数を使用できます。たとえば、名前の長さでアイテムをグループ化すると、次のようになります：
+
+```latte
+{foreach ($items|group: fn($item) => strlen($item->name)) as $items}
+	...
+{/foreach}
+```
+
+注意すべき点は、`$categoryItems` は通常の配列ではなく、イテレータのように振る舞うオブジェクトであるということです。グループの最初の項目にアクセスするには [`first()` |latte:functions#first]関数を使います。
+
+このようにデータを柔軟にグループ化できるので、`group` はラテのテンプレートでデータを表示するのに非常に便利なツールです。
+
+
+ネストされたループ .[#toc-nested-loops]
+------------------------------
+
+各アイテムのサブカテゴリーを定義する別のカラム`subcategoryId` を持つデータベーステーブルがあるとします。各メインカテゴリを個別のリストで表示し、各サブカテゴリを個別のネストされた `<ul>`リストで表示し、各サブカテゴリーを別のネストされた `<ol>`リストに表示したい：
+
+```latte
+{foreach ($items|group: categoryId) as $categoryItems}
+	<ul>
+		{foreach ($categoryItems|group: subcategoryId) as $subcategoryItems}
+			<ol>
+				{foreach $subcategoryItems as $item}
+					<li>{$item->name}
+				{/foreach}
+			</ol>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+
+Nette データベースとの接続 .[#toc-connection-with-nette-database]
+-------------------------------------------------------
+
+Nette Databaseと組み合わせて、データグループ化を効果的に使う方法を説明しよう。最初の例の`items` テーブルを操作しているとします。 テーブルは、`categoryId` カラムを通して、この`categories` テーブルに接続されています：
+
+categoryId | name |｜カテゴリーID |｜名前
+|------------|------------|
+| 1 | フルーツ
+| 2｜ 言語
+| 3｜色
+
+Nette Database Explorerのコマンド`$items = $db->table('items')` を使って、`items` テーブルからデータをロードする。これらのデータに対する反復の間、`$item->name` や`$item->categoryId` のような属性にアクセスする機会があるだけでなく、`categories` テーブルとの接続のおかげで、`$item->category` を介してその中の関連行にもアクセスすることができます。この接続は、興味深い使い方ができる：
+
+```latte
+{foreach ($items|group: category) as $category => $categoryItems}
+	<h1>{$category->name}</h1>
+	<ul>
+		{foreach $categoryItems as $item}
+			<li>{$item->name}</li>
+		{/foreach}
+	</ul>
+{/foreach}
+```
+
+この場合、`|group` フィルタを使用して、`categoryId` 列だけでなく、接続された行`$item->category` によってグループ化します。これにより、変数キーに指定されたカテゴリの`ActiveRow` が得られ、`{$category->name}` を使ってその名前を直接表示することができる。これは、グループ化によってテンプレートが簡素化され、データの取り扱いが容易になることの実例である。
+
+
+フィルター`|batch` .[#toc-filter-batch]
+==================================
+
+フィルタを使うと、要素のリストをあらかじめ決められた数のグループに分割することができます。このフィルタは、例えば、ページ上でより明瞭に、あるいは視覚的に整理するために、データをいくつかの小さなグループに分けて表示したい場合に最適です。
+
+アイテムのリストがあり、それぞれ最大3つのアイテムを含むリストで表示したいとします。このような場合、`|batch` フィルタの使用は非常に実用的です：
+
+```latte
+<ul>
+{foreach ($items|batch: 3) as $batch}
+	{foreach $batch as $item}
+		<li>{$item->name}</li>
+	{/foreach}
+{/foreach}
+</ul>
+```
+
+この例では、リスト`$items` は小さなグループに分割され、各グループ (`$batch`) には最大3つのアイテムが含まれます。各グループは別々の `<ul>`リストに表示されます。
+
+最後のグループには必要な数に達するだけの要素が含まれていない場合、フィルタの2番目のパラメータで、このグループに何を追加するかを定義することができます。これは、不完全な行が無秩序に見えるかもしれない要素を美的に整列させるのに理想的です。
+
+```latte
+{foreach ($items|batch: 3, '—') as $batch}
+	...
+{/foreach}
+```
+
+
+タグ`{iterateWhile}` .[#toc-tag-iteratewhile]
+===========================================
+
+`{iterateWhile}` タグを使用して、`|group` フィルタで扱ったのと同じタスクを実演する。この2つのアプローチの主な違いは、`group` が最初にすべての入力データを処理してグループ化するのに対し、`{iterateWhile}` は条件付きサイクルの進行を制御するため、反復が順次発生することです。
+
+まず、iterateWhileを使用して、カテゴリーで表を描画する：
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<li>{$item->name}</li>
+		{/iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+	</ul>
+{/foreach}
+```
+
+`{foreach}` がサイクルの外側、すなわち各カテゴリーのリストを描画する部分を示すのに対し、`{iterateWhile}` タグは内側、すなわち個々の項目を示す。
+終了タグの条件は、現在の要素と次の要素が同じカテゴリーに属している限り、繰り返しを続けるというものです（`$iterator->nextValue` は[次の項目 |/tags#$iterator]です）。
+
+この条件が常に満たされていれば、すべての要素が内側のサイクルで描かれることになる：
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<li>{$item->name}
+		{/iterateWhile true}
+	</ul>
+{/foreach}
+```
+
+結果は次のようになる：
+
+```latte
+<ul>
+	<li>Apple</li>
+	<li>Banana</li>
+	<li>PHP</li>
+	<li>Green</li>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+このようなiterateWhileの使い方は何でしょうか？テーブルが空で要素がない場合、空の `<ul></ul>`は出力されません。
+
+冒頭の`{iterateWhile}` タグで条件を指定すると、動作が変わります。条件（および次の要素への遷移）は、終了時ではなく、内部サイクルの開始時に実行されます。
+したがって、`{iterateWhile}` には常に無条件で入るが、`{iterateWhile $cond}` には`$cond` の条件が満たされたときだけ入る。そして同時に、次の要素が`$item` に書き込まれる。
+
+これは、例えば、各カテゴリーの最初の要素を、次のように異なるようにレンダリングしたい場合に便利です：
+
+```latte
+<h1>Apple</h1>
+<ul>
+	<li>Banana</li>
+</ul>
+
+<h1>PHP</h1>
+<ul>
+</ul>
+
+<h1>Green</h1>
+<ul>
+	<li>Red</li>
+	<li>Blue</li>
+</ul>
+```
+
+元のコードを修正して、まず最初の項目をレンダリングし、次に内側のサイクル`{iterateWhile}` で同じカテゴリの他の項目をレンダリングするようにします：
+
+```latte
+{foreach $items as $item}
+	<h1>{$item->name}</h1>
+	<ul>
+		{iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+			<li>{$item->name}</li>
+		{/iterateWhile}
+	</ul>
+{/foreach}
+```
+
+1つのサイクルの中で、複数の内部ループを作成し、ネストさせることもできる。こうすることで、たとえば、サブカテゴリーをグループ化することができる。
+
+テーブルにもう1つのカラム`subcategoryId` 、各カテゴリーがそれぞれ別のカラムにあるとします。 `<ul>`サブカテゴリーを別の `<ol>`:
+
+```latte
+{foreach $items as $item}
+	<ul>
+		{iterateWhile}
+			<ol>
+				{iterateWhile}
+					<li>{$item->name}
+				{/iterateWhile $item->subcategoryId === $iterator->nextValue->subcategoryId}
+			</ol>
+		{/iterateWhile $item->categoryId === $iterator->nextValue->categoryId}
+	</ul>
+{/foreach}
+```
+
+
+{{leftbar: /@left-menu}}

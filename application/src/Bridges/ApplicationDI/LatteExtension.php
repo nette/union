@@ -12,6 +12,7 @@ namespace Nette\Bridges\ApplicationDI;
 use Latte;
 use Nette;
 use Nette\Bridges\ApplicationLatte;
+use Nette\DI\Definitions\Statement;
 use Nette\Schema\Expect;
 use Tracy;
 
@@ -32,12 +33,12 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 	{
 		return Expect::structure([
 			'debugger' => Expect::anyOf(true, false, 'all'),
-			'macros' => Expect::arrayOf('string'),
 			'extensions' => Expect::arrayOf('string|Nette\DI\Definitions\Statement'),
 			'templateClass' => Expect::string(),
 			'strictTypes' => Expect::bool(false),
 			'strictParsing' => Expect::bool(false),
 			'phpLinter' => Expect::string(),
+			'locale' => Expect::string(),
 		]);
 	}
 
@@ -51,25 +52,31 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 		$config = $this->config;
 		$builder = $this->getContainerBuilder();
 
-		$latteFactory = $builder->addFactoryDefinition($this->prefix('latteFactory'))
+		$builder->addFactoryDefinition($this->prefix('latteFactory'))
 			->setImplement(ApplicationLatte\LatteFactory::class)
 			->getResultDefinition()
 				->setFactory(Latte\Engine::class)
 				->addSetup('setTempDirectory', [$this->tempDir])
 				->addSetup('setAutoRefresh', [$this->debugMode])
-				->addSetup('setStrictTypes', [$config->strictTypes]);
+				->addSetup('setStrictTypes', [$config->strictTypes])
+				->addSetup('setStrictParsing', [$config->strictParsing])
+				->addSetup('enablePhpLinter', [$config->phpLinter])
+				->addSetup('setLocale', [$config->locale]);
 
-		if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-			foreach ($config->macros as $macro) {
-				$this->addMacro($macro);
-			}
-		} else {
-			$latteFactory->addSetup('setStrictParsing', [$config->strictParsing])
-				->addSetup('enablePhpLinter', [$config->phpLinter]);
+		$this->addExtension(new Statement(ApplicationLatte\UIExtension::class, [$builder::literal('$control')]));
 
-			foreach ($config->extensions as $extension) {
-				$this->addExtension($extension);
+		if ($builder->getByType(Nette\Caching\Storage::class)) {
+			$this->addExtension(new Statement(Nette\Bridges\CacheLatte\CacheExtension::class));
+		}
+		if (class_exists(Nette\Bridges\FormsLatte\FormsExtension::class)) {
+			$this->addExtension(new Statement(Nette\Bridges\FormsLatte\FormsExtension::class));
+		}
+
+		foreach ($config->extensions as $extension) {
+			if ($extension === Latte\Essential\TranslatorExtension::class) {
+				$extension = new Statement($extension, [new Nette\DI\Definitions\Reference(Nette\Localization\Translator::class)]);
 			}
+			$this->addExtension($extension);
 		}
 
 		$builder->addDefinition($this->prefix('templateFactory'))
@@ -112,44 +119,16 @@ final class LatteExtension extends Nette\DI\CompilerExtension
 			$control = $template->getLatte()->getProviders()['uiControl'] ?? null;
 			if ($all || $control instanceof Nette\Application\UI\Presenter) {
 				$name = $all && $control ? (new \ReflectionObject($control))->getShortName() : '';
-				if (version_compare(Latte\Engine::VERSION, '3', '<')) {
-					$bar->addPanel(new Latte\Bridges\Tracy\LattePanel($template->getLatte(), $name));
-				} else {
-					$template->getLatte()->addExtension(new Latte\Bridges\Tracy\TracyExtension($name));
-				}
+				$template->getLatte()->addExtension(new Latte\Bridges\Tracy\TracyExtension($name));
 			}
 		};
 	}
 
 
-	public function addMacro(string $macro): void
-	{
-		$builder = $this->getContainerBuilder();
-		$definition = $builder->getDefinition($this->prefix('latteFactory'))->getResultDefinition();
-
-		if (($macro[0] ?? null) === '@') {
-			if (str_contains($macro, '::')) {
-				[$macro, $method] = explode('::', $macro);
-			} else {
-				$method = 'install';
-			}
-
-			$definition->addSetup('?->onCompile[] = function ($engine) { ?->' . $method . '($engine->getCompiler()); }', ['@self', $macro]);
-
-		} else {
-			if (!str_contains($macro, '::') && class_exists($macro)) {
-				$macro .= '::install';
-			}
-
-			$definition->addSetup('?->onCompile[] = function ($engine) { ' . $macro . '($engine->getCompiler()); }', ['@self']);
-		}
-	}
-
-
-	public function addExtension(Nette\DI\Definitions\Statement|string $extension): void
+	public function addExtension(Statement|string $extension): void
 	{
 		$extension = is_string($extension)
-			? new Nette\DI\Definitions\Statement($extension)
+			? new Statement($extension)
 			: $extension;
 
 		$builder = $this->getContainerBuilder();

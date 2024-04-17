@@ -27,15 +27,14 @@ abstract class TextBase extends BaseControl
 
 	/**
 	 * Sets control's value.
-	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue($value): static
 	{
 		if ($value === null) {
 			$value = '';
 		} elseif (!is_scalar($value) && !$value instanceof Stringable) {
-			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->name));
+			throw new Nette\InvalidArgumentException(sprintf("Value must be scalar or null, %s given in field '%s'.", get_debug_type($value), $this->getName()));
 		}
 
 		$this->value = $value;
@@ -64,6 +63,12 @@ abstract class TextBase extends BaseControl
 	{
 		$this->nullable = $value;
 		return $this;
+	}
+
+
+	public function isNullable(): bool
+	{
+		return $this->nullable;
 	}
 
 
@@ -119,12 +124,12 @@ abstract class TextBase extends BaseControl
 	}
 
 
-	/** @return static */
 	public function addRule(
 		callable|string $validator,
 		string|Stringable|null $errorMessage = null,
 		mixed $arg = null,
-	) {
+	): static
+	{
 		foreach ($this->getRules() as $rule) {
 			if (!$rule->canExport() && !$rule->branch) {
 				return parent::addRule($validator, $errorMessage, $arg);

@@ -202,9 +202,7 @@ class Form extends Container implements Nette\HtmlStringable
 
 	/** @internal used only by standalone form */
 	public Nette\Http\IRequest $httpRequest;
-
-	/** @var bool */
-	protected $crossOrigin = false;
+	protected bool $crossOrigin = false;
 	private static ?Nette\Http\IRequest $defaultHttpRequest = null;
 	private SubmitterControl|bool $submittedBy = false;
 	private array $httpData;
@@ -256,7 +254,7 @@ class Form extends Container implements Nette\HtmlStringable
 	/**
 	 * Returns form's action.
 	 */
-	public function getAction(): mixed
+	public function getAction(): string|Stringable
 	{
 		return $this->getElementPrototype()->action;
 	}
@@ -358,7 +356,7 @@ class Form extends Container implements Nette\HtmlStringable
 			$name = array_search($group, $this->groups, strict: true);
 
 		} else {
-			throw new Nette\InvalidArgumentException("Group not found in form '$this->name'");
+			throw new Nette\InvalidArgumentException("Group not found in form '{$this->getName()}'");
 		}
 
 		foreach ($group->getControls() as $control) {
@@ -458,7 +456,7 @@ class Form extends Container implements Nette\HtmlStringable
 	/**
 	 * Returns submitted HTTP data.
 	 */
-	public function getHttpData(?int $type = null, ?string $htmlName = null): mixed
+	public function getHttpData(?int $type = null, ?string $htmlName = null): string|array|Nette\Http\FileUpload|null
 	{
 		if (!isset($this->httpData)) {
 			if (!$this->isAnchored()) {
@@ -470,11 +468,10 @@ class Form extends Container implements Nette\HtmlStringable
 			$this->submittedBy = is_array($data);
 		}
 
-		if ($htmlName === null) {
-			return $this->httpData;
-		}
+		return $htmlName === null
+			? $this->httpData
+			: Helpers::extractHttpData($this->httpData, $htmlName, $type);
 
-		return Helpers::extractHttpData($this->httpData, $htmlName, $type);
 	}
 
 
@@ -490,7 +487,7 @@ class Form extends Container implements Nette\HtmlStringable
 			$this->validate();
 		}
 
-		$handled = count($this->onSuccess ?? []) || count($this->onSubmit ?? []);
+		$handled = count($this->onSuccess ?? []) || count($this->onSubmit ?? []) || $this->submittedBy === true;
 
 		if ($this->submittedBy instanceof Controls\SubmitButton) {
 			$handled = $handled || count($this->submittedBy->onClick ?? []);
@@ -521,19 +518,21 @@ class Form extends Container implements Nette\HtmlStringable
 	{
 		foreach ($handlers as $handler) {
 			$params = Nette\Utils\Callback::toReflection($handler)->getParameters();
-			$types = array_map([Helpers::class, 'getSingleType'], $params);
-			if (!isset($types[0])) {
-				$arg0 = $button ?: $this;
-			} elseif ($this instanceof $types[0]) {
-				$arg0 = $this;
-			} elseif ($button instanceof $types[0]) {
-				$arg0 = $button;
-			} else {
-				$arg0 = $this->getValues($types[0]);
+			$args = [];
+			if ($params) {
+				$type = Helpers::getSingleType($params[0]);
+				$args[] = match (true) {
+					!$type => $button ?? $this,
+					$this instanceof $type => $this,
+					$button instanceof $type => $button,
+					default => $this->getValues($type),
+				};
+				if (isset($params[1])) {
+					$args[] = $this->getValues(Helpers::getSingleType($params[1]));
+				}
 			}
 
-			$arg1 = isset($params[1]) ? $this->getValues($types[1]) : null;
-			$handler($arg0, $arg1);
+			$handler(...$args);
 
 			if (!$this->isValid()) {
 				return;

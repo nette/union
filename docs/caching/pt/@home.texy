@@ -266,6 +266,25 @@ $values = $cache->bulkLoad($keys, function ($key, &$dependencies) {
 ```
 
 
+Uso com o PSR-16 .[#toc-using-with-psr-16]
+==========================================
+
+Para usar o Nette Cache com a interface PSR-16, você pode utilizar o site `PsrCacheAdapter`. Ele permite uma integração perfeita entre o Nette Cache e qualquer código ou biblioteca que espere um cache compatível com PSR-16.
+
+```php
+$psrCache = new Nette\Bridges\Psr\PsrCacheAdapter($storage);
+```
+
+Agora você pode usar o `$psrCache` como um cache PSR-16:
+
+```php
+$psrCache->set('key', 'value', 3600); // armazena o valor por 1 hora
+$value = $psrCache->get('key', 'default');
+```
+
+O adaptador suporta todos os métodos definidos no PSR-16, incluindo `getMultiple()`, `setMultiple()` e `deleteMultiple()`.
+
+
 Caching de saída .[#toc-output-caching]
 =======================================
 
@@ -442,6 +461,30 @@ Você pode alterar a configuração da revista:
 services:
 	cache.journal: MyJournal
 ```
+
+
+Serviços DI .[#toc-di-services]
+===============================
+
+Esses serviços são adicionados ao contêiner DI:
+
+| Nome | Tipo | Descrição
+|----------------------------------------------------------
+| `cache.journal` | [api:Nette\Caching\Storages\Journal] | journal
+| `cache.storage` | [api:Nette\Caching\Storage] | repositório
+
+
+Desativação do cache .[#toc-turning-off-cache]
+==============================================
+
+Uma das maneiras de desativar o cache no aplicativo é definir o armazenamento como [DevNullStorage |#DevNullStorage]:
+
+```neon
+services:
+	cache.storage: Nette\Caching\Storages\DevNullStorage
+```
+
+Essa configuração não afeta o armazenamento em cache dos modelos no Latte ou no contêiner DI, pois essas bibliotecas não usam os serviços do nette/caching e gerenciam seu cache de forma independente. Além disso, seu cache [não precisa ser desativ |nette:troubleshooting#how-to-disable-cache-during-development] ado no modo de desenvolvimento.
 
 
 {{leftbar: nette:@menu-topics}}

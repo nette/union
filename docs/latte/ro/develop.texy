@@ -16,8 +16,6 @@ Versiuni PHP acceptate (se aplică la cele mai recente versiuni Latte patch):
 | versiune | compatibil cu PHP
 |-----------------|-------------------
 | Latte 3.0 | PHP 8.0 - 8.2
-| Latte 2.11 | PHP 7.1 - 8.2
-| Latte 2.8 - 2.10| PHP 7.1 - 8.1
 
 
 Cum se redă un șablon .[#toc-how-to-render-a-template]
@@ -133,20 +131,77 @@ Cum să adăugați un filtru, o funcție, o etichetă etc. personalizat la Latte
 Dacă doriți să refolosiți modificările în diferite proiecte sau dacă doriți să le partajați cu alții, ar trebui să [creați |creating-extension] apoi [o extensie |creating-extension].
 
 
-Orice cod în șablon `{php ...}` .{data-version:3.0}{toc: RawPhpExtension}
-=========================================================================
+Orice cod în șablon `{php ...}` .{toc: RawPhpExtension}
+=======================================================
 
 Doar expresiile PHP pot fi scrise în interiorul [`{do}` |tags#do] așa că nu puteți, de exemplu, să introduceți construcții precum `if ... else` sau instrucțiuni terminate cu punct și virgulă.
 
-Cu toate acestea, puteți înregistra extensia `RawPhpExtension`, care adaugă tag-ul `{php ...}`, care poate fi utilizat pentru a insera orice cod PHP, pe riscul autorului șablonului.
+Cu toate acestea, puteți înregistra extensia `RawPhpExtension`, care adaugă eticheta `{php ...}`. Puteți folosi această extensie pentru a insera orice cod PHP. Aceasta nu face obiectul niciunei reguli de mod sandbox, astfel încât utilizarea este responsabilitatea autorului șablonului.
 
 ```php
 $latte->addExtension(new Latte\Essential\RawPhpExtension);
 ```
 
 
-Traducerea în șabloane .{data-version:3.0}{toc: TranslatorExtension}
-====================================================================
+Verificarea codului generat .[#toc-checking-generated-code]{data-version:3.0.7}
+===============================================================================
+
+Latte compilează șabloanele în cod PHP. Bineînțeles, se asigură că codul generat este valid din punct de vedere sintactic. Cu toate acestea, atunci când se utilizează extensii de la terțe părți sau RawPhpExtension, Latte nu poate garanta corectitudinea fișierului generat.
+De asemenea, în PHP, puteți scrie cod care este corect din punct de vedere sintactic, dar care este interzis (de exemplu, atribuirea unei valori variabilei $this) și care provoacă o eroare de compilare PHP.
+Dacă scrieți o astfel de operațiune într-un șablon, aceasta va fi inclusă și în codul PHP generat. Deoarece există peste două sute de operații diferite interzise în PHP, Latte nu urmărește să le detecteze. PHP însuși le va semnala la redare, ceea ce, de obicei, nu reprezintă o problemă.
+
+Cu toate acestea, există situații în care doriți să știți în timpul compilării șablonului că acesta nu conține erori de compilare PHP. Mai ales atunci când șabloanele pot fi editate de utilizatori sau când folosiți [Sandbox |Sandbox]. Într-un astfel de caz, dispuneți ca șabloanele să fie verificate în timpul compilării.
+Puteți activa această funcționalitate folosind metoda Engine::enablePhpLint(). Deoarece trebuie să apeleze binarul PHP pentru verificare, treceți calea acestuia ca parametru:
+
+```php
+$latte = new Latte\Engine;
+$latte->enablePhpLinter('/path/to/php');
+
+try {
+	$latte->compile('home.latte');
+} catch (Latte\CompileException $e) {
+	// prinde erori Latte și, de asemenea, erori de compilare în PHP
+	echo 'Error: ' . $e->getMessage();
+}
+```
+
+
+Local .[#toc-locale]{data-version:3.0.18}
+=========================================
+
+Latte vă permite să setați localele, care afectează formatarea numerelor, a datelor și sortarea. Aceasta este setată utilizând metoda `setLocale()`. Identificatorul locale urmează standardul IETF language tag, care utilizează extensia PHP `intl`. Acesta constă dintr-un cod de limbă și, eventual, un cod de țară, de exemplu, `en_US` pentru limba engleză în Statele Unite, `de_DE` pentru limba germană în Germania etc.
+
+```php
+$latte = new Latte\Engine;
+$latte->setLocale('cs');
+```
+
+Setarea locale afectează filtrele [localDate |filters#localDate], [sort |filters#sort], [number |filters#number] și [bytes |filters#bytes].
+
+.[note]
+Necesită extensia PHP `intl`. Setarea din Latte nu afectează setarea locală globală din PHP.
+
+
+Modul strict .[#toc-strict-mode]{data-version:3.0.8}
+====================================================
+
+În modul de analiză strictă, Latte verifică dacă lipsesc etichete HTML de închidere și, de asemenea, dezactivează utilizarea variabilei `$this`. Pentru a o activa:
+
+```php
+$latte = new Latte\Engine;
+$latte->setStrictParsing();
+```
+
+Pentru a genera șabloane cu antetul `declare(strict_types=1)`, procedați după cum urmează:
+
+```php
+$latte = new Latte\Engine;
+$latte->setStrictTypes();
+```
+
+
+Traducerea în șabloane .{toc: TranslatorExtension}
+==================================================
 
 Utilizați extensia `TranslatorExtension` pentru a adăuga [`{_...}` |tags#_], [`{translate}` |tags#translate] și să filtreze [`translate` |filters#translate] la șablon. Acestea sunt utilizate pentru a traduce valori sau părți ale șablonului în alte limbi. Parametrul este metoda (PHP callable) care efectuează traducerea:
 
@@ -215,14 +270,16 @@ Veți vedea acum toate erorile într-un ecran roșu îngrijit, inclusiv erorile 
 Deoarece Latte compilează șabloanele în cod PHP lizibil, puteți să le parcurgeți în mod convenabil în IDE-ul dumneavoastră.
 
 
-Linter: Validarea sintaxei șablonului .{data-version:2.11}{toc: Linter}
-=======================================================================
+Linter: Validarea sintaxei șablonului .{toc: Linter}
+====================================================
 
 Instrumentul Linter vă va ajuta să treceți prin toate șabloanele și să verificați dacă există erori de sintaxă. Acesta se lansează din consolă:
 
 ```shell
 vendor/bin/latte-lint <path>
 ```
+
+Utilizați parametrul `--strict` pentru a activa [modul strict|#strict mode].
 
 Dacă utilizați etichete personalizate, creați și Linterul personalizat, de exemplu `custom-latte-lint`:
 
@@ -233,17 +290,23 @@ Dacă utilizați etichete personalizate, creați și Linterul personalizat, de e
 // introduceți calea reală către fișierul autoload.php
 require __DIR__ . '/vendor/autoload.php';
 
-$linter = new Latte\Tools\Linter($engine);
-$linter->scanDirectory($path);
+$path = $argv[1] ?? '.';
 
-$engine = new Latte\Engine;
-// înregistrează extensiile individuale aici
-$engine->addExtension(/* ... */);
+$linter = new Latte\Tools\Linter;
+$latte = $linter->getEngine();
+// adăugați extensiile individuale aici
+$latte->addExtension(/* ... */);
 
-$path = $argv[1];
-$linter = new Latte\Tools\Linter(engine: $engine);
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);
+```
+
+Alternativ, puteți transmite propriul obiect `Latte\Engine` către Linter:
+
+```php
+$latte = new Latte\Engine;
+// aici configurăm obiectul $latte
+$linter = new Latte\Tools\Linter(engine: $latte);
 ```
 
 

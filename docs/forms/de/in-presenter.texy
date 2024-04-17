@@ -30,7 +30,7 @@ Das Formular im Presenter ist ein Objekt der Klasse `Nette\Application\UI\Form`,
 
 Aus der Sicht des Präsentators ist das Formular eine gemeinsame Komponente. Daher wird es als Komponente behandelt und mit der [Factory-Methode |application:components#Factory Methods] in den Presenter eingebunden. Das sieht dann wie folgt aus:
 
-```php .{file:app/Presenters/HomePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 use Nette;
 use Nette\Application\UI\Form;
 
@@ -59,7 +59,7 @@ class HomePresenter extends Nette\Application\UI\Presenter
 
 Und das Rendern in der Vorlage erfolgt mit dem Tag `{control}`:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 <h1>Registration</h1>
 
 {control registrationForm}
@@ -132,7 +132,7 @@ Das Formular wird immer serverseitig validiert, aber es wird auch eine JavaScrip
 Fügen Sie es in die Layout-Vorlage ein:
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3"></script>
 ```
 
 Wenn Sie in den Quellcode der Seite mit dem Formular schauen, werden Sie feststellen, dass Nette die erforderlichen Felder in Elemente mit einer CSS-Klasse `required` einfügt. Versuchen Sie, den folgenden Stil in die Vorlage einzufügen, und die Bezeichnung "Name" wird rot sein. Auf elegante Weise markieren wir die erforderlichen Felder für die Benutzer:
@@ -232,7 +232,7 @@ class RegistrationFormData
 }
 ```
 
-Ab PHP 8.0 können Sie diese elegante Notation verwenden, die einen Konstruktor benutzt:
+Alternativ können Sie auch den Konstruktor verwenden:
 
 ```php
 class RegistrationFormData
@@ -245,6 +245,8 @@ class RegistrationFormData
 	}
 }
 ```
+
+Eigenschaften der Datenklasse können auch Enums sein und werden automatisch zugeordnet. .{data-version:3.2.4}
 
 Wie sagt man Nette, dass es Daten als Objekte dieser Klasse zurückgeben soll? Einfacher als Sie denken. Alles, was Sie tun müssen, ist, die Klasse als Typ des `$data` Parameters im Handler anzugeben:
 
@@ -293,6 +295,8 @@ Das Mapping weiß dann anhand des Eigenschaftstyps `$person`, dass es den Contai
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
+
+Mit der Methode `Nette\Forms\Blueprint::dataClass($form)` können Sie einen Vorschlag für die Datenklasse eines Formulars erzeugen, der auf der Browserseite ausgedruckt wird. Sie können dann einfach auf den Code klicken, um ihn auszuwählen und in Ihr Projekt zu kopieren. .{data-version:3.1.15}
 
 
 Mehrere Submit-Buttons .[#toc-multiple-submit-buttons]

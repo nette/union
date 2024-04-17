@@ -61,7 +61,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 
 	/**
 	 * Returns primary key value.
-	 * @return mixed possible int, string, array, object (Nette\Utils\DateTime)
+	 * @return mixed possible int, string, array, object (Nette\Database\DateTime)
 	 */
 	public function getPrimary(bool $throw = true): mixed
 	{
@@ -242,7 +242,7 @@ class ActiveRow implements \IteratorAggregate, IRow
 	}
 
 
-	public function __set(string $column, mixed $value): never
+	public function __set(string $column, mixed $value): void
 	{
 		throw new Nette\DeprecatedException('ActiveRow is read-only; use update() method instead.');
 	}

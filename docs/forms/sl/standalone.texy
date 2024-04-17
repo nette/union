@@ -107,7 +107,7 @@ Obrazec se vedno potrdi na strani strežnika, vendar se ustvari tudi potrditev J
 Dodajte jo na stran:
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3"></script>
 ```
 
 Če pogledate izvorno kodo strani z obrazcem, lahko opazite, da Nette vstavi zahtevana polja v elemente z razredom CSS `required`. Poskusite v predlogo dodati naslednji slog in oznaka "Ime" bo rdeča. Na eleganten način označimo zahtevana polja za uporabnike:
@@ -207,7 +207,7 @@ class RegistrationFormData
 }
 ```
 
-Od različice PHP 8.0 lahko uporabite eleganten zapis, ki uporablja konstruktor:
+Uporabite lahko tudi konstruktor:
 
 ```php
 class RegistrationFormData
@@ -220,6 +220,8 @@ class RegistrationFormData
 	}
 }
 ```
+
+Lastnosti podatkovnega razreda so lahko tudi enumi in bodo samodejno preslikani. .{data-version:3.2.4}
 
 Kako reči Nettu, naj nam podatke vrne kot predmete tega razreda? Lažje, kot si mislite. Vse, kar morate storiti, je, da kot parameter navedete ime razreda ali objekta, ki ga želite hidrirati:
 
@@ -257,6 +259,8 @@ Prikazovanje nato na podlagi vrste lastnosti `$person` ugotovi, da mora vsebnik 
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
+
+Predlog podatkovnega razreda obrazca lahko ustvarite z metodo `Nette\Forms\Blueprint::dataClass($form)`, ki ga izpiše na strani brskalnika. Nato lahko preprosto kliknete, da izberete in kopirate kodo v svoj projekt. .{data-version:3.1.15}
 
 
 Več gumbov za pošiljanje .[#toc-multiple-submit-buttons]

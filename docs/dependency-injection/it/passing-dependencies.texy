@@ -96,9 +96,9 @@ final class MyClass extends BaseClass
 
 Il problema si presenta quando si vuole modificare il costruttore della classe `BaseClass`, ad esempio quando viene aggiunta una nuova dipendenza. Allora dobbiamo modificare anche tutti i costruttori dei figli. Il che rende tale modifica un inferno.
 
-Come evitarlo? La soluzione è quella di **privilegiare la composizione rispetto all'ereditarietà**.
+Come evitarlo? La soluzione è quella di **privilegiare la [composizione rispetto all'ereditarietà** |faq#Why composition is preferred over inheritance].
 
-Quindi progettiamo il codice in modo diverso. Eviteremo le classi astratte di `Base*`. Invece di ottenere una funzionalità da `MyClass` ereditando da `BaseClass`, avrà quella funzionalità passata come dipendenza:
+Quindi progettiamo il codice in modo diverso. Eviteremo le classi [astratte |nette:introduction-to-object-oriented-programming#abstract-classes] di `Base*`. Invece di ottenere alcune funzionalità ereditando da `BaseClass`, `MyClass` avrà quella funzionalità passata come dipendenza:
 
 ```php
 final class SomeFunctionality
@@ -128,7 +128,7 @@ final class MyClass
 Iniezione di setter .[#toc-setter-injection]
 ============================================
 
-Le dipendenze vengono passate chiamando un metodo che le memorizza in una proprietà privata. La convenzione di denominazione usuale per questi metodi è la forma `set*()`, motivo per cui vengono chiamati setter.
+Le dipendenze vengono passate chiamando un metodo che le memorizza in una proprietà privata. La convenzione di denominazione usuale per questi metodi è la forma `set*()`, che è il motivo per cui sono chiamati setter, ma naturalmente possono essere chiamati in qualsiasi altro modo.
 
 ```php
 class MyClass
@@ -168,8 +168,7 @@ La chiamata al setter è definita nella configurazione del contenitore DI, nella
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- setCache
 ```
@@ -196,8 +195,7 @@ L'impostazione della variabile è definita nella configurazione del contenitore 
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- $cache = @\Cache
 ```

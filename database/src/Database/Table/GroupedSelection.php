@@ -43,10 +43,11 @@ class GroupedSelection extends Selection
 		string $column,
 		Selection $refTable,
 		?Nette\Caching\Storage $cacheStorage = null,
+		?Nette\Database\Mapping\EntityMapper $mapper = null,
 	) {
 		$this->refTable = $refTable;
 		$this->column = $column;
-		parent::__construct($explorer, $conventions, $tableName, $cacheStorage);
+		parent::__construct($explorer, $conventions, $tableName, $cacheStorage, $mapper);
 	}
 
 

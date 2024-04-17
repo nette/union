@@ -17,6 +17,9 @@ use Nette\Database\Explorer;
 /**
  * Filtered table representation.
  * Selection is based on the great library NotORM http://www.notorm.com written by Jakub Vrana.
+ * @template T of ActiveRow
+ * @implements \Iterator<T>
+ * @implements \ArrayAccess<T>
  */
 class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 {
@@ -27,6 +30,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 	protected Conventions $conventions;
 	protected ?Nette\Caching\Cache $cache;
 	protected SqlBuilder $sqlBuilder;
+	protected ?Nette\Database\Mapping\EntityMapper $mapper;
 
 	/** table name */
 	protected string $name;
@@ -72,6 +76,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 		Conventions $conventions,
 		string $tableName,
 		?Nette\Caching\Storage $cacheStorage = null,
+		?Nette\Database\Mapping\EntityMapper $mapper = null,
 	) {
 		$this->explorer = $this->context = $explorer;
 		$this->conventions = $conventions;
@@ -83,6 +88,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 		$this->primary = $conventions->getPrimary($tableName);
 		$this->sqlBuilder = new SqlBuilder($tableName, $explorer);
 		$this->refCache = &$this->getRefTable($refPath)->globalRefCache[$refPath];
+		$this->mapper = $mapper;
 	}
 
 
@@ -169,6 +175,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 
 	/**
 	 * Returns row specified by primary key.
+	 * @return T
 	 */
 	public function get(mixed $key): ?ActiveRow
 	{
@@ -179,6 +186,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 
 	/**
 	 * Fetches single row object.
+	 * @return T
 	 */
 	public function fetch(): ?ActiveRow
 	{
@@ -211,15 +219,15 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 	/**
 	 * Fetches all rows as associative array.
 	 */
-	public function fetchPairs(string|int|null $key = null, string|int|null $value = null): array
+	public function fetchPairs(string|int|\Closure|null $keyOrCallback = null, string|int|null $value = null): array
 	{
-		return Nette\Database\Helpers::toPairs($this->fetchAll(), $key, $value);
+		return Nette\Database\Helpers::toPairs($this->fetchAll(), $keyOrCallback, $value);
 	}
 
 
 	/**
 	 * Fetches all rows.
-	 * @return ActiveRow[]
+	 * @return T[]
 	 */
 	public function fetchAll(): array
 	{
@@ -525,11 +533,13 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 
 		$this->rows = [];
 		$usedPrimary = true;
-		foreach ($result->getPdoStatement() as $key => $row) {
+		$key = 0;
+		while ($row = $result->fetchArray()) {
 			$row = $this->createRow($result->normalizeRow($row));
 			$primary = $row->getSignature(false);
 			$usedPrimary = $usedPrimary && $primary !== '';
 			$this->rows[$usedPrimary ? $primary : $key] = $row;
+			$key++;
 		}
 
 		$this->data = $this->rows;
@@ -544,7 +554,9 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 
 	protected function createRow(array $row): ActiveRow
 	{
-		return new ActiveRow($row, $this);
+		return $this->mapper
+			? $this->mapper->createActiveRow($row, $this)
+			: new ActiveRow($row, $this);
 	}
 
 
@@ -556,7 +568,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 
 	protected function createGroupedSelectionInstance(string $table, string $column): GroupedSelection
 	{
-		return new GroupedSelection($this->explorer, $this->conventions, $table, $column, $this, $this->cache?->getStorage());
+		return new GroupedSelection($this->explorer, $this->conventions, $table, $column, $this, $this->cache?->getStorage(), $this->mapper);
 	}
 
 
@@ -649,7 +661,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 		}
 
 		$key[] = $trace;
-		return $this->generalCacheKey = md5(serialize($key));
+		return $this->generalCacheKey = hash('xxh128', serialize($key));
 	}
 
 
@@ -761,6 +773,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 	/**
 	 * Inserts row in a table. Returns ActiveRow or number of affected rows for Selection or table without primary key.
 	 * @param  iterable|Selection  $data  [$column => $value]|\Traversable|Selection for INSERT ... SELECT
+	 * @return T|array|int|bool
 	 */
 	public function insert(iterable $data): ActiveRow|array|int|bool
 	{
@@ -964,6 +977,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 	}
 
 
+	/** @return T|false */
 	public function current(): ActiveRow|false
 	{
 		return ($key = current($this->keys)) !== false
@@ -1010,6 +1024,7 @@ class Selection implements \Iterator, IRowContainer, \ArrayAccess, \Countable
 	/**
 	 * Returns specified row.
 	 * @param  string  $key
+	 * @return ?T
 	 */
 	public function offsetGet($key): ?ActiveRow
 	{

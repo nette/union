@@ -11,14 +11,16 @@ Les filtres sont des fonctions qui modifient ou formatent les données selon nos
 | `bytes` | [Formate la taille en octets |#bytes]
 | `clamp` | [Fixe la valeur à l'intervalle |#clamp]
 | `dataStream` | [Conversion du protocole URI des données |#datastream]
-| `date` | [Formate la date |#date]
+| `date` | [Formatage de la date et de l'heure |#date]
 | `explode` | [divise une chaîne de caractères par le délimiteur donné |#explode]
 | `first` | [renvoie le premier élément d'un tableau ou le premier caractère d'une chaîne de caractères |#first]
+| `group` | [regroupe les données en fonction de différents critères |#group]
 | `implode` | [joint un tableau à une chaîne de caractères |#implode]
 | `indent` | [indente le texte à partir de la gauche avec un nombre de tabulations |#indent]
 | `join` | [joint un tableau à une chaîne de caractères |#implode]
 | `last` | [renvoie le dernier élément d'un tableau ou le dernier caractère d'une chaîne de caractères |#last]
 | `length` | [retourne la longueur d'une chaîne ou d'un tableau |#length]
+| `localDate` | [Formate la date et l'heure en fonction des paramètres locaux |#localDate]
 | `number` | [Formate un nombre |#number]
 | `padLeft` | [Complète une chaîne de caractères à une longueur donnée en partant de la gauche |#padLeft]
 | `padRight` | [Complète la chaîne à la longueur donnée à partir de la droite |#padRight]
@@ -118,8 +120,8 @@ Filtres .[#toc-filters]
 =======================
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Filtre qui simplifie l'énumération de données linéaires sous la forme d'un tableau. Il retourne un tableau de tableaux avec le nombre d'éléments donné. Si vous fournissez un second paramètre, celui-ci est utilisé pour remplir les éléments manquants sur la dernière ligne.
 
 ```latte
@@ -152,6 +154,8 @@ Imprime :
 </table>
 ```
 
+Voir aussi [groupe |#group] et balise [iterateWhile |tags#iterateWhile].
+
 
 breakLines .[filter]
 --------------------
@@ -165,7 +169,7 @@ Insère des sauts de ligne HTML avant tous les retours à la ligne.
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Formate une taille en octets sous une forme lisible par l'homme.
+Formate la taille en octets sous une forme lisible par l'homme. Si la [langue locale |develop#locale] est définie, les séparateurs décimaux et de milliers correspondants sont utilisés.
 
 ```latte
 {$size|bytes}     0 B, 1.25 GB, …
@@ -203,8 +207,8 @@ Assure la désinfection des URL. Il vérifie si la variable contient une URL web
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">checked</a>
-<a data-href="{$link}">unchecked</a>
+<a data-href={$link|checkUrl}>checked</a>
+<a data-href={$link}>unchecked</a>
 ```
 
 Imprime :
@@ -217,8 +221,8 @@ Imprime :
 Voir aussi [nocheck |#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 Renvoie une valeur limitée à l'intervalle inclusif de min et max.
 
 ```latte
@@ -235,7 +239,7 @@ Convertit le contenu en schéma URI de données. Il peut être utilisé pour ins
 Si nous avons une image dans une variable `$img = Image::fromFile('obrazek.gif')`, alors
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 Imprime par exemple :
@@ -252,12 +256,13 @@ Nécessite l'extension PHP `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Renvoie une date au format donné en utilisant les options des fonctions PHP [php:strftime] ou [php:date]. Le filtre permet d'obtenir une date sous la forme d'un timestamp UNIX, d'une chaîne de caractères ou d'un objet de type `DateTime`.
+Formate la date et l'heure selon le masque utilisé par la fonction PHP [php:date]. Le filtre accepte la date au format timestamp UNIX, sous forme de chaîne de caractères ou d'objet `DateTimeInterface`.
 
 ```latte
-{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
+
+Voir aussi [localDate |#localDate].
 
 
 escapeUrl .[filter]
@@ -271,8 +276,8 @@ escapeUrl .[filter]
 Voir aussi [query |#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Divise une chaîne de caractères par le délimiteur donné et renvoie un tableau de chaînes de caractères. Alias pour `split`.
 
 ```latte
@@ -294,8 +299,8 @@ Vous pouvez également utiliser l'alias `split`:
 Voir aussi [implode |#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Renvoie le premier élément d'un tableau ou le premier caractère d'une chaîne de caractères :
 
 ```latte
@@ -330,6 +335,25 @@ Convertit la première lettre d'une valeur en majuscule. Nécessite l'extension 
 Voir aussi [majuscule |#capitalize], [inférieur |#lower], [supérieur |#upper].
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+Le filtre regroupe les données selon différents critères.
+
+Dans cet exemple, les lignes du tableau sont regroupées par la colonne `categoryId`. Le résultat est un tableau de tableaux dont la clé est la valeur de la colonne `categoryId`. Lisez les [instructions détaillées |cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+Voir aussi [batch |#batch], la fonction [group |functions#group] et la balise [iterateWhile |tags#iterateWhile].
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Retourne une chaîne de caractères qui est la concaténation des chaînes de caractères du tableau. Alias pour `join`.
@@ -339,7 +363,7 @@ Retourne une chaîne de caractères qui est la concaténation des chaînes de ca
 {=[1, 2, 3]|implode:'|'}  {* sorties '1|2|3' *}
 ```
 
-Vous pouvez également utiliser un alias `join`: .{data-version:2.10.2}
+Vous pouvez également utiliser un alias `join`:
 
 ```latte
 {=[1, 2, 3]|join}         {* sorties '123' *}
@@ -367,8 +391,8 @@ Imprime :
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Renvoie le dernier élément du tableau ou le dernier caractère de la chaîne de caractères :
 
 ```latte
@@ -396,6 +420,53 @@ Renvoie la longueur d'une chaîne ou d'un tableau.
 ```
 
 
+localDate(string format = null, string date = null, string time = null) .[filter]
+---------------------------------------------------------------------------------
+Formate la date et l'heure en fonction de la [locale |develop#locale], ce qui garantit un affichage cohérent et localisé des données temporelles dans différentes langues et régions. Le filtre accepte la date sous forme d'horodatage UNIX, de chaîne de caractères ou d'objet `DateTimeInterface`.
+
+**a) Utilisation du format**
+
+Le paramètre `format` décrit les composantes de l'heure qui doivent être affichées. Il utilise des codes de lettres, dont le nombre de répétitions affecte la largeur de la sortie :
+
+| Année : `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
+| Mois - `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `Jul` / `July`
+| Jour | `d` / `dd` | `1` / `01`
+| Heure | `j` | dans le format préféré de la locale
+| Minute | `m` / `mm` | `5` / `05` <small>(2 chiffres lorsqu'ils sont combinés avec les secondes)</small>
+ `08` | Heure : `ss` / `8` / / `s` <small>(2 chiffres lorsqu'ils sont combinés avec les secondes)</small>.
+
+L'ordre des codes dans le format n'a pas d'importance, car l'ordre des composants sera affiché selon les conventions locales. Le format est donc indépendant de la région.
+Par exemple, le format `yyyyMMMMd` dans la locale `en_US` affichera `April 15, 2024`, tandis que dans la locale `cs_CZ` il affichera `15. dubna 2024`. De même, `MMMM` seul affichera `duben`, etc.
+
+**b) Utilisation de styles prédéfinis**
+
+Les paramètres `date` et `time` déterminent le niveau de détail de l'affichage de la date et de l'heure. Vous avez le choix entre plusieurs niveaux : `full`, `long`, `medium`, `short`. Vous pouvez afficher uniquement la date, uniquement l'heure ou les deux :
+
+```latte
+{$date|localDate: date: short}              {* 1/23/78 *}
+{$date|localDate: date: medium}             {* Jan 23, 1978 *}
+{$date|localDate: date: long}               {* January 23, 1978 *}
+{$date|localDate: date: full}               {* Monday, January 23, 1978 *}
+{$date|localDate: time: short}              {* 2:30 PM *}
+{$date|localDate: date: long, time: medium} {* January 23, 1978 at 2:30:59 PM *}
+la sortie varie en fonction de la langue locale
+```
+
+Pour la date, vous pouvez également utiliser le préfixe `relative-` (par exemple, `relative-short`), qui affichera `yesterday`, `today` ou `tomorrow` pour les dates proches de la date actuelle ; sinon, l'affichage se fera de manière standard.
+
+```latte
+{$date|localDate: date: relative-short}    {* yesterday *}
+```
+
+Si vous utilisez le filtre sans paramètres, la date sera affichée au niveau `long`:
+
+```latte
+{$date|localDate}   {* April 15, 2024 *}
+```
+
+Voir aussi [date |#date].
+
+
 lower .[filter]
 ---------------
 Convertit une valeur en minuscule. Nécessite l'extension PHP `mbstring`.
@@ -416,8 +487,8 @@ Si le lien utilise un schéma différent, tel que `javascript:` ou `data:`, et q
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">checked</a>
-<a href="{$link|nocheck}">unchecked</a>
+<a href={$link}>checked</a>
+<a href={$link|nocheck}>unchecked</a>
 ```
 
 Imprimés :
@@ -453,7 +524,7 @@ Une mauvaise utilisation du filtre `noescape` peut conduire à une vulnérabilit
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Formate un nombre avec un nombre donné de décimales. Vous pouvez également spécifier un caractère du point décimal et du séparateur de milliers.
+Formate un nombre avec le nombre de décimales spécifié. Si la [locale |develop#locale] est définie, les séparateurs de décimales et de milliers correspondants sont utilisés.
 
 ```latte
 {1234.20 |number}              1,234
@@ -461,6 +532,54 @@ Formate un nombre avec un nombre donné de décimales. Vous pouvez également sp
 {1234.20 |number:2}            1,234.20
 {1234.20 |number:2, ',', ' '}  1 234,20
 ```
+
+
+number(string format) .[filter]
+-------------------------------
+Le paramètre `format` vous permet de définir l'apparence des chiffres exactement selon vos besoins. Il nécessite une [locale |develop#locale] définie. Le format se compose de plusieurs caractères spéciaux, dont la description complète se trouve dans la documentation "DecimalFormat" ::https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns 
+
+- <c id=6/> chiffre obligatoire, toujours affiché même s'il est nul
+- `#` chiffre optionnel, affiché seulement si le nombre a un chiffre à cette place
+- `@` chiffre significatif, permet d'afficher le nombre avec un certain nombre de chiffres significatifs
+- `.` marque l'emplacement du séparateur décimal (virgule ou point, selon la langue)
+- `,` utilisé pour séparer des groupes de chiffres, généralement des milliers
+- `%` multiplie le nombre par 100 et ajoute le signe de pourcentage
+
+Voyons quelques exemples. Dans le premier exemple, deux décimales sont obligatoires ; dans le deuxième, elles sont facultatives. Le troisième exemple montre un remplissage avec des zéros des deux côtés, et le quatrième n'affiche que les chiffres existants :
+
+```latte
+{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
+{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
+{1.23  |number: '000.000'}      {* 001.230 *}
+{1.2   |number: '##.##'}        {* 1.2 *}
+```
+
+Les chiffres significatifs déterminent le nombre de chiffres à afficher, indépendamment de la virgule, en arrondissant le nombre si nécessaire :
+
+```latte
+{1234|number: '@@'}             {* 1200 *}
+{1234|number: '@@@'}            {* 1230 *}
+{1234|number: '@@@#'}           {* 1234 *}
+{1.2345|number: '@@@'}          {* 1.23 *}
+{0.00123|number: '@@'}          {* 0.0012 *}
+```
+
+Une façon simple d'afficher un nombre en pourcentage. Le nombre est multiplié par 100 et le signe `%` est ajouté :
+
+```latte
+{0.1234|number: '#.##%'}        {* 12.34% *}
+```
+
+Nous pouvons définir un format différent pour les nombres positifs et négatifs, séparés par le caractère `;`. Ainsi, par exemple, les nombres positifs peuvent être affichés avec le signe `+`:
+
+```latte
+{42|number: '#.##;(#.##)'}      {* 42 *}
+{-42|number: '#.##;(#.##)'}     {* (42) *}
+{42|number: '+#.##;-#.##'}      {* +42 *}
+{-42|number: '+#.##;-#.##'}     {* -42 *}
+```
+
+N'oubliez pas que l'apparence réelle des nombres peut varier en fonction des paramètres locaux. Par exemple, dans certains pays, une virgule est utilisée à la place d'un point comme séparateur décimal. Ce filtre en tient compte automatiquement, vous n'avez donc pas à vous en préoccuper.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -481,8 +600,8 @@ Remplir une chaîne de caractères d'une certaine longueur avec une autre chaîn
 ```
 
 
-query  .[filter]{data-version:2.10}
------------------------------------
+query  .[filter]
+----------------
 Génère dynamiquement une chaîne de requête dans l'URL :
 
 ```latte
@@ -502,8 +621,8 @@ Les touches dont la valeur est `null` sont omises.
 Voir également [escapeUrl |#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Renvoie un élément aléatoire du tableau ou un caractère de la chaîne :
 
 ```latte
@@ -531,7 +650,7 @@ Remplace toutes les occurrences de la chaîne de recherche par la chaîne de rem
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Plusieurs remplacements peuvent être effectués en même temps : .{data-version:2.10.2}
+Plusieurs remplacements peuvent être effectués en même temps :
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -573,8 +692,8 @@ Arrondit un nombre à une précision donnée.
 Voir aussi [ceil |#ceil], [floor |#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Extrait une tranche d'un tableau ou d'une chaîne de caractères.
 
 ```latte
@@ -591,9 +710,9 @@ Si length est donné et est positif, alors la séquence aura jusqu'à ce nombre 
 Filter réordonnera et réinitialisera les clés du tableau d'entiers par défaut. Ce comportement peut être modifié en définissant preserveKeys à true. Les clés des chaînes de caractères sont toujours préservées, quel que soit ce paramètre.
 
 
-sort  .[filter]{data-version:2.9}
----------------------------------
-Filtre qui trie un tableau et maintient l'association des index.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+Le filtre trie les éléments d'un tableau ou d'un itérateur tout en préservant leurs clés associatives. Lorsqu'une [locale |develop#locale] est définie, le tri suit ses règles à moins qu'une fonction de comparaison personnalisée ne soit spécifiée.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +728,41 @@ Tableau trié dans l'ordre inverse.
 {/foreach}
 ```
 
-Vous pouvez passer votre propre fonction de comparaison en paramètre : .{data-version:2.10.2}
+Vous pouvez spécifier une fonction de comparaison personnalisée pour le tri (l'exemple montre comment inverser le tri du plus grand au plus petit) :
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+Le filtre `|sort` vous permet également de trier les éléments par clé :
 
-spaceless  .[filter]{data-version:2.10.2}
------------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+Si vous devez trier un tableau en fonction d'une colonne spécifique, vous pouvez utiliser le paramètre `by`. La valeur `'name'` dans l'exemple spécifie que le tri sera effectué par `$row->name` ou `$row['name']`selon que `$row` est un tableau ou un objet :
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+Vous pouvez également définir une fonction de rappel qui détermine la valeur à trier :
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+Le paramètre `byKey` peut être utilisé de la même manière.
+
+
+spaceless  .[filter]
+--------------------
 Supprime les espaces inutiles de la sortie. Vous pouvez également utiliser l'alias `strip`.
 
 ```latte
@@ -655,8 +800,8 @@ Extrait une tranche d'une chaîne de caractères. Ce filtre a été remplacé pa
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 Il traduit les expressions dans d'autres langues. Pour rendre ce filtre disponible, vous devez [configurer le traducteur |develop#TranslatorExtension]. Vous pouvez également utiliser les [balises pour la traduction |tags#Translation].
 
 ```latte

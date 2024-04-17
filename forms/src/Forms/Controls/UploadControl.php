@@ -28,6 +28,8 @@ class UploadControl extends BaseControl
 	/** @deprecated use UploadControl::Valid */
 	public const VALID = self::Valid;
 
+	private bool $nullable = false;
+
 
 	public function __construct(string|Stringable|null $label = null, bool $multiple = false)
 	{
@@ -55,7 +57,6 @@ class UploadControl extends BaseControl
 	public function loadHttpData(): void
 	{
 		$this->value = $this->getHttpData(Form::DataFile);
-		$this->value ??= new FileUpload(null);
 	}
 
 
@@ -66,12 +67,17 @@ class UploadControl extends BaseControl
 
 
 	/**
-	 * @return static
 	 * @internal
 	 */
-	public function setValue($value)
+	public function setValue($value): static
 	{
 		return $this;
+	}
+
+
+	public function getValue(): FileUpload|array|null
+	{
+		return $this->value ?? ($this->nullable ? null : new FileUpload(null));
 	}
 
 
@@ -80,29 +86,46 @@ class UploadControl extends BaseControl
 	 */
 	public function isFilled(): bool
 	{
-		return $this->value instanceof FileUpload
-			? $this->value->getError() !== UPLOAD_ERR_NO_FILE // ignore null object
-			: (bool) $this->value;
+		return (bool) $this->value;
+	}
+
+
+	/**
+	 * Sets whether getValue() returns null instead of FileUpload with error UPLOAD_ERR_NO_FILE.
+	 */
+	public function setNullable(bool $value = true): static
+	{
+		$this->nullable = $value;
+		return $this;
+	}
+
+
+	public function isNullable(): bool
+	{
+		return $this->nullable;
 	}
 
 
 	/**
 	 * Have been all files successfully uploaded?
+	 * @internal
 	 */
 	public function isOk(): bool
 	{
-		return $this->value instanceof FileUpload
-			? $this->value->isOk()
-			: $this->value && Arrays::every($this->value, fn(FileUpload $upload): bool => $upload->isOk());
+		return match (true) {
+			!$this->value => false,
+			is_array($this->value) => Arrays::every($this->value, fn(FileUpload $upload): bool => $upload->isOk()),
+			default => $this->value->isOk(),
+		};
 	}
 
 
-	/** @return static */
 	public function addRule(
 		callable|string $validator,
 		string|Stringable|null $errorMessage = null,
 		mixed $arg = null,
-	) {
+	): static
+	{
 		if ($validator === Form::Image) {
 			$this->control->accept = implode(', ', Forms\Helpers::getSupportedImages());
 

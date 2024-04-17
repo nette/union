@@ -32,16 +32,11 @@ final class InjectExtension extends DI\CompilerExtension
 	}
 
 
-	public function beforeCompile()
+	public function beforeCompile(): void
 	{
 		foreach ($this->getContainerBuilder()->getDefinitions() as $def) {
-			if ($def->getTag(self::TagInject)) {
-				$def = $def instanceof Definitions\FactoryDefinition
-					? $def->getResultDefinition()
-					: $def;
-				if ($def instanceof Definitions\ServiceDefinition) {
-					$this->updateDefinition($def);
-				}
+			if ($def instanceof Definitions\ServiceDefinition && $def->getTag(self::TagInject)) {
+				$this->updateDefinition($def);
 			}
 		}
 	}
@@ -67,7 +62,7 @@ final class InjectExtension extends DI\CompilerExtension
 			}
 
 			if ($builder) {
-				self::checkType($class, $property, $type, $builder);
+				self::checkType($class, $property, $type, $builder, $def);
 			}
 			array_unshift($setups, $inject);
 		}
@@ -117,19 +112,15 @@ final class InjectExtension extends DI\CompilerExtension
 	{
 		$res = [];
 		foreach ((new \ReflectionClass($class))->getProperties() as $rp) {
-			$hasAttr = $rp->getAttributes(DI\Attributes\Inject::class);
-			if ($hasAttr || DI\Helpers::parseAnnotation($rp, 'inject') !== null) {
+			if (
+				$rp->getAttributes(DI\Attributes\Inject::class)
+				|| DI\Helpers::parseAnnotation($rp, 'inject') !== null
+			) {
 				if (!$rp->isPublic() || $rp->isStatic() || $rp->isReadOnly()) {
 					throw new Nette\InvalidStateException(sprintf('Property %s for injection must not be static, readonly and must be public.', Reflection::toString($rp)));
 				}
 
-				$type = Nette\Utils\Type::fromReflection($rp);
-				if (!$type && !$hasAttr && ($annotation = DI\Helpers::parseAnnotation($rp, 'var'))) {
-					$annotation = Reflection::expandClassName($annotation, Reflection::getPropertyDeclaringClass($rp));
-					$type = Nette\Utils\Type::fromString($annotation);
-				}
-
-				$res[$rp->getName()] = DI\Helpers::ensureClassType($type, 'type of property ' . Reflection::toString($rp));
+				$res[$rp->getName()] = DI\Helpers::ensureClassType(Nette\Utils\Type::fromReflection($rp), 'type of property ' . Reflection::toString($rp));
 			}
 		}
 
@@ -148,7 +139,7 @@ final class InjectExtension extends DI\CompilerExtension
 		}
 
 		foreach (self::getInjectProperties($service::class) as $property => $type) {
-			self::checkType($service, $property, $type, $container);
+			self::checkType($service, $property, $type, $container, null);
 			$service->$property = $container->getByType($type);
 		}
 	}
@@ -159,11 +150,13 @@ final class InjectExtension extends DI\CompilerExtension
 		string $name,
 		?string $type,
 		DI\Container|DI\ContainerBuilder $container,
+		?Definitions\Definition $def,
 	): void
 	{
 		if (!$container->getByType($type, throw: false)) {
 			throw new Nette\DI\MissingServiceException(sprintf(
-				'Service of type %s required by %s not found. Did you add it to configuration file?',
+				"%sService of type %s required by %s not found.\nDid you add it to configuration file?",
+				$def ? '[' . $def->getDescriptor() . "]\n" : '',
 				$type,
 				Reflection::toString(new \ReflectionProperty($class, $name)),
 			));

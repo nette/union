@@ -107,7 +107,7 @@ Le formulaire est toujours validé du côté du serveur, mais la validation Java
 Ajoutez-le à la page :
 
 ```latte
-<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+<script src="https://unpkg.com/nette-forms@3"></script>
 ```
 
 Si vous regardez dans le code source de la page avec formulaire, vous pouvez remarquer que Nette insère les champs obligatoires dans des éléments avec une classe CSS `required`. Essayez d'ajouter le style suivant au modèle, et l'étiquette "Nom" sera rouge. De manière élégante, nous marquons les champs obligatoires pour les utilisateurs :
@@ -207,7 +207,7 @@ class RegistrationFormData
 }
 ```
 
-A partir de PHP 8.0, vous pouvez utiliser cette notation élégante qui utilise un constructeur :
+Vous pouvez également utiliser le constructeur :
 
 ```php
 class RegistrationFormData
@@ -220,6 +220,8 @@ class RegistrationFormData
 	}
 }
 ```
+
+Les propriétés de la classe de données peuvent également être des enums et elles seront automatiquement mappées. .{data-version:3.2.4}
 
 Comment dire à Nette de nous retourner les données sous forme d'objets de cette classe ? C'est plus facile que vous ne le pensez. Tout ce que vous avez à faire est de spécifier le nom de la classe ou de l'objet à hydrater comme paramètre :
 
@@ -257,6 +259,8 @@ Le mappage sait alors, à partir du type de propriété `$person`, qu'il doit ma
 ```php
 $person->setMappedType(PersonFormData::class);
 ```
+
+Vous pouvez générer une proposition pour la classe de données d'un formulaire à l'aide de la méthode `Nette\Forms\Blueprint::dataClass($form)`, qui l'imprimera sur la page du navigateur. Il vous suffit ensuite de cliquer pour sélectionner et copier le code dans votre projet. .{data-version:3.1.15}
 
 
 Boutons d'envoi multiples .[#toc-multiple-submit-buttons]

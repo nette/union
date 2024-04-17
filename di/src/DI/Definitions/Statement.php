@@ -15,7 +15,7 @@ use Nette;
 /**
  * Assignment or calling statement.
  *
- * @property string|array|Definition|Reference|null $entity
+ * @property-deprecated string|array|Definition|Reference|null $entity
  */
 final class Statement implements Nette\Schema\DynamicParameter
 {
@@ -63,6 +63,3 @@ final class Statement implements Nette\Schema\DynamicParameter
 		return $this->entity;
 	}
 }
-
-
-class_exists(Nette\DI\Statement::class);

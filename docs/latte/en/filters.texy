@@ -11,14 +11,16 @@ Filters are functions that change or format the data to a form we want. This is 
 | `bytes`      | [formats size in bytes |#bytes]
 | `clamp`      | [clamps value to the range |#clamp]
 | `dataStream` | [Data URI protocol conversion |#datastream]
-| `date`       | [formats date |#date]
+| `date`       | [formats the date and time|#date]
 | `explode`    | [splits a string by the given delimiter |#explode]
 | `first`      | [returns first element of array or character of string |#first]
+| `group`      | [groups data according to various criteria |#group]
 | `implode`    | [joins an array to a string |#implode]
 | `indent`     | [indents the text from left with number of tabs |#indent]
 | `join`       | [joins an array to a string |#implode]
 | `last`       | [returns last element of array or character of string |#last]
 | `length`     | [returns length of a string or array |#length]
+| `localDate`  | [formats the date and time according to the locale|#localDate]
 | `number`     | [formats number |#number]
 | `padLeft`    | [completes the string to given length from left |#padLeft]
 | `padRight`   | [completes the string to given length from right |#padRight]
@@ -118,8 +120,8 @@ Filters
 =======
 
 
-batch(int length, mixed item): array .[filter]{data-version:2.7}
-----------------------------------------------------------------
+batch(int length, mixed item): array .[filter]
+----------------------------------------------
 Filter that simplifies the listing of linear data in the form of a table. It returns an array of array with the given number of items. If you provide a second parameter this is used to fill up missing items on the last row.
 
 ```latte
@@ -152,6 +154,8 @@ Prints:
 </table>
 ```
 
+See also [group |#group] and [iterateWhile |tags#iterateWhile] tag.
+
 
 breakLines .[filter]
 --------------------
@@ -165,7 +169,7 @@ Inserts HTML line breaks before all newlines.
 
 bytes(int precision = 2) .[filter]
 ----------------------------------
-Formats a size in bytes to human-readable form.
+Formats the size in bytes into a human-readable form. If the [locale |develop#locale] is set, the corresponding decimal and thousand separators are used.
 
 ```latte
 {$size|bytes}     0 B, 1.25 GB, …
@@ -203,8 +207,8 @@ Enforces URL sanitization. It checks if the variable contains a web URL (ie. HTT
 
 ```latte
 {var $link = 'javascript:window.close()'}
-<a data-href="{$link|checkUrl}">checked</a>
-<a data-href="{$link}">unchecked</a>
+<a data-href={$link|checkUrl}>checked</a>
+<a data-href={$link}>unchecked</a>
 ```
 
 Prints:
@@ -217,8 +221,8 @@ Prints:
 See also [#nocheck].
 
 
-clamp(int|float min, int|float max) .[filter]{data-version:2.9}
----------------------------------------------------------------
+clamp(int|float min, int|float max) .[filter]
+---------------------------------------------
 Returns value clamped to the inclusive range of min and max.
 
 ```latte
@@ -235,7 +239,7 @@ Converts the content to data URI scheme. It can be used to insert images into HT
 Lets have an image in a variable `$img = Image::fromFile('obrazek.gif')`, then
 
 ```latte
-<img src="{$img|dataStream}">
+<img src={$img|dataStream}>
 ```
 
 Prints for example:
@@ -252,12 +256,13 @@ Requires PHP extension `fileinfo`.
 
 date(string format) .[filter]
 -----------------------------
-Returns a date in the given format using options of [php:strftime] or [php:date] PHP functions. Filter gets a date as a UNIX timestamp, a string or an object of `DateTime` type.
+Formats the date and time according to the mask used by the PHP function [php:date]. The filter accepts the date in UNIX timestamp format, as a string, or as a `DateTimeInterface` object.
 
 ```latte
-{$today|date:'%d.%m.%Y'}
 {$today|date:'j. n. Y'}
 ```
+
+See also [#localDate].
 
 
 escapeUrl .[filter]
@@ -271,8 +276,8 @@ Escapes a variable to be used as a parameter in URL.
 See also [#query].
 
 
-explode(string separator = '') .[filter]{data-version:2.10.2}
--------------------------------------------------------------
+explode(string separator = '') .[filter]
+----------------------------------------
 Splits a string by the given delimiter and returns an array of strings. Alias for `split`.
 
 ```latte
@@ -294,8 +299,8 @@ You can use also alias `split`:
 See also [#implode].
 
 
-first .[filter]{data-version:2.10.2}
-------------------------------------
+first .[filter]
+---------------
 Returns the first element of array or character of string:
 
 ```latte
@@ -330,6 +335,25 @@ Converts a first letter of value to uppercase. Requires PHP extension `mbstring`
 See also [#capitalize], [#lower], [#upper].
 
 
+group(string|int|\Closure by): array .[filter]{data-version:3.0.16}
+-------------------------------------------------------------------
+The filter groups the data according to different criteria.
+
+In this example, the rows in the table are grouped by the column `categoryId`. The output is an array of arrays where the key is the value in the column `categoryId`. Read the [detailed instructions |cookbook/grouping].
+
+```latte
+{foreach ($items|group: categoryId) as $categoryId => $categoryItems}
+    <ul>
+        {foreach $categoryItems as $item}
+            <li>{$item->name}</li>
+        {/foreach}
+    </ul>
+{/foreach}
+```
+
+See also [batch |#batch], the [group |functions#group] function, and the [iterateWhile |tags#iterateWhile] tag.
+
+
 implode(string glue = '') .[filter]
 -----------------------------------
 Return a string which is the concatenation of the strings in the array. Alias for `join`.
@@ -339,7 +363,7 @@ Return a string which is the concatenation of the strings in the array. Alias fo
 {=[1, 2, 3]|implode:'|'}  {* outputs '1|2|3' *}
 ```
 
-You can also use an alias `join`: .{data-version:2.10.2}
+You can also use an alias `join`:
 
 ```latte
 {=[1, 2, 3]|join}         {* outputs '123' *}
@@ -367,8 +391,8 @@ Prints:
 ```
 
 
-last .[filter]{data-version:2.10.2}
------------------------------------
+last .[filter]
+--------------
 Returns the last element of array or character of string:
 
 ```latte
@@ -396,6 +420,53 @@ Returns length of a string or array.
 ```
 
 
+localDate(string format = null, string date = null, string time = null) .[filter]
+---------------------------------------------------------------------------------
+Formats date and time according to the [locale |develop#locale], ensuring consistent and localized display of time data across different languages and regions. The filter accepts the date as a UNIX timestamp, string, or `DateTimeInterface` object.
+
+**a) Using the format**
+
+The `format` parameter describes which time components should be displayed. It uses letter codes, where the number of repetitions affects the width of the output:
+
+| Year | `y` / `yy` / `yyyy` | `2024` / `24` / `2024`
+| Month | `M` / `MM` / `MMM` / `MMMM` | `7` / `07` / `Jul` / `July`
+| Day | `d` / `dd` | `1` / `01`
+| Hour | `j` | in the preferred format of the locale
+| Minute | `m` / `mm` | `5` / `05` <small>(2 digits when combined with seconds)</small>
+| Second | `s` / `ss` | `8` / `08` <small>(2 digits when combined with minutes)</small>
+
+The order of codes in the format does not matter, as the order of components will be displayed according to the locale conventions. Therefore, the format is locale-independent.
+For example, the format `yyyyMMMMd` in the `en_US` locale will display `April 15, 2024`, while in the `cs_CZ` locale it will display `15. dubna 2024`. Similarly, `MMMM` alone will display `duben`, etc.
+
+**b) Using preset styles**
+
+The `date` and `time` parameters determine the level of detail for the date and time display. You can choose from several levels: `full`, `long`, `medium`, `short`. You can display just the date, just the time, or both:
+
+```latte
+{$date|localDate: date: short}              {* 1/23/78 *}
+{$date|localDate: date: medium}             {* Jan 23, 1978 *}
+{$date|localDate: date: long}               {* January 23, 1978 *}
+{$date|localDate: date: full}               {* Monday, January 23, 1978 *}
+{$date|localDate: time: short}              {* 2:30 PM *}
+{$date|localDate: date: long, time: medium} {* January 23, 1978 at 2:30:59 PM *}
+the output varies depending on the locale
+```
+
+For the date, you can also use the prefix `relative-` (e.g., `relative-short`), which for dates close to the present will display `yesterday`, `today`, or `tomorrow`; otherwise, it will display in the standard way.
+
+```latte
+{$date|localDate: date: relative-short}    {* yesterday *}
+```
+
+If you use the filter without parameters, the date will be displayed at the `long` level:
+
+```latte
+{$date|localDate}   {* April 15, 2024 *}
+```
+
+See also [#date].
+
+
 lower .[filter]
 ---------------
 Converts a value to lowercase. Requires PHP extension `mbstring`.
@@ -416,8 +487,8 @@ If the link uses a different scheme, such as `javascript:` or `data:`, and you a
 ```latte
 {var $link = 'javascript:window.close()'}
 
-<a href="{$link}">checked</a>
-<a href="{$link|nocheck}">unchecked</a>
+<a href={$link}>checked</a>
+<a href={$link|nocheck}>unchecked</a>
 ```
 
 Prints:
@@ -453,14 +524,62 @@ Misuse of the `noescape` filter can lead to an XSS vulnerability! Never use it u
 
 number(int decimals = 0, string decPoint = '.', string thousandsSep = ',') .[filter]
 ------------------------------------------------------------------------------------
-Formats a number to given number of decimal places. You can also specify a character of the decimal point and thousands separator.
+Formats a number to a specified number of decimal places. If the [locale |develop#locale] is set, the corresponding decimal and thousand separators are used.
 
 ```latte
-{1234.20 |number}              1,234
-{1234.20 |number:1}            1,234.2
-{1234.20 |number:2}            1,234.20
-{1234.20 |number:2, ',', ' '}  1 234,20
+{1234.20|number}              1,234
+{1234.20|number:1}            1,234.2
+{1234.20|number:2}            1,234.20
+{1234.20|number:2, ',', ' '}  1 234,20
 ```
+
+
+number(string format) .[filter]
+-------------------------------
+The `format` parameter allows you to define the appearance of numbers exactly according to your needs. It requires a set [locale |develop#locale]. The format consists of several special characters, the complete description of which can be found in the "DecimalFormat":https://unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns documentation:
+
+- `0` mandatory digit, always displayed even if it's zero
+- `#` optional digit, displayed only if the number has a digit in that place
+- `@` significant digit, helps to display the number with a certain number of significant digits
+- `.` marks where the decimal separator should be (comma or dot, depending on the locale)
+- `,` used to separate groups of digits, usually thousands
+- `%` multiplies the number by 100 and adds the percent sign
+
+Let's look at some examples. In the first example, two decimal places are mandatory; in the second, they are optional. The third example shows padding with zeros on both sides, and the fourth displays only the existing digits:
+
+```latte
+{1234.5|number: '#,##0.00'}     {* 1,234.50 *}
+{1234.5|number: '#,##0.##'}     {* 1,234.5 *}
+{1.23  |number: '000.000'}      {* 001.230 *}
+{1.2   |number: '##.##'}        {* 1.2 *}
+```
+
+Significant digits determine how many digits, regardless of the decimal point, should be displayed, rounding the number if necessary:
+
+```latte
+{1234|number: '@@'}             {* 1200 *}
+{1234|number: '@@@'}            {* 1230 *}
+{1234|number: '@@@#'}           {* 1234 *}
+{1.2345|number: '@@@'}          {* 1.23 *}
+{0.00123|number: '@@'}          {* 0.0012 *}
+```
+
+An easy way to display a number as a percentage. The number is multiplied by 100 and the `%` sign is added:
+
+```latte
+{0.1234|number: '#.##%'}        {* 12.34% *}
+```
+
+We can define a different format for positive and negative numbers, separated by a `;` character. This way, for example, positive numbers can be displayed with a `+` sign:
+
+```latte
+{42|number: '#.##;(#.##)'}      {* 42 *}
+{-42|number: '#.##;(#.##)'}     {* (42) *}
+{42|number: '+#.##;-#.##'}      {* +42 *}
+{-42|number: '+#.##;-#.##'}     {* -42 *}
+```
+
+Remember that the actual appearance of numbers may vary depending on the locale settings. For example, in some countries, a comma is used instead of a dot as a decimal separator. This filter automatically accounts for this, so you don't need to worry about it.
 
 
 padLeft(int length, string pad = ' ') .[filter]
@@ -481,8 +600,8 @@ Pads a string to a certain length with another string from right.
 ```
 
 
-query  .[filter]{data-version:2.10}
------------------------------------
+query  .[filter]
+----------------
 Dynamically generates a query string in the URL:
 
 ```latte
@@ -502,8 +621,8 @@ Keys with a value of `null` are omitted.
 See also [#escapeUrl].
 
 
-random .[filter]{data-version:2.10.2}
--------------------------------------
+random .[filter]
+----------------
 Returns random element of array or character of string:
 
 ```latte
@@ -531,7 +650,7 @@ Replaces all occurrences of the search string with the replacement string.
 {='hello world'|replace: 'world', 'friend'}  {* outputs 'hello friend' *}
 ```
 
-Multiple replacements can be made at once: .{data-version:2.10.2}
+Multiple replacements can be made at once:
 
 ```latte
 {='hello world'|replace: [h => l, l => h]}  {* outputs 'lehho worhd' *}
@@ -573,8 +692,8 @@ Rounds a number to a given precision.
 See also [#ceil], [#floor].
 
 
-slice(int start, int length = null, bool preserveKeys = false) .[filter]{data-version:2.10.2}
----------------------------------------------------------------------------------------------
+slice(int start, int length = null, bool preserveKeys = false) .[filter]
+------------------------------------------------------------------------
 Extracts a slice of an array or a string.
 
 ```latte
@@ -591,9 +710,9 @@ If length is given and is positive, then the sequence will have up to that many 
 Filter will reorder and reset the integer array keys by default. This behaviour can be changed by setting preserveKeys to true. String keys are always preserved, regardless of this parameter.
 
 
-sort  .[filter]{data-version:2.9}
----------------------------------
-Filter that sorts an array and maintain index association.
+sort(?Closure comparison, string|int|\Closure|null by=null, string|int|\Closure|bool byKey=false) .[filter]
+-----------------------------------------------------------------------------------------------------------
+The filter sorts elements of an array or iterator while preserving their associative keys. When a [locale |develop#locale] is set, the sorting follows its rules unless a custom comparison function is specified.
 
 ```latte
 {foreach ($names|sort) as $name}
@@ -609,15 +728,41 @@ Array sorted in reverse order.
 {/foreach}
 ```
 
-You can pass your own comparison function as a parameter: .{data-version:2.10.2}
+You can specify a custom comparison function for sorting (the example shows how to reverse the sort from largest to smallest):
 
 ```latte
-{var $sorted = ($names|sort: fn($a, $b) => $b <=> $a)}
+{var $reverted = ($names|sort: fn($a, $b) => $b <=> $a)}
 ```
 
+The `|sort` filter also allows you to sort elements by key:
 
-spaceless  .[filter]{data-version:2.10.2}
------------------------------------------
+```latte
+{foreach ($names|sort: byKey: true) as $name}
+	...
+{/foreach}
+```
+
+If you need to sort a table by a specific column, you can use the `by` parameter. The value `'name'` in the example specifies that sorting will be done by `$row->name` or `$row['name']`, depending on whether `$row` is an array or an object:
+
+```latte
+{foreach ($items|sort: by: 'name') as $item}
+	{$item->name}
+{/foreach}
+```
+
+You can also define a callback function that determines the value to sort by:
+
+```latte
+{foreach ($items|sort: by: fn($items) => $items->category->name) as $item}
+	{$item->name}
+{/foreach}
+```
+
+The `byKey` parameter can be used in the same way.
+
+
+spaceless  .[filter]
+--------------------
 Removes unnecessary whitespace from the output. You can also use alias `strip`.
 
 ```latte
@@ -655,8 +800,8 @@ Extracts a slice of a string. This filter has been replaced by a [#slice] filter
 ```
 
 
-translate(string message, ...args) .[filter]{data-version:3.0}
---------------------------------------------------------------
+translate(string message, ...args) .[filter]
+--------------------------------------------
 It translates expressions into other languages. To make the filter available, you need [set up translator|develop#TranslatorExtension]. You can also use the [tags for translation|tags#Translation].
 
 ```latte

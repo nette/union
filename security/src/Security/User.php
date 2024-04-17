@@ -16,13 +16,13 @@ use Nette\Utils\Arrays;
 /**
  * User authentication and authorization.
  *
- * @property-read bool $loggedIn
- * @property-read IIdentity $identity
- * @property-read string|int $id
- * @property-read array $roles
- * @property-read int $logoutReason
- * @property   IAuthenticator $authenticator
- * @property   Authorizator $authorizator
+ * @property bool $loggedIn
+ * @property IIdentity $identity
+ * @property-deprecated string|int $id
+ * @property-deprecated array $roles
+ * @property-deprecated int $logoutReason
+ * @property-deprecated Authenticator $authenticator
+ * @property-deprecated Authorizator $authorizator
  */
 class User
 {
@@ -51,10 +51,10 @@ class User
 	/** default role for authenticated user without own identity */
 	public string $authenticatedRole = 'authenticated';
 
-	/** @var callable[]  function (User $sender): void; Occurs when the user is successfully logged in */
+	/** @var array<callable(self): void>  Occurs when the user is successfully logged in */
 	public array $onLoggedIn = [];
 
-	/** @var callable[]  function (User $sender): void; Occurs when the user is logged out */
+	/** @var array<callable(self): void>  Occurs when the user is logged out */
 	public array $onLoggedOut = [];
 
 	private ?IIdentity $identity = null;
@@ -64,7 +64,7 @@ class User
 
 	public function __construct(
 		private UserStorage $storage,
-		private ?IAuthenticator $authenticator = null,
+		private ?Authenticator $authenticator = null,
 		private ?Authorizator $authorizator = null,
 	) {
 	}
@@ -95,9 +95,7 @@ class User
 			$this->identity = $user;
 		} else {
 			$authenticator = $this->getAuthenticator();
-			$this->identity = $authenticator instanceof Authenticator
-				? $authenticator->authenticate(...func_get_args())
-				: $authenticator->authenticate(func_get_args());
+			$this->identity = $authenticator->authenticate(...func_get_args());
 		}
 
 		$id = $this->authenticator instanceof IdentityHandler
@@ -188,7 +186,7 @@ class User
 	/**
 	 * Sets authentication handler.
 	 */
-	public function setAuthenticator(IAuthenticator $handler): static
+	public function setAuthenticator(Authenticator $handler): static
 	{
 		$this->authenticator = $handler;
 		return $this;
@@ -198,7 +196,7 @@ class User
 	/**
 	 * Returns authentication handler.
 	 */
-	final public function getAuthenticator(): IAuthenticator
+	final public function getAuthenticator(): Authenticator
 	{
 		if (!$this->authenticator) {
 			throw new Nette\InvalidStateException('Authenticator has not been set.');
@@ -211,7 +209,7 @@ class User
 	/**
 	 * Returns authentication handler.
 	 */
-	final public function getAuthenticatorIfExists(): ?IAuthenticator
+	final public function getAuthenticatorIfExists(): ?Authenticator
 	{
 		return $this->authenticator;
 	}

@@ -66,9 +66,9 @@ Conectarea la baza de date .[#toc-connecting-to-the-database]
 
 Acum, când baza de date este creată și avem câteva mesaje în ea, este momentul potrivit pentru a le afișa pe noua noastră pagină strălucitoare.
 
-În primul rând, trebuie să spunem aplicației noastre ce bază de date să folosească. Configurația conexiunii la baza de date este stocată în `config/local.neon`. Setați conexiunea DSN((Data Source Name)) și acreditările. Ar trebui să arate astfel:
+În primul rând, trebuie să spunem aplicației noastre ce bază de date să folosească. Configurația conexiunii la baza de date este stocată în `config/common.neon`. Setați conexiunea DSN((Data Source Name)) și acreditările. Ar trebui să arate astfel:
 
-```neon .{file:config/local.neon}
+```neon .{file:config/common.neon}
 database:
 	dsn: 'mysql:host=127.0.0.1;dbname=quickstart'
 	user: *enter user name*
@@ -78,20 +78,17 @@ database:
 .[note]
 Fiți atenți la indentare în timpul editării acestui fișier. [Formatul NEON |neon:format] acceptă atât spații, cât și tabulări, dar nu ambele împreună! Fișierul de configurare din proiectul web utilizează tabulatoarele în mod implicit.
 
-Întreaga configurație, inclusiv este stocată în `config/` în fișierele `common.neon` și `local.neon`. Fișierul `common.neon` conține configurația globală a aplicației, iar `local.neon` conține doar parametrii specifici mediului (de exemplu, diferența dintre serverul de dezvoltare și cel de producție).
-
 
 Injectarea conexiunii la baza de date .[#toc-injecting-the-database-connection]
 ===============================================================================
 
 Prezentatorul `HomePresenter`, care va lista articolele, are nevoie de o conexiune la baza de date. Pentru a o primi, scrieți un constructor ca acesta:
 
-```php .{file:app/Presenters/HomePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 <?php
-namespace App\Presenters;
+namespace App\UI\Home;
 
 use Nette;
-use Nette\Application\UI\Form;
 
 final class HomePresenter extends Nette\Application\UI\Presenter
 {
@@ -110,7 +107,7 @@ final class HomePresenter extends Nette\Application\UI\Presenter
 
 Acum să preluăm posturile din baza de date și să le transmitem șablonului, care va reda apoi codul HTML. Pentru aceasta există așa-numita metodă *render*:
 
-```php .{file:app/Presenters/HomePresenter.php}
+```php .{file:app/UI/Home/HomePresenter.php}
 public function renderDefault(): void
 {
 	$this->template->posts = $this->database
@@ -120,7 +117,7 @@ public function renderDefault(): void
 }
 ```
 
-Prezentatorul are acum o metodă de randare `renderDefault()` care transmite datele către o vizualizare numită `default`. Șabloanele prezentatorului pot fi găsite în `app/Presenters/templates/{PresenterName}/{viewName}.latte`, astfel încât în acest caz șablonul va fi localizat în `app/Presenters/templates/Home/default.latte`. În șablon, o variabilă numită `$posts` este acum disponibilă, care conține postările din baza de date.
+Prezentatorul are acum o metodă de randare `renderDefault()` care transmite datele către o vizualizare numită `default`. Șabloanele prezentatorului pot fi găsite în `app/UI/{PresenterName}/{viewName}.latte`, astfel încât în acest caz șablonul va fi localizat în `app/UI/Home/default.latte`. În șablon, o variabilă numită `$posts` este acum disponibilă, care conține postările din baza de date.
 
 
 Șablonul .[#toc-template]
@@ -128,9 +125,9 @@ Prezentatorul are acum o metodă de randare `renderDefault()` care transmite dat
 
 Există un șablon generic pentru întreaga pagină (numit *layout*, cu antet, foi de stil, footer, ...) și apoi șabloane specifice pentru fiecare vizualizare (de exemplu, pentru afișarea listei de articole de pe blog), care pot suprascrie unele dintre părțile șablonului layout.
 
-În mod implicit, șablonul de aspect este localizat în `templates/@layout.latte`, care conține:
+În mod implicit, șablonul de aspect este localizat în `app/UI/@layout.latte`, care conține:
 
-```latte .{file:app/Presenters/templates/@layout.latte}
+```latte .{file:app/UI/@layout.latte}
 ...
 {include content}
 ...
@@ -138,7 +135,7 @@ Există un șablon generic pentru întreaga pagină (numit *layout*, cu antet, f
 
 `{include content}` inserează un bloc numit `content` în șablonul principal. Îl puteți defini în șabloanele fiecărei vizualizări. În acest caz, vom edita fișierul `Home/default.latte` în felul următor:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 {block content}
 	Hello World
 {/block}
@@ -148,7 +145,7 @@ Acesta definește [blocul |latte:tags#block]*content*, care va fi inserat în as
 
 Să afișăm articolele de pe blog - vom edita șablonul astfel:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 {block content}
 	<h1>My blog</h1>
 
@@ -166,7 +163,7 @@ Să afișăm articolele de pe blog - vom edita șablonul astfel:
 
 Dacă vă reîmprospătați browserul, veți vedea lista postărilor de pe blog. Lista nu este foarte fantezistă sau colorată, așa că nu ezitați să adăugați niște [CSS strălucitor |https://github.com/nette-examples/quickstart/blob/v4.0/www/css/style.css] la `www/css/style.css` și să o legați într-un layout:
 
-```latte .{file:app/Presenters/templates/@layout.latte}
+```latte .{file:app/UI/@layout.latte}
 	...
 	<link rel="stylesheet" href="{$basePath}/css/style.css">
 </head>
@@ -179,7 +176,7 @@ Chestia `|date` se numește filtru. Filtrele sunt folosite pentru a formata ieș
 
 Încă un lucru. Putem face codul un pic mai scurt și, astfel, mai simplu. Putem înlocui *Latte tags* cu *n:attributes* astfel:
 
-```latte .{file:app/Presenters/templates/Home/default.latte}
+```latte .{file:app/UI/Home/default.latte}
 {block content}
 	<h1>My blog</h1>
 

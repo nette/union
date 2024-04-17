@@ -96,9 +96,9 @@ final class MyClass extends BaseClass
 
 Problem pojawia się, gdy chcemy zmienić konstruktor klasy `BaseClass`, na przykład gdy dodamy nową zależność. Wtedy musimy zmodyfikować również wszystkie konstruktory dzieci. Co czyni taką modyfikację piekłem.
 
-Jak temu zapobiec? Rozwiązaniem jest **priorytet kompozycji nad dziedziczeniem**.
+Jak temu zapobiec? Rozwiązaniem jest **przedkładanie [kompozycji nad dziedziczenie** |faq#Why composition is preferred over inheritance].
 
-Zaprojektujmy więc kod inaczej. Będziemy unikać klas abstrakcyjnych `Base*`. Zamiast `MyClass` uzyskać pewną funkcjonalność poprzez dziedziczenie z `BaseClass`, będzie ona miała tę funkcjonalność przekazaną jako zależność:
+Zaprojektujmy więc kod inaczej. Unikniemy [abstrakcyjnych |nette:introduction-to-object-oriented-programming#abstract-classes] klas `Base*`. Zamiast `MyClass` uzyskiwać pewną funkcjonalność poprzez dziedziczenie z `BaseClass`, będzie mieć tę funkcjonalność przekazaną jako zależność:
 
 ```php
 final class SomeFunctionality
@@ -128,7 +128,7 @@ final class MyClass
 Przekazywanie przez setera .[#toc-setter-injection]
 ===================================================
 
-Zależności są przekazywane przez wywołanie metody, która przechowuje je w prywatnej zmiennej. Zwykła konwencja nazewnicza dla tych metod ma postać `set*()`, dlatego nazywa się je seterami.
+Zależności są przekazywane przez wywołanie metody, która przechowuje je w prywatnej właściwości. Zwykła konwencja nazewnicza dla tych metod ma postać `set*()`, dlatego są one nazywane setterami, ale oczywiście mogą być nazywane inaczej.
 
 ```php
 class MyClass
@@ -168,8 +168,7 @@ Wywołanie setera jest zdefiniowane w konfiguracji kontenera DI w [sekcji |servi
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- setCache
 ```
@@ -196,8 +195,7 @@ Ustawienia zmiennej definiujemy w konfiguracji kontenera DI w [sekcji setup |ser
 
 ```neon
 services:
-	-
-		create: MyClass
+	-	create: MyClass
 		setup:
 			- $cache = @\Cache
 ```

@@ -67,7 +67,7 @@ parameters:
 ```neon
 decorator:
 	# Для всех сервисов, являющихся экземплярами этого класса или интерфейса
-	App\Presenters\BasePresenter:
+	App\UI\BasePresenter:
 		setup:
 			- setProjectId(10)       # вызываем этот метод
 			- $absoluteUrls = true   # и задаем переменную
@@ -122,7 +122,7 @@ di:
 			- Symfony\Component\Console\Application
 ```
 
-Если вы не используете массив `$container->parameters`, можно отключить экспорт параметров. Кроме того, вы можете экспортировать только те теги, через которые вы получаете сервисы, используя метод `$container->findByTag(...)`.
+Если вы не используете массив `$container->getParameters()`, можно отключить экспорт параметров. Кроме того, вы можете экспортировать только те теги, через которые вы получаете сервисы, используя метод `$container->findByTag(...)`.
 Если вы не вызываете этот метод вовсе, можно полностью отключить экспорт тегов, указав значение `false`.
 
 Вы можете значительно уменьшить метаданные для автоматического подключения, указав классы, которые вы используете в качестве параметра в методе `$container->getByType()`.
@@ -191,20 +191,15 @@ return [
 
 ```neon
 search:
-	# вы сами выбираете названия секций
-	myForms:
-		in: %appDir%/Forms
-
-	model:
-		in: %appDir%/Model
+	-	in: %appDir%/Forms
+	-	in: %appDir%/Model
 ```
 
 Обычно, однако, мы не хотим добавлять все классы и интерфейсы, поэтому мы можем отфильтровать их:
 
 ```neon
 search:
-	myForms:
-		in: %appDir%/Forms
+	-	in: %appDir%/Forms
 
 		# фильтрация по имени файла (string|string[])
 		files:
@@ -220,7 +215,7 @@ search:
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		extends:
 			- App\*Form
 		implements:
@@ -231,8 +226,9 @@ search:
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		exclude:
+файлы: ...
 			classes: ...
 			extends: ...
 			implements: ...
@@ -242,7 +238,7 @@ search:
 
 ```neon
 search:
-	myForms:
+	-	in: %appDir%
 		tags: ...
 ```
 

@@ -158,7 +158,7 @@ La méthode `forward()` permet de passer immédiatement au nouveau présentateur
 $this->forward('Product:show');
 ```
 
-Exemple de redirection temporaire avec le code HTTP 302 ou 303 :
+Exemple de redirection temporaire avec le code HTTP 302 (ou 303, si la méthode de requête actuelle est POST) :
 
 ```php
 $this->redirect('Product:show', $id);
@@ -170,7 +170,7 @@ Pour obtenir une redirection permanente avec le code HTTP 301, utilisez :
 $this->redirectPermanent('Product:show', $id);
 ```
 
-Vous pouvez rediriger vers une autre URL en dehors de l'application avec la méthode `redirectUrl()`:
+Vous pouvez rediriger vers une autre URL en dehors de l'application en utilisant la méthode `redirectUrl()`. Le code HTTP peut être spécifié comme deuxième paramètre, la valeur par défaut étant 302 (ou 303, si la méthode de requête actuelle est POST) :
 
 ```php
 $this->redirectUrl('https://nette.org');
@@ -236,49 +236,83 @@ public function actionData(): void
 ```
 
 
-Paramètres persistants .[#toc-persistent-parameters]
-====================================================
+Paramètres de la demande .[#toc-request-parameters]
+===================================================
 
-Les paramètres persistants sont **transférés automatiquement** dans les liens. Cela signifie que nous ne devons pas les spécifier explicitement dans chaque `link()` ou `n:href` du modèle, mais ils seront tout de même transférés.
+Le présentateur, ainsi que chaque composant, obtient ses paramètres à partir de la demande HTTP. Leurs valeurs peuvent être récupérées à l'aide de la méthode `getParameter($name)` ou `getParameters()`. Les valeurs sont des chaînes ou des tableaux de chaînes, essentiellement des données brutes obtenues directement à partir de l'URL.
 
-Si votre application comporte plusieurs versions linguistiques, la langue actuelle est un paramètre qui doit toujours faire partie de l'URL. Et il serait incroyablement fatigant de le mentionner dans chaque lien. Ce n'est pas nécessaire avec Nette. Nous marquons simplement le paramètre `lang` comme persistant de cette manière :
+Pour plus de commodité, nous recommandons de rendre les paramètres accessibles par le biais de propriétés. Il suffit de les annoter avec l'attribut `#[Parameter]` attribut :
 
 ```php
-class ProductPresenter extends Nette\Application\UI\Presenter
+use Nette\Application\Attributes\Parameter;  // cette ligne est importante
+
+class HomePresenter extends Nette\Application\UI\Presenter
 {
-	/** @persistent */
-	public string $lang;
+	#[Parameter]
+	public string $theme; // doit être publique
 }
 ```
 
-Si la valeur actuelle du paramètre `lang` est `'en'`, alors l'URL créée avec `link()` ou `n:href` dans le modèle contiendra `lang=en`. Excellent !
+Pour les propriétés, nous suggérons de spécifier le type de données (par exemple, `string`). Nette va alors automatiquement calculer la valeur en fonction de ce type de données. Les valeurs des paramètres peuvent également être [validées |#Validation of Parameters].
 
-Cependant, nous pouvons également ajouter le paramètre `lang` et modifier ainsi sa valeur :
-
-```latte
-<a n:href="Product:show $id, lang: en">detail in English</a>
-```
-
-Ou, à l'inverse, on peut le supprimer en le mettant à null :
+Lors de la création d'un lien, vous pouvez directement définir la valeur des paramètres :
 
 ```latte
-<a n:href="Product:show $id, lang: null">click here</a>
+<a n:href="Home:default theme: dark">click</a>
 ```
 
-La variable persistante doit être déclarée comme publique. On peut également spécifier une valeur par défaut. Si le paramètre a la même valeur que la valeur par défaut, il ne sera pas inclus dans l'URL.
 
-La persistance reflète la hiérarchie des classes de présentateurs, ainsi le paramètre défini dans un certain présentateur ou trait est ensuite automatiquement transféré à chaque présentateur qui en hérite ou qui utilise le même trait.
+Paramètres persistants .[#toc-persistent-parameters]
+====================================================
 
-En PHP 8, vous pouvez également utiliser des attributs pour marquer les paramètres persistants :
+Les paramètres persistants sont utilisés pour maintenir l'état entre les différentes requêtes. Leur valeur reste inchangée même après avoir cliqué sur un lien. Contrairement aux données de session, ils sont transmis dans l'URL. Cette opération est entièrement automatique, il n'est donc pas nécessaire de les indiquer explicitement dans `link()` ou `n:href`.
+
+Exemple d'utilisation ? Vous avez une application multilingue. La langue réelle est un paramètre qui doit toujours faire partie de l'URL. Mais il serait incroyablement fastidieux de l'inclure dans chaque lien. Vous en faites donc un paramètre persistant, nommé `lang`, qui se chargera de lui-même. C'est super !
+
+La création d'un paramètre persistant est extrêmement simple dans Nette. Il suffit de créer une propriété publique et de la baliser avec l'attribut : (auparavant `/** @persistent */` était utilisé)
 
 ```php
-use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Persistent; // cette ligne est importante
 
 class ProductPresenter extends Nette\Application\UI\Presenter
 {
 	#[Persistent]
+	public string $lang; // doit être publique
+}
+```
+
+Si `$this->lang` a une valeur telle que `'en'`, les liens créés à l'aide de `link()` ou `n:href` contiendront également le paramètre `lang=en`. Et lorsque le lien sera cliqué, il s'agira à nouveau de `$this->lang = 'en'`.
+
+Pour les propriétés, nous vous recommandons d'indiquer le type de données (par exemple `string`) et vous pouvez également inclure une valeur par défaut. Les valeurs des paramètres peuvent être [validées |#Validation of Parameters].
+
+Les paramètres persistants sont transmis par défaut entre toutes les actions d'un présentateur donné. Pour les transmettre entre plusieurs présentateurs, vous devez les définir :
+
+- dans un ancêtre commun dont les présentateurs héritent
+- dans le trait que les présentateurs utilisent :
+
+```php
+trait LanguageAware
+{
+	#[Persistent]
 	public string $lang;
 }
+
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	use LanguageAware;
+}
+```
+
+Vous pouvez modifier la valeur d'un paramètre persistant lors de la création d'un lien :
+
+```latte
+<a n:href="Product:show $id, lang: cs">detail in Czech</a>
+```
+
+Ou il peut être *réinitialisé*, c'est-à-dire supprimé de l'URL. Il prendra alors sa valeur par défaut :
+
+```latte
+<a n:href="Product:show $id, lang: null">click</a>
 ```
 
 
@@ -299,16 +333,37 @@ Pour aller plus loin .[#toc-going-deeper]
 Ce que nous avons montré jusqu'à présent dans ce chapitre suffira probablement. Les lignes suivantes sont destinées à ceux qui s'intéressent aux présentateurs en profondeur et veulent tout savoir.
 
 
-Exigences et paramètres .[#toc-requirement-and-parameters]
+Validation des paramètres .[#toc-validation-of-parameters]
 ----------------------------------------------------------
 
-La demande traitée par le diffuseur est l'objet [api:Nette\Application\Request] et est renvoyée par la méthode du diffuseur `getRequest()`. Elle comprend un tableau de paramètres et chacun d'entre eux appartient soit à certains des composants, soit directement au présentateur (qui est en fait aussi un composant, bien qu'il soit spécial). Nette redistribue donc les paramètres et les passe entre les différents composants (et le présentateur) en appelant la méthode `loadState(array $params)`, qui est décrite plus en détail dans le chapitre [Composants |Components]. Les paramètres peuvent être obtenus par la méthode `getParameters(): array`, individuellement en utilisant `getParameter($name)`. Les valeurs des paramètres sont des chaînes de caractères ou des tableaux de chaînes de caractères, ce sont essentiellement des données brutes obtenues directement d'une URL.
+Les valeurs des [paramètres de requête |#request parameters] et des [paramètres persistants |#persistent parameters] reçus des URL sont écrites dans les propriétés par la méthode `loadState()`. Elle vérifie également si le type de données spécifié dans la propriété correspond, sinon elle répondra par une erreur 404 et la page ne sera pas affichée.
+
+Ne faites jamais aveuglément confiance aux paramètres, car ils peuvent facilement être remplacés par l'utilisateur dans l'URL. Par exemple, voici comment nous vérifions si `$this->lang` fait partie des langues prises en charge. Une bonne façon de le faire est de surcharger la méthode `loadState()` mentionnée ci-dessus :
+
+```php
+class ProductPresenter extends Nette\Application\UI\Presenter
+{
+	#[Persistent]
+	public string $lang;
+
+	public function loadState(array $params): void
+	{
+		parent::loadState($params); // ici est défini le $this->lang
+		// suit la vérification de la valeur de l'utilisateur:
+		if (!in_array($this->lang, ['en', 'cs'])) {
+			$this->error();
+		}
+	}
+}
+```
 
 
 Sauvegarde et restauration de la demande .[#toc-save-and-restore-the-request]
 -----------------------------------------------------------------------------
 
-Vous pouvez enregistrer la demande en cours dans une session ou la restaurer à partir de la session et laisser le présentateur l'exécuter à nouveau. Ceci est utile, par exemple, lorsqu'un utilisateur remplit un formulaire et que sa connexion expire. Afin de ne pas perdre de données, avant de rediriger l'utilisateur vers la page de connexion, nous sauvegardons la demande actuelle dans la session à l'aide de `$reqId = $this->storeRequest()`, qui renvoie un identifiant sous la forme d'une chaîne courte et le transmet comme paramètre au présentateur de connexion.
+La demande traitée par le présentateur est un objet [api:Nette\Application\Request] et est renvoyée par la méthode du présentateur `getRequest()`.
+
+Vous pouvez enregistrer la requête en cours dans une session ou la restaurer à partir de la session et laisser le présentateur l'exécuter à nouveau. Ceci est utile, par exemple, lorsqu'un utilisateur remplit un formulaire et que son login expire. Afin de ne pas perdre de données, avant de rediriger l'utilisateur vers la page de connexion, nous sauvegardons la demande en cours dans la session à l'aide de la méthode `$reqId = $this->storeRequest()`, qui renvoie un identifiant sous la forme d'une chaîne courte et le transmet en tant que paramètre au présentateur de connexion.
 
 Après l'ouverture de session, nous appelons la méthode `$this->restoreRequest($reqId)`, qui récupère la demande de la session et la lui transmet. La méthode vérifie que la requête a été créée par le même utilisateur que celui qui est maintenant connecté. Si un autre utilisateur se connecte ou si la clé n'est pas valide, elle ne fait rien et le programme continue.
 
@@ -390,6 +445,51 @@ $callback = function (Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $ht
 };
 $this->sendResponse(new Responses\CallbackResponse($callback));
 ```
+
+
+Restriction d'accès à l'aide de `#[Requires]` .[#toc-access-restriction-using-requires]{data-version:3.2.2}
+-----------------------------------------------------------------------------------------------------------
+
+L'attribut `#[Requires]` fournit des options avancées pour restreindre l'accès aux présentateurs et à leurs méthodes. Il peut être utilisé pour spécifier des méthodes HTTP, exiger des requêtes AJAX, limiter l'accès à la même origine et restreindre l'accès à la transmission uniquement. L'attribut peut être appliqué aux classes de présentateurs ainsi qu'aux méthodes individuelles telles que `action<Action>()`, `render<View>()`, `handle<Signal>()`, et `createComponent<Name>()`.
+
+Vous pouvez spécifier ces restrictions :
+- sur les méthodes HTTP : `#[Requires(methods: ['GET', 'POST'])]`
+- nécessitant une requête AJAX : `#[Requires(ajax: true)]`
+- accès uniquement à partir de la même origine : `#[Requires(sameOrigin: true)]`
+- accès uniquement par le biais d'une redirection : `#[Requires(forward: true)]`
+- restrictions sur des actions spécifiques : `#[Requires(actions: 'default')]`
+
+Pour plus de détails, voir [Comment utiliser l'attribut Requires |best-practices:attribute-requires].
+
+
+Vérification de la méthode HTTP .[#toc-http-method-check]
+---------------------------------------------------------
+
+Dans Nette, les présentateurs vérifient automatiquement la méthode HTTP de chaque requête entrante, principalement pour des raisons de sécurité. Par défaut, les méthodes `GET`, `POST`, `HEAD`, `PUT`, `DELETE`, `PATCH` sont autorisées.
+
+Si vous souhaitez activer d'autres méthodes telles que `OPTIONS`, vous pouvez utiliser l'attribut `#[Requires]` (à partir de Nette Application v3.2) :
+
+```php
+#[Requires(methods: ['GET', 'POST', 'HEAD', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])]
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+}
+```
+
+Dans la version 3.1, la vérification est effectuée dans `checkHttpMethod()`, qui vérifie si la méthode spécifiée dans la requête est incluse dans le tableau `$presenter->allowedMethods`. Ajouter une méthode comme celle-ci :
+
+```php
+class MyPresenter extends Nette\Application\UI\Presenter
+{
+    protected function checkHttpMethod(): void
+    {
+        $this->allowedMethods[] = 'OPTIONS';
+        parent::checkHttpMethod();
+    }
+}
+```
+
+Il est essentiel de souligner que si vous autorisez la méthode `OPTIONS`, vous devez également la gérer correctement dans votre présentateur. Cette méthode est souvent utilisée comme une requête dite "preflight", que les navigateurs envoient automatiquement avant la requête réelle lorsqu'il est nécessaire de déterminer si la requête est autorisée du point de vue de la politique CORS (Cross-Origin Resource Sharing). Si vous autorisez cette méthode mais ne mettez pas en œuvre une réponse appropriée, cela peut entraîner des incohérences et des problèmes de sécurité potentiels.
 
 
 Autres lectures .[#toc-further-reading]

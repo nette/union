@@ -158,15 +158,7 @@ final class Helpers
 	public static function filterArguments(array $args): array
 	{
 		foreach ($args as $k => $v) {
-			if (
-				is_string($v)
-				&& preg_match('#^([\w\\\\]+)::\w+$#D', $v, $m)
-				&& enum_exists($m[1])
-			) {
-				$args[$k] = new Nette\PhpGenerator\Literal($v);
-			} elseif (is_string($v) && preg_match('#^[\w\\\\]*::[A-Z][a-zA-Z0-9_]*$#D', $v)) {
-				$args[$k] = new Nette\PhpGenerator\Literal(ltrim($v, ':'));
-			} elseif (is_string($v) && preg_match('#^@[\w\\\\]+$#D', $v)) {
+			if (is_string($v) && preg_match('#^@[\w\\\\]+$#D', $v)) {
 				$args[$k] = new Reference(substr($v, 1));
 			} elseif (is_array($v)) {
 				$args[$k] = self::filterArguments($v);
@@ -210,6 +202,7 @@ final class Helpers
 
 	/**
 	 * Returns an annotation value.
+	 * @deprecated
 	 */
 	public static function parseAnnotation(\Reflector $ref, string $name): ?string
 	{
@@ -219,6 +212,8 @@ final class Helpers
 
 		$re = '#[\s*]@' . preg_quote($name, '#') . '(?=\s|$)(?:[ \t]+([^@\s]\S*))?#';
 		if ($ref->getDocComment() && preg_match($re, trim($ref->getDocComment(), '/*'), $m)) {
+			$alt = $name === 'inject' ? '#[Nette\DI\Attributes\Inject]' : 'alternative';
+			trigger_error("Annotation @$name is deprecated, use $alt (used in " . Reflection::toString($ref) . ')', E_USER_DEPRECATED);
 			return $m[1] ?? '';
 		}
 
@@ -226,31 +221,23 @@ final class Helpers
 	}
 
 
-	public static function getReturnTypeAnnotation(\ReflectionFunctionAbstract $func): ?Type
+	public static function ensureClassType(
+		?Type $type,
+		string $hint,
+		string $descriptor = '',
+		bool $allowNullable = false,
+	): string
 	{
-		$type = preg_replace('#[|\s].*#', '', (string) self::parseAnnotation($func, 'return'));
-		if (!$type || $type === 'object' || $type === 'mixed') {
-			return null;
-		} elseif ($func instanceof \ReflectionMethod) {
-			$type = $type === '$this' ? 'static' : $type;
-			$type = Reflection::expandClassName($type, $func->getDeclaringClass());
-		}
-
-		return Type::fromString($type);
-	}
-
-
-	public static function ensureClassType(?Type $type, string $hint, bool $allowNullable = false): string
-	{
+		$descriptor = $descriptor ? "[$descriptor]\n" : '';
 		if (!$type) {
-			throw new ServiceCreationException(sprintf('%s is not declared.', ucfirst($hint)));
+			throw new ServiceCreationException(sprintf('%s%s is not declared.', $descriptor, ucfirst($hint)));
 		} elseif (!$type->isClass() || (!$allowNullable && $type->allows('null'))) {
-			throw new ServiceCreationException(sprintf("%s is expected to not be %sbuilt-in/complex, '%s' given.", ucfirst($hint), $allowNullable ? '' : 'nullable/', $type));
+			throw new ServiceCreationException(sprintf("%s%s is expected to not be %sbuilt-in/complex, '%s' given.", $descriptor, ucfirst($hint), $allowNullable ? '' : 'nullable/', $type));
 		}
 
 		$class = $type->getSingleName();
 		if (!class_exists($class) && !interface_exists($class)) {
-			throw new ServiceCreationException(sprintf("Class '%s' not found.\nCheck the %s.", $class, $hint));
+			throw new ServiceCreationException(sprintf("%sClass '%s' not found.\nCheck the %s.", $descriptor, $class, $hint));
 		}
 
 		return $class;
@@ -289,5 +276,23 @@ final class Helpers
 			is_scalar($value) ? "'$value'" : get_debug_type($value),
 			$type,
 		));
+	}
+
+
+	public static function entityToString(string|array|Reference $entity, bool $inner = false): string
+	{
+		if (is_string($entity)) {
+			return $entity . ($inner ? '()' : '');
+
+		} elseif ($entity instanceof Reference) {
+			return '@' . $entity->getValue();
+
+		} else {
+			[$a, $b] = $entity;
+			return self::entityToString($a instanceof Statement ? $a->getEntity() : $a, inner: true)
+				. '::'
+				. $b
+				. (str_contains($b, '$') ? '' : '()');
+		}
 	}
 }

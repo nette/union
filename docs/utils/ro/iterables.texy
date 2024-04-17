@@ -1,0 +1,170 @@
+Funcții Iterator
+****************
+
+.[perex]{data-version:4.0.4}
+[api:Nette\Utils\Iterables] este o clasă statică cu funcții pentru lucrul cu iteratori. Omologul său pentru array-uri este [Nette\Utils\Arrays |arrays].
+
+
+Instalare:
+
+```shell
+composer require nette/utils
+```
+
+Toate exemplele presupun că este creat următorul alias:
+
+```php
+use Nette\Utils\Iterables;
+```
+
+
+contains(iterable $iterable, $value): bool .[method]
+----------------------------------------------------
+
+Caută o valoare dată într-un iterator. Utilizează comparația strictă (`===`) pentru a verifica dacă există o potrivire. Returnează `true` dacă valoarea este găsită, altfel `false`.
+
+```php
+Iterables::contains(new ArrayIterator([1, 2, 3]), 1);    // true
+Iterables::contains(new ArrayIterator([1, 2, 3]), '1');  // false
+```
+
+Această metodă este utilă atunci când trebuie să determinați rapid dacă o anumită valoare este prezentă într-un iterator fără a itera manual prin toate elementele.
+
+
+containsKey(iterable $iterable, $key): bool .[method]
+-----------------------------------------------------
+
+Caută o cheie dată într-un iterator. Utilizează comparația strictă (`===`) pentru a verifica dacă există o potrivire. Returnează `true` dacă cheia este găsită, altfel `false`.
+
+```php
+Iterables::containsKey(new ArrayIterator([1, 2, 3]), 0);  // true
+Iterables::containsKey(new ArrayIterator([1, 2, 3]), 4);  // false
+```
+
+
+every(iterable $iterable, callable $predicate): bool .[method]
+--------------------------------------------------------------
+
+Verifică dacă toate elementele iteratorului îndeplinesc condiția definită în `$predicate`. Funcția `$predicate` are semnătura `function ($value, $key, iterable $iterable): bool` și trebuie să returneze `true` pentru fiecare element pentru ca metoda `every()` să returneze `true`.
+
+```php
+$iterator = new ArrayIterator([1, 30, 39, 29, 10, 13]);
+$isBelowThreshold = fn($value) => $value < 40;
+$res = Iterables::every($iterator, $isBelowThreshold); // true
+```
+
+Această metodă este utilă pentru a verifica dacă toate elementele unei colecții îndeplinesc o anumită condiție, cum ar fi dacă toate numerele sunt sub o anumită valoare.
+
+
+filter(iterable $iterable, callable $predicate): Generator .[method]
+--------------------------------------------------------------------
+
+Creează un nou iterator care conține numai elementele din iteratorul inițial care îndeplinesc condiția definită la `$predicate`. Funcția `$predicate` are semnătura `function ($value, $key, iterable $iterable): bool` și trebuie să returneze `true` pentru elementele care trebuie păstrate.
+
+```php
+$iterator = new ArrayIterator([1, 2, 3]);
+$iterator = Iterables::filter($iterator, fn($v) => $v < 3);
+// 1, 2
+```
+
+Metoda utilizează un generator, ceea ce înseamnă că filtrarea are loc în mod incremental în timpul iterației. Acest lucru este eficient din punct de vedere al memoriei și permite gestionarea colecțiilor foarte mari. Dacă nu iterați prin toate elementele iteratorului rezultat, economisiți efort de calcul, deoarece nu sunt procesate toate elementele iteratorului original.
+
+
+first(iterable $iterable, ?callable $predicate=null, ?callable $else=null): mixed .[method]
+-------------------------------------------------------------------------------------------
+
+Returnează primul element al iteratorului. Dacă se furnizează `$predicate`, aceasta returnează primul element care îndeplinește condiția dată. Funcția `$predicate` are semnătura `function ($value, $key, iterable $iterable): bool`. Dacă nu se găsește niciun element corespunzător, funcția `$else` (dacă este furnizată) este apelată și rezultatul său este returnat. Dacă `$else` nu este furnizat, se returnează `null`.
+
+```php
+Iterables::first(new ArrayIterator([1, 2, 3]));                   // 1
+Iterables::first(new ArrayIterator([1, 2, 3]), fn($v) => $v > 2); // 3
+Iterables::first(new ArrayIterator([]));                          // null
+Iterables::first(new ArrayIterator([]), else: fn() => false);     // false
+```
+
+Această metodă este utilă atunci când trebuie să recuperați rapid primul element al unei colecții sau primul element care îndeplinește o anumită condiție fără a parcurge manual întreaga colecție.
+
+
+firstKey(iterable $iterable, ?callable $predicate=null, ?callable $else=null): mixed .[method]
+----------------------------------------------------------------------------------------------
+
+Returnează cheia primului element al iteratorului. Dacă se furnizează `$predicate`, aceasta returnează cheia primului element care îndeplinește condiția dată. Funcția `$predicate` are semnătura `function ($value, $key, iterable $iterable): bool`. Dacă nu se găsește niciun element corespunzător, funcția `$else` (dacă este furnizată) este apelată și rezultatul său este returnat. Dacă `$else` nu este furnizat, se returnează `null`.
+
+```php
+Iterables::firstKey(new ArrayIterator([1, 2, 3]));                   // 0
+Iterables::firstKey(new ArrayIterator([1, 2, 3]), fn($v) => $v > 2); // 2
+Iterables::firstKey(new ArrayIterator(['a' => 1, 'b' => 2]));        // 'a'
+Iterables::firstKey(new ArrayIterator([]));                          // null
+```
+
+
+map(iterable $iterable, callable $transformer): Generator .[method]
+-------------------------------------------------------------------
+
+Creează un nou iterator prin aplicarea funcției `$transformer` la fiecare element al iteratorului original. Funcția `$transformer` are semnătura `function ($value, $key, iterable $iterable): mixed`, iar valoarea sa de retur este utilizată ca noua valoare a elementului.
+
+```php
+$iterator = new ArrayIterator([1, 2, 3]);
+$iterator = Iterables::map($iterator, fn($v) => $v * 2);
+// 2, 4, 6
+```
+
+Metoda utilizează un generator, ceea ce înseamnă că transformarea are loc în mod incremental în timpul iterației. Acest lucru este eficient din punct de vedere al memoriei și permite gestionarea colecțiilor foarte mari. Dacă nu iterați prin toate elementele iteratorului rezultat, economisiți efort de calcul, deoarece nu sunt prelucrate toate elementele iteratorului original.
+
+
+mapWithKeys(iterable $iterable, callable $transformer): Generator .[method]
+---------------------------------------------------------------------------
+
+Creează un nou iterator prin transformarea valorilor și a cheilor iteratorului inițial. Funcția `$transformer` are semnătura `function ($value, $key, iterable $iterable): ?array{$newKey, $newValue}`. Dacă `$transformer` returnează `null`, elementul este ignorat. Pentru elementele reținute, primul element al matricei returnate este utilizat ca nouă cheie, iar al doilea element ca nouă valoare.
+
+```php
+$iterator = new ArrayIterator(['a' => 1, 'b' => 2]);
+$iterator = Iterables::mapWithKeys($iterator, fn($v, $k) => $v > 1 ? [$v * 2, strtoupper($k)] : null);
+// [4 => 'B']
+```
+
+Ca și `map()`, această metodă utilizează un generator pentru procesare incrementală și eficiență în memorie. Aceasta permite lucrul cu colecții mari și economisirea efortului de calcul prin prelucrarea doar a unei părți din rezultat.
+
+
+memoize(iterable $iterable): IteratorAggregate .[method]
+--------------------------------------------------------
+
+Creează un înveliș în jurul unui iterator care memorează cheile și valorile acestuia în timpul iterației. Acest lucru permite iterarea repetată a datelor fără a fi necesară prelucrarea din nou a sursei de date originale.
+
+```php
+$iterator = /* data that cannot be iterated multiple times */
+$memoized = Iterables::memoize($iterator);
+// Now you can iterate $memoized multiple times without data loss
+```
+
+Această metodă este utilă în situațiile în care trebuie să iterați asupra aceluiași set de date de mai multe ori, dar iteratorul original nu acceptă iterația repetată sau iterația repetată ar fi costisitoare (de exemplu, citirea datelor dintr-o bază de date sau dintr-un fișier).
+
+
+some(iterable $iterable, callable $predicate): bool .[method]
+-------------------------------------------------------------
+
+Verifică dacă cel puțin un element al iteratorului îndeplinește condiția definită în `$predicate`. Funcția `$predicate` are semnătura `function ($value, $key, iterable $iterable): bool` și trebuie să returneze `true` pentru cel puțin un element pentru ca metoda `some()` să returneze `true`.
+
+```php
+$iterator = new ArrayIterator([1, 30, 39, 29, 10, 13]);
+$isEven = fn($value) => $value % 2 === 0;
+$res = Iterables::some($iterator, $isEven); // true
+```
+
+Această metodă este utilă pentru a verifica rapid dacă există cel puțin un element într-o colecție care îndeplinește o anumită condiție, cum ar fi dacă colecția conține cel puțin un număr par.
+
+Consultați [every() |#every()].
+
+
+toIterator(iterable $iterable): Iterator .[method]
+--------------------------------------------------
+
+Convertește orice obiect iterabil (array, Traversable) într-un Iterator. Dacă intrarea este deja un Iterator, acesta este returnat neschimbat.
+
+```php
+$array = [1, 2, 3];
+$iterator = Iterables::toIterator($array);
+// Now you have an Iterator instead of an array
+```
+
+Această metodă este utilă atunci când trebuie să vă asigurați că aveți un Iterator, indiferent de tipul de date de intrare. Acest lucru poate fi util atunci când se creează funcții care lucrează cu diferite tipuri de date iterabile.

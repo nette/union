@@ -70,17 +70,6 @@ Assert::equal(
 );
 
 
-// ... deprecated
-$data = @$adapter->load(Tester\FileMock::create('
-- Class(arg1, ..., [...])
-', 'neon'));
-
-Assert::equal(
-	[new Statement('Class', ['arg1', 2 => ['...']])],
-	$data,
-);
-
-
 // @ escaping
 $data = @$adapter->load(Tester\FileMock::create('
 - @@double
@@ -95,6 +84,27 @@ Assert::equal(
 		'@@doublequoted',
 		'@simple',
 		'@@simplequoted', // escaped
+	],
+	$data,
+);
+
+
+// constants
+$data = @$adapter->load(Tester\FileMock::create('
+- Foo::Bar
+- ArrayIterator::STD_PROP_LIST
+- "ArrayIterator::STD_PROP_LIST"
+- ::PHP_INT_MAX
+- ArrayIterator::STD_PROP_LIST()
+', 'neon'));
+
+Assert::equal(
+	[
+		'Foo::Bar',
+		ArrayIterator::STD_PROP_LIST,
+		'ArrayIterator::STD_PROP_LIST',
+		PHP_INT_MAX,
+		new Statement('ArrayIterator::STD_PROP_LIST'),
 	],
 	$data,
 );

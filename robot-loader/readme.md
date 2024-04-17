@@ -1,5 +1,4 @@
-RobotLoader: comfortable autoloading
-====================================
+[![RobotLoader](https://github.com/nette/robot-loader/assets/194960/53a155e2-5959-44c5-8944-d1b9ec203923)](https://doc.nette.org/en/robot-loader)
 
 [![Downloads this Month](https://img.shields.io/packagist/dm/nette/robot-loader.svg)](https://packagist.org/packages/nette/robot-loader)
 [![Tests](https://github.com/nette/robot-loader/workflows/Tests/badge.svg?branch=master)](https://github.com/nette/robot-loader/actions)
@@ -28,6 +27,8 @@ require_once 'Utils/Paginator.php';
 ...
 ```
 
+ <!---->
+
 [Support Me](https://github.com/sponsors/dg)
 --------------------------------------------
 
@@ -37,6 +38,7 @@ Do you like RobotLoader? Are you looking forward to the new features?
 
 Thank you!
 
+ <!---->
 
 Installation
 ------------
@@ -56,8 +58,9 @@ If you're building an application using [Composer](https://doc.nette.org/en/best
 composer require nette/robot-loader
 ```
 
-It requires PHP version 8.0 and supports PHP up to 8.3.
+It requires PHP version 8.0 and supports PHP up to 8.4.
 
+ <!---->
 
 Usage
 -----
@@ -84,6 +87,7 @@ If you want RobotLoader to skip certain directories, use `$loader->excludeDirect
 
 By default, RobotLoader reports errors in PHP files by throwing a `ParseError` exception. This can be suppressed using `$loader->reportParseErrors(false)`.
 
+ <!---->
 
 PHP Files Analyzer
 ------------------
@@ -117,6 +121,7 @@ $loader->refresh();
 $res = $loader->getIndexedClasses();
 ```
 
+ <!---->
 
 Caching
 -------
@@ -131,6 +136,7 @@ The initial file scanning, when the cache doesn't exist yet, can naturally take 
 This is a situation where a large number of concurrent requests on a production server would trigger RobotLoader, and since the cache doesn't exist yet, they would all start scanning files, which would overload the server.
 Fortunately, RobotLoader works in such a way that only the first thread indexes the files, creates the cache, and the rest wait and then use the cache.
 
+ <!---->
 
 PSR-4
 -----

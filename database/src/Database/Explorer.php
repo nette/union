@@ -75,13 +75,14 @@ class Explorer
 	/** @deprecated  use query() */
 	public function queryArgs(string $sql, array $params): ResultSet
 	{
+		trigger_error(__METHOD__ . '() is deprecated, use query()', E_USER_DEPRECATED);
 		return $this->connection->query($sql, ...$params);
 	}
 
 
 	public function table(string $table): Table\Selection
 	{
-		return new Table\Selection($this, $this->conventions, $table, $this->cacheStorage);
+		return new Table\Selection($this, $this->conventions, $table, $this->cacheStorage, $this->mapper);
 	}
 
 

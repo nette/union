@@ -142,6 +142,12 @@ Nebo přímo v souboru `composer.json`:
 ```
 
 
+Ignorování verze PHP
+====================
+
+Balíčky zpravidla mívají uvedenou jak nejnižší verzi PHP, se kterou jsou kompatibilní, tak i nejvyšší, se kterou jsou testované. Pokud se chystáte používat verzi PHP ještě novější, třeba z důvodu testování, Composer odmítne takový balíček nainstalovat. Řešením je volba `--ignore-platform-req=php+`, která způsobí, že Composer bude ignorovat horní limity požadované verze PHP.
+
+
 Planá hlášení
 =============
 
@@ -183,7 +189,7 @@ Nicméně je možné používat Composer i pro načítání dalších tříd i m
 
 Následně je potřeba při každé změně spustit příkaz `composer dumpautoload` a nechat autoloadovací tabulky přegenerovat. To je nesmírně nepohodlné a daleko lepší je tento úkol svěřit [RobotLoaderu|robot-loader:], který stejnou činnost provádí automaticky na pozadí a mnohem rychleji.
 
-Druhou možností je dodržovat [PSR-4|https://www.php-fig.org/psr/psr-4/]. Zjednodušeně řečeno jde o systém, kdy jmenné prostory a názvy tříd odpovídají adresářové struktuře a názvům souborů, tedy např. `App\Router\RouterFactory` bude v souboru `/path/to/App/Router/RouterFactory.php`. Příklad konfigurace:
+Druhou možností je dodržovat [PSR-4|https://www.php-fig.org/psr/psr-4/]. Zjednodušeně řečeno jde o systém, kdy jmenné prostory a názvy tříd odpovídají adresářové struktuře a názvům souborů, tedy např. `App\Core\RouterFactory` bude v souboru `/path/to/App/Core/RouterFactory.php`. Příklad konfigurace:
 
 ```js
 {
