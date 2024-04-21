@@ -231,7 +231,7 @@ class SqlPreprocessor
 						$vx[] = implode(', ', $vx2);
 					}
 
-					$select = $this->driver->isSupported(Driver::SupportMultiInsertAsSelect);
+					$select = $this->driver->isSupported(Driver::SUPPORT_MULTI_INSERT_AS_SELECT);
 					return '(' . implode(', ', $kx) . ($select ? ') SELECT ' : ') VALUES (')
 						. implode($select ? ' UNION ALL SELECT ' : '), (', $vx) . ($select ? '' : ')');
 				}

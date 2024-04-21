@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Nette\Database;
 
 use Nette;
+use PDO;
 
 
 /**
@@ -17,7 +18,7 @@ use Nette;
  */
 class ResultSet implements \Iterator, IRowContainer
 {
-	private ?ResultDriver $result = null;
+	private ?\PDOStatement $pdoStatement = null;
 
 	/** @var callable(array, ResultSet): array */
 	private $normalizer;
@@ -38,12 +39,26 @@ class ResultSet implements \Iterator, IRowContainer
 	) {
 		$time = microtime(true);
 		$this->normalizer = $normalizer;
+		$types = ['boolean' => PDO::PARAM_BOOL, 'integer' => PDO::PARAM_INT, 'resource' => PDO::PARAM_LOB, 'NULL' => PDO::PARAM_NULL];
 
-		$driver = $connection->getDriver();
-		if (str_starts_with($queryString, '::')) {
-			$driver->{substr($queryString, 2)}();
-		} else {
-			$this->result = $driver->query($queryString, $params);
+		try {
+			if (str_starts_with($queryString, '::')) {
+				$connection->getPdo()->{substr($queryString, 2)}();
+			} else {
+				$this->pdoStatement = $connection->getPdo()->prepare($queryString);
+				foreach ($params as $key => $value) {
+					$type = gettype($value);
+					$this->pdoStatement->bindValue(is_int($key) ? $key + 1 : $key, $value, $types[$type] ?? PDO::PARAM_STR);
+				}
+
+				$this->pdoStatement->setFetchMode(PDO::FETCH_ASSOC);
+				@$this->pdoStatement->execute(); // @ PHP generates warning when ATTR_ERRMODE = ERRMODE_EXCEPTION bug #73878
+			}
+		} catch (\PDOException $e) {
+			$e = $connection->getDriver()->convertException($e);
+			$e->queryString = $queryString;
+			$e->params = $params;
+			throw $e;
 		}
 
 		$this->time = microtime(true) - $time;
@@ -53,7 +68,7 @@ class ResultSet implements \Iterator, IRowContainer
 	/** @deprecated */
 	public function getConnection(): Connection
 	{
-		throw new Nette\DeprecatedException(__METHOD__ . '() is deprecated.');
+		return $this->connection;
 	}
 
 
@@ -62,7 +77,7 @@ class ResultSet implements \Iterator, IRowContainer
 	 */
 	public function getPdoStatement(): ?\PDOStatement
 	{
-		return $this->result->getPDOStatement();
+		return $this->pdoStatement;
 	}
 
 
@@ -80,28 +95,19 @@ class ResultSet implements \Iterator, IRowContainer
 
 	public function getColumnCount(): ?int
 	{
-		return $this->result?->getColumnCount();
+		return $this->pdoStatement ? $this->pdoStatement->columnCount() : null;
 	}
 
 
 	public function getRowCount(): ?int
 	{
-		return $this->result?->getRowCount();
-	}
-
-
-	/** @return Reflection\Column[] */
-	public function getColumns(): array
-	{
-		// add cache per connection & query, kontrolovat limit, dat moznost vypnout
-		return $this->result->getColumns();
+		return $this->pdoStatement ? $this->pdoStatement->rowCount() : null;
 	}
 
 
 	public function getColumnTypes(): array
 	{
-		// zrusit
-		$this->types ??= $this->result->getColumnTypes();
+		$this->types ??= $this->connection->getDriver()->getColumnTypes($this->pdoStatement);
 		return $this->types;
 	}
 
@@ -177,12 +183,13 @@ class ResultSet implements \Iterator, IRowContainer
 	 */
 	public function fetch(): ?Row
 	{
-		$data = $this->result?->fetch();
-		if ($data === null) {
+		$data = $this->pdoStatement ? $this->pdoStatement->fetch() : null;
+		if (!$data) {
+			$this->pdoStatement->closeCursor();
 			return null;
 
-		} elseif ($this->lastRow === null && count($data) !== $this->result->getColumnCount()) {
-			$duplicates = Helpers::findDuplicates($this->result);
+		} elseif ($this->lastRow === null && count($data) !== $this->pdoStatement->columnCount()) {
+			$duplicates = Helpers::findDuplicates($this->pdoStatement);
 			trigger_error("Found duplicate columns in database result set: $duplicates.");
 		}
 
@@ -195,13 +202,6 @@ class ResultSet implements \Iterator, IRowContainer
 
 		$this->lastRowKey++;
 		return $this->lastRow = $row;
-	}
-
-
-	/** @internal */
-	public function fetchArray(): ?array
-	{
-		return $this->result?->fetch();
 	}
 
 
@@ -228,9 +228,9 @@ class ResultSet implements \Iterator, IRowContainer
 	/**
 	 * Fetches all rows as associative array.
 	 */
-	public function fetchPairs(string|int|\Closure|null $keyOrCallback = null, string|int|null $value = null): array
+	public function fetchPairs(string|int|null $key = null, string|int|null $value = null): array
 	{
-		return Helpers::toPairs($this->fetchAll(), $keyOrCallback, $value);
+		return Helpers::toPairs($this->fetchAll(), $key, $value);
 	}
 
 

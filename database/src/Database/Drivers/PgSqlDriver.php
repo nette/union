@@ -15,28 +15,37 @@ use Nette;
 /**
  * Supplemental PostgreSQL database driver.
  */
-class PgSqlDriver extends PdoDriver
+class PgSqlDriver implements Nette\Database\Driver
 {
-	public function detectExceptionClass(\PDOException $e): ?string
+	private Nette\Database\Connection $connection;
+
+
+	public function initialize(Nette\Database\Connection $connection, array $options): void
+	{
+		$this->connection = $connection;
+	}
+
+
+	public function convertException(\PDOException $e): Nette\Database\DriverException
 	{
 		$code = $e->errorInfo[0] ?? null;
 		if ($code === '0A000' && str_contains($e->getMessage(), 'truncate')) {
-			return Nette\Database\ForeignKeyConstraintViolationException::class;
+			return Nette\Database\ForeignKeyConstraintViolationException::from($e);
 
 		} elseif ($code === '23502') {
-			return Nette\Database\NotNullConstraintViolationException::class;
+			return Nette\Database\NotNullConstraintViolationException::from($e);
 
 		} elseif ($code === '23503') {
-			return Nette\Database\ForeignKeyConstraintViolationException::class;
+			return Nette\Database\ForeignKeyConstraintViolationException::from($e);
 
 		} elseif ($code === '23505') {
-			return Nette\Database\UniqueConstraintViolationException::class;
+			return Nette\Database\UniqueConstraintViolationException::from($e);
 
 		} elseif ($code === '08006') {
-			return Nette\Database\ConnectionException::class;
+			return Nette\Database\ConnectionException::from($e);
 
 		} else {
-			return null;
+			return Nette\Database\DriverException::from($e);
 		}
 	}
 
@@ -65,8 +74,8 @@ class PgSqlDriver extends PdoDriver
 
 	public function formatLike(string $value, int $pos): string
 	{
-		$bs = substr($this->pdo->quote('\\'), 1, -1); // standard_conforming_strings = on/off
-		$value = substr($this->pdo->quote($value), 1, -1);
+		$bs = substr($this->connection->quote('\\'), 1, -1); // standard_conforming_strings = on/off
+		$value = substr($this->connection->quote($value), 1, -1);
 		$value = strtr($value, ['%' => $bs . '%', '_' => $bs . '_', '\\' => '\\\\']);
 		return ($pos <= 0 ? "'%" : "'") . $value . ($pos >= 0 ? "%'" : "'");
 	}
@@ -93,7 +102,8 @@ class PgSqlDriver extends PdoDriver
 
 	public function getTables(): array
 	{
-		return $this->pdo->query(<<<'X'
+		$tables = [];
+		foreach ($this->connection->query(<<<'X'
 			SELECT DISTINCT ON (c.relname)
 				c.relname::varchar AS name,
 				c.relkind IN ('v', 'm') AS view,
@@ -106,18 +116,21 @@ class PgSqlDriver extends PdoDriver
 				AND n.nspname = ANY (pg_catalog.current_schemas(FALSE))
 			ORDER BY
 				c.relname
-			X)->fetchAll(\PDO::FETCH_ASSOC);
+			X) as $row) {
+			$tables[] = (array) $row;
+		}
+
+		return $tables;
 	}
 
 
 	public function getColumns(string $table): array
 	{
 		$columns = [];
-		foreach ($this->pdo->query(<<<X
+		foreach ($this->connection->query(<<<X
 			SELECT
 				a.attname::varchar AS name,
 				c.relname::varchar AS table,
-				t.typname AS type,
 				upper(t.typname) AS nativetype,
 				CASE WHEN a.atttypmod = -1 THEN NULL ELSE a.atttypmod -4 END AS size,
 				NOT (a.attnotnull OR t.typtype = 'd' AND t.typnotnull) AS nullable,
@@ -135,13 +148,13 @@ class PgSqlDriver extends PdoDriver
 				LEFT JOIN pg_catalog.pg_constraint AS co ON co.connamespace = c.relnamespace AND contype = 'p' AND co.conrelid = c.oid AND a.attnum = ANY(co.conkey)
 			WHERE
 				c.relkind IN ('r', 'v', 'm', 'p')
-				AND c.oid = {$this->pdo->quote($this->delimiteFQN($table))}::regclass
+				AND c.oid = {$this->connection->quote($this->delimiteFQN($table))}::regclass
 				AND a.attnum > 0
 				AND NOT a.attisdropped
 			ORDER BY
 				a.attnum
-			X, \PDO::FETCH_ASSOC) as $column) {
-			$column['type'] = Nette\Database\Helpers::detectType($column['type']);
+			X) as $row) {
+			$column = (array) $row;
 			$column['vendor'] = $column;
 			unset($column['sequence']);
 
@@ -155,7 +168,7 @@ class PgSqlDriver extends PdoDriver
 	public function getIndexes(string $table): array
 	{
 		$indexes = [];
-		foreach ($this->pdo->query(<<<X
+		foreach ($this->connection->query(<<<X
 			SELECT
 				c2.relname::varchar AS name,
 				i.indisunique AS unique,
@@ -168,7 +181,7 @@ class PgSqlDriver extends PdoDriver
 				LEFT JOIN pg_catalog.pg_attribute AS a ON c1.oid = a.attrelid AND a.attnum = ANY(i.indkey)
 			WHERE
 				c1.relkind IN ('r', 'p')
-				AND c1.oid = {$this->pdo->quote($this->delimiteFQN($table))}::regclass
+				AND c1.oid = {$this->connection->quote($this->delimiteFQN($table))}::regclass
 			X) as $row) {
 			$id = $row['name'];
 			$indexes[$id]['name'] = $id;
@@ -184,8 +197,7 @@ class PgSqlDriver extends PdoDriver
 	public function getForeignKeys(string $table): array
 	{
 		/* Doesn't work with multi-column foreign keys */
-		$keys = [];
-		foreach ($this->pdo->query(<<<X
+		return $this->connection->query(<<<X
 			SELECT
 				co.conname::varchar AS name,
 				al.attname::varchar AS local,
@@ -200,17 +212,9 @@ class PgSqlDriver extends PdoDriver
 				JOIN pg_catalog.pg_attribute AS af ON af.attrelid = cf.oid AND af.attnum = co.confkey[1]
 			WHERE
 				co.contype = 'f'
-				AND cl.oid = {$this->pdo->quote($this->delimiteFQN($table))}::regclass
+				AND cl.oid = {$this->connection->quote($this->delimiteFQN($table))}::regclass
 				AND nf.nspname = ANY (pg_catalog.current_schemas(FALSE))
-			X) as $row) {
-			$id = $row['name'];
-			$keys[$id]['name'] = $id;
-			$keys[$id]['local'][] = $row['local'];
-			$keys[$id]['table'] = $row['table'];
-			$keys[$id]['foreign'][] = $row['foreign'];
-		}
-
-		return array_values($keys);
+			X)->fetchAll();
 	}
 
 
@@ -225,7 +229,7 @@ class PgSqlDriver extends PdoDriver
 
 	public function isSupported(string $item): bool
 	{
-		return $item === self::SupportSequence || $item === self::SupportSubselect || $item === self::SupportSchema;
+		return $item === self::SUPPORT_SEQUENCE || $item === self::SUPPORT_SUBSELECT || $item === self::SUPPORT_SCHEMA;
 	}
 
 

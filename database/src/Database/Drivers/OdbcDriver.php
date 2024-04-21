@@ -15,8 +15,22 @@ use Nette;
 /**
  * Supplemental ODBC database driver.
  */
-class OdbcDriver extends PdoDriver
+class OdbcDriver implements Nette\Database\Driver
 {
+	public function initialize(Nette\Database\Connection $connection, array $options): void
+	{
+	}
+
+
+	public function convertException(\PDOException $e): Nette\Database\DriverException
+	{
+		return Nette\Database\DriverException::from($e);
+	}
+
+
+	/********************* SQL ****************d*g**/
+
+
 	public function delimite(string $name): string
 	{
 		return '[' . str_replace(['[', ']'], ['[[', ']]'], $name) . ']';
@@ -94,6 +108,6 @@ class OdbcDriver extends PdoDriver
 
 	public function isSupported(string $item): bool
 	{
-		return $item === self::SupportSubselect;
+		return $item === self::SUPPORT_SUBSELECT;
 	}
 }

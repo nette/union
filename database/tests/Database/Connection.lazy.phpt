@@ -50,7 +50,7 @@ test('connect & disconnect', function () {
 
 	try {
 		$connection = new Nette\Database\Connection($options['dsn'], $options['user'], $options['password']);
-	} catch (Nette\Database\ConnectionException $e) {
+	} catch (PDOException $e) {
 		Tester\Environment::skip("Connection to '$options[dsn]' failed. Reason: " . $e->getMessage());
 	}
 
