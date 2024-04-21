@@ -22,7 +22,6 @@ interface Loader
 
 	/**
 	 * Checks whether template is expired.
-	 * @deprecated
 	 */
 	function isExpired(string $name, int $time): bool;
 

@@ -13,13 +13,14 @@ use Latte\Compiler\Node;
 use Latte\Compiler\Nodes;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\NodeTraverser;
+use Latte\Compiler\PhpHelpers;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\Token;
 
 
 /**
- * {templatePrint [ParentClass]}
+ * {templatePrint [ClassName]}
  */
 class TemplatePrintNode extends StatementNode
 {
@@ -36,13 +37,7 @@ class TemplatePrintNode extends StatementNode
 
 	public function print(PrintContext $context): string
 	{
-		return $context->format(<<<'XX'
-			$ʟ_bp = new Latte\Essential\Blueprint;
-			$ʟ_bp->printBegin();
-			$ʟ_bp->printClass($ʟ_bp->generateTemplateClass($this->getParameters(), extends: %dump));
-			$ʟ_bp->printEnd();
-			exit;
-			XX, $this->template);
+		return '(new Latte\Essential\Blueprint)->printClass($this, ' . PhpHelpers::dump($this->template) . '); exit;';
 	}
 
 

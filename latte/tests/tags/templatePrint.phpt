@@ -22,10 +22,7 @@ Assert::match(
 			{
 				extract($this->params);
 
-				$ʟ_bp = new Latte\Essential\Blueprint;
-				$ʟ_bp->printBegin();
-				$ʟ_bp->printClass($ʟ_bp->generateTemplateClass($this->getParameters(), extends: null));
-				$ʟ_bp->printEnd();
+				(new Latte\Essential\Blueprint)->printClass($this, null);
 				exit;
 		%A%
 		XX,
@@ -40,10 +37,7 @@ Assert::match(
 			{
 				extract($this->params);
 
-				$ʟ_bp = new Latte\Essential\Blueprint;
-				$ʟ_bp->printBegin();
-				$ʟ_bp->printClass($ʟ_bp->generateTemplateClass($this->getParameters(), extends: 'Foo'));
-				$ʟ_bp->printEnd();
+				(new Latte\Essential\Blueprint)->printClass($this, 'Foo');
 				exit;
 		%A%
 		XX,
