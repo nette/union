@@ -49,8 +49,11 @@ final class CookieStorage implements Nette\Security\UserStorage
 			$this->cookieName,
 			$uid,
 			$this->cookieExpiration,
-			domain: $this->cookieDomain,
-			sameSite: $this->cookieSameSite,
+			null,
+			$this->cookieDomain,
+			null,
+			true,
+			$this->cookieSameSite,
 		);
 	}
 
@@ -60,7 +63,8 @@ final class CookieStorage implements Nette\Security\UserStorage
 		$this->uid = '';
 		$this->response->deleteCookie(
 			$this->cookieName,
-			domain: $this->cookieDomain,
+			null,
+			$this->cookieDomain,
 		);
 	}
 
