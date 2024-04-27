@@ -37,7 +37,7 @@ class InputErrorNode extends StatementNode
 	public function print(PrintContext $context): string
 	{
 		return $context->format(
-			'echo %escape($this->global->forms->item(%node)->getError()) %line;',
+			'echo %escape(Nette\Bridges\FormsLatte\Runtime::item(%node, $this->global)->getError()) %line;',
 			$this->name,
 			$this->position,
 		);

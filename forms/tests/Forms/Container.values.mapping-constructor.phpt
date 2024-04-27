@@ -40,6 +40,12 @@ class FormSecondLevelConstruct
 }
 
 
+function hydrate(string $class, array $data)
+{
+	return new $class(...$data);
+}
+
+
 function createForm(): Form
 {
 	$form = new Form;

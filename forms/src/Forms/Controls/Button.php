@@ -23,7 +23,6 @@ class Button extends BaseControl
 		parent::__construct($caption);
 		$this->control->type = 'button';
 		$this->setOption('type', 'button');
-		$this->setOmitted();
 	}
 
 

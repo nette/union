@@ -63,8 +63,9 @@ class SelectBox extends ChoiceControl
 
 	/**
 	 * Sets options and option groups from which to choose.
+	 * @return static
 	 */
-	public function setItems(array $items, bool $useKeys = true): static
+	public function setItems(array $items, bool $useKeys = true)
 	{
 		if (!$useKeys) {
 			$res = [];
@@ -95,7 +96,7 @@ class SelectBox extends ChoiceControl
 		}
 
 		$attrs = $this->optionAttributes;
-		$attrs['disabled:'] = $this->disabledChoices;
+		$attrs['disabled:'] = is_array($this->disabled) ? $this->disabled : [];
 
 		$selected = $this->value;
 		if ($this->prompt !== false) {

@@ -39,9 +39,10 @@ class HiddenField extends BaseControl
 
 	/**
 	 * Sets control's value.
+	 * @return static
 	 * @internal
 	 */
-	public function setValue($value): static
+	public function setValue($value)
 	{
 		if ($value === null) {
 			$value = '';
@@ -72,12 +73,6 @@ class HiddenField extends BaseControl
 	{
 		$this->nullable = $value;
 		return $this;
-	}
-
-
-	public function isNullable(): bool
-	{
-		return $this->nullable;
 	}
 
 

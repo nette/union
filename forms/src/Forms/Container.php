@@ -45,39 +45,36 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 	/**
 	 * Fill-in with default values.
-	 * @param  array|\Traversable|\stdClass  $values
 	 */
-	public function setDefaults(array|object $values, bool $erase = false): static
+	public function setDefaults(array|object $data, bool $erase = false): static
 	{
 		$form = $this->getForm(false);
-		$this->setValues($values, $erase, $form?->isAnchored() && $form->isSubmitted());
+		if (!$form || !$form->isAnchored() || !$form->isSubmitted()) {
+			$this->setValues($data, $erase);
+		}
+
 		return $this;
 	}
 
 
 	/**
 	 * Fill-in with values.
-	 * @param  array|\Traversable|\stdClass  $values
 	 * @internal
 	 */
-	public function setValues(array|object $values, bool $erase = false, bool $onlyDisabled = false): static
+	public function setValues(array|object $values, bool $erase = false): static
 	{
-		if (is_object($values) && !($values instanceof \Traversable || $values instanceof \stdClass)) {
-			trigger_error(__METHOD__ . ': argument should be array|Traversable|stdClass, ' . get_debug_type($values) . ' given.');
-		}
-
 		$values = $values instanceof \Traversable
 			? iterator_to_array($values)
 			: (array) $values;
 
 		foreach ($this->getComponents() as $name => $control) {
 			if ($control instanceof Control) {
-				if ((array_key_exists($name, $values) && (!$onlyDisabled || $control->isDisabled())) || $erase) {
+				if (array_key_exists($name, $values) || $erase) {
 					$control->setValue($values[$name] ?? null);
 				}
 			} elseif ($control instanceof self) {
 				if (isset($values[$name]) || $erase) {
-					$control->setValues($values[$name] ?? [], $erase, $onlyDisabled);
+					$control->setValues($values[$name] ?? [], $erase);
 				}
 			}
 		}
@@ -131,56 +128,51 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	public function getUntrustedValues(string|object|null $returnType = null, ?array $controls = null): object|array
 	{
 		if (is_object($returnType)) {
-			$resultObj = $returnType;
-			$properties = (new \ReflectionClass($resultObj))->getProperties();
+			$obj = $returnType;
+			$rc = new \ReflectionClass($obj);
 
 		} else {
 			$returnType = ($returnType ?? $this->mappedType ?? ArrayHash::class);
 			$rc = new \ReflectionClass($returnType === self::Array ? \stdClass::class : $returnType);
-			$constructor = $rc->hasMethod('__construct') ? $rc->getMethod('__construct') : null;
-			if ($constructor?->getNumberOfRequiredParameters()) {
-				$resultObj = new \stdClass;
-				$properties = $constructor->getParameters();
+			if ($rc->hasMethod('__construct') && $rc->getMethod('__construct')->getNumberOfRequiredParameters()) {
+				$obj = new \stdClass;
+				$useConstructor = true;
 			} else {
-				$constructor = null;
-				$resultObj = $rc->newInstance();
-				$properties = $rc->getProperties();
+				$obj = $rc->newInstance();
 			}
 		}
-
-		$properties = array_combine(array_map(fn($p) => $p->getName(), $properties), $properties);
 
 		foreach ($this->getComponents() as $name => $control) {
 			$allowed = $controls === null || in_array($this, $controls, true) || in_array($control, $controls, true);
 			$name = (string) $name;
-			$property = $properties[$name] ?? null;
 			if (
 				$control instanceof Control
 				&& $allowed
 				&& !$control->isOmitted()
 			) {
-				$resultObj->$name = Helpers::tryEnumConversion($control->getValue(), $property);
+				$obj->$name = $control->getValue();
 
 			} elseif ($control instanceof self) {
 				$type = $returnType === self::Array && !$control->mappedType
 					? self::Array
-					: ($property ? Helpers::getSingleType($property) : null);
-				$resultObj->$name = $control->getUntrustedValues($type, $allowed ? null : $controls);
+					: ($rc->hasProperty($name) ? Helpers::getSingleType($rc->getProperty($name)) : null);
+				$obj->$name = $control->getUntrustedValues($type, $allowed ? null : $controls);
 			}
 		}
 
-		return match (true) {
-			isset($constructor) => new $returnType(...(array) $resultObj),
-			$returnType === self::Array => (array) $resultObj,
-			default => $resultObj,
-		};
+		if (isset($useConstructor)) {
+			return new $returnType(...(array) $obj);
+		}
+
+		return $returnType === self::Array
+			? (array) $obj
+			: $obj;
 	}
 
 
 	/** @deprecated use getUntrustedValues() */
 	public function getUnsafeValues($returnType, ?array $controls = null)
 	{
-		trigger_error(__METHOD__ . '() was renamed to getUntrustedValues()', E_USER_DEPRECATED);
 		return $this->getUntrustedValues($returnType, $controls);
 	}
 
@@ -284,10 +276,6 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 		?string $insertBefore = null,
 	): static
 	{
-		if (!$component instanceof Control && !$component instanceof self) {
-			throw new Nette\InvalidStateException("Component '$name' of type " . get_debug_type($component) . ' is not intended to be used in the form.');
-		}
-
 		parent::addComponent($component, $name, $insertBefore);
 		$this->currentGroup?->add($component);
 		return $this;
@@ -295,12 +283,11 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 
 	/**
-	 * Retrieves the entire hierarchy of form controls including nested.
-	 * @return list<Control>
+	 * Iterates over all form controls.
 	 */
-	public function getControls(): array
+	public function getControls(): \Iterator
 	{
-		return array_values(array_filter($this->getComponentTree(), fn($c) => $c instanceof Control));
+		return $this->getComponents(true, Control::class);
 	}
 
 
@@ -566,7 +553,6 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	/** @deprecated  use addImageButton() */
 	public function addImage(): Controls\ImageButton
 	{
-		trigger_error(__METHOD__ . '() was renamed to addImageButton()', E_USER_DEPRECATED);
 		return $this->addImageButton(...func_get_args());
 	}
 
@@ -586,7 +572,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	/********************* extension methods ****************d*g**/
 
 
-	public function __call(string $name, array $args)
+	public function __call(string $name, array $args): mixed
 	{
 		if (isset(self::$extMethods[$name])) {
 			return (self::$extMethods[$name])($this, ...$args);

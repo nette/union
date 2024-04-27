@@ -15,4 +15,22 @@ $form->addContainer('cont')
 	->addText('name');
 
 $controls = $form->getControls();
-Assert::same([$form['name'], $form['age'], $form['cont-name']], $controls);
+
+$names = $values = [];
+foreach ($controls as $name => $value) {
+	$names[] = $name;
+	$values[] = $value;
+}
+
+Assert::same(['name', 'age', 'name'], $names);
+Assert::same([$form['name'], $form['age'], $form['cont-name']], $values);
+
+// again
+$names = $values = [];
+foreach ($controls as $name => $value) {
+	$names[] = $name;
+	$values[] = $value;
+}
+
+Assert::same(['name', 'age', 'name'], $names);
+Assert::same([$form['name'], $form['age'], $form['cont-name']], $values);

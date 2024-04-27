@@ -202,7 +202,9 @@ class Form extends Container implements Nette\HtmlStringable
 
 	/** @internal used only by standalone form */
 	public Nette\Http\IRequest $httpRequest;
-	protected bool $crossOrigin = false;
+
+	/** @var bool */
+	protected $crossOrigin = false;
 	private static ?Nette\Http\IRequest $defaultHttpRequest = null;
 	private SubmitterControl|bool $submittedBy = false;
 	private array $httpData;
@@ -487,7 +489,7 @@ class Form extends Container implements Nette\HtmlStringable
 			$this->validate();
 		}
 
-		$handled = count($this->onSuccess ?? []) || count($this->onSubmit ?? []) || $this->submittedBy === true;
+		$handled = count($this->onSuccess ?? []) || count($this->onSubmit ?? []);
 
 		if ($this->submittedBy instanceof Controls\SubmitButton) {
 			$handled = $handled || count($this->submittedBy->onClick ?? []);
@@ -518,21 +520,19 @@ class Form extends Container implements Nette\HtmlStringable
 	{
 		foreach ($handlers as $handler) {
 			$params = Nette\Utils\Callback::toReflection($handler)->getParameters();
-			$args = [];
-			if ($params) {
-				$type = Helpers::getSingleType($params[0]);
-				$args[] = match (true) {
-					!$type => $button ?? $this,
-					$this instanceof $type => $this,
-					$button instanceof $type => $button,
-					default => $this->getValues($type),
-				};
-				if (isset($params[1])) {
-					$args[] = $this->getValues(Helpers::getSingleType($params[1]));
-				}
+			$types = array_map([Helpers::class, 'getSingleType'], $params);
+			if (!isset($types[0])) {
+				$arg0 = $button ?: $this;
+			} elseif ($this instanceof $types[0]) {
+				$arg0 = $this;
+			} elseif ($button instanceof $types[0]) {
+				$arg0 = $button;
+			} else {
+				$arg0 = $this->getValues($types[0]);
 			}
 
-			$handler(...$args);
+			$arg1 = isset($params[1]) ? $this->getValues($types[1]) : null;
+			$handler($arg0, $arg1);
 
 			if (!$this->isValid()) {
 				return;

@@ -4,47 +4,58 @@ declare(strict_types=1);
 
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
-use Nette\Utils\Arrays;
 use Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-class FormData extends stdClass
+#[AllowDynamicProperties]
+class FormData
 {
 	public string $title;
+
 	public FormFirstLevel $first;
 }
 
 
-class FormFirstLevel extends stdClass
+class FormFirstLevel
 {
 	public string $name;
+
 	public ?int $age = null;
+
 	public ?FormSecondLevel $second;
 }
 
 
-class FormSecondLevel extends stdClass
+class FormSecondLevel
 {
 	public string $city;
 }
 
 
-setUp(function () {
-	$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
-	$_SERVER['REQUEST_METHOD'] = 'POST';
-	$_POST = [
-		'title' => 'sent title',
-		'first' => [
-			'age' => '999',
-			'second' => [
-				'city' => 'sent city',
-			],
+function hydrate(string $class, array $data): object
+{
+	$obj = new $class;
+	foreach ($data as $key => $value) {
+		$obj->$key = $value;
+	}
+
+	return $obj;
+}
+
+
+$_COOKIE[Nette\Http\Helpers::StrictCookieName] = '1';
+$_POST = [
+	'title' => 'sent title',
+	'first' => [
+		'age' => '999',
+		'second' => [
+			'city' => 'sent city',
 		],
-	];
-});
+	],
+];
 
 
 function createForm(): Form
@@ -66,22 +77,20 @@ function createForm(): Form
 
 
 test('setDefaults() + object', function () {
-	$_SERVER['REQUEST_METHOD'] = null;
-
 	$form = createForm();
 	Assert::false($form->isSubmitted());
 
-	$form->setDefaults(Arrays::toObject([
+	$form->setDefaults(hydrate(FormData::class, [
 		'title' => 'xxx',
 		'extra' => '50',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'yyy',
 			'age' => 30,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => 'zzz',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData));
+			]),
+		]),
+	]));
 
 	Assert::same([
 		'title' => 'xxx',
@@ -97,24 +106,28 @@ test('setDefaults() + object', function () {
 
 
 test('submitted form + getValues()', function () {
+	$_SERVER['REQUEST_METHOD'] = 'POST';
+
 	$form = createForm();
 	$form->setMappedType(FormData::class);
 
 	Assert::truthy($form->isSubmitted());
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'sent title',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => '',
 			'age' => 999,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => 'sent city',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues());
+			]),
+		]),
+	]), $form->getValues());
 });
 
 
 test('submitted form + reset()', function () {
+	$_SERVER['REQUEST_METHOD'] = 'POST';
+
 	$form = createForm();
 	$form->setMappedType(FormData::class);
 
@@ -123,62 +136,64 @@ test('submitted form + reset()', function () {
 	$form->reset();
 
 	Assert::false($form->isSubmitted());
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => '',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => '',
 			'age' => null,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => '',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues());
+			]),
+		]),
+	]), $form->getValues());
 });
 
 
 test('setValues() + object', function () {
+	$_SERVER['REQUEST_METHOD'] = 'POST';
+
 	$form = createForm();
 	$form->setMappedType(FormData::class);
 
 	Assert::truthy($form->isSubmitted());
 
-	$form->setValues(Arrays::toObject([
+	$form->setValues(hydrate(FormData::class, [
 		'title' => 'new1',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'new2',
 			// age => null
-		], new FormFirstLevel),
-	], new FormData));
+		]),
+	]));
 
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'new1',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'new2',
 			'age' => null,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => 'sent city',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues());
+			]),
+		]),
+	]), $form->getValues());
 
 	// erase
-	$form->setValues(Arrays::toObject([
+	$form->setValues(hydrate(FormData::class, [
 		'title' => 'new1',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'new2',
-		], new FormFirstLevel),
-	], new FormData), true);
+		]),
+	]), true);
 
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'new1',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'new2',
 			'age' => null,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => '',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues());
+			]),
+		]),
+	]), $form->getValues());
 });
 
 
@@ -194,46 +209,48 @@ test('getValues(...arguments...)', function () {
 		],
 	]);
 
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'new1',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'new2',
 			'age' => null,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => '',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues(FormData::class));
+			]),
+		]),
+	]), $form->getValues(FormData::class));
 
 	$form->setMappedType(FormData::class);
 	$form['first']->setMappedType(FormFirstLevel::class);
 	$form['first-second']->setMappedType(FormSecondLevel::class);
 
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'new1',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'new2',
 			'age' => null,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => '',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues());
+			]),
+		]),
+	]), $form->getValues());
 
 	Assert::equal([
 		'title' => 'new1',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => 'new2',
 			'age' => null,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => '',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
+			]),
+		]),
 	], $form->getValues('array'));
 });
 
 
 test('onSuccess test', function () {
+	$_SERVER['REQUEST_METHOD'] = 'POST';
+
 	$form = createForm();
 	$form->setMappedType(FormData::class);
 
@@ -264,29 +281,29 @@ test('onSuccess test', function () {
 	};
 
 	$form->onSuccess[] = function (Form $form, $values) {
-		Assert::equal(Arrays::toObject([
+		Assert::equal(hydrate(FormData::class, [
 			'title' => 'sent title',
-			'first' => Arrays::toObject([
+			'first' => hydrate(FormFirstLevel::class, [
 				'name' => '',
 				'age' => 999,
-				'second' => Arrays::toObject([
+				'second' => hydrate(FormSecondLevel::class, [
 					'city' => 'sent city',
-				], new FormSecondLevel),
-			], new FormFirstLevel),
-		], new FormData), $values);
+				]),
+			]),
+		]), $values);
 	};
 
 	$form->onSuccess[] = function (Form $form, FormData $values) {
-		Assert::equal(Arrays::toObject([
+		Assert::equal(hydrate(FormData::class, [
 			'title' => 'sent title',
-			'first' => Arrays::toObject([
+			'first' => hydrate(FormFirstLevel::class, [
 				'name' => '',
 				'age' => 999,
-				'second' => Arrays::toObject([
+				'second' => hydrate(FormSecondLevel::class, [
 					'city' => 'sent city',
-				], new FormSecondLevel),
-			], new FormFirstLevel),
-		], new FormData), $values);
+				]),
+			]),
+		]), $values);
 	};
 
 	$ok = false;
@@ -300,54 +317,58 @@ test('onSuccess test', function () {
 
 
 test('getValues() + object', function () {
+	$_SERVER['REQUEST_METHOD'] = 'POST';
+
 	$form = createForm();
 	$obj = $orig = new FormData;
 
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'sent title',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'name' => '',
 			'age' => 999,
-			'second' => Arrays::toObject([
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => 'sent city',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues($obj));
+			]),
+		]),
+	]), $form->getValues($obj));
 
 	Assert::same($obj, $orig);
 });
 
 
 test('submitted form + setValidationScope() + getValues()', function () {
+	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST['send'] = '';
 
 	$form = createForm();
 	$form->addSubmit('send')->setValidationScope([$form['title'], $form['first']['age']]);
 
 	Assert::truthy($form->isSubmitted());
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'sent title',
-		'first' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
 			'age' => 999,
-			'second' => new FormSecondLevel,
-		], new FormFirstLevel),
-	], new FormData), $form->getValues(FormData::class));
+			'second' => hydrate(FormSecondLevel::class, []),
+		]),
+	]), $form->getValues(FormData::class));
 });
 
 
 test('submitted form + setValidationScope() + getValues()', function () {
+	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST['send'] = '';
 
 	$form = createForm();
 	$form->addSubmit('send')->setValidationScope([$form['title'], $form['first']['second']]);
 
 	Assert::truthy($form->isSubmitted());
-	Assert::equal(Arrays::toObject([
+	Assert::equal(hydrate(FormData::class, [
 		'title' => 'sent title',
-		'first' => Arrays::toObject([
-			'second' => Arrays::toObject([
+		'first' => hydrate(FormFirstLevel::class, [
+			'second' => hydrate(FormSecondLevel::class, [
 				'city' => 'sent city',
-			], new FormSecondLevel),
-		], new FormFirstLevel),
-	], new FormData), $form->getValues(FormData::class));
+			]),
+		]),
+	]), $form->getValues(FormData::class));
 });

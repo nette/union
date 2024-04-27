@@ -9,27 +9,33 @@ declare(strict_types=1);
 
 namespace Nette\Bridges\FormsLatte;
 
-use Nette\Forms\Container;
+use Nette;
 use Nette\Forms\Form;
 use Nette\Utils\Html;
 
 
 /**
- * Runtime helpers for Latte v3.
+ * Runtime helpers for Latte v2 & v3.
  * @internal
  */
 class Runtime
 {
-	/** @var Container[] */
-	private array $stack = [];
+	use Nette\StaticClass;
+
+	public static function initializeForm(Form $form): void
+	{
+		$form->fireRenderEvents();
+		foreach ($form->getControls() as $control) {
+			$control->setOption('rendered', false);
+		}
+	}
 
 
 	/**
 	 * Renders form begin.
 	 */
-	public function renderFormBegin(array $attrs, bool $withTags = true): string
+	public static function renderFormBegin(Form $form, array $attrs, bool $withTags = true): string
 	{
-		$form = $this->current();
 		$el = $form->getElementPrototype();
 		$el->action = (string) $el->action;
 		$el = clone $el;
@@ -45,9 +51,8 @@ class Runtime
 	/**
 	 * Renders form end.
 	 */
-	public function renderFormEnd(bool $withTags = true): string
+	public static function renderFormEnd(Form $form, bool $withTags = true): string
 	{
-		$form = $this->current();
 		$s = '';
 		if ($form->isMethod('get')) {
 			foreach (preg_split('#[;&]#', (string) parse_url($form->getElementPrototype()->action, PHP_URL_QUERY), -1, PREG_SPLIT_NO_EMPTY) as $param) {
@@ -70,35 +75,12 @@ class Runtime
 	}
 
 
-	public function item($item): object
+	public static function item($item, $global): object
 	{
-		return is_object($item)
-			? $item
-			: $this->current()[$item];
-	}
-
-
-	public function begin(Container $form): void
-	{
-		$this->stack[] = $form;
-
-		if ($form instanceof Form) {
-			$form->fireRenderEvents();
-			foreach ($form->getControls() as $control) {
-				$control->setOption('rendered', false);
-			}
+		if (is_object($item)) {
+			return $item;
 		}
-	}
-
-
-	public function end(): void
-	{
-		array_pop($this->stack);
-	}
-
-
-	public function current(): Container
-	{
-		return end($this->stack) ?: throw new \LogicException('Form declaration is missing, did you use {form} or <form n:name> tag?');
+		$form = end($global->formsStack) ?: throw new \LogicException('Form declaration is missing, did you use {form} or <form n:name> tag?');
+		return $form[$item];
 	}
 }

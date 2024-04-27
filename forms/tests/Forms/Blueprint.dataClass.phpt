@@ -15,8 +15,7 @@ $form->addText('name')->setRequired();
 $form->addInteger('age');
 $form->addContainer('cont')
 	->addText('name');
-$form->addHidden('id')
-	->setNullable();
+$form->addHidden('id');
 $form->addCheckbox('agree');
 $form->addSubmit('submit', 'Send');
 
@@ -34,7 +33,7 @@ Assert::match(
 
 class SignContFormData
 {
-	public string $name;
+	public ?string $name;
 }
 ',
 	$res,
@@ -58,7 +57,7 @@ Assert::match(
 class SignContFormData
 {
 	public function __construct(
-		public string $name,
+		public ?string $name,
 	) {
 	}
 }

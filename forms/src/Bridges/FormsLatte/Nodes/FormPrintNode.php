@@ -27,11 +27,6 @@ class FormPrintNode extends StatementNode
 
 	public static function create(Tag $tag): static
 	{
-		if ($tag->name === 'formPrint') {
-			trigger_error('Tag {formPrint} is deprecated, use Nette\Forms\Blueprint::latte($form)', E_USER_DEPRECATED);
-		} else {
-			trigger_error('Tag {formClassPrint} is deprecated, use Nette\Forms\Blueprint::dataClass($form)', E_USER_DEPRECATED);
-		}
 		$node = new static;
 		$node->name = $tag->parser->isEnd()
 			? null
@@ -47,7 +42,7 @@ class FormPrintNode extends StatementNode
 			'Nette\Forms\Blueprint::%raw('
 			. ($this->name
 				? 'is_object($ʟ_tmp = %node) ? $ʟ_tmp : $this->global->uiControl[$ʟ_tmp]'
-				: '$this->global->forms->current()')
+				: 'end($this->global->formsStack)')
 			. ') %2.line; exit;',
 			$this->mode === 'formPrint' ? 'latte' : 'dataClass',
 			$this->name,
