@@ -40,5 +40,5 @@ Assert::same('One', $container->getServiceType('three'));
 Assert::exception(
 	fn() => $container->getServiceType('four'),
 	Nette\DI\MissingServiceException::class,
-	"Type of service 'four' not known.",
+	"Service 'four' not found.",
 );

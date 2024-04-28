@@ -25,34 +25,35 @@ final class LocatorDefinition extends Definition
 	public function setImplement(string $interface): static
 	{
 		if (!interface_exists($interface)) {
-			throw new Nette\InvalidArgumentException(sprintf("[%s]\nInterface '%s' not found.", $this->getDescriptor(), $interface));
+			throw new Nette\InvalidArgumentException(sprintf("Service '%s': Interface '%s' not found.", $this->getName(), $interface));
 		}
 
 		$methods = (new \ReflectionClass($interface))->getMethods();
 		if (!$methods) {
-			throw new Nette\InvalidArgumentException(sprintf("[%s]\nInterface %s must have at least one method.", $this->getDescriptor(), $interface));
+			throw new Nette\InvalidArgumentException(sprintf("Service '%s': Interface %s must have at least one method.", $this->getName(), $interface));
 		}
 
 		foreach ($methods as $method) {
 			if ($method->isStatic() || !(
-				($method->name === 'get' && $method->getNumberOfParameters() === 1)
+				(preg_match('#^(get|create)$#', $method->name) && $method->getNumberOfParameters() === 1)
 				|| (preg_match('#^(get|create)[A-Z]#', $method->name) && $method->getNumberOfParameters() === 0)
 			)) {
 				throw new Nette\InvalidArgumentException(sprintf(
-					"[%s]\nMethod %s::%s() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.",
-					$this->getDescriptor(),
+					"Service '%s': Method %s::%s() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.",
+					$this->getName(),
 					$interface,
 					$method->name,
 				));
 			}
 
-			if ($method->name !== 'get') {
+			if ($method->getNumberOfParameters() === 0) {
 				Nette\DI\Helpers::ensureClassType(
 					Nette\Utils\Type::fromReflection($method),
 					"return type of $interface::$method->name()",
-					$this->getDescriptor(),
 					allowNullable: true,
 				);
+			} elseif (str_starts_with($method->name, 'create')) {
+				trigger_error(sprintf("Service '%s': Method %s::create(\$name) is deprecated, use createFoo().", $this->getName(), $interface), E_USER_DEPRECATED);
 			}
 		}
 
@@ -111,8 +112,8 @@ final class LocatorDefinition extends Definition
 			foreach ($resolver->getContainerBuilder()->findByTag($this->tagged) as $name => $tag) {
 				if (isset($this->references[$tag])) {
 					trigger_error(sprintf(
-						"[%s]\nDuplicated tag '%s' with value '%s'.",
-						$this->getDescriptor(),
+						"Service '%s': duplicated tag '%s' with value '%s'.",
+						$this->getName(),
 						$this->tagged,
 						$tag,
 					));
@@ -153,7 +154,7 @@ final class LocatorDefinition extends Definition
 				$methodInner->setBody('if (!isset($this->mapping[$name])) {
 	' . ($nullable ? 'return null;' : 'throw new Nette\DI\MissingServiceException("Service \'$name\' is not defined.");') . '
 }
-return $this->container->getService($this->mapping[$name]);')
+return $this->container->' . $m[1] . 'Service($this->mapping[$name]);')
 					->addParameter('name');
 
 			} elseif (isset($this->references[$name])) {

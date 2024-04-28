@@ -6,7 +6,13 @@ declare(strict_types=1);
 
 class Container extends Nette\DI\Container
 {
+	/** @var string[]  services name => type (complete list of available services) */
+	protected array $types = ['container' => 'Nette\DI\Container'];
+
+	/** @var string[]  alias => service name */
 	protected array $aliases = [];
+
+	/** @var array[]  type => level => services */
 	protected array $wiring = ['Nette\DI\Container' => [['container']], 'stdClass' => [['01', 'name']]];
 
 
@@ -22,7 +28,7 @@ class Container extends Nette\DI\Container
 	}
 
 
-	public function createServiceContainer(): Nette\DI\Container
+	public function createServiceContainer(): Container
 	{
 		return $this;
 	}

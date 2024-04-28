@@ -42,6 +42,11 @@ Assert::same(
 );
 
 Assert::same(
+	['container' => Nette\DI\Container::class],
+	getPropertyValue($container, 'types'),
+);
+
+Assert::same(
 	[
 		'a' => ['lorem' => true],
 		'b' => ['lorem' => 'c'],

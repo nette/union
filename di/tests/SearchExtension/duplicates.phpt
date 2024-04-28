@@ -28,5 +28,4 @@ Assert::same([
 	'Foo\\ClassBar',
 	'InterfaceOk1',
 	'InterfaceOk2',
-	'stdClass',
 ], array_keys($services));

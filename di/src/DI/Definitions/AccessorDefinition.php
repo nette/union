@@ -28,8 +28,8 @@ final class AccessorDefinition extends Definition
 	{
 		if (!interface_exists($interface)) {
 			throw new Nette\InvalidArgumentException(sprintf(
-				"[%s]\nInterface '%s' not found.",
-				$this->getDescriptor(),
+				"Service '%s': Interface '%s' not found.",
+				$this->getName(),
 				$interface,
 			));
 		}
@@ -44,19 +44,19 @@ final class AccessorDefinition extends Definition
 			|| count($rc->getMethods()) > 1
 		) {
 			throw new Nette\InvalidArgumentException(sprintf(
-				"[%s]\nInterface %s must have just one non-static method get().",
-				$this->getDescriptor(),
+				"Service '%s': Interface %s must have just one non-static method get().",
+				$this->getName(),
 				$interface,
 			));
 		} elseif ($method->getNumberOfParameters()) {
 			throw new Nette\InvalidArgumentException(sprintf(
-				"[%s]\nMethod %s::get() must have no parameters.",
-				$this->getDescriptor(),
+				"Service '%s': Method %s::get() must have no parameters.",
+				$this->getName(),
 				$interface,
 			));
 		}
 
-		Helpers::ensureClassType(Type::fromReflection($method), "return type of $interface::get()", $this->getDescriptor());
+		Helpers::ensureClassType(Type::fromReflection($method), "return type of $interface::get()");
 		return parent::setType($interface);
 	}
 

@@ -7,7 +7,6 @@
 declare(strict_types=1);
 
 use Nette\DI;
-use Nette\DI\Attributes\Inject;
 use Nette\InvalidStateException;
 use Tester\Assert;
 
@@ -17,35 +16,35 @@ require __DIR__ . '/../bootstrap.php';
 
 class ServiceA
 {
-	#[Inject]
-	public DateTimeImmutable $a;
+	/** @var DateTimeImmutable @inject */
+	public $a;
 }
 
 
 class ServiceB
 {
-	#[Inject]
-	public Unknown $a;
+	/** @var Unknown @inject */
+	public $a;
 }
 
 
 class ServiceC
 {
-	#[Inject]
+	/** @inject */
 	public $a;
 }
 
 
 class ServiceD
 {
-	#[Inject]
+	/** @inject */
 	protected $a;
 }
 
 
 class ServiceE
 {
-	#[Inject]
+	/** @inject */
 	public static $a;
 }
 
@@ -59,9 +58,7 @@ services:
 		create: ServiceA
 		inject: yes
 ');
-}, InvalidStateException::class, "[Service 'service' of type ServiceA]
-Service of type DateTimeImmutable required by ServiceA::\$a not found.
-Did you add it to configuration file?");
+}, InvalidStateException::class, 'Service of type DateTimeImmutable required by ServiceA::$a not found. Did you add it to configuration file?');
 
 
 Assert::exception(function () {
@@ -75,9 +72,6 @@ services:
 ');
 }, InvalidStateException::class, "Class 'Unknown' not found.
 Check the type of property ServiceB::\$a.");
-// }, InvalidStateException::class, "[Service 'service' of type ServiceB]
-// Class 'Unknown' required by ServiceB::\$a not found.
-// Check the property type and 'use' statements.");
 
 
 Assert::exception(function () {
@@ -90,8 +84,6 @@ services:
 		inject: yes
 ');
 }, InvalidStateException::class, 'Type of property ServiceC::$a is not declared.');
-//}, InvalidStateException::class, "[Service 'service' of type ServiceC]
-//Property ServiceC::\$a has no type.");
 
 
 Assert::exception(function () {

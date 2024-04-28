@@ -21,8 +21,7 @@ Assert::exception(
 		function () {},
 	),
 	Nette\DI\ServiceCreationException::class,
-	'Service of type stdClass required by $x in {closure}() not found.
-Did you add it to configuration file?',
+	'Service of type stdClass required by $x in {closure}() not found. Did you add it to configuration file?',
 );
 
 
@@ -34,8 +33,7 @@ Assert::exception(
 		function () {},
 	),
 	Nette\DI\ServiceCreationException::class,
-	"Class 'Foo' required by \$x in {closure}() not found.
-Check the parameter type and 'use' statements.",
+	"Class 'Foo' required by \$x in {closure}() not found. Check the parameter type and 'use' statements.",
 );
 
 
@@ -71,8 +69,7 @@ Assert::exception(
 		fn($type) => $type === Test::class ? new Test : null,
 	),
 	Nette\DI\ServiceCreationException::class,
-	'Service of type stdClass required by $arg in {closure}() not found.
-Did you add it to configuration file?',
+	'Service of type stdClass required by $arg in {closure}() not found. Did you add it to configuration file?',
 );
 
 

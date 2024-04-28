@@ -53,7 +53,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 				$this->getContainerBuilder()->removeDefinition($name);
 				return;
 			} elseif (!empty($config->alteration) && !$this->getContainerBuilder()->hasDefinition($name)) {
-				throw new Nette\DI\InvalidConfigurationException('Missing original definition for alteration.');
+				throw new Nette\DI\InvalidConfigurationException('missing original definition for alteration.');
 			}
 
 			$def = $this->retrieveDefinition($name, $config);
@@ -68,12 +68,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 			$this->{$methods[$config->defType]}($def, $config);
 			$this->updateDefinition($def, $config);
 		} catch (\Throwable $e) {
-			$message = $e->getMessage();
-			if ($name && !str_starts_with($message, '[Service ')) {
-				$message = "[Service '$name']\n$message";
-			}
-
-			throw new Nette\DI\InvalidConfigurationException($message, 0, $e);
+			throw new Nette\DI\InvalidConfigurationException(($name ? "Service '$name': " : '') . $e->getMessage(), 0, $e);
 		}
 	}
 
@@ -174,7 +169,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 		}
 
 		if (isset($config->inject)) {
-			$resultDef->addTag(InjectExtension::TagInject, $config->inject);
+			$definition->addTag(InjectExtension::TagInject, $config->inject);
 		}
 	}
 

@@ -24,7 +24,6 @@ final class FactoryDefinition extends Definition
 	private const MethodCreate = 'create';
 
 	private Definition $resultDefinition;
-	private ?string $reference = null;
 
 
 	public function __construct()
@@ -37,8 +36,8 @@ final class FactoryDefinition extends Definition
 	{
 		if (!interface_exists($interface)) {
 			throw new Nette\InvalidArgumentException(sprintf(
-				"[%s]\nInterface '%s' not found.",
-				$this->getDescriptor(),
+				"Service '%s': Interface '%s' not found.",
+				$this->getName(),
 				$interface,
 			));
 		}
@@ -47,13 +46,13 @@ final class FactoryDefinition extends Definition
 		$method = $rc->getMethods()[0] ?? null;
 		if (!$method || $method->isStatic() || $method->name !== self::MethodCreate || count($rc->getMethods()) > 1) {
 			throw new Nette\InvalidArgumentException(sprintf(
-				"[%s]\nInterface %s must have just one non-static method create().",
-				$this->getDescriptor(),
+				"Service '%s': Interface %s must have just one non-static method create().",
+				$this->getName(),
 				$interface,
 			));
 		}
 
-		Helpers::ensureClassType(Type::fromReflection($method), "return type of $interface::create()", $this->getDescriptor());
+		Helpers::ensureClassType(Type::fromReflection($method), "return type of $interface::create()");
 		return parent::setType($interface);
 	}
 
@@ -88,10 +87,6 @@ final class FactoryDefinition extends Definition
 	{
 		if (!$this->getType()) {
 			throw new ServiceCreationException('Type is missing in definition of service.');
-
-		} elseif ($this->reference === null) {
-			$this->resultDefinition->setAutowired(false);
-			$this->reference = $resolver->getContainerBuilder()->addDefinition(null, $this->resultDefinition)->getName();
 		}
 
 		$type = Type::fromReflection(new \ReflectionMethod($this->getType(), self::MethodCreate));
@@ -110,8 +105,7 @@ final class FactoryDefinition extends Definition
 
 		if (!$type->allows($resultDef->getType())) {
 			throw new ServiceCreationException(sprintf(
-				"[%s]\nFactory for %s cannot create incompatible %s type.",
-				$this->getDescriptor(),
+				'Factory for %s cannot create incompatible %s type.',
 				$type,
 				$resultDef->getType(),
 			));

@@ -7,7 +7,6 @@
 declare(strict_types=1);
 
 use Nette\DI;
-use Nette\DI\Attributes\Inject;
 use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\Statement;
 use Tester\Assert;
@@ -32,8 +31,8 @@ class ConcreteDependencyB extends AbstractDependency
 
 class ParentClass
 {
-	#[Inject]
-	public stdClass $a;
+	/** @var stdClass @inject */
+	public $a;
 
 
 	public function injectA()
@@ -48,11 +47,11 @@ class ParentClass
 
 class Service extends ParentClass
 {
-	#[Inject]
-	public stdClass $c;
+	/** @var stdClass @inject */
+	public $c;
 
-	#[Inject]
-	public AbstractDependency $e;
+	/** @var AbstractDependency @inject */
+	public $e;
 
 
 	public function injectC()

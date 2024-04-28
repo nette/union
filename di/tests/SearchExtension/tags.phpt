@@ -24,7 +24,6 @@ Assert::same([
 	'ExtendsStdClass' => ['a' => 1, 'b' => 2],
 	'InterfaceOk1' => ['a' => 1, 'b' => 2],
 	'InterfaceOk2' => ['a' => 1, 'b' => 2],
-	'stdClass' => [],
 ], $services);
 
 
@@ -44,5 +43,4 @@ Assert::same([
 	'ExtendsStdClass' => [],
 	'InterfaceOk1' => [],
 	'InterfaceOk2' => [],
-	'stdClass' => [],
 ], $services);

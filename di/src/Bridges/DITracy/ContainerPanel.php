@@ -50,13 +50,11 @@ class ContainerPanel implements Tracy\IBarPanel
 	 */
 	public function getPanel(): string
 	{
-		$rc = (new \ReflectionClass($this->container));
+		$methods = (fn() => $this->methods)->bindTo($this->container, Container::class)();
 		$services = [];
-		foreach ($rc->getMethods() as $method) {
-			if (preg_match('#^createService.#', $method->getName())) {
-				$name = lcfirst(str_replace('__', '.', substr($method->getName(), 13)));
-				$services[$name] = (string) $method->getReturnType();
-			}
+		foreach ($methods as $name => $foo) {
+			$name = lcfirst(str_replace('__', '.', substr($name, 13)));
+			$services[$name] = $this->container->getServiceType($name);
 		}
 		ksort($services, SORT_NATURAL);
 
@@ -68,8 +66,9 @@ class ContainerPanel implements Tracy\IBarPanel
 			}
 		}
 
-		return Nette\Utils\Helpers::capture(function () use ($rc, $tags, $services) {
+		return Nette\Utils\Helpers::capture(function () use ($tags, $services) {
 			$container = $this->container;
+			$rc = (new \ReflectionClass($this->container));
 			$file = $rc->getFileName();
 			$instances = (fn() => $this->instances)->bindTo($this->container, Container::class)();
 			$wiring = (fn() => $this->wiring)->bindTo($this->container, $this->container)();

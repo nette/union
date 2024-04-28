@@ -50,6 +50,11 @@ interface Good1
 	public function get($name);
 }
 
+interface Good2
+{
+	public function create($name);
+}
+
 interface Good3
 {
 	public function createA(): stdClass;
@@ -61,57 +66,49 @@ interface Good3
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement('Foo');
-}, Nette\InvalidArgumentException::class, "[Service ?]
-Interface 'Foo' not found.");
+}, Nette\InvalidArgumentException::class, "Service '': Interface 'Foo' not found.");
 
 
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement(stdClass::class);
-}, Nette\InvalidArgumentException::class, "[Service ?]
-Interface 'stdClass' not found.");
+}, Nette\InvalidArgumentException::class, "Service '': Interface 'stdClass' not found.");
 
 
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement(Bad1::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Interface Bad1 must have at least one method.');
+}, Nette\InvalidArgumentException::class, "Service '': Interface Bad1 must have at least one method.");
 
 
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement(Bad2::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Method Bad2::create() does not meet the requirements: is create*(), get*() or get($name) and is non-static.');
+}, Nette\InvalidArgumentException::class, "Service '': Method Bad2::create() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.");
 
 
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement(Bad3::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Method Bad3::get() does not meet the requirements: is create*(), get*() or get($name) and is non-static.');
+}, Nette\InvalidArgumentException::class, "Service '': Method Bad3::get() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.");
 
 
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement(Bad4::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Method Bad4::foo() does not meet the requirements: is create*(), get*() or get($name) and is non-static.');
+}, Nette\InvalidArgumentException::class, "Service '': Method Bad4::foo() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.");
 
 
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement(Bad5::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Method Bad5::get() does not meet the requirements: is create*(), get*() or get($name) and is non-static.');
+}, Nette\InvalidArgumentException::class, "Service '': Method Bad5::get() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.");
 
 
 Assert::exception(function () {
 	$def = new LocatorDefinition;
 	$def->setImplement(Bad6::class);
-}, Nette\InvalidArgumentException::class, '[Service ?]
-Method Bad6::get() does not meet the requirements: is create*(), get*() or get($name) and is non-static.');
+}, Nette\InvalidArgumentException::class, "Service '': Method Bad6::get() does not meet the requirements: is create*(), get*() or get(\$name) and is non-static.");
 
 
 Assert::noError(function () {
@@ -119,6 +116,14 @@ Assert::noError(function () {
 	$def->setImplement(Good1::class);
 	Assert::same(Good1::class, $def->getImplement());
 	Assert::same(Good1::class, $def->getType());
+});
+
+
+Assert::noError(function () {
+	$def = new LocatorDefinition;
+	@$def->setImplement(Good2::class); // create($name) is deprecated
+	Assert::same(Good2::class, $def->getImplement());
+	Assert::same(Good2::class, $def->getType());
 });
 
 
