@@ -272,13 +272,12 @@ class Route implements Router
 			$parts = ip2long($host)
 				? [$host]
 				: array_reverse(explode('.', $host));
-			$port = $refUrl->getDefaultPort() === ($tmp = $refUrl->getPort()) ? '' : ':' . $tmp;
 			$url = strtr($url, [
 				'/%basePath%/' => $refUrl->getBasePath(),
-				'%tld%' => $parts[0] . $port,
-				'%domain%' => (isset($parts[1]) ? "$parts[1].$parts[0]" : $parts[0]) . $port,
+				'%tld%' => $parts[0],
+				'%domain%' => isset($parts[1]) ? "$parts[1].$parts[0]" : $parts[0],
 				'%sld%' => $parts[1] ?? '',
-				'%host%' => $host . $port,
+				'%host%' => $host,
 			]);
 		}
 
@@ -310,14 +309,6 @@ class Route implements Router
 			$fixity = $meta[self::Fixity] ?? null;
 
 			if (!isset($params[$name])) {
-				if ($fixity === self::Constant) {
-					if ($meta[self::Value] === null) {
-						continue;
-					}
-
-					return false; // wrong parameter value
-				}
-
 				continue; // retains null values
 			}
 
@@ -328,8 +319,7 @@ class Route implements Router
 			}
 
 			if ($fixity !== null) {
-				if ($params[$name] == $meta[self::Value]) { // default value may be object, intentionally ==
-					// remove default values; null values are retain
+				if ($params[$name] === $meta[self::Value]) { // remove default values; null values are retain
 					unset($params[$name]);
 					continue;
 

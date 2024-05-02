@@ -17,8 +17,8 @@ use Nette;
  */
 interface Router
 {
-	/** @deprecated */
-	public const ONE_WAY = true;
+	/** for back compatibility */
+	public const ONE_WAY = 0b0001;
 
 	/**
 	 * Maps HTTP request to an array.

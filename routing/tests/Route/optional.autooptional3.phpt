@@ -13,7 +13,9 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$route = new Route('<presenter>/<default=123>/<required>', []);
+$route = new Route('<presenter>/<default=123>/<required>', [
+	'action' => 'default',
+]);
 
 testRouteIn($route, '/presenter/');
 testRouteIn($route, '/presenter/abc');
@@ -22,6 +24,7 @@ testRouteIn($route, '/presenter/abc/');
 testRouteIn($route, '/presenter/abc/xyy', [
 	'presenter' => 'presenter',
 	'default' => 'abc',
+	'action' => 'default',
 	'test' => 'testvalue',
 	'required' => 'xyy',
 ], '/presenter/abc/xyy?test=testvalue');
