@@ -87,7 +87,7 @@ class TestChild extends Test
 function getName($ref)
 {
 	if ($ref instanceof ReflectionFunction) {
-		return $ref->getShortName();
+		return $ref->getName();
 	} elseif ($ref instanceof ReflectionMethod) {
 		return $ref->getDeclaringClass()->getName() . '::' . $ref->getName();
 	}
@@ -121,9 +121,9 @@ test('closure', function () {
 	Assert::same($closure, Closure::fromCallable($closure));
 	Assert::same($closure, Callback::unwrap($closure));
 	Assert::same('{closure}', Callback::toString($closure));
-	Assert::match('{closure%a?%}', getName(Callback::toReflection($closure)));
-	Assert::match('{closure%a?%}', Closure::fromCallable($closure)(...[&$res]));
-	Assert::match('{closure%a?%}', $res);
+	Assert::same('{closure}', getName(Callback::toReflection($closure)));
+	Assert::same('{closure}', Closure::fromCallable($closure)(...[&$res]));
+	Assert::same('{closure}', $res);
 });
 
 

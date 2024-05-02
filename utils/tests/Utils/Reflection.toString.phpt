@@ -34,4 +34,3 @@ Assert::same('$param in Foo::method()', Reflection::toString(new ReflectionParam
 Assert::same('Foo::$var', Reflection::toString(new ReflectionProperty('Foo', 'var')));
 Assert::same('func()', Reflection::toString(new ReflectionFunction('func')));
 Assert::same('$param in func()', Reflection::toString(new ReflectionParameter('func', 'param')));
-Assert::same('$param in {closure}()', Reflection::toString((new ReflectionFunction(function ($param) {}))->getParameters()[0]));

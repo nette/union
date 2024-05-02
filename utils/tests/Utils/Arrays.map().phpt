@@ -13,7 +13,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-test('empty array', function () {
+test('', function () {
 	$arr = [];
 	$log = [];
 	$res = Arrays::map(
@@ -27,7 +27,7 @@ test('empty array', function () {
 	Assert::same([], $log);
 });
 
-test('list', function () {
+test('', function () {
 	$arr = ['a', 'b'];
 	$log = [];
 	$res = Arrays::map(
@@ -41,7 +41,7 @@ test('list', function () {
 	Assert::same([['a', 0, $arr], ['b', 1, $arr]], $log);
 });
 
-test('array with keys', function () {
+test('', function () {
 	$arr = ['x' => 'a', 'y' => 'b'];
 	$log = [];
 	$res = Arrays::map(
@@ -55,7 +55,7 @@ test('array with keys', function () {
 	Assert::same([['a', 'x', $arr], ['b', 'y', $arr]], $log);
 });
 
-test('iterator', function () {
+test('', function () {
 	$arr = new ArrayIterator(['x' => 'a', 'y' => 'b']);
 	$log = [];
 	$res = Arrays::map(
