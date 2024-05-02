@@ -140,10 +140,4 @@ abstract class ClassLike
 	public function validate(): void
 	{
 	}
-
-
-	public function __clone(): void
-	{
-		$this->attributes = array_map(fn($attr) => clone $attr, $this->attributes);
-	}
 }

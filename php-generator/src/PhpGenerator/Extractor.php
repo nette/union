@@ -329,7 +329,7 @@ final class Extractor
 				$prop->setValue($this->toValue($item->default));
 			}
 
-			$prop->setReadOnly((method_exists($node, 'isReadonly') && $node->isReadonly()) || ($class instanceof ClassType && $class->isReadOnly()));
+			$prop->setReadOnly(method_exists($node, 'isReadonly') && $node->isReadonly());
 			$this->addCommentAndAttributes($prop, $node);
 		}
 	}
@@ -343,9 +343,6 @@ final class Extractor
 		$method->setStatic($node->isStatic());
 		$method->setVisibility($this->toVisibility($node->flags));
 		$this->setupFunction($method, $node);
-		if ($method->getName() === Method::Constructor && $class instanceof ClassType && $class->isReadOnly()) {
-			array_map(fn($param) => $param instanceof PromotedParameter ? $param->setReadOnly() : $param, $method->getParameters());
-		}
 	}
 
 

@@ -9,8 +9,6 @@ declare(strict_types=1);
 
 namespace Nette\PhpGenerator;
 
-use Nette;
-
 
 /**
  * Global function.
@@ -22,20 +20,14 @@ final class GlobalFunction
 	use Traits\CommentAware;
 	use Traits\AttributeAware;
 
-	public static function from(string|\Closure $function, bool $withBody = false): self
+	public static function from(string $function, bool $withBody = false): self
 	{
-		return (new Factory)->fromFunctionReflection(Nette\Utils\Callback::toReflection($function), $withBody);
+		return (new Factory)->fromFunctionReflection(new \ReflectionFunction($function), $withBody);
 	}
 
 
 	public function __toString(): string
 	{
 		return (new Printer)->printFunction($this);
-	}
-
-
-	public function __clone(): void
-	{
-		$this->parameters = array_map(fn($param) => clone $param, $this->parameters);
 	}
 }

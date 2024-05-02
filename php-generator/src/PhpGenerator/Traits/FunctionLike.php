@@ -92,7 +92,6 @@ trait FunctionLike
 
 
 	/**
-	 * Adds a parameter. If it already exists, it overwrites it.
 	 * @param  string  $name without $
 	 */
 	public function addParameter(string $name, mixed $defaultValue = null): Parameter

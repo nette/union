@@ -22,10 +22,7 @@ trait PropertiesAware
 	private array $properties = [];
 
 
-	/**
-	 * Replaces all properties.
-	 * @param  Property[]  $props
-	 */
+	/** @param  Property[]  $props */
 	public function setProperties(array $props): static
 	{
 		(function (Property ...$props) {})(...$props);
@@ -51,10 +48,7 @@ trait PropertiesAware
 	}
 
 
-	/**
-	 * Adds a property. If it already exists, throws an exception or overwrites it if $overwrite is true.
-	 * @param  string  $name  without $
-	 */
+	/** @param  string  $name  without $ */
 	public function addProperty(string $name, mixed $value = null, bool $overwrite = false): Property
 	{
 		if (!$overwrite && isset($this->properties[$name])) {

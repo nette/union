@@ -51,9 +51,6 @@ final class InterfaceType extends ClassLike
 	}
 
 
-	/**
-	 * Adds a member. If it already exists, throws an exception or overwrites it if $overwrite is true.
-	 */
 	public function addMember(Method|Constant $member, bool $overwrite = false): static
 	{
 		$name = $member->getName();
@@ -69,9 +66,8 @@ final class InterfaceType extends ClassLike
 	}
 
 
-	public function __clone(): void
+	public function __clone()
 	{
-		parent::__clone();
 		$clone = fn($item) => clone $item;
 		$this->consts = array_map($clone, $this->consts);
 		$this->methods = array_map($clone, $this->methods);

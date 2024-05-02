@@ -22,9 +22,6 @@ final class TraitType extends ClassLike
 	use Traits\PropertiesAware;
 	use Traits\TraitsAware;
 
-	/**
-	 * Adds a member. If it already exists, throws an exception or overwrites it if $overwrite is true.
-	 */
 	public function addMember(Method|Property|Constant|TraitUse $member, bool $overwrite = false): static
 	{
 		$name = $member->getName();
@@ -42,9 +39,8 @@ final class TraitType extends ClassLike
 	}
 
 
-	public function __clone(): void
+	public function __clone()
 	{
-		parent::__clone();
 		$clone = fn($item) => clone $item;
 		$this->consts = array_map($clone, $this->consts);
 		$this->methods = array_map($clone, $this->methods);
