@@ -17,8 +17,9 @@ interface Storage
 {
 	/**
 	 * Read from cache.
+	 * @return mixed
 	 */
-	function read(string $key): mixed;
+	function read(string $key);
 
 	/**
 	 * Prevents item reading and writing. Lock is released by write() or remove().

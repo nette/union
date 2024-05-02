@@ -64,7 +64,9 @@ class Cache
 	public const ALL = self::All;
 
 	/** @internal */
-	public const NamespaceSeparator = "\x00";
+	public const
+		NamespaceSeparator = "\x00",
+		NAMESPACE_SEPARATOR = self::NamespaceSeparator;
 
 	private Storage $storage;
 	private string $namespace;
@@ -383,7 +385,6 @@ class Cache
 	 */
 	public function start($key): ?OutputHelper
 	{
-		trigger_error(__METHOD__ . '() was renamed to capture()', E_USER_DEPRECATED);
 		return $this->capture($key);
 	}
 
@@ -393,7 +394,7 @@ class Cache
 	 */
 	protected function generateKey($key): string
 	{
-		return $this->namespace . hash('xxh128', is_scalar($key) ? (string) $key : serialize($key));
+		return $this->namespace . md5(is_scalar($key) ? (string) $key : serialize($key));
 	}
 
 
