@@ -10,18 +10,24 @@ use Nette\ComponentModel\Container;
 use Nette\ComponentModel\IComponent;
 use Tester\Assert;
 
+
 require __DIR__ . '/../bootstrap.php';
-
-
-function handler(IComponent $sender, string $label): Closure
-{
-	return fn(IComponent $obj) => Notes::add($sender::class . '::' . $label . '(' . $obj::class . ')');
-}
 
 
 class TestClass extends Container implements ArrayAccess
 {
 	use Nette\ComponentModel\ArrayAccess;
+
+	public function attached(IComponent $obj): void
+	{
+		Notes::add(static::class . '::ATTACHED(' . $obj::class . ')');
+	}
+
+
+	public function detached(IComponent $obj): void
+	{
+		Notes::add(static::class . '::detached(' . $obj::class . ')');
+	}
 }
 
 
@@ -41,13 +47,12 @@ class E extends TestClass
 {
 }
 
-
 $d = new D;
 $d['e'] = new E;
 $b = new B;
-$b->monitor(A::class, handler($b, 'ATTACHED'), handler($b, 'detached'));
+$b->monitor(A::class);
 $b['c'] = new C;
-$b['c']->monitor(A::class, handler($b['c'], 'ATTACHED'), handler($b['c'], 'detached'));
+$b['c']->monitor(A::class);
 $b['c']['d'] = $d;
 
 // 'a' becoming 'b' parent
@@ -85,7 +90,7 @@ class FooForm extends TestClass
 	protected function validateParent(Nette\ComponentModel\IContainer $parent): void
 	{
 		parent::validateParent($parent);
-		$this->monitor(self::class, handler($this, 'ATTACHED'), handler($this, 'detached'));
+		$this->monitor(self::class);
 	}
 }
 
@@ -94,8 +99,8 @@ class FooControl extends TestClass
 	protected function validateParent(Nette\ComponentModel\IContainer $parent): void
 	{
 		parent::validateParent($parent);
-		$this->monitor(FooPresenter::class, $h1 = handler($this, 'ATTACHED'), $h2 = handler($this, 'detached'));
-		$this->monitor(TestClass::class, $h1, $h2); // double
+		$this->monitor(FooPresenter::class);
+		$this->monitor(TestClass::class); // double
 	}
 }
 

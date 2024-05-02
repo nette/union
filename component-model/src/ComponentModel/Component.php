@@ -13,12 +13,12 @@ use Nette;
 
 
 /**
- * Base class for all components. Components have a parent, name, and can be monitored by ancestors.
+ * Component is the base class for all components.
  *
- * @template T of IContainer
- * @implements IComponent<T>
+ * Components are objects implementing IComponent. They has parent component and own name.
+ *
  * @property-read string $name
- * @property-read T|null $parent
+ * @property-read IContainer|null $parent
  */
 abstract class Component implements IComponent
 {
@@ -32,7 +32,7 @@ abstract class Component implements IComponent
 
 
 	/**
-	 * Finds the closest ancestor of specified type.
+	 * Finds the closest ancestor specified by class or interface name.
 	 * @param  bool  $throw   throw exception if component doesn't exist?
 	 * @return ($throw is true ? IComponent : ?IComponent)
 	 */
@@ -88,12 +88,13 @@ abstract class Component implements IComponent
 
 
 	/**
-	 * Starts monitoring ancestors for attach/detach events.
+	 * Starts monitoring of ancestors.
 	 */
 	final public function monitor(string $type, ?callable $attached = null, ?callable $detached = null): void
 	{
-		if (!$attached && !$detached) {
-			throw new Nette\InvalidStateException('At least one handler is required.');
+		if (func_num_args() === 1) {
+			$attached = [$this, 'attached'];
+			$detached = [$this, 'detached'];
 		}
 
 		if (
@@ -109,11 +110,31 @@ abstract class Component implements IComponent
 
 
 	/**
-	 * Stops monitoring ancestors of specified type.
+	 * Stops monitoring of ancestors.
 	 */
 	final public function unmonitor(string $type): void
 	{
 		unset($this->monitors[$type]);
+	}
+
+
+	/**
+	 * This method will be called when the component (or component's parent)
+	 * becomes attached to a monitored object. Do not call this method yourself.
+	 * @deprecated  use monitor($type, $attached)
+	 */
+	protected function attached(IComponent $obj): void
+	{
+	}
+
+
+	/**
+	 * This method will be called before the component (or component's parent)
+	 * becomes detached from a monitored object. Do not call this method yourself.
+	 * @deprecated  use monitor($type, null, $detached)
+	 */
+	protected function detached(IComponent $obj): void
+	{
 	}
 
 
@@ -128,7 +149,6 @@ abstract class Component implements IComponent
 
 	/**
 	 * Returns the parent container if any.
-	 * @return T
 	 */
 	final public function getParent(): ?IContainer
 	{
@@ -139,7 +159,6 @@ abstract class Component implements IComponent
 	/**
 	 * Sets or removes the parent of this component. This method is managed by containers and should
 	 * not be called by applications
-	 * @param  T  $parent
 	 * @throws Nette\InvalidStateException
 	 * @internal
 	 */
@@ -179,9 +198,8 @@ abstract class Component implements IComponent
 
 
 	/**
-	 * Validates the new parent before it's set.
-	 * Descendant classes can override this to implement custom validation logic.
-	 * @param  T  $parent
+	 * Is called by a component when it is about to be set new parent. Descendant can
+	 * override this method to disallow a parent change by throwing an Nette\InvalidStateException
 	 * @throws Nette\InvalidStateException
 	 */
 	protected function validateParent(IContainer $parent): void
