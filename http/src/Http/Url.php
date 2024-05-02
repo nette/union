@@ -283,7 +283,6 @@ class Url implements \JsonSerializable
 	/** @deprecated use UrlScript::getBasePath() instead */
 	public function getBasePath(): string
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use UrlScript object', E_USER_DEPRECATED);
 		$pos = strrpos($this->path, '/');
 		return $pos === false ? '' : substr($this->path, 0, $pos + 1);
 	}
@@ -292,7 +291,6 @@ class Url implements \JsonSerializable
 	/** @deprecated use UrlScript::getBaseUrl() instead */
 	public function getBaseUrl(): string
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use UrlScript object', E_USER_DEPRECATED);
 		return $this->getHostUrl() . $this->getBasePath();
 	}
 
@@ -300,7 +298,6 @@ class Url implements \JsonSerializable
 	/** @deprecated use UrlScript::getRelativeUrl() instead */
 	public function getRelativeUrl(): string
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use UrlScript object', E_USER_DEPRECATED);
 		return substr($this->getAbsoluteUrl(), strlen($this->getBaseUrl()));
 	}
 

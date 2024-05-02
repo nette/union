@@ -19,10 +19,14 @@ use Nette\Schema\Expect;
  */
 class SessionExtension extends Nette\DI\CompilerExtension
 {
-	public function __construct(
-		private readonly bool $debugMode = false,
-		private readonly bool $cliMode = false,
-	) {
+	private bool $debugMode;
+	private bool $cliMode;
+
+
+	public function __construct(bool $debugMode = false, bool $cliMode = false)
+	{
+		$this->debugMode = $debugMode;
+		$this->cliMode = $cliMode;
 	}
 
 

@@ -33,13 +33,13 @@ final class FileUpload
 	/** @deprecated */
 	public const IMAGE_MIME_TYPES = ['image/gif', 'image/png', 'image/jpeg', 'image/webp'];
 
-	private readonly string $name;
-	private readonly string|null $fullPath;
+	private string $name;
+	private string|null $fullPath;
 	private string|false|null $type = null;
 	private string|false|null $extension = null;
-	private readonly int $size;
+	private int $size;
 	private string $tmpName;
-	private readonly int $error;
+	private int $error;
 
 
 	public function __construct(?array $value)
@@ -64,7 +64,6 @@ final class FileUpload
 	 */
 	public function getName(): string
 	{
-		trigger_error(__METHOD__ . '() is deprecated, use getUntrustedName()', E_USER_DEPRECATED);
 		return $this->name;
 	}
 
