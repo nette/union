@@ -20,6 +20,9 @@ interface TestInterface extends ParentInterface
 
 abstract class ParentAbstract
 {
+	public array $concreteProperty;
+
+
 	abstract public function abstractMethod();
 
 
