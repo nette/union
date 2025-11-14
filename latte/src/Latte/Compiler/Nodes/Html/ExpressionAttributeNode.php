@@ -38,13 +38,15 @@ class ExpressionAttributeNode extends AreaNode
 		} else {
 			$method = 'LR\XmlHelpers::formatAttribute';
 		}
+		$warning = !$this->modifier->removeFilter('accept') && $context->migrationWarnings;
 		$this->modifier->escape = false;
 		return $context->format(
-			'echo %raw(%dump, %modify(%node)) %line;',
+			'echo %raw(%dump, %modify(%node), %dump?) %line;',
 			$method,
 			$this->indentation . $this->name,
 			$this->modifier,
 			$this->value,
+			$warning ?: null,
 			$this->value->position,
 		);
 	}
