@@ -772,4 +772,13 @@ final class Filters
 
 		return preg_match('~^(?:(?:https?|ftp)://[^@]+(?:/.*)?|(?:mailto|tel|sms):.+|[/?#].*|[^:]+)$~Di', $s) ? $s : '';
 	}
+
+
+	/**
+	 * Conditionally renders a boolean HTML attribute.
+	 */
+	public static function toggleAttr(mixed $value): mixed
+	{
+		return $value ? '' : null;
+	}
 }

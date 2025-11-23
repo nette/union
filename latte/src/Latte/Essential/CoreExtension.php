@@ -198,6 +198,7 @@ final class CoreExtension extends Latte\Extension
 			'last' => $this->filters->last(...),
 			'odd' => $this->filters->odd(...),
 			'slice' => $this->filters->slice(...),
+			'toggleAttr' => $this->filters->toggleAttr(...),
 			'hasBlock' => fn(Runtime\Template $template, string $name): bool => $template->hasBlock($name),
 			'hasTemplate' => fn(Runtime\Template $template, string $name): bool => $this->hasTemplate($name, $template->getName()),
 		];

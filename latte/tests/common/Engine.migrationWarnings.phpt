@@ -47,3 +47,9 @@ Assert::error(
 	E_USER_WARNING,
 	'Invalid value for attribute \'title\': bool is not allowed (on line 1 at column 17)',
 );
+
+// toggleAttr
+Assert::same(
+	'<input true>',
+	$latte->renderToString('<input true="{=true|toggleAttr}" false="{=false|toggleAttr}">'),
+);

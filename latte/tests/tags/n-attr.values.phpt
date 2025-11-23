@@ -224,6 +224,18 @@ test('href attribute', function () use ($latte) {
 });
 
 
+test('toggleAttr', function () use ($latte) {
+	Assert::match(
+		<<<'XX'
+			<span true=""></span>
+			XX,
+		$latte->renderToString(<<<'XX'
+			<span n:attr="'true' => toggleAttr(true), 'false' => toggleAttr(false)"></span>
+			XX),
+	);
+});
+
+
 test('XML', function () use ($latte) {
 	Assert::match(
 		<<<'XX'
