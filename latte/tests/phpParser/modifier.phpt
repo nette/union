@@ -55,18 +55,21 @@ Latte\Compiler\Nodes\Php\ModifierNode
    |  |  |  |  |  |  |  name: 'round'
    |  |  |  |  |  |  |  position: 1:20
    |  |  |  |  |  |  args: array (0)
+   |  |  |  |  |  |  nullsafe: false
    |  |  |  |  |  |  position: 1:19
    |  |  |  |  |  position: 1:17
    |  |  |  |  byRef: false
    |  |  |  |  unpack: false
    |  |  |  |  name: null
    |  |  |  |  position: 1:16
+   |  |  nullsafe: false
    |  |  position: 1:1
    |  1 => Latte\Compiler\Nodes\Php\FilterNode
    |  |  name: Latte\Compiler\Nodes\Php\IdentifierNode
    |  |  |  name: 'trim'
    |  |  |  position: 1:27
    |  |  args: array (0)
+   |  |  nullsafe: false
    |  |  position: 1:26
    escape: false
    position: 1:1
