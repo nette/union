@@ -19,13 +19,12 @@ use function array_walk_recursive, is_array, is_object, is_string, ksort, sprint
  */
 class PhpGenerator
 {
-	private ContainerBuilder $builder;
 	private ?string $className = null;
 
 
-	public function __construct(ContainerBuilder $builder)
-	{
-		$this->builder = $builder;
+	public function __construct(
+		private readonly ContainerBuilder $builder,
+	) {
 	}
 
 

@@ -24,7 +24,6 @@ class Compiler
 
 	/** @var CompilerExtension[] */
 	private array $extensions = [];
-	private ContainerBuilder $builder;
 	private array $config = [];
 
 	/** @var array [section => array[]] */
@@ -34,9 +33,9 @@ class Compiler
 	private string $className = 'Container';
 
 
-	public function __construct(?ContainerBuilder $builder = null)
-	{
-		$this->builder = $builder ?: new ContainerBuilder;
+	public function __construct(
+		private readonly ContainerBuilder $builder = new ContainerBuilder,
+	) {
 		$this->dependencies = new DependencyChecker;
 		$this->addExtension(self::Services, new Extensions\ServicesExtension);
 		$this->addExtension(self::Parameters, new Extensions\ParametersExtension($this->configs));
@@ -111,7 +110,7 @@ class Compiler
 	public function loadConfig(string $file, ?Config\Loader $loader = null): static
 	{
 		$sources = $this->sources . "// source: $file\n";
-		$loader = $loader ?: new Config\Loader;
+		$loader ??= new Config\Loader;
 		foreach ($loader->load($file, merge: false) as $data) {
 			$this->addConfig($data);
 		}

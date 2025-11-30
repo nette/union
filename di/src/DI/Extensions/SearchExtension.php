@@ -20,12 +20,11 @@ use function array_filter, array_keys, array_merge, array_unique, class_exists, 
 final class SearchExtension extends Nette\DI\CompilerExtension
 {
 	private array $classes = [];
-	private string $tempDir;
 
 
-	public function __construct(string $tempDir)
-	{
-		$this->tempDir = $tempDir;
+	public function __construct(
+		private readonly string $tempDir,
+	) {
 	}
 
 
@@ -103,7 +102,7 @@ final class SearchExtension extends Nette\DI\CompilerExtension
 					||
 					($rc->isInterface()
 					&& count($methods = $rc->getMethods()) === 1
-					&& in_array($methods[0]->name, ['get', 'create'], true))
+					&& in_array($methods[0]->name, ['get', 'create'], strict: true))
 				)
 				&& (!$acceptRE || preg_match($acceptRE, $rc->name))
 				&& (!$rejectRE || !preg_match($rejectRE, $rc->name))

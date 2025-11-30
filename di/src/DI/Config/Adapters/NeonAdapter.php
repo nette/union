@@ -31,7 +31,7 @@ final class NeonAdapter implements Nette\DI\Config\Adapter
 	public function load(string $file): array
 	{
 		$input = Nette\Utils\FileSystem::read($file);
-		if (substr($input, 0, 3) === "\u{FEFF}") { // BOM
+		if (str_starts_with($input, "\u{FEFF}")) { // BOM
 			$input = substr($input, 3);
 		}
 

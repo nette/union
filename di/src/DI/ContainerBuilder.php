@@ -81,7 +81,7 @@ class ContainerBuilder
 			}
 		}
 
-		$definition = $definition ?: new Definitions\ServiceDefinition;
+		$definition ??= new Definitions\ServiceDefinition;
 		$definition->setName($name);
 		$definition->setNotifier(function (): void {
 			$this->needsResolve = true;
