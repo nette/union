@@ -15,8 +15,6 @@ use function array_merge, class_exists, class_implements, class_parents, count, 
  */
 class Autowiring
 {
-	private ContainerBuilder $builder;
-
 	/** @var array[]  type => services, used by getByType() */
 	private array $highPriority = [];
 
@@ -27,9 +25,9 @@ class Autowiring
 	private array $excludedClasses = [];
 
 
-	public function __construct(ContainerBuilder $builder)
-	{
-		$this->builder = $builder;
+	public function __construct(
+		private readonly ContainerBuilder $builder,
+	) {
 	}
 
 

@@ -233,7 +233,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	private function convertKeyToName($key): ?string
+	private function convertKeyToName(int|string $key): ?string
 	{
 		if (is_int($key)) {
 			return null;

@@ -12,7 +12,7 @@ use Nette\Utils\Reflection;
 use ReflectionClass;
 use ReflectionMethod;
 use function array_combine, array_flip, array_keys, array_map, array_merge, array_unique, class_implements, class_parents, class_uses, count, get_debug_type, get_parent_class, hash, is_object, is_string, rtrim, serialize, sprintf, str_contains;
-use const PHP_VERSION_ID, SORT_REGULAR;
+use const PHP_VERSION_ID;
 
 
 /**
@@ -70,8 +70,8 @@ class DependencyChecker
 		$classes = array_keys($classes);
 		$functions = array_unique($functions, SORT_REGULAR);
 		$hash = self::calculateHash($classes, $functions);
-		$files = @array_map('filemtime', array_combine($files, $files)); // @ - file may not exist
-		$phpFiles = @array_map('filemtime', array_combine($phpFiles, $phpFiles)); // @ - file may not exist
+		$files = @array_map(filemtime(...), array_combine($files, $files)); // @ - file may not exist
+		$phpFiles = @array_map(filemtime(...), array_combine($phpFiles, $phpFiles)); // @ - file may not exist
 		return [self::Version, $files, $phpFiles, $classes, $functions, $hash];
 	}
 
@@ -89,9 +89,9 @@ class DependencyChecker
 	): bool
 	{
 		try {
-			$currentFiles = @array_map('filemtime', array_combine($tmp = array_keys($files), $tmp)); // @ - files may not exist
+			$currentFiles = @array_map(filemtime(...), array_combine($tmp = array_keys($files), $tmp)); // @ - files may not exist
 			$origPhpFiles = $phpFiles;
-			$phpFiles = @array_map('filemtime', array_combine($tmp = array_keys($phpFiles), $tmp)); // @ - files may not exist
+			$phpFiles = @array_map(filemtime(...), array_combine($tmp = array_keys($phpFiles), $tmp)); // @ - files may not exist
 			return $version !== self::Version
 				|| $files !== $currentFiles
 				|| ($phpFiles !== $origPhpFiles && $hash !== self::calculateHash($classes, $functions));

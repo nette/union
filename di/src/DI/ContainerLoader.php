@@ -9,7 +9,6 @@ namespace Nette\DI;
 
 use Nette;
 use function class_exists, file_get_contents, file_put_contents, flock, fopen, function_exists, hash, is_file, rename, serialize, sprintf, strlen, substr, unlink, unserialize;
-use const LOCK_EX, LOCK_UN;
 
 
 /**
@@ -103,7 +102,7 @@ class ContainerLoader
 	{
 		$compiler = new Compiler;
 		$compiler->setClassName($class);
-		$code = $generator(...[&$compiler]) ?: $compiler->compile();
+		$code = $generator(...[&$compiler]) ?? $compiler->compile();
 		return [
 			"<?php\n$code",
 			serialize($compiler->exportDependencies()),

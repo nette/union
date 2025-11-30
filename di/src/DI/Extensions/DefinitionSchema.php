@@ -14,7 +14,7 @@ use Nette\DI\Definitions\Statement;
 use Nette\Schema\Context;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
-use function array_keys, end, get_class, interface_exists, is_array, is_string, method_exists, preg_match, substr;
+use function array_keys, end, interface_exists, is_array, is_string, method_exists, preg_match, substr;
 
 
 /**
@@ -22,12 +22,9 @@ use function array_keys, end, get_class, interface_exists, is_array, is_string, 
  */
 class DefinitionSchema implements Schema
 {
-	private Nette\DI\ContainerBuilder $builder;
-
-
-	public function __construct(Nette\DI\ContainerBuilder $builder)
-	{
-		$this->builder = $builder;
+	public function __construct(
+		private readonly Nette\DI\ContainerBuilder $builder,
+	) {
 	}
 
 
@@ -48,7 +45,7 @@ class DefinitionSchema implements Schema
 		}
 
 		$type = $this->sniffType(end($context->path), $def);
-		$def = $this->getSchema($type)->complete($def, $context);
+		$def = self::getSchema($type)->complete($def, $context);
 		if ($def) {
 			$def->defType = $type;
 		}
@@ -122,7 +119,7 @@ class DefinitionSchema implements Schema
 				: $key;
 
 			if ($name && $this->builder->hasDefinition($name)) {
-				return get_class($this->builder->getDefinition($name));
+				return $this->builder->getDefinition($name)::class;
 			}
 		}
 
@@ -149,7 +146,7 @@ class DefinitionSchema implements Schema
 	private static function getSchema(string $type): Schema
 	{
 		static $cache;
-		$cache = $cache ?: [
+		$cache ??= [
 			Definitions\ServiceDefinition::class => self::getServiceSchema(),
 			Definitions\AccessorDefinition::class => self::getAccessorSchema(),
 			Definitions\FactoryDefinition::class => self::getFactorySchema(),

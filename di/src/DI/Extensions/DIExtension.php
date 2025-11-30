@@ -28,7 +28,7 @@ final class DIExtension extends Nette\DI\CompilerExtension
 	public function __construct(bool $debugMode = false)
 	{
 		$this->debugMode = $debugMode;
-		$this->time = microtime(true);
+		$this->time = microtime(as_float: true);
 
 		$this->config = new class {
 			public ?bool $debugger = null;

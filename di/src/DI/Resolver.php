@@ -25,7 +25,6 @@ use function array_filter, array_key_exists, array_map, array_merge, array_value
  */
 class Resolver
 {
-	private ContainerBuilder $builder;
 	private ?Definition $currentService = null;
 	private ?string $currentServiceType = null;
 	private bool $currentServiceAllowed = false;
@@ -34,9 +33,9 @@ class Resolver
 	private \SplObjectStorage $recursive;
 
 
-	public function __construct(ContainerBuilder $builder)
-	{
-		$this->builder = $builder;
+	public function __construct(
+		private readonly ContainerBuilder $builder,
+	) {
 		$this->recursive = new \SplObjectStorage;
 	}
 

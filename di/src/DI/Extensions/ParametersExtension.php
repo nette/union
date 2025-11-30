@@ -23,12 +23,11 @@ final class ParametersExtension extends Nette\DI\CompilerExtension
 
 	/** @var string[][] */
 	public array $dynamicValidators = [];
-	private array $compilerConfig;
 
 
-	public function __construct(array &$compilerConfig)
-	{
-		$this->compilerConfig = &$compilerConfig;
+	public function __construct(
+		private array &$compilerConfig,
+	) {
 	}
 
 
@@ -37,7 +36,7 @@ final class ParametersExtension extends Nette\DI\CompilerExtension
 		$builder = $this->getContainerBuilder();
 		$params = $this->config;
 		foreach ($this->dynamicParams as $key) {
-			$params[$key] = new DynamicParameter('$this->getParameter(' . var_export($key, true) . ')');
+			$params[$key] = new DynamicParameter('$this->getParameter(' . var_export($key, return: true) . ')');
 		}
 
 		$builder->parameters = Helpers::expand($params, $params, recursive: true);
@@ -83,7 +82,7 @@ final class ParametersExtension extends Nette\DI\CompilerExtension
 		}
 		$method->addBody("\tdefault => parent::getDynamicParameter(\$key),\n};");
 
-		if ($preload = array_keys($dynamicParams, true, true)) {
+		if ($preload = array_keys($dynamicParams, filter_value: true, strict: true)) {
 			$method = $manipulator->inheritMethod('getParameters');
 			$method->addBody('array_map($this->getParameter(...), ?);', [$preload]);
 			$method->addBody('return parent::getParameters();');
