@@ -31,17 +31,24 @@ class IpsumFactory
 
 class Lorem
 {
+	public array $constructorArgs;
+
+
 	public function __construct(...$args)
 	{
-		Notes::add(__METHOD__ . ' ' . implode(' ', $args));
+		$this->constructorArgs = $args;
 	}
 }
 
+
 class Ipsum
 {
+	public array $constructorArgs;
+
+
 	public function __construct(...$args)
 	{
-		Notes::add(__METHOD__ . ' ' . implode(' ', $args));
+		$this->constructorArgs = $args;
 	}
 }
 
@@ -136,166 +143,107 @@ $compiler->addExtension('database', $extension);
 $container = createContainer($compiler, 'files/compiler.extensionOverride.neon');
 
 
-Assert::type(Ipsum::class, $container->getService('one1'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one1'));
+Assert::same([], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('one2'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one2'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('one3'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one3'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Lorem::class, $container->getService('one4'));
-Assert::same([
-	'Lorem::__construct 2',
-], Notes::fetch());
+Assert::type(Lorem::class, $service = $container->getService('one4'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('one5'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one5'));
+Assert::same([], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('one6'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one6'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('one7'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one7'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('one8'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one8'));
+Assert::same([], $service->constructorArgs);
 
 Assert::exception(
 	fn() => $container->getService('one9'),
 	TypeError::class,
 	'%a% must be %a% Ipsum,%a?% Lorem returned',
 );
-Notes::fetch();
 
-Assert::type(Ipsum::class, $container->getService('one10'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('one10'));
+Assert::same([], $service->constructorArgs);
 
 
-Assert::type(Ipsum::class, $container->getService('two1'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('two1'));
+Assert::same([], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('two2'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('two2'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('two3'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('two3'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Lorem::class, $container->getService('two4'));
-Assert::same([
-	'Lorem::__construct 2',
-], Notes::fetch());
+Assert::type(Lorem::class, $service = $container->getService('two4'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('two5'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('two5'));
+Assert::same([], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('two6'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('two6'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('two7'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('two7'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Lorem::class, $container->getService('two8'));
-Assert::same([
-	'Lorem::__construct 1 new',
-], Notes::fetch());
+Assert::type(Lorem::class, $service = $container->getService('two8'));
+Assert::same([1, 'new'], $service->constructorArgs);
 
-Assert::type(Lorem::class, $container->getService('two9'));
-Assert::same([
-	'Lorem::__construct new',
-], Notes::fetch());
+Assert::type(Lorem::class, $service = $container->getService('two9'));
+Assert::same(['new'], $service->constructorArgs);
 
-Assert::type(Lorem::class, $container->getService('two10'));
-Assert::same([
-	'Lorem::__construct 2 new',
-], Notes::fetch());
+Assert::type(Lorem::class, $service = $container->getService('two10'));
+Assert::same([2, 'new'], $service->constructorArgs);
 
 Assert::exception(
 	fn() => $container->getService('two11'),
 	TypeError::class,
 	'%a% must be %a% Ipsum,%a?% Lorem returned',
 );
-Notes::fetch();
 
-Assert::type(Ipsum::class, $container->getService('two12'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('two12'));
+Assert::same([], $service->constructorArgs);
 
 
 
-Assert::type(Ipsum::class, $container->getService('three1'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('three1'));
+Assert::same([], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('three2'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('three2'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('three3'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('three3'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Lorem::class, $container->getService('three4'));
-Assert::same([
-	'Lorem::__construct 2',
-], Notes::fetch());
+Assert::type(Lorem::class, $service = $container->getService('three4'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('three5'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('three5'));
+Assert::same([], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('three6'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('three6'));
+Assert::same([2], $service->constructorArgs);
 
-Assert::type(Ipsum::class, $container->getService('three7'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('three7'));
+Assert::same([2], $service->constructorArgs);
 
 Assert::exception(
 	fn() => $container->getService('three8'),
 	TypeError::class,
 	'%a% must be %a% Ipsum,%a?% Lorem returned',
 );
-Notes::fetch();
 
-Assert::type(Ipsum::class, $container->getService('three9'));
-Assert::same([
-	'Ipsum::__construct ',
-], Notes::fetch());
+Assert::type(Ipsum::class, $service = $container->getService('three9'));
+Assert::same([], $service->constructorArgs);
