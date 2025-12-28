@@ -7,15 +7,17 @@
 use Nette\DI;
 use Tester\Assert;
 
-
 require __DIR__ . '/../bootstrap.php';
 
 
 class Ipsum
 {
+	public array $constructorArgs;
+
+
 	public function __construct(...$args)
 	{
-		Notes::add(__METHOD__ . ' ' . implode(' ', $args));
+		$this->constructorArgs = $args;
 	}
 }
 
@@ -44,9 +46,7 @@ $container = new $class;
 assert($container instanceof DI\Container);
 
 Assert::type(Ipsum::class, $container->getService('s1'));
-Assert::same([
-	'Ipsum::__construct 2',
-], Notes::fetch());
+Assert::same([2], $container->getService('s1')->constructorArgs);
 
 $compiler->addConfig([
 	'services' => [

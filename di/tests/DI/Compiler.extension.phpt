@@ -13,22 +13,25 @@ require __DIR__ . '/../bootstrap.php';
 
 class DatabaseExtension extends Nette\DI\CompilerExtension
 {
+	public array $calledMethods = [];
+
+
 	public function loadConfiguration()
 	{
 		Assert::same(['foo' => 'hello'], $this->config);
-		Notes::add(__METHOD__);
+		$this->calledMethods[] = __METHOD__;
 	}
 
 
 	public function beforeCompile()
 	{
-		Notes::add(__METHOD__);
+		$this->calledMethods[] = __METHOD__;
 	}
 
 
 	public function afterCompile(Nette\PhpGenerator\ClassType $class)
 	{
-		Notes::add(__METHOD__);
+		$this->calledMethods[] = __METHOD__;
 	}
 }
 
@@ -57,7 +60,7 @@ Assert::same([
 	'DatabaseExtension::loadConfiguration',
 	'DatabaseExtension::beforeCompile',
 	'DatabaseExtension::afterCompile',
-], Notes::fetch());
+], $extension->calledMethods);
 
 
 Assert::same('database.', $extension->prefix(''));

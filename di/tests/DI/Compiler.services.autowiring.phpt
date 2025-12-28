@@ -22,10 +22,13 @@ class Factory
 
 class Model
 {
+	public static array $calledMethods = [];
+
+
 	/** autowiring using parameters */
 	public function test(Lorem $arg)
 	{
-		Notes::add(__METHOD__);
+		self::$calledMethods[] = __METHOD__;
 	}
 }
 
@@ -35,7 +38,7 @@ class Lorem
 	/** autowiring using parameters */
 	public static function test(Ipsum $arg)
 	{
-		Notes::add(__METHOD__);
+		Model::$calledMethods[] = __METHOD__;
 	}
 }
 
@@ -78,4 +81,4 @@ Assert::same([
 	'Model::test',
 	'Lorem::test',
 	'Lorem::test',
-], Notes::fetch());
+], Model::$calledMethods);

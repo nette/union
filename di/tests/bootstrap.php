@@ -35,26 +35,6 @@ function getTempDir(): string
 }
 
 
-class Notes
-{
-	public static array $notes = [];
-
-
-	public static function add($message): void
-	{
-		self::$notes[] = $message;
-	}
-
-
-	public static function fetch(): array
-	{
-		$res = self::$notes;
-		self::$notes = [];
-		return $res;
-	}
-}
-
-
 function createContainer($source, $config = null, array $params = []): ?Nette\DI\Container
 {
 	$class = 'Container' . @++$GLOBALS['counter'];
