@@ -9,7 +9,7 @@ namespace Nette\DI;
 
 use Nette;
 use Nette\Schema;
-use function array_diff_key, array_filter, array_keys, array_merge, assert, count, implode, key, sprintf, strtolower;
+use function array_diff_key, array_filter, array_keys, array_merge, array_values, assert, count, implode, key, sprintf, strtolower;
 
 
 /**
@@ -268,7 +268,9 @@ class Compiler
 
 		foreach ($this->extensions as $extension) {
 			$extension->beforeCompile();
-			$this->dependencies->add([(new \ReflectionClass($extension))->getFileName()]);
+			if ($file = (new \ReflectionClass($extension))->getFileName()) {
+				$this->dependencies->add([$file]);
+			}
 		}
 
 		$this->builder->complete();
@@ -288,7 +290,7 @@ class Compiler
 			$context->dynamics = &$this->extensions[self::Parameters]->dynamicValidators;
 		};
 		try {
-			$res = $processor->processMultiple($schema, $configs);
+			$res = $processor->processMultiple($schema, array_values($configs));
 		} catch (Schema\ValidationException $e) {
 			throw new Nette\DI\InvalidConfigurationException($e->getMessage());
 		}
@@ -326,7 +328,9 @@ class Compiler
 		$configList = Helpers::expand($configList, $this->builder->parameters);
 		$extension = $this->extensions[self::Services];
 		assert($extension instanceof Extensions\ServicesExtension);
-		$extension->loadDefinitions($this->processSchema($extension->getConfigSchema(), [$configList]));
+		$config = $this->processSchema($extension->getConfigSchema(), [$configList]);
+		assert(is_array($config));
+		$extension->loadDefinitions($config);
 	}
 
 

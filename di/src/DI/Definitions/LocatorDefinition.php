@@ -69,9 +69,11 @@ final class LocatorDefinition extends Definition
 	{
 		$this->references = [];
 		foreach ($references as $name => $ref) {
-			$this->references[$name] = str_starts_with($ref, '@')
-				? new Reference(substr($ref, 1))
-				: Reference::fromType($ref);
+			$this->references[$name] = match (true) {
+				$ref instanceof Reference => $ref,
+				str_starts_with($ref, '@') => new Reference(substr($ref, 1)),
+				default => Reference::fromType($ref),
+			};
 		}
 
 		return $this;
@@ -129,18 +131,23 @@ final class LocatorDefinition extends Definition
 
 	public function generateMethod(Nette\PhpGenerator\Method $method, Nette\DI\PhpGenerator $generator): void
 	{
+		$type = $this->getType();
+		assert($type !== null);
+
 		$class = (new Nette\PhpGenerator\ClassType)
-			->addImplement($this->getType());
+			->addImplement($type);
 
 		$class->addMethod('__construct')
 			->addPromotedParameter('container')
 				->setPrivate()
 				->setType($generator->getClassName());
 
-		foreach ((new \ReflectionClass($this->getType()))->getMethods() as $rm) {
-			preg_match('#^(get|create)(.*)#', $rm->name, $m);
+		foreach ((new \ReflectionClass($type))->getMethods() as $rm) {
+			if (!preg_match('#^(get|create)(.*)#', $rm->name, $m)) {
+				continue;
+			}
 			$name = lcfirst($m[2]);
-			$nullable = $rm->getReturnType()->allowsNull();
+			$nullable = $rm->getReturnType()?->allowsNull() ?? false;
 
 			$methodInner = $class->addMethod($rm->name)
 				->setReturnType((string) Nette\Utils\Type::fromReflection($rm));

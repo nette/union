@@ -9,7 +9,7 @@ namespace Nette\DI\Config;
 
 use Nette;
 use Nette\Utils\Validators;
-use function array_unique, dirname, is_file, is_object, is_readable, pathinfo, preg_match, sprintf, strtolower;
+use function array_unique, dirname, is_file, is_readable, pathinfo, preg_match, sprintf, strtolower;
 
 
 /**
@@ -115,9 +115,8 @@ class Loader
 			throw new Nette\InvalidArgumentException(sprintf("Unknown file extension '%s'.", $file));
 		}
 
-		return is_object($this->adapters[$extension])
-			? $this->adapters[$extension]
-			: new $this->adapters[$extension];
+		$adapter = $this->adapters[$extension];
+		return $adapter instanceof Adapter ? $adapter : new $adapter;
 	}
 
 

@@ -24,6 +24,9 @@ final class DIExtension extends Nette\DI\CompilerExtension
 
 	/** @var array<string, true> */
 	public array $exportedTypes = [];
+
+	/** @var object{debugger: ?bool, excluded: list<class-string>, parentClass: ?string, export: object{parameters: bool, tags: list<string>|bool|null, types: list<string>|bool|null}, lazy: bool} */
+	protected $config = [];
 	private bool $debugMode;
 	private float $time;
 

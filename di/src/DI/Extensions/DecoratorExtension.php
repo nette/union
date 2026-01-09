@@ -18,6 +18,10 @@ use function array_filter, array_values, class_exists, interface_exists, is_a, i
  */
 final class DecoratorExtension extends Nette\DI\CompilerExtension
 {
+	/** @var array<class-string, object{setup: list<mixed>, tags: array<string, mixed>, inject: ?bool}> */
+	protected $config = [];
+
+
 	public function getConfigSchema(): Nette\Schema\Schema
 	{
 		return Expect::arrayOf(
@@ -59,9 +63,13 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 				$def = $def->getResultDefinition();
 			}
 
+			if (!$def instanceof Definitions\ServiceDefinition) {
+				continue;
+			}
+
 			foreach ($setups as $setup) {
 				if (is_array($setup)) {
-					$setup = new Definitions\Statement(key($setup), array_values($setup));
+					$setup = new Definitions\Statement((string) key($setup), array_values($setup));
 				}
 
 				$def->addSetup($setup);
@@ -91,8 +99,8 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 	{
 		return array_filter(
 			$this->getContainerBuilder()->getDefinitions(),
-			fn(Definitions\Definition $def): bool => is_a($def->getType(), $type, allow_string: true)
-				|| ($def instanceof Definitions\FactoryDefinition && is_a($def->getResultType(), $type, allow_string: true)),
+			fn(Definitions\Definition $def): bool => ($def->getType() !== null && is_a($def->getType(), $type, allow_string: true))
+				|| ($def instanceof Definitions\FactoryDefinition && $def->getResultType() !== null && is_a($def->getResultType(), $type, allow_string: true)),
 		);
 	}
 }

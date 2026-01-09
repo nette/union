@@ -12,7 +12,7 @@ use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\Statement;
 use Nette\Utils\Reflection;
 use Nette\Utils\Type;
-use function array_key_exists, array_keys, array_shift, class_exists, explode, get_debug_type, implode, interface_exists, is_array, is_scalar, is_string, preg_match, preg_quote, preg_replace, preg_split, settype, sprintf, str_replace, strlen, strncmp, substr, trim, ucfirst, var_export;
+use function array_key_exists, array_keys, array_shift, class_exists, explode, get_debug_type, implode, interface_exists, is_array, is_scalar, is_string, preg_match, preg_quote, preg_replace, preg_split, sprintf, str_replace, strlen, strncmp, substr, trim, ucfirst, var_export;
 
 
 /**
@@ -211,8 +211,12 @@ final class Helpers
 
 	/**
 	 * Returns an annotation value.
+	 * @param  \ReflectionClass<object>|\ReflectionFunctionAbstract|\ReflectionProperty  $ref
 	 */
-	public static function parseAnnotation(\Reflector $ref, string $name): ?string
+	public static function parseAnnotation(
+		\ReflectionFunctionAbstract|\ReflectionProperty|\ReflectionClass $ref,
+		string $name,
+	): ?string
 	{
 		if (!Reflection::areCommentsAvailable()) {
 			throw new Nette\InvalidStateException('You have to enable phpDoc comments in opcode cache.');
@@ -251,7 +255,9 @@ final class Helpers
 		}
 
 		$class = $type->getSingleName();
-		if (!class_exists($class) && !interface_exists($class)) {
+		if ($class === null) {
+			throw new ServiceCreationException(sprintf('%s is not declared.', ucfirst($hint)));
+		} elseif (!class_exists($class) && !interface_exists($class)) {
 			throw new ServiceCreationException(sprintf("Class '%s' not found.\nCheck the %s.", $class, $hint));
 		}
 
@@ -280,10 +286,15 @@ final class Helpers
 				$norm = preg_replace('#\.0*$#D', '', $norm);
 			}
 
-			$orig = $norm;
-			settype($norm, $type);
-			if ($orig === ($norm === false ? '0' : (string) $norm)) {
-				return $norm;
+			$converted = match ($type) {
+				'bool' => (bool) $norm,
+				'int' => (int) $norm,
+				'float' => (float) $norm,
+				'string' => $norm,
+				default => null,
+			};
+			if ($converted !== null && $norm === ($converted === false ? '0' : (string) $converted)) {
+				return $converted;
 			}
 		}
 

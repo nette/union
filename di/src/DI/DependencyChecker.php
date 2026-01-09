@@ -61,7 +61,9 @@ class DependencyChecker
 					}
 				}
 			} elseif ($dep instanceof \ReflectionFunctionAbstract) {
-				$phpFiles[] = $dep->getFileName();
+				if ($file = $dep->getFileName()) {
+					$phpFiles[] = $file;
+				}
 				$functions[] = rtrim(Reflection::toString($dep), '()');
 
 			} else {

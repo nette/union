@@ -265,7 +265,7 @@ class ContainerBuilder
 		$this->needResolved();
 		$found = [];
 		foreach ($this->definitions as $name => $def) {
-			if (is_a($def->getType(), $type, allow_string: true)) {
+			if ($def->getType() !== null && is_a($def->getType(), $type, allow_string: true)) {
 				$found[$name] = $def;
 			}
 		}
@@ -421,6 +421,7 @@ class ContainerBuilder
 				$val = (new Resolver($this))->completeStatement($val);
 
 			} elseif ($val instanceof Definition) {
+				assert($val->getName() !== null);
 				$val = new Definitions\Reference($val->getName());
 			}
 		});
