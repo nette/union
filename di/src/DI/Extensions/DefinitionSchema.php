@@ -28,7 +28,7 @@ class DefinitionSchema implements Schema
 	}
 
 
-	public function complete($def, Context $context)
+	public function complete(mixed $def, Context $context): mixed
 	{
 		if ($def === [false]) {
 			return (object) $def;
@@ -54,7 +54,7 @@ class DefinitionSchema implements Schema
 	}
 
 
-	public function merge($def, $base)
+	public function merge(mixed $def, mixed $base): mixed
 	{
 		if (!empty($def['alteration'])) {
 			unset($def['alteration']);
@@ -67,7 +67,7 @@ class DefinitionSchema implements Schema
 	/**
 	 * Normalizes configuration of service definitions.
 	 */
-	public function normalize($def, Context $context)
+	public function normalize(mixed $def, Context $context): mixed
 	{
 		if ($def === null || $def === false) {
 			return (array) $def;
@@ -106,8 +106,9 @@ class DefinitionSchema implements Schema
 	}
 
 
-	public function completeDefault(Context $context)
+	public function completeDefault(Context $context): mixed
 	{
+		return null;
 	}
 
 

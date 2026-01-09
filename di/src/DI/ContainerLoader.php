@@ -31,7 +31,7 @@ class ContainerLoader
 	{
 		$class = $this->getClassName($key);
 		if (!class_exists($class, autoload: false)) {
-			$this->loadFile($class, $generator);
+			$this->loadFile($class, $generator(...));
 		}
 
 		return $class;
@@ -47,8 +47,8 @@ class ContainerLoader
 	}
 
 
-	/** @param (callable(Compiler): ?string) $generator */
-	private function loadFile(string $class, callable $generator): void
+	/** @param  (\Closure(Compiler): ?string)  $generator */
+	private function loadFile(string $class, \Closure $generator): void
 	{
 		$file = "$this->tempDirectory/$class.php";
 		if (!$this->isExpired($file) && (@include $file) !== false) { // @ file may not exist
