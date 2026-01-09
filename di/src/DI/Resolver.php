@@ -16,7 +16,7 @@ use Nette\Utils\Arrays;
 use Nette\Utils\Callback;
 use Nette\Utils\Reflection;
 use Nette\Utils\Validators;
-use function array_filter, array_key_exists, array_map, array_merge, array_values, array_walk_recursive, assert, class_exists, count, ctype_digit, explode, function_exists, gettype, implode, in_array, interface_exists, is_a, is_array, is_int, is_scalar, is_string, iterator_to_array, ltrim, preg_match, preg_replace, sprintf, str_contains, str_ends_with, str_replace, str_starts_with, strlen, substr;
+use function array_filter, array_key_exists, array_map, array_merge, array_values, array_walk_recursive, class_exists, count, ctype_digit, explode, function_exists, gettype, implode, in_array, interface_exists, is_a, is_array, is_int, is_scalar, is_string, iterator_to_array, ltrim, preg_match, preg_replace, sprintf, str_contains, str_ends_with, str_replace, str_starts_with, strlen, substr;
 
 
 /**
@@ -104,7 +104,6 @@ class Resolver
 
 			try {
 				$reflection = Callback::toReflection($entity[0] === '' ? $entity[1] : $entity);
-				assert($reflection instanceof \ReflectionMethod || $reflection instanceof \ReflectionFunction);
 				$refClass = $reflection instanceof \ReflectionMethod
 					? $reflection->getDeclaringClass()
 					: null;
@@ -112,10 +111,12 @@ class Resolver
 				$refClass = $reflection = null;
 			}
 
-			if (isset($e) || ($refClass && (!$reflection->isPublic()
+			if (isset($e)) {
+				throw new ServiceCreationException(sprintf('Method %s() is not callable.', Callback::toString($entity)), 0, $e);
+			} elseif ($reflection instanceof \ReflectionMethod && $refClass && (!$reflection->isPublic()
 				|| ($refClass->isTrait() && !$reflection->isStatic())
-			))) {
-				throw new ServiceCreationException(sprintf('Method %s() is not callable.', Callback::toString($entity)), 0, $e ?? null);
+			)) {
+				throw new ServiceCreationException(sprintf('Method %s() is not callable.', Callback::toString($entity)));
 			}
 
 			$this->addDependency($reflection);
@@ -166,7 +167,9 @@ class Resolver
 		try {
 			$def->complete($this);
 
-			$this->addDependency(new \ReflectionClass($def->getType()));
+			if ($type = $def->getType()) {
+				$this->addDependency(new \ReflectionClass($type));
+			}
 
 		} catch (\Throwable $e) {
 			throw $this->completeException($e, $def);
@@ -398,9 +401,11 @@ class Resolver
 
 	public function resolveReference(Reference $ref): Definition
 	{
-		return $ref->isSelf()
-			? $this->currentService
-			: $this->builder->getDefinition($ref->getValue());
+		if ($ref->isSelf()) {
+			assert($this->currentService !== null);
+			return $this->currentService;
+		}
+		return $this->builder->getDefinition($ref->getValue());
 	}
 
 
@@ -416,6 +421,7 @@ class Resolver
 		if (
 			$this->currentService
 			&& $this->currentServiceAllowed
+			&& $this->currentServiceType !== null
 			&& is_a($this->currentServiceType, $type, allow_string: true)
 		) {
 			return new Reference(Reference::Self);
@@ -444,10 +450,16 @@ class Resolver
 	}
 
 
-	private function completeException(\Throwable $e, Definition $def): ServiceCreationException
+	private function completeException(\Throwable $e, ?Definition $def): ServiceCreationException
 	{
 		if ($e instanceof ServiceCreationException && str_starts_with($e->getMessage(), "Service '")) {
 			return $e;
+		}
+
+		if (!$def) {
+			return $e instanceof ServiceCreationException
+				? $e
+				: new ServiceCreationException($e->getMessage(), 0, $e);
 		}
 
 		$name = $def->getName();

@@ -1,4 +1,10 @@
 {use Tracy\Dumper}
+{varType array<string, string> $services}
+{varType array<string, array<int, list<string>>> $wiring}
+{varType array<string, object> $instances}
+{varType array<string, array<string, mixed>> $tags}
+{varType array<string, mixed>|null $parameters}
+{varType string $file}
 
 <style class="tracy-debug">
 	#tracy-debug .nette-ContainerPanel table {

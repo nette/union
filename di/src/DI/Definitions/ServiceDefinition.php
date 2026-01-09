@@ -145,11 +145,12 @@ final class ServiceDefinition extends Definition
 	public function resolveType(Nette\DI\Resolver $resolver): void
 	{
 		if (!$this->getEntity()) {
-			if (!$this->getType()) {
+			$type = $this->getType();
+			if (!$type) {
 				throw new ServiceCreationException('Factory and type are missing in definition of service.');
 			}
 
-			$this->setCreator($this->getType(), $this->creator->arguments ?? []);
+			$this->setCreator($type, $this->creator->arguments);
 
 		} elseif (!$this->getType()) {
 			$type = $resolver->resolveEntityType($this->creator);
@@ -157,6 +158,7 @@ final class ServiceDefinition extends Definition
 				throw new ServiceCreationException('Unknown service type, specify it or declare return type of factory method.');
 			}
 
+			assert(class_exists($type) || interface_exists($type));
 			$this->setType($type);
 			$resolver->addDependency(new \ReflectionClass($type));
 		}
@@ -201,6 +203,7 @@ final class ServiceDefinition extends Definition
 
 		if ($this->canBeLazy() && !preg_grep('#(?:func_get_arg|func_num_args)#i', $lines)) { // latteFactory workaround
 			$class = $this->creator->getEntity();
+			assert(is_string($class) && class_exists($class)); // canBeLazy() guarantees this
 			$lines[0] = (new \ReflectionClass($class))->hasMethod('__construct')
 				? $generator->formatPhp("\$service->__construct(...?:);\n", [$this->creator->arguments])
 				: '';

@@ -74,7 +74,8 @@ abstract class CompilerExtension
 	public function validateConfig(array $expected, ?array $config = null, ?string $name = null): array
 	{
 		if (func_num_args() === 1) {
-			return $this->config = $this->validateConfig($expected, $this->config);
+			$current = is_array($this->config) ? $this->config : (array) $this->config;
+			return $this->config = $this->validateConfig($expected, $current);
 		}
 
 		if ($extra = array_diff_key((array) $config, $expected)) {
