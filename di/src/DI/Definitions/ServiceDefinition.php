@@ -97,7 +97,7 @@ final class ServiceDefinition extends Definition
 	}
 
 
-	public function setArgument($key, $value): static
+	public function setArgument(int|string $key, mixed $value): static
 	{
 		$this->creator->arguments[$key] = $value;
 		return $this;

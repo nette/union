@@ -23,14 +23,14 @@ final class Helpers
 
 
 	/** @deprecated */
-	public static function merge($left, $right)
+	public static function merge(mixed $left, mixed $right): mixed
 	{
 		return Nette\Schema\Helpers::merge($left, $right);
 	}
 
 
 	/** @deprecated */
-	public static function takeParent(&$data): bool
+	public static function takeParent(mixed &$data): bool
 	{
 		if (is_array($data) && isset($data[self::PREVENT_MERGING])) {
 			unset($data[self::PREVENT_MERGING]);

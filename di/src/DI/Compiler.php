@@ -280,7 +280,7 @@ class Compiler
 	 * @param  array<mixed[]>  $configs
 	 * @return array<string, mixed>|object
 	 */
-	private function processSchema(Schema\Schema $schema, array $configs, $name = null): array|object
+	private function processSchema(Schema\Schema $schema, array $configs, ?string $name = null): array|object
 	{
 		$processor = new Schema\Processor;
 		$processor->onNewContext[] = function (Schema\Context $context) use ($name) {
