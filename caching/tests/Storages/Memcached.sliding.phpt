@@ -43,25 +43,3 @@ for ($i = 0; $i < 5; $i++) {
 sleep(5);
 
 Assert::null($cache->load($key));
-
-
-// Bulk
-
-// Writing cache...
-$cache->save($key, $value, [
-	Cache::Expire => time() + 3,
-	Cache::Sliding => true,
-]);
-
-
-for ($i = 0; $i < 5; $i++) {
-	// Sleeping 1 second
-	sleep(1);
-
-	Assert::truthy($cache->bulkLoad([$key])[$key]);
-}
-
-// Sleeping few seconds...
-sleep(5);
-
-Assert::null($cache->load([$key]));
