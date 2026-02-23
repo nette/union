@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\ContainerBuilder and rich syntax.
  */
-
-declare(strict_types=1);
 
 use Nette\DI;
 use Nette\DI\Definitions\Statement;

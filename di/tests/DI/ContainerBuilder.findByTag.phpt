@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\ContainerBuilder and Container: findByTag()
  */
-
-declare(strict_types=1);
 
 use Nette\DI;
 use Tester\Assert;

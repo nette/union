@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: ServiceDefinition
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;

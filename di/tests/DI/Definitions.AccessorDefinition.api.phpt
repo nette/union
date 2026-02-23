@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: AccessorDefinition API
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Definitions\AccessorDefinition;
 use Nette\DI\Definitions\Reference;

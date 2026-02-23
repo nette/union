@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Overriding/modifying service definition in another config
  */
-
-declare(strict_types=1);
 
 use Nette\DI;
 use Tester\Assert;

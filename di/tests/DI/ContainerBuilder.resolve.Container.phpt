@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Container::getByType() can be resolved
  */
-
-declare(strict_types=1);
 
 use Nette\DI;
 use Tester\Assert;

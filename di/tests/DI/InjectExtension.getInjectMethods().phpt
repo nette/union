@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Extensions\InjectExtension::getInjectMethods()
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Extensions\InjectExtension;
 use Tester\Assert;

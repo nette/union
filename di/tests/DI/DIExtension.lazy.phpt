@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: DIExtension lazy services
  * @phpVersion 8.4
  */
-
-declare(strict_types=1);
 
 use Nette\DI;
 use Nette\DI\Extensions\DIExtension;

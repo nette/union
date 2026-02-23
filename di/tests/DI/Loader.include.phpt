@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Config\Loader: including files
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Config;
 use Tester\Assert;

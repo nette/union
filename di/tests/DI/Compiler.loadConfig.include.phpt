@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Compiler: including files
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Compiler;
 use Tester\Assert;

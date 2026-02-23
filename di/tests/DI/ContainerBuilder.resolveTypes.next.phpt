@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test of chained resolving
@@ -6,8 +6,6 @@
  * services:
  *    - Factory::createClass()::next()
  */
-
-declare(strict_types=1);
 
 use Nette\DI;
 use Nette\DI\Definitions\Statement;
