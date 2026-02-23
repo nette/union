@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: FactoryDefinition
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Definitions\FactoryDefinition;
 use Tester\Assert;

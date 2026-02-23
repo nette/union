@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Resolver::autowireArguments()
  * @phpVersion 8.1
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Resolver;
 use Tester\Assert;

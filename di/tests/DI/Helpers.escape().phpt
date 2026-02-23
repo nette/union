@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Helpers::escape()
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Helpers;
 use Tester\Assert;

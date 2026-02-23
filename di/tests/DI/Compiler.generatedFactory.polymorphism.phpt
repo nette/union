@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Compiler: generated services factories from interfaces with class type in parameters.
  */
-
-declare(strict_types=1);
 
 use Nette\DI;
 use Tester\Assert;

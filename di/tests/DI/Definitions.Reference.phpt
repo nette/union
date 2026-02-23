@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Definitions\Reference usage.
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Definitions\Reference;
 use Tester\Assert;

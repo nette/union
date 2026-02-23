@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\CompilerExtension and schema overriding
  */
-
-declare(strict_types=1);
 
 use Nette\Schema\Expect;
 use Tester\Assert;

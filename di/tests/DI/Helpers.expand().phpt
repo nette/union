@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Helpers::expand()
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Definitions\Statement;
 use Nette\DI\DynamicParameter;

@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Test: Nette\DI\Config\DefinitionSchema::normalize()
  */
-
-declare(strict_types=1);
 
 use Nette\DI\Definitions\Statement;
 use Nette\DI\Extensions\DefinitionSchema;
