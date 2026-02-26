@@ -158,6 +158,7 @@ class PhpGenerator
 
 	/**
 	 * Formats PHP statement.
+	 * @param  array<mixed>  $args
 	 * @internal
 	 */
 	public function formatPhp(string $statement, array $args): string
@@ -166,6 +167,10 @@ class PhpGenerator
 	}
 
 
+	/**
+	 * @param  array<mixed>  $args
+	 * @return array<mixed>
+	 */
 	public function convertArguments(array $args): array
 	{
 		array_walk_recursive($args, function (&$val): void {

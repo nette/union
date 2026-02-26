@@ -16,7 +16,7 @@ use function array_pop, class_exists, class_parents, count, implode, is_string, 
 /**
  * Definition of standard service.
  *
- * @property string|null $class
+ * @property ?string $class
  * @property Statement $factory
  * @property Statement[] $setup
  */
@@ -45,6 +45,8 @@ final class ServiceDefinition extends Definition
 
 	/**
 	 * Alias for setCreator()
+	 * @param  string|array{string|Reference|Statement, string}|Definition|Reference|Statement  $factory
+	 * @param  array<mixed>  $args
 	 */
 	public function setFactory(string|array|Definition|Reference|Statement $factory, array $args = []): static
 	{
@@ -61,6 +63,10 @@ final class ServiceDefinition extends Definition
 	}
 
 
+	/**
+	 * @param  string|array{string|Reference|Statement, string}|Definition|Reference|Statement  $creator
+	 * @param  array<mixed>  $args
+	 */
 	public function setCreator(string|array|Definition|Reference|Statement $creator, array $args = []): static
 	{
 		$this->creator = $creator instanceof Statement
@@ -76,12 +82,14 @@ final class ServiceDefinition extends Definition
 	}
 
 
+	/** @return string|array{string|Reference|Statement, string}|Definition|Reference|null */
 	public function getEntity(): string|array|Definition|Reference|null
 	{
 		return $this->creator->getEntity();
 	}
 
 
+	/** @param  array<mixed>  $args */
 	public function setArguments(array $args = []): static
 	{
 		$this->creator->arguments = $args;
@@ -120,6 +128,10 @@ final class ServiceDefinition extends Definition
 	}
 
 
+	/**
+	 * @param  string|array{string|Reference|Statement, string}|Definition|Reference|Statement  $entity
+	 * @param  array<mixed>  $args
+	 */
 	public function addSetup(string|array|Definition|Reference|Statement $entity, array $args = []): static
 	{
 		$entity = $entity instanceof Statement

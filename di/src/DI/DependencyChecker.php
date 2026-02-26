@@ -25,12 +25,13 @@ class DependencyChecker
 	/** @deprecated use DependencyChecker::Version */
 	public const VERSION = self::Version;
 
-	/** @var array<ReflectionClass|\ReflectionFunctionAbstract|string> */
+	/** @var array<ReflectionClass<object>|\ReflectionFunctionAbstract|string> */
 	private array $dependencies = [];
 
 
 	/**
 	 * Adds dependencies to the list.
+	 * @param  array<ReflectionClass<object>|\ReflectionFunctionAbstract|string>  $deps
 	 */
 	public function add(array $deps): static
 	{
@@ -41,6 +42,7 @@ class DependencyChecker
 
 	/**
 	 * Exports dependencies.
+	 * @return array{int, array<string, int|false>, array<string, int|false>, string[], string[], string}
 	 */
 	public function export(): array
 	{
@@ -78,6 +80,10 @@ class DependencyChecker
 
 	/**
 	 * Are dependencies expired?
+	 * @param  array<string, int|false>  $files
+	 * @param  array<string, int|false>  $phpFiles
+	 * @param  list<string>  $classes
+	 * @param  list<string>  $functions
 	 */
 	public static function isExpired(
 		int $version,
@@ -101,6 +107,10 @@ class DependencyChecker
 	}
 
 
+	/**
+	 * @param  string[]  $classes
+	 * @param  string[]  $functions
+	 */
 	private static function calculateHash(array $classes, array $functions): string
 	{
 		$hash = [];
@@ -170,6 +180,7 @@ class DependencyChecker
 	}
 
 
+	/** @return array<int, array{string, string, bool, mixed}> */
 	private static function hashParameters(\ReflectionFunctionAbstract $method): array
 	{
 		$res = [];

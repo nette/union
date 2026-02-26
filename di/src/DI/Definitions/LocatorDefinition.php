@@ -16,7 +16,7 @@ use function array_map, interface_exists, lcfirst, preg_match, sprintf, str_star
  */
 final class LocatorDefinition extends Definition
 {
-	/** @var Reference[] */
+	/** @var array<string, Reference> */
 	private array $references = [];
 	private ?string $tagged = null;
 
@@ -64,6 +64,7 @@ final class LocatorDefinition extends Definition
 	}
 
 
+	/** @param  array<string, Reference|string>  $references */
 	public function setReferences(array $references): static
 	{
 		$this->references = [];
@@ -77,7 +78,7 @@ final class LocatorDefinition extends Definition
 	}
 
 
-	/** @return Reference[] */
+	/** @return array<string, Reference> */
 	public function getReferences(): array
 	{
 		return $this->references;

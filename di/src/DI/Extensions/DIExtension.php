@@ -19,7 +19,10 @@ use const PHP_VERSION_ID;
  */
 final class DIExtension extends Nette\DI\CompilerExtension
 {
+	/** @var array<string, true> */
 	public array $exportedTags = [];
+
+	/** @var array<string, true> */
 	public array $exportedTypes = [];
 	private bool $debugMode;
 	private float $time;

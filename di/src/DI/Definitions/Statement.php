@@ -14,7 +14,7 @@ use function array_keys, class_exists, explode, is_array, is_string, str_contain
 /**
  * Assignment or calling statement.
  *
- * @property string|array|Definition|Reference|null $entity
+ * @property string|array{string|Reference|Statement,string}|Definition|Reference|null $entity
  */
 final class Statement implements Nette\Schema\DynamicParameter
 {
@@ -22,6 +22,7 @@ final class Statement implements Nette\Schema\DynamicParameter
 
 	public function __construct(
 		private string|array|Definition|Reference|null $entity,
+		/** @var array<mixed> */
 		public array $arguments = [],
 	) {
 		if (
@@ -54,6 +55,7 @@ final class Statement implements Nette\Schema\DynamicParameter
 	}
 
 
+	/** @return string|array{string|Reference|Statement, string}|Definition|Reference|null */
 	public function getEntity(): string|array|Definition|Reference|null
 	{
 		return $this->entity;

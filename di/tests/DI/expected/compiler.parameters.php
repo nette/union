@@ -3,6 +3,9 @@ class Container extends Nette\DI\Container
 {
 %A%
 
+	/**
+	 * @param  mixed[]  $params
+	 */
 	public function __construct(array $params = [])
 	{
 		parent::__construct($params);
@@ -27,6 +30,9 @@ class Container extends Nette\DI\Container
 
 %A%
 
+	/**
+	 * @return mixed[]
+	 */
 	protected function getStaticParameters(): array
 	{
 		return ['static' => 123, 'refStatic' => 123];
@@ -61,6 +67,9 @@ class Container extends Nette\DI\Container
 	}
 
 
+	/**
+	 * @return mixed[]
+	 */
 	public function getParameters(): array
 	{
 		array_map($this->getParameter(...), [

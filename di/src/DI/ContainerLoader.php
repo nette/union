@@ -24,7 +24,8 @@ class ContainerLoader
 
 
 	/**
-	 * @param  callable  $generator  function (Nette\DI\Compiler $compiler): string|null
+	 * @param  callable(Compiler): ?string  $generator
+	 * @return class-string<Container>
 	 */
 	public function load(callable $generator, mixed $key = null): string
 	{
@@ -37,12 +38,16 @@ class ContainerLoader
 	}
 
 
+	/**
+	 * @return class-string<Container>
+	 */
 	public function getClassName(mixed $key): string
 	{
 		return 'Container_' . substr(hash('xxh128', serialize($key)), 0, 10);
 	}
 
 
+	/** @param (callable(Compiler): ?string) $generator */
 	private function loadFile(string $class, callable $generator): void
 	{
 		$file = "$this->tempDirectory/$class.php";
@@ -97,7 +102,10 @@ class ContainerLoader
 	}
 
 
-	/** @return array of (code, file[]) */
+	/**
+	 * @param  callable(Compiler): ?string  $generator
+	 * @return array{string, string} code, file
+	 */
 	protected function generate(string $class, callable $generator): array
 	{
 		$compiler = new Compiler;

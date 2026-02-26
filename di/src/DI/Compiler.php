@@ -24,9 +24,11 @@ class Compiler
 
 	/** @var CompilerExtension[] */
 	private array $extensions = [];
+
+	/** @var array<string, mixed> */
 	private array $config = [];
 
-	/** @var array [section => array[]] */
+	/** @var array<string, array<mixed[]>> [section => array[]] */
 	private array $configs = [];
 	private string $sources = '';
 	private DependencyChecker $dependencies;
@@ -69,6 +71,11 @@ class Compiler
 	}
 
 
+	/**
+	 * @template T of CompilerExtension
+	 * @param  class-string<T>|null  $type
+	 * @return ($type is null ? array<string, CompilerExtension> : array<string, T>)
+	 */
 	public function getExtensions(?string $type = null): array
 	{
 		return $type
@@ -92,6 +99,7 @@ class Compiler
 
 	/**
 	 * Adds new configuration.
+	 * @param  array<string, mixed>  $config
 	 */
 	public function addConfig(array $config): static
 	{
@@ -123,6 +131,7 @@ class Compiler
 
 	/**
 	 * Returns configuration.
+	 * @return array<string, mixed>
 	 * @deprecated
 	 */
 	public function getConfig(): array
@@ -133,6 +142,7 @@ class Compiler
 
 	/**
 	 * Sets the names of dynamic parameters.
+	 * @param  string[]  $names
 	 */
 	public function setDynamicParameterNames(array $names): static
 	{
@@ -144,7 +154,7 @@ class Compiler
 
 	/**
 	 * Adds dependencies to the list.
-	 * @param  array  $deps  of ReflectionClass|\ReflectionFunctionAbstract|string
+	 * @param array<\ReflectionClass<object>|\ReflectionFunctionAbstract|string>  $deps
 	 */
 	public function addDependencies(array $deps): static
 	{
@@ -155,6 +165,7 @@ class Compiler
 
 	/**
 	 * Exports dependencies.
+	 * @return array{int, array<string, int|false>, array<string, int|false>, string[], string[], string}
 	 */
 	public function exportDependencies(): array
 	{
@@ -162,6 +173,9 @@ class Compiler
 	}
 
 
+	/**
+	 * Adds a tag to export from the container.
+	 */
 	public function addExportedTag(string $tag): static
 	{
 		if (isset($this->extensions[self::DI])) {
@@ -173,6 +187,10 @@ class Compiler
 	}
 
 
+	/**
+	 * Adds a type to export from the container.
+	 * @param  class-string  $type
+	 */
 	public function addExportedType(string $type): static
 	{
 		if (isset($this->extensions[self::DI])) {
@@ -184,6 +202,9 @@ class Compiler
 	}
 
 
+	/**
+	 * Compiles the container and returns the generated PHP code.
+	 */
 	public function compile(): string
 	{
 		$this->processExtensions();
@@ -256,6 +277,8 @@ class Compiler
 
 	/**
 	 * Merges and validates configurations against scheme.
+	 * @param  array<mixed[]>  $configs
+	 * @return array<string, mixed>|object
 	 */
 	private function processSchema(Schema\Schema $schema, array $configs, $name = null): array|object
 	{
@@ -296,6 +319,7 @@ class Compiler
 
 	/**
 	 * Loads list of service definitions from configuration.
+	 * @param  array<mixed>  $configList
 	 */
 	public function loadDefinitionsFromConfig(array $configList): void
 	{

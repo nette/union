@@ -25,6 +25,8 @@ final class Helpers
 
 	/**
 	 * Expands %placeholders%.
+	 * @param  array<string, mixed>  $params
+	 * @param  bool|array<string, int>  $recursive
 	 * @throws Nette\InvalidArgumentException
 	 */
 	public static function expand(mixed $var, array $params, bool|array $recursive = false): mixed
@@ -60,6 +62,8 @@ final class Helpers
 
 	/**
 	 * Expands %placeholders% in string
+	 * @param  array<string, mixed>  $params
+	 * @param  ?array<string, int>  $recursive
 	 * @throws Nette\InvalidArgumentException
 	 */
 	private static function expandString(
@@ -95,6 +99,10 @@ final class Helpers
 	}
 
 
+	/**
+	 * @param  array<string, mixed>  $params
+	 * @param  ?array<string, int>  $recursive
+	 */
 	private static function expandParameter(
 		string $parameter,
 		array $params,
@@ -153,6 +161,8 @@ final class Helpers
 
 	/**
 	 * Process constants recursively.
+	 * @param  array<mixed>  $args
+	 * @return array<mixed>
 	 */
 	public static function filterArguments(array $args): array
 	{
@@ -231,6 +241,7 @@ final class Helpers
 	}
 
 
+	/** @return class-string */
 	public static function ensureClassType(?Type $type, string $hint, bool $allowNullable = false): string
 	{
 		if (!$type) {
@@ -248,6 +259,7 @@ final class Helpers
 	}
 
 
+	/** @return class-string */
 	public static function normalizeClass(string $type): string
 	{
 		return class_exists($type) || interface_exists($type)

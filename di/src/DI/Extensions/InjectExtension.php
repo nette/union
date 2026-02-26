@@ -89,6 +89,7 @@ final class InjectExtension extends DI\CompilerExtension
 
 	/**
 	 * Generates list of inject methods.
+	 * @return string[]
 	 * @internal
 	 */
 	public static function getInjectMethods(string $class): array
@@ -110,6 +111,7 @@ final class InjectExtension extends DI\CompilerExtension
 
 	/**
 	 * Generates list of properties with annotation @inject.
+	 * @return array<string, class-string>
 	 * @internal
 	 */
 	public static function getInjectProperties(string $class): array

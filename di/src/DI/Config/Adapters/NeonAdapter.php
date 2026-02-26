@@ -27,6 +27,7 @@ final class NeonAdapter implements Nette\DI\Config\Adapter
 
 	/**
 	 * Reads configuration from NEON file.
+	 * @return array<string, mixed>
 	 */
 	public function load(string $file): array
 	{
@@ -48,7 +49,11 @@ final class NeonAdapter implements Nette\DI\Config\Adapter
 	}
 
 
-	/** @throws Nette\InvalidStateException */
+	/**
+	 * @param  array<mixed>  $arr
+	 * @return array<mixed>
+	 * @throws Nette\InvalidStateException
+	 */
 	public function process(array $arr): array
 	{
 		$res = [];
@@ -99,6 +104,7 @@ final class NeonAdapter implements Nette\DI\Config\Adapter
 
 	/**
 	 * Generates configuration in NEON format.
+	 * @param  array<string, mixed>  $data
 	 */
 	public function dump(array $data): string
 	{

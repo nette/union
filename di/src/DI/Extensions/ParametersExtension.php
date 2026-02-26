@@ -21,11 +21,12 @@ final class ParametersExtension extends Nette\DI\CompilerExtension
 	/** @var string[] */
 	public array $dynamicParams = [];
 
-	/** @var string[][] */
+	/** @var list<array{DynamicParameter, string, list<int|string>}> */
 	public array $dynamicValidators = [];
 
 
 	public function __construct(
+		/** @var array<string, array<mixed[]>> */
 		private array &$compilerConfig,
 	) {
 	}

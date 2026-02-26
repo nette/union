@@ -26,6 +26,7 @@ final class PhpAdapter implements Nette\DI\Config\Adapter
 
 	/**
 	 * Generates configuration in PHP format.
+	 * @param  array<string, mixed>  $data
 	 */
 	public function dump(array $data): string
 	{
