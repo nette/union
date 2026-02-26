@@ -19,6 +19,7 @@ use function array_filter, array_keys, array_merge, array_unique, class_exists, 
  */
 final class SearchExtension extends Nette\DI\CompilerExtension
 {
+	/** @var array<string, array<string, mixed>> */
 	private array $classes = [];
 
 
@@ -70,6 +71,7 @@ final class SearchExtension extends Nette\DI\CompilerExtension
 	}
 
 
+	/** @return string[] */
 	public function findClasses(\stdClass $config): array
 	{
 		$exclude = $config->exclude;
@@ -140,6 +142,7 @@ final class SearchExtension extends Nette\DI\CompilerExtension
 	}
 
 
+	/** @param  string[]  $masks */
 	private static function buildNameRegexp(array $masks): ?string
 	{
 		$res = [];

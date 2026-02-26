@@ -19,17 +19,25 @@ class Loader
 {
 	private const IncludesKey = 'includes';
 
+	/** @var array<string, class-string<Adapter>|Adapter> */
 	private array $adapters = [
 		'php' => Adapters\PhpAdapter::class,
 		'neon' => Adapters\NeonAdapter::class,
 	];
+
+	/** @var string[] */
 	private array $dependencies = [];
+
+	/** @var array<string, true> */
 	private array $loadedFiles = [];
+
+	/** @var array<string, mixed> */
 	private array $parameters = [];
 
 
 	/**
 	 * Reads configuration from file.
+	 * @return array<string, mixed>
 	 */
 	public function load(string $file, ?bool $merge = true): array
 	{
@@ -70,6 +78,7 @@ class Loader
 
 	/**
 	 * Returns configuration files.
+	 * @return string[]
 	 */
 	public function getDependencies(): array
 	{
@@ -90,6 +99,7 @@ class Loader
 
 	/**
 	 * Registers adapter for given file extension.
+	 * @param  class-string<Adapter>|Adapter  $adapter
 	 */
 	public function addAdapter(string $extension, string|Adapter $adapter): static
 	{
@@ -111,6 +121,7 @@ class Loader
 	}
 
 
+	/** @param  array<string, mixed>  $params */
 	public function setParameters(array $params): static
 	{
 		$this->parameters = $params;

@@ -33,6 +33,7 @@ final class ServicesExtension extends Nette\DI\CompilerExtension
 
 	/**
 	 * Loads list of service definitions.
+	 * @param  mixed[]  $config
 	 */
 	public function loadDefinitions(array $config): void
 	{

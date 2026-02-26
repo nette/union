@@ -48,6 +48,10 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 	}
 
 
+	/**
+	 * @param  class-string  $type
+	 * @param  array<Definitions\Statement|array<mixed>>  $setups
+	 */
 	public function addSetups(string $type, array $setups): void
 	{
 		foreach ($this->findByType($type) as $def) {
@@ -66,6 +70,10 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 	}
 
 
+	/**
+	 * @param  class-string  $type
+	 * @param  array<string, mixed>  $tags
+	 */
 	public function addTags(string $type, array $tags): void
 	{
 		$tags = Nette\Utils\Arrays::normalize($tags, filling: true);
@@ -75,6 +83,10 @@ final class DecoratorExtension extends Nette\DI\CompilerExtension
 	}
 
 
+	/**
+	 * @param  class-string  $type
+	 * @return array<string, Definitions\Definition>
+	 */
 	private function findByType(string $type): array
 	{
 		return array_filter(

@@ -19,7 +19,7 @@ abstract class CompilerExtension
 	protected Compiler $compiler;
 	protected string $name;
 
-	/** @var array|object */
+	/** @var array<string, mixed>|object */
 	protected $config = [];
 
 	protected Nette\PhpGenerator\Closure $initialization;
@@ -34,6 +34,7 @@ abstract class CompilerExtension
 	}
 
 
+	/** @param  array<string, mixed>|object  $config */
 	public function setConfig(array|object $config): static
 	{
 		$this->config = $config;
@@ -43,6 +44,7 @@ abstract class CompilerExtension
 
 	/**
 	 * Returns extension configuration.
+	 * @return array<string, mixed>|object
 	 */
 	public function getConfig(): array|object
 	{
@@ -63,6 +65,9 @@ abstract class CompilerExtension
 
 	/**
 	 * Checks whether $config contains only $expected items and returns combined array.
+	 * @param  array<string, mixed>  $expected
+	 * @param  ?array<string, mixed>  $config
+	 * @return array<string, mixed>
 	 * @throws Nette\InvalidStateException
 	 * @deprecated  use getConfigSchema()
 	 */
@@ -94,6 +99,7 @@ abstract class CompilerExtension
 
 	/**
 	 * Reads configuration from file.
+	 * @return array<string, mixed>
 	 */
 	public function loadFromFile(string $file): array
 	{
@@ -107,6 +113,7 @@ abstract class CompilerExtension
 	/**
 	 * Loads list of service definitions from configuration.
 	 * Prefixes its names and replaces @extension with name in definition.
+	 * @param  array<mixed>  $configList
 	 */
 	public function loadDefinitionsFromConfig(array $configList): void
 	{

@@ -15,6 +15,7 @@ interface Adapter
 {
 	/**
 	 * Reads configuration from file.
+	 * @return array<string, mixed>
 	 */
 	function load(string $file): array;
 }

@@ -29,7 +29,7 @@ class Resolver
 	private ?string $currentServiceType = null;
 	private bool $currentServiceAllowed = false;
 
-	/** circular reference detector */
+	/** @var \SplObjectStorage<Definition, true> circular reference detector */
 	private \SplObjectStorage $recursive;
 
 
@@ -309,6 +309,10 @@ class Resolver
 	}
 
 
+	/**
+	 * @param  array<mixed>  $arguments
+	 * @return array<mixed>
+	 */
 	public function completeArguments(array $arguments): array
 	{
 		array_walk_recursive($arguments, function (&$val): void {
@@ -337,7 +341,10 @@ class Resolver
 	}
 
 
-	/** Returns literal, Class, Reference, [Class, member], [, globalFunc], [Reference, member], [Statement, member] */
+	/**
+	 * Returns literal, Class, Reference, [Class, member], [, globalFunc], [Reference, member], [Statement, member]
+	 * @return string|array{string|Reference|Statement, string}|Reference|null
+	 */
 	private function normalizeEntity(Statement $statement): string|array|Reference|null
 	{
 		$entity = $statement->getEntity();
@@ -399,8 +406,10 @@ class Resolver
 
 	/**
 	 * Returns named reference to service resolved by type (or 'self' reference for local-autowiring).
+	 * @param class-string  $type
 	 * @throws ServiceCreationException when multiple found
 	 * @throws MissingServiceException when not found
+	 * @throws NotAllowedDuringResolvingException
 	 */
 	public function getByType(string $type): Reference
 	{
@@ -426,6 +435,7 @@ class Resolver
 
 	/**
 	 * Adds item to the list of dependencies.
+	 * @param  \ReflectionClass<object>|\ReflectionFunctionAbstract|string  $dep
 	 */
 	public function addDependency(\ReflectionClass|\ReflectionFunctionAbstract|string $dep): static
 	{
@@ -462,6 +472,7 @@ class Resolver
 	}
 
 
+	/** @param  mixed  $entity */
 	private function entityToString($entity): string
 	{
 		$referenceToText = fn(Reference $ref): string => $ref->isSelf() && $this->currentService
@@ -489,6 +500,10 @@ class Resolver
 	}
 
 
+	/**
+	 * @param  array<mixed>  $arguments
+	 * @return array<mixed>
+	 */
 	private function convertReferences(array $arguments): array
 	{
 		array_walk_recursive($arguments, function (&$val): void {
@@ -511,7 +526,9 @@ class Resolver
 
 	/**
 	 * Add missing arguments using autowiring.
+	 * @param  array<mixed>  $arguments
 	 * @param  (callable(string, bool): (object|object[]|null))  $getter
+	 * @return array<mixed>
 	 * @throws ServiceCreationException
 	 */
 	public static function autowireArguments(
@@ -652,7 +669,10 @@ class Resolver
 	}
 
 
-	/** @internal */
+	/**
+	 * @return list<mixed>
+	 * @internal
+	 */
 	public static function getFirstClassCallable(): array
 	{
 		static $x = [new Nette\PhpGenerator\Literal('...')];

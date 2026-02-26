@@ -10,6 +10,9 @@ class Container extends Nette\DI\Container
 	protected array $wiring = ['Nette\DI\Container' => [['container']], 'stdClass' => [['01', 'name']]];
 
 
+	/**
+	 * @param  mixed[]  $params
+	 */
 	public function __construct(array $params = [])
 	{
 		parent::__construct($params);
@@ -39,6 +42,9 @@ class Container extends Nette\DI\Container
 	}
 
 
+	/**
+	 * @return mixed[]
+	 */
 	protected function getStaticParameters(): array
 	{
 		return [];

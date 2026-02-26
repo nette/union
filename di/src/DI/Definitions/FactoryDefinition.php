@@ -185,6 +185,7 @@ final class FactoryDefinition extends Definition
 	}
 
 
+	/** @param  array<mixed>  $args */
 	public function convertArguments(array &$args): void
 	{
 		foreach ($args as &$v) {

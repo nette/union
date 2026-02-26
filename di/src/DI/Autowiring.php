@@ -15,13 +15,13 @@ use function array_merge, class_exists, class_implements, class_parents, count, 
  */
 class Autowiring
 {
-	/** @var array[]  type => services, used by getByType() */
+	/** @var array<class-string, list<string>>  type => service names */
 	private array $highPriority = [];
 
-	/** @var array[]  type => services, used by findByType() */
+	/** @var array<class-string, list<string>>  type => service names */
 	private array $lowPriority = [];
 
-	/** @var string[] of classes excluded from autowiring */
+	/** @var array<class-string, class-string> */
 	private array $excludedClasses = [];
 
 
@@ -33,6 +33,7 @@ class Autowiring
 
 	/**
 	 * Resolves service name by type.
+	 * @param class-string  $type
 	 * @return ($throw is true ? string : ?string)
 	 * @throws MissingServiceException when not found
 	 * @throws ServiceCreationException when multiple found
@@ -72,7 +73,8 @@ class Autowiring
 
 	/**
 	 * Gets the service names and definitions of the specified type.
-	 * @return Definitions\Definition[]  service name is key
+	 * @param class-string  $type
+	 * @return array<string, Definitions\Definition>  service name => definition
 	 */
 	public function findByType(string $type): array
 	{
@@ -88,9 +90,7 @@ class Autowiring
 	}
 
 
-	/**
-	 * @param  string[]  $types
-	 */
+	/** @param array<class-string>  $types */
 	public function addExcludedClasses(array $types): void
 	{
 		foreach ($types as $type) {
@@ -102,6 +102,7 @@ class Autowiring
 	}
 
 
+	/** @return array{array<class-string, list<string>>, array<class-string, list<string>>} */
 	public function getClassList(): array
 	{
 		return [$this->lowPriority, $this->highPriority];

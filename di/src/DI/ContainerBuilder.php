@@ -27,14 +27,19 @@ class ContainerBuilder
 	/** @deprecated use ContainerBuilder::ThisContainer */
 	public const THIS_CONTAINER = self::ThisContainer;
 
+	/** @var array<string, mixed> */
 	public array $parameters = [];
 
-	/** @var Definition[] */
+	/** @var array<string, Definition> */
 	private array $definitions = [];
+
+	/** @var array<string, string> alias => service name */
 	private array $aliases = [];
 	private Autowiring $autowiring;
 	private bool $needsResolve = true;
 	private bool $resolving = false;
+
+	/** @var list<\ReflectionClass<object>|\ReflectionFunctionAbstract|string> */
 	private array $dependencies = [];
 
 
@@ -47,7 +52,9 @@ class ContainerBuilder
 
 	/**
 	 * Adds new service definition.
-	 * @return Definitions\ServiceDefinition
+	 * @template TDef of Definition
+	 * @param  TDef|null  $definition
+	 * @return ($definition is null ? Definitions\ServiceDefinition : TDef)
 	 */
 	public function addDefinition(?string $name, ?Definition $definition = null): Definition
 	{
@@ -141,7 +148,7 @@ class ContainerBuilder
 
 	/**
 	 * Gets all service definitions.
-	 * @return Definition[]
+	 * @return array<string, Definition>
 	 */
 	public function getDefinitions(): array
 	{
@@ -189,6 +196,7 @@ class ContainerBuilder
 
 	/**
 	 * Gets all service aliases.
+	 * @return array<string, string>
 	 */
 	public function getAliases(): array
 	{
@@ -197,7 +205,7 @@ class ContainerBuilder
 
 
 	/**
-	 * @param  string[]  $types
+	 * @param  class-string[]  $types
 	 */
 	public function addExcludedClasses(array $types): static
 	{
@@ -209,8 +217,10 @@ class ContainerBuilder
 
 	/**
 	 * Resolves autowired service name by type.
+	 * @param  class-string  $type
 	 * @return ($throw is true ? string : ?string)
 	 * @throws MissingServiceException
+	 * @throws NotAllowedDuringResolvingException
 	 */
 	public function getByType(string $type, bool $throw = false): ?string
 	{
@@ -221,6 +231,7 @@ class ContainerBuilder
 
 	/**
 	 * Gets autowired service definition of the specified type.
+	 * @param  class-string  $type
 	 * @throws MissingServiceException
 	 */
 	public function getDefinitionByType(string $type): Definition
@@ -231,7 +242,9 @@ class ContainerBuilder
 
 	/**
 	 * Gets the autowired service names and definitions of the specified type.
-	 * @return Definition[]  service name is key
+	 * @param  class-string  $type
+	 * @return array<string, Definition>
+	 * @throws NotAllowedDuringResolvingException
 	 * @internal
 	 */
 	public function findAutowired(string $type): array
@@ -243,7 +256,9 @@ class ContainerBuilder
 
 	/**
 	 * Gets the service names and definitions of the specified type.
-	 * @return Definition[]  service name is key
+	 * @param  class-string  $type
+	 * @return array<string, Definition>
+	 * @throws NotAllowedDuringResolvingException
 	 */
 	public function findByType(string $type): array
 	{
@@ -261,7 +276,7 @@ class ContainerBuilder
 
 	/**
 	 * Gets the service names and tag values.
-	 * @return array of [service name => tag attributes]
+	 * @return array<string, mixed>  service name => tag value
 	 */
 	public function findByTag(string $tag): array
 	{
@@ -327,6 +342,7 @@ class ContainerBuilder
 
 	/**
 	 * Adds item to the list of dependencies.
+	 * @param  \ReflectionClass<object>|\ReflectionFunctionAbstract|string  $dep
 	 * @internal
 	 */
 	public function addDependency(\ReflectionClass|\ReflectionFunctionAbstract|string $dep): static
@@ -338,6 +354,7 @@ class ContainerBuilder
 
 	/**
 	 * Returns the list of dependencies.
+	 * @return list<\ReflectionClass<object>|\ReflectionFunctionAbstract|string>
 	 */
 	public function getDependencies(): array
 	{
@@ -345,7 +362,10 @@ class ContainerBuilder
 	}
 
 
-	/** @internal */
+	/**
+	 * @return array{tags?: array<string, array<string, mixed>>, aliases: array<string, string>, wiring: array<class-string, array<int, list<string>>>}
+	 * @internal
+	 */
 	public function exportMeta(): array
 	{
 		$defs = $this->definitions;
@@ -381,6 +401,7 @@ class ContainerBuilder
 	}
 
 
+	/** @param  array<mixed>|null  $args */
 	public static function literal(string $code, ?array $args = null): Nette\PhpGenerator\Literal
 	{
 		return new Nette\PhpGenerator\Literal(
@@ -389,7 +410,10 @@ class ContainerBuilder
 	}
 
 
-	/** @deprecated */
+	/**
+	 * @param  array<mixed>  $args
+	 * @deprecated
+	 */
 	public function formatPhp(string $statement, array $args): string
 	{
 		array_walk_recursive($args, function (&$val): void {
