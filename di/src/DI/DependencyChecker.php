@@ -16,7 +16,7 @@ use const PHP_VERSION_ID;
 
 
 /**
- * Cache dependencies checker.
+ * Tracks and checks whether cached container dependencies have changed.
  */
 class DependencyChecker
 {
@@ -81,7 +81,7 @@ class DependencyChecker
 
 
 	/**
-	 * Are dependencies expired?
+	 * Checks whether the cached dependencies have changed since they were exported.
 	 * @param  array<string, int|false>  $files
 	 * @param  array<string, int|false>  $phpFiles
 	 * @param  list<string>  $classes

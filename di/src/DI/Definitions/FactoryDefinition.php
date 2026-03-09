@@ -16,7 +16,7 @@ use function array_keys, array_map, count, implode, interface_exists, is_string,
 
 
 /**
- * Definition of standard service.
+ * Definition of a factory service backed by a generated implementation of a user-defined interface.
  */
 final class FactoryDefinition extends Definition
 {

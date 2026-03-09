@@ -20,7 +20,7 @@ use function array_filter, array_key_exists, array_map, array_merge, array_value
 
 
 /**
- * Services resolver
+ * Resolves and completes service definitions, including autowiring of arguments.
  * @internal
  */
 class Resolver
@@ -46,6 +46,9 @@ class Resolver
 	}
 
 
+	/**
+	 * Resolves the service type for the given definition.
+	 */
 	public function resolveDefinition(Definition $def): void
 	{
 		if (isset($this->recursive[$def])) {
@@ -70,6 +73,9 @@ class Resolver
 	}
 
 
+	/**
+	 * Returns the class name that the given reference points to, or null if not resolvable.
+	 */
 	public function resolveReferenceType(Reference $ref): ?string
 	{
 		if ($ref->isSelf()) {
@@ -87,6 +93,9 @@ class Resolver
 	}
 
 
+	/**
+	 * Returns the class name produced by the given statement's entity, or null if not resolvable.
+	 */
 	public function resolveEntityType(Statement $statement): ?string
 	{
 		$entity = $this->normalizeEntity($statement);
@@ -156,6 +165,9 @@ class Resolver
 	}
 
 
+	/**
+	 * Completes the service definition by resolving and autowiring all its arguments.
+	 */
 	public function completeDefinition(Definition $def): void
 	{
 		$this->currentService = in_array($def, $this->builder->getDefinitions(), strict: true)
@@ -180,6 +192,9 @@ class Resolver
 	}
 
 
+	/**
+	 * Resolves and autowires a statement's entity and arguments into a completed Statement.
+	 */
 	public function completeStatement(Statement $statement, bool $currentServiceAllowed = false): Statement
 	{
 		$this->currentServiceAllowed = $currentServiceAllowed;
@@ -399,6 +414,9 @@ class Resolver
 	}
 
 
+	/**
+	 * Returns the definition that the reference points to.
+	 */
 	public function resolveReference(Reference $ref): Definition
 	{
 		if ($ref->isSelf()) {
@@ -682,6 +700,7 @@ class Resolver
 
 
 	/**
+	 * Returns the sentinel value used to mark first-class callable syntax (...).
 	 * @return list<mixed>
 	 * @internal
 	 */

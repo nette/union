@@ -59,6 +59,9 @@ class Container
 	}
 
 
+	/**
+	 * Returns a parameter value, loading it dynamically if not yet initialized.
+	 */
 	public function getParameter(string|int $key): mixed
 	{
 		if (!array_key_exists($key, $this->parameters)) {
@@ -184,7 +187,7 @@ class Container
 
 
 	/**
-	 * Does the service exist?
+	 * Checks whether the service exists in the container.
 	 */
 	public function hasService(string $name): bool
 	{
@@ -304,7 +307,7 @@ class Container
 
 
 	/**
-	 * Prevents circular references during service creation by checking if the service is already being created.
+	 * Detects circular references and invokes the callback.
 	 * @param  \Closure(): mixed  $callback
 	 */
 	private function preventDeadLock(string $key, \Closure $callback): mixed

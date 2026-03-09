@@ -24,6 +24,7 @@ class ContainerLoader
 
 
 	/**
+	 * Loads the container class, generating it if not already cached. Returns the class name.
 	 * @param  callable(Compiler): ?string  $generator
 	 * @return class-string<Container>
 	 */
@@ -39,6 +40,7 @@ class ContainerLoader
 
 
 	/**
+	 * Returns the container class name derived from the given key.
 	 * @return class-string<Container>
 	 */
 	public function getClassName(mixed $key): string

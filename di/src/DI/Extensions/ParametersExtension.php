@@ -14,7 +14,7 @@ use function array_diff_key, array_fill_keys, array_keys, array_walk_recursive, 
 
 
 /**
- * Parameters.
+ * Processes container parameters and injects them into the generated container.
  */
 final class ParametersExtension extends Nette\DI\CompilerExtension
 {

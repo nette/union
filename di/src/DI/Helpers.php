@@ -160,7 +160,7 @@ final class Helpers
 
 
 	/**
-	 * Process constants recursively.
+	 * Converts @service strings to Reference objects recursively.
 	 * @param  array<mixed>  $args
 	 * @return array<mixed>
 	 */
@@ -231,6 +231,9 @@ final class Helpers
 	}
 
 
+	/**
+	 * Returns return type from @return annotation, or null if not found or not a class type.
+	 */
 	public static function getReturnTypeAnnotation(\ReflectionFunctionAbstract $func): ?Type
 	{
 		$type = preg_replace('#[|\s].*#', '', (string) self::parseAnnotation($func, 'return'));
@@ -245,7 +248,11 @@ final class Helpers
 	}
 
 
-	/** @return class-string */
+	/**
+	 * Validates that the type is a non-nullable class type and returns the class name.
+	 * @return class-string
+	 * @throws ServiceCreationException
+	 */
 	public static function ensureClassType(?Type $type, string $hint, bool $allowNullable = false): string
 	{
 		if (!$type) {
@@ -265,7 +272,10 @@ final class Helpers
 	}
 
 
-	/** @return class-string */
+	/**
+	 * Normalizes class name to its canonical form using reflection.
+	 * @return class-string
+	 */
 	public static function normalizeClass(string $type): string
 	{
 		return class_exists($type) || interface_exists($type)

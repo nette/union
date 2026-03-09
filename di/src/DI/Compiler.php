@@ -45,7 +45,7 @@ class Compiler
 
 
 	/**
-	 * Add custom configurator extension.
+	 * Adds a compiler extension. Pass null as name to auto-assign a name.
 	 */
 	public function addExtension(?string $name, CompilerExtension $extension): static
 	{
@@ -72,6 +72,7 @@ class Compiler
 
 
 	/**
+	 * Returns all registered extensions, optionally filtered by type.
 	 * @template T of CompilerExtension
 	 * @param  class-string<T>|null  $type
 	 * @return ($type is null ? array<string, CompilerExtension> : array<string, T>)
@@ -90,6 +91,9 @@ class Compiler
 	}
 
 
+	/**
+	 * Sets the class name of the generated container.
+	 */
 	public function setClassName(string $className): static
 	{
 		$this->className = $className;
