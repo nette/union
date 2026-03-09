@@ -19,6 +19,9 @@ final class Reference
 	public const SELF = self::Self;
 
 
+	/**
+	 * Creates a type-based reference (resolved by class name rather than service name).
+	 */
 	public static function fromType(string $value): static
 	{
 		if (!str_contains($value, '\\')) {

@@ -11,7 +11,7 @@ use Nette;
 
 
 /**
- * Enables registration of other extensions in $config file
+ * Enables registration of additional compiler extensions via configuration.
  */
 class ExtensionsExtension extends Nette\DI\CompilerExtension
 {

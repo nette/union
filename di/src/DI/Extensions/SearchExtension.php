@@ -74,7 +74,10 @@ final class SearchExtension extends Nette\DI\CompilerExtension
 	}
 
 
-	/** @return string[] */
+	/**
+	 * Finds classes matching the given search configuration batch.
+	 * @return string[]
+	 */
 	public function findClasses(\stdClass $config): array
 	{
 		$exclude = $config->exclude;

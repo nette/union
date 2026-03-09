@@ -11,7 +11,7 @@ use function array_merge, class_exists, class_implements, class_parents, count, 
 
 
 /**
- * Autowiring.
+ * Resolves service names by type for autowiring.
  */
 class Autowiring
 {
@@ -90,7 +90,10 @@ class Autowiring
 	}
 
 
-	/** @param array<class-string>  $types */
+	/**
+	 * Excludes classes and their ancestors from autowiring lookup.
+	 * @param array<class-string>  $types
+	 */
 	public function addExcludedClasses(array $types): void
 	{
 		foreach ($types as $type) {
@@ -102,13 +105,19 @@ class Autowiring
 	}
 
 
-	/** @return array{array<class-string, list<string>>, array<class-string, list<string>>} */
+	/**
+	 * Returns low-priority and high-priority type-to-service-names maps.
+	 * @return array{array<class-string, list<string>>, array<class-string, list<string>>}
+	 */
 	public function getClassList(): array
 	{
 		return [$this->lowPriority, $this->highPriority];
 	}
 
 
+	/**
+	 * Rebuilds the type-to-service-names index from current definitions.
+	 */
 	public function rebuild(): void
 	{
 		$this->lowPriority = $this->highPriority = $preferred = [];

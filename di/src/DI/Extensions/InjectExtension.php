@@ -92,7 +92,7 @@ final class InjectExtension extends DI\CompilerExtension
 
 
 	/**
-	 * Generates list of inject methods.
+	 * Returns list of inject method names, ordered from parent to child class.
 	 * @return string[]
 	 * @internal
 	 */
@@ -114,7 +114,7 @@ final class InjectExtension extends DI\CompilerExtension
 
 
 	/**
-	 * Generates list of properties with annotation @inject.
+	 * Returns list of injectable properties with their types.
 	 * @return array<string, class-string>
 	 * @internal
 	 */
@@ -144,7 +144,7 @@ final class InjectExtension extends DI\CompilerExtension
 
 
 	/**
-	 * Calls all methods starting with "inject" using autowiring.
+	 * Calls inject methods and fills inject properties on the given service.
 	 */
 	public static function callInjects(DI\Container $container, object $service): void
 	{

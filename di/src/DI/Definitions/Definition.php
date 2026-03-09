@@ -12,7 +12,7 @@ use function class_exists, interface_exists, is_array, is_string, sprintf;
 
 
 /**
- * Definition used by ContainerBuilder.
+ * Abstract base for all service definition types used by ContainerBuilder.
  */
 abstract class Definition
 {
@@ -109,7 +109,10 @@ abstract class Definition
 	}
 
 
-	/** @param  bool|class-string|class-string[]  $state */
+	/**
+	 * Sets the autowiring mode. Pass false to disable, true to enable for all types, or one or more class names to restrict autowiring to specific types.
+	 * @param  bool|class-string|class-string[]  $state
+	 */
 	final public function setAutowired(bool|string|array $state = true): static
 	{
 		if ($this->notifier && $this->autowired !== $state) {

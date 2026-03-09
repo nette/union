@@ -12,7 +12,7 @@ use function array_map, interface_exists, lcfirst, preg_match, sprintf, str_star
 
 
 /**
- * Multi accessor/factory definition.
+ * Definition of a locator service backed by a generated implementation of a user-defined interface with multiple get*()/create*() methods.
  */
 final class LocatorDefinition extends Definition
 {

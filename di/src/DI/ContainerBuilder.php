@@ -185,9 +185,6 @@ class ContainerBuilder
 	}
 
 
-	/**
-	 * Removes the specified alias.
-	 */
 	public function removeAlias(string $alias): void
 	{
 		unset($this->aliases[$alias]);
@@ -205,6 +202,7 @@ class ContainerBuilder
 
 
 	/**
+	 * Excludes classes from autowiring.
 	 * @param  class-string[]  $types
 	 */
 	public function addExcludedClasses(array $types): static
@@ -295,7 +293,7 @@ class ContainerBuilder
 
 
 	/**
-	 * Checks services, resolves types and rebuilts autowiring classlist.
+	 * Resolves service types and rebuilds the autowiring class list.
 	 */
 	public function resolve(): void
 	{
@@ -326,6 +324,9 @@ class ContainerBuilder
 	}
 
 
+	/**
+	 * Completes all service definitions by resolving and wiring arguments.
+	 */
 	public function complete(): void
 	{
 		$this->resolve();
@@ -401,7 +402,10 @@ class ContainerBuilder
 	}
 
 
-	/** @param  array<mixed>|null  $args */
+	/**
+	 * Creates a PHP literal value, optionally formatted with arguments.
+	 * @param  array<mixed>|null  $args
+	 */
 	public static function literal(string $code, ?array $args = null): Nette\PhpGenerator\Literal
 	{
 		return new Nette\PhpGenerator\Literal(

@@ -14,7 +14,7 @@ use function count, interface_exists, sprintf, str_starts_with, substr;
 
 
 /**
- * Accessor definition.
+ * Definition of an accessor service backed by a generated implementation of a user-defined interface with a single get() method.
  */
 final class AccessorDefinition extends Definition
 {
