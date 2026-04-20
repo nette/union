@@ -39,35 +39,33 @@
 			</tr>
 		</thead>
 		<tbody>
-			{foreach $services as $name => $type}
+			<tr n:foreach="$services as $name => $type">
 				{do $name = (string) $name}
 				{do $autowired = in_array($name, array_merge($wiring[$type][0] ?? [], $wiring[$type][1] ?? []), strict: true)}
-				<tr>
-					<td class="{isset($instances[$name]) ? created : ''}">
-						{if is_numeric($name)}<small>{$name}</small>{else}{$name}{/if}
-					</td>
-					<td class="{$autowired ? yes : ''}">
-						{$autowired ? yes : (isset($wiring[$type]) ? no : '?')}
-					</td>
-					<td>
-						{if isset($instances[$name]) && !$instances[$name] instanceof Nette\DI\Container}
-							{Dumper::toHtml($instances[$name], [Dumper::COLLAPSE => true, Dumper::LIVE => true, Dumper::DEPTH => 5])}
-						{elseif isset($instances[$name])}
-							<code>{get_class($instances[$name])}</code>
-						{elseif is_string($type)}
-							<code>{$type}</code>
-						{/if}
-					</td>
-					<td>
-						{if !isset($tags[$name])}
-						{elseif count($tags[$name]) === 1}
-							{key($tags[$name])} = {Dumper::toHtml(current($tags[$name]), [Dumper::COLLAPSE => true])}
-						{else}
-							{Dumper::toHtml($tags[$name], [Dumper::COLLAPSE => true])}
-						{/if}
-					</td>
-				</tr>
-			{/foreach}
+				<td class={isset($instances[$name]) ? created}>
+					{if is_numeric($name)}<small>{$name}</small>{else}{$name}{/if}
+				</td>
+				<td class={$autowired ? yes}>
+					{$autowired ? yes : (isset($wiring[$type]) ? no : '?')}
+				</td>
+				<td>
+					{if isset($instances[$name]) && !$instances[$name] instanceof Nette\DI\Container}
+						{Dumper::toHtml($instances[$name], [Dumper::COLLAPSE => true, Dumper::LIVE => true, Dumper::DEPTH => 5])}
+					{elseif isset($instances[$name])}
+						<code>{get_class($instances[$name])}</code>
+					{elseif is_string($type)}
+						<code>{$type}</code>
+					{/if}
+				</td>
+				<td>
+					{if !isset($tags[$name])}
+					{elseif count($tags[$name]) === 1}
+						{key($tags[$name])} = {Dumper::toHtml(current($tags[$name]), [Dumper::COLLAPSE => true])}
+					{else}
+						{Dumper::toHtml($tags[$name], [Dumper::COLLAPSE => true])}
+					{/if}
+				</td>
+			</tr>
 		</tbody>
 	</table>
 
