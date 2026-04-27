@@ -8,7 +8,7 @@
 namespace Nette\DI;
 
 use Nette;
-use function class_exists, file_get_contents, file_put_contents, flock, fopen, function_exists, hash, is_file, rename, serialize, sprintf, strlen, substr, unlink, unserialize, usleep;
+use function bin2hex, class_exists, file_get_contents, file_put_contents, flock, fopen, function_exists, hash, is_file, preg_quote, preg_replace, random_bytes, rename, serialize, sprintf, strlen, substr, unlink, unserialize, usleep;
 
 
 /**
@@ -31,17 +31,12 @@ class ContainerLoader
 	public function load(callable $generator, mixed $key = null): string
 	{
 		$class = $this->getClassName($key);
-		if (!class_exists($class, autoload: false)) {
-			$this->loadFile($class, $generator(...));
-		}
-
-		return $class;
+		return $this->loadFile($class, \Closure::fromCallable($generator));
 	}
 
 
 	/**
 	 * Returns the container class name derived from the given key.
-	 * @return class-string<Container>
 	 */
 	public function getClassName(mixed $key): string
 	{
@@ -49,12 +44,21 @@ class ContainerLoader
 	}
 
 
-	/** @param  (\Closure(Compiler): ?string)  $generator */
-	private function loadFile(string $class, \Closure $generator): void
+	/**
+	 * @param  (\Closure(Compiler): ?string)  $generator
+	 * @return class-string<Container>
+	 */
+	private function loadFile(string $class, \Closure $generator): string
 	{
 		$file = "$this->tempDirectory/$class.php";
-		if (!$this->isExpired($file) && (@include $file) !== false) { // @ file may not exist
-			return;
+		$alreadyLoaded = class_exists($class, autoload: false);
+
+		if (!$this->isExpired($file)) {
+			if ($alreadyLoaded) {
+				return $class;
+			} elseif ((@include $file) !== false) { // @ file may not exist
+				return $class;
+			}
 		}
 
 		Nette\Utils\FileSystem::createDir($this->tempDirectory);
@@ -66,11 +70,13 @@ class ContainerLoader
 			throw new Nette\IOException(sprintf("Unable to acquire exclusive lock on '%s.lock'. %s", $file, Nette\Utils\Helpers::getLastError()));
 		}
 
+		$codeRegenerated = false;
 		if (!is_file($file) || $this->isExpired($file, $updatedMeta)) {
 			if (isset($updatedMeta)) {
 				$toWrite["$file.meta"] = $updatedMeta;
 			} else {
 				[$toWrite[$file], $toWrite["$file.meta"]] = $this->generate($class, $generator);
+				$codeRegenerated = true;
 			}
 
 			foreach ($toWrite as $name => $content) {
@@ -78,10 +84,21 @@ class ContainerLoader
 			}
 		}
 
-		if ((@include $file) === false) { // @ - error escalated to exception
-			throw new Nette\IOException(sprintf("Unable to include '%s'.", $file));
-		}
 		flock($handle, LOCK_UN);
+
+		if (!$alreadyLoaded) {
+			if ((@include $file) === false) { // @ - error escalated to exception
+				throw new Nette\IOException(sprintf("Unable to include '%s'.", $file));
+			}
+			return $class;
+		}
+
+		// PHP cannot redeclare the loaded class, so reload the regenerated code under a new name
+		if ($this->autoRebuild && $codeRegenerated) {
+			return $this->reloadAsUnique($class, $file);
+		}
+
+		return $class;
 	}
 
 
@@ -116,6 +133,41 @@ class ContainerLoader
 		if (function_exists('opcache_invalidate')) {
 			@opcache_invalidate($file, force: true); // @ can be restricted; refresh with the new content
 		}
+	}
+
+
+	/**
+	 * Loads a regenerated container file under a fresh, unique class name via eval().
+	 * @return class-string<Container>
+	 */
+	private function reloadAsUnique(string $class, string $file): string
+	{
+		$unique = $class . '_R' . substr(bin2hex(random_bytes(4)), 0, 8);
+		$code = @file_get_contents($file); // @ - file may not exist
+		if ($code === false) {
+			throw new Nette\IOException(sprintf("Unable to read '%s' for live reload.", $file));
+		}
+
+		$count = 0;
+		$code = preg_replace(
+			'~\bclass\s+' . preg_quote($class, '~') . '\b~',
+			"class $unique",
+			$code,
+			limit: 1,
+			count: $count,
+		);
+		if ($code === null || $count !== 1) {
+			throw new Nette\InvalidStateException(sprintf("Unable to rename class '%s' for live reload (expected 1 replacement, got %d).", $class, $count));
+		}
+
+		$code = preg_replace('~^\s*<\?php\s*~', '', $code, limit: 1); // eval() must not receive <?php
+		eval($code);
+
+		if (!class_exists($unique, autoload: false)) {
+			throw new Nette\InvalidStateException(sprintf("Live reload eval failed: class '%s' was not defined.", $unique));
+		}
+
+		return $unique;
 	}
 
 
