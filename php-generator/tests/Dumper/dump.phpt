@@ -131,7 +131,7 @@ Assert::exception(function () {
 // closures
 Assert::same(
 	'strlen(...)',
-	$dumper->dump(Closure::fromCallable('strlen')),
+	$dumper->dump(strlen(...)),
 );
 
 Assert::same(

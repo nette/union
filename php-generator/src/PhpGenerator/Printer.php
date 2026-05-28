@@ -406,7 +406,7 @@ class Printer
 
 	private function printPropertyVisibility(Property|PromotedParameter $param): string
 	{
-		$get = $param->getVisibility(PropertyAccessMode::Get);
+		$get = $param->getVisibility();
 		$set = $param->getVisibility(PropertyAccessMode::Set);
 		return $set
 			? ($get ? "$get $set(set)" : "$set(set)")

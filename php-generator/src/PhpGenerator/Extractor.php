@@ -32,7 +32,7 @@ final class Extractor
 	public function __construct(string $code)
 	{
 		if (!class_exists(ParserFactory::class)) {
-			throw new Nette\NotSupportedException("PHP-Parser is required to load method bodies, install package 'nikic/php-parser' 4.7 or newer.");
+			throw new Nette\NotSupportedException("PHP-Parser is required to load method bodies, install package 'nikic/php-parser' 5.0 or newer.");
 		}
 
 		$this->printer = new PhpParser\PrettyPrinter\Standard;
@@ -250,7 +250,7 @@ final class Extractor
 			&& !$firstStmt instanceof Node\Stmt\Function_
 		) {
 			$comments = $firstStmt->getComments();
-			foreach ($comments as $i => $comment) {
+			foreach ($comments as $comment) {
 				if ($comment instanceof PhpParser\Comment\Doc) {
 					$phpFile->setComment(Helpers::unformatDocComment($comment->getReformattedText()));
 					break;
