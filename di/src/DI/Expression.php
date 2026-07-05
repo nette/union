@@ -16,4 +16,8 @@ use Nette;
  */
 abstract class Expression implements Nette\Schema\DynamicParameter
 {
+	/**
+	 * Formats PHP code that evaluates the expression.
+	 */
+	abstract public function generateCode(Nette\DI\PhpGenerator $generator): string;
 }
