@@ -8,7 +8,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\InterfaceType;
 
 require __DIR__ . '/../bootstrap.php';
-require __DIR__ . '/fixtures/classes.84.php';
+require __DIR__ . '/../fixtures/classes.84.php';
 
 $res[] = ClassType::from(Abc\PropertyHookSignatures::class);
 $res[] = ClassType::from(Abc\AbstractHookSignatures::class);

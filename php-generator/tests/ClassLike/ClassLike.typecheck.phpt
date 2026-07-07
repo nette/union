@@ -6,7 +6,7 @@ use Nette\PhpGenerator\TraitType;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-require __DIR__ . '/fixtures/classes.php';
+require __DIR__ . '/../fixtures/classes.php';
 
 
 Assert::exception(

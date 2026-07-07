@@ -10,7 +10,7 @@ use Nette\PhpGenerator\InterfaceType;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-require __DIR__ . '/fixtures/classes.php';
+require __DIR__ . '/../fixtures/classes.php';
 
 $res[] = InterfaceType::from(Abc\Interface1::class);
 $res[] = InterfaceType::from(Abc\Interface2::class);

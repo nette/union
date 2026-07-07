@@ -5,34 +5,34 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/classes.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/classes.php')))->extractAll();
 Assert::type(Nette\PhpGenerator\PhpFile::class, $file);
 sameFile(__DIR__ . '/expected/Extractor.classes.expect', (string) $file);
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/classes.81.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/classes.81.php')))->extractAll();
 sameFile(__DIR__ . '/expected/Extractor.classes.81.expect', (string) $file);
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/classes.82.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/classes.82.php')))->extractAll();
 sameFile(__DIR__ . '/expected/Extractor.classes.82.expect', (string) $file);
 
 if (class_exists(PhpParser\Node\PropertyHook::class)) {
-	$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/classes.84.php')))->extractAll();
+	$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/classes.84.php')))->extractAll();
 	sameFile(__DIR__ . '/expected/Extractor.classes.84.expect', (string) $file);
 
-	$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/classes.85.php')))->extractAll();
+	$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/classes.85.php')))->extractAll();
 	sameFile(__DIR__ . '/expected/Extractor.classes.85.expect', (string) $file);
 }
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/enum.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/enum.php')))->extractAll();
 sameFile(__DIR__ . '/expected/Extractor.enum.expect', (string) $file);
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/traits.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/traits.php')))->extractAll();
 sameFile(__DIR__ . '/expected/Extractor.traits.expect', (string) $file);
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/bodies.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/bodies.php')))->extractAll();
 sameFile(__DIR__ . '/expected/Extractor.bodies.expect', (string) $file);
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/extractor.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/extractor.php')))->extractAll();
 sameFile(__DIR__ . '/expected/Extractor.expect', (string) $file);
 
 Assert::exception(
