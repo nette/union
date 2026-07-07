@@ -5,7 +5,7 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
-$class = InterfaceType::fromCode(file_get_contents(__DIR__ . '/fixtures/classes.php'));
+$class = InterfaceType::fromCode(file_get_contents(__DIR__ . '/../fixtures/classes.php'));
 Assert::type(InterfaceType::class, $class);
 Assert::match(<<<'XX'
 	/**

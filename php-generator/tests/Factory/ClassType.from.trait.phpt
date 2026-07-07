@@ -3,7 +3,7 @@
 use Nette\PhpGenerator\ClassLike;
 
 require __DIR__ . '/../bootstrap.php';
-require __DIR__ . '/fixtures/traits.php';
+require __DIR__ . '/../fixtures/traits.php';
 
 $classes = [
 	Trait1::class,

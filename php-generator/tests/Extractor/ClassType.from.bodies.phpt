@@ -4,7 +4,7 @@ use Nette\PhpGenerator\ClassType;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-require __DIR__ . '/fixtures/bodies.php';
+require __DIR__ . '/../fixtures/bodies.php';
 
 
 Assert::exception(
@@ -30,7 +30,7 @@ Assert::matchFile(__DIR__ . '/expected/ClassType.from.bodies.expect', (string) $
 
 
 if (PHP_VERSION_ID >= 80400) {
-	require __DIR__ . '/fixtures/classes.84.php';
+	require __DIR__ . '/../fixtures/classes.84.php';
 	$res = [];
 	$res[] = ClassType::from(Abc\PropertyHookSignatures::class, withBodies: true);
 	$res[] = ClassType::from(Abc\AbstractHookSignatures::class, withBodies: true);

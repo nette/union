@@ -136,7 +136,7 @@ test('file with strict types declaration', function () {
 
 
 test('fromCode extracts file from PHP code', function () {
-	$file = PhpFile::fromCode(file_get_contents(__DIR__ . '/fixtures/classes.php'));
+	$file = PhpFile::fromCode(file_get_contents(__DIR__ . '/../fixtures/classes.php'));
 	Assert::type(PhpFile::class, $file);
-	sameFile(__DIR__ . '/expected/Extractor.classes.expect', (string) $file);
+	sameFile(__DIR__ . '/../Extractor/expected/Extractor.classes.expect', (string) $file);
 });

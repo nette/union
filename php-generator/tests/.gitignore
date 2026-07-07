@@ -1,3 +1,4 @@
-/*/output
-/test.log
 /tmp
+/test.log
+output
+*.actual

@@ -6,7 +6,7 @@ use Nette\PhpGenerator\Printer;
 require __DIR__ . '/../bootstrap.php';
 
 
-$file = (new Extractor(file_get_contents(__DIR__ . '/fixtures/bodies.php')))->extractAll();
+$file = (new Extractor(file_get_contents(__DIR__ . '/../fixtures/bodies.php')))->extractAll();
 $classes = $file->getClasses();
 
 $namespace = new PhpNamespace('Nette');
