@@ -85,7 +85,7 @@ final class InjectExtension extends DI\CompilerExtension
 		}
 
 		foreach (array_reverse(self::getInjectMethods($class)) as $method) {
-			$inject = new DI\Expressions\Call(new DI\Expressions\Reference(DI\Expressions\Reference::Self), $method);
+			$inject = new Definitions\Statement(['@self', $method]);
 			foreach ($setups as $key => $setup) {
 				if ($setup->getEntity() == $inject->getEntity()) { // intentionally ==
 					$inject = $setup;

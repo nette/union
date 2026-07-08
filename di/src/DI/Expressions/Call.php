@@ -8,7 +8,6 @@
 namespace Nette\DI\Expressions;
 
 use Nette;
-use Nette\DI\Definitions\Statement;
 use Nette\DI\Expression;
 use Nette\DI\PhpGenerator;
 use Nette\DI\Resolver;
@@ -21,14 +20,14 @@ use function class_exists, function_exists, in_array, interface_exists, is_strin
 /**
  * Call of a global function, a static method or a method on the result of another expression.
  */
-final class Call extends Statement
+final class Call extends Expression
 {
 	public function __construct(
 		/** null for a global function, class name for a static call, expression for a method call */
 		public readonly Expression|string|null $target,
 		public readonly string $name,
 		/** @var array<mixed> */
-		public array $arguments = [],
+		public readonly array $arguments = [],
 	) {
 	}
 
@@ -173,15 +172,5 @@ final class Call extends Statement
 		}
 
 		return $target;
-	}
-
-
-	/**
-	 * Legacy Statement-shaped entity, for code inspecting completed definitions.
-	 * @return array{Expression|string, string}
-	 */
-	public function getEntity(): array
-	{
-		return [$this->target ?? '', $this->name];
 	}
 }
