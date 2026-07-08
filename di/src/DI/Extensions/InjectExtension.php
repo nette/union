@@ -9,7 +9,10 @@ namespace Nette\DI\Extensions;
 
 use Nette;
 use Nette\DI;
+use Nette\DI\Attributes\Hook;
+use Nette\DI\ContainerBuilder;
 use Nette\DI\Definitions;
+use Nette\DI\Phase;
 use Nette\Utils\Reflection;
 use function array_keys, array_reverse, array_search, array_unshift, get_class_methods, is_a, is_subclass_of, ksort, sprintf, str_starts_with, uksort;
 
@@ -31,9 +34,10 @@ final class InjectExtension extends DI\CompilerExtension
 	}
 
 
-	public function beforeCompile(): void
+	#[Hook(Phase::Modify, after: '*')]
+	public function doProcessInjectAttributes(ContainerBuilder $builder): void
 	{
-		foreach ($this->getContainerBuilder()->getDefinitions() as $def) {
+		foreach ($builder->getDefinitions() as $def) {
 			if ($def->getTag(self::TagInject)) {
 				$def = $def instanceof Definitions\FactoryDefinition
 					? $def->getResultDefinition()

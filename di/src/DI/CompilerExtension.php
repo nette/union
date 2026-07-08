@@ -157,7 +157,73 @@ abstract class CompilerExtension
 
 
 	/**
+	 * Registers phase handlers. Called by Compiler before running phases.
+	 * Override to conditionally register handlers or use manual hook() calls.
+	 */
+	public function register(): void
+	{
+		$this->registerAttributeHandlers();
+		$this->registerLegacyHandlers();
+	}
+
+
+	/**
+	 * Registers a phase handler. Use in register() as an alternative to the #[Hook] attribute,
+	 * e.g. for conditional registration. The handler is owned by this extension, so before/after
+	 * constraints of other extensions target it.
+	 * @param  string|string[]|null  $before  extension(s) before which the handler should run
+	 * @param  string|string[]|null  $after   extension(s) after which the handler should run
+	 */
+	protected function hook(
+		Phase $phase,
+		\Closure $callback,
+		string|array|null $before = null,
+		string|array|null $after = null,
+	): void
+	{
+		$this->compiler->addHook($phase, $callback, $this, $before, $after);
+	}
+
+
+	/**
+	 * Registers handlers marked with #[Hook] attribute.
+	 */
+	protected function registerAttributeHandlers(): void
+	{
+		$rc = new \ReflectionClass($this);
+		foreach ($rc->getMethods() as $method) {
+			foreach ($method->getAttributes(Attributes\Hook::class) as $attr) {
+				$hook = $attr->newInstance();
+				$this->hook($hook->phase, $method->getClosure($this), $hook->before, $hook->after);
+			}
+		}
+	}
+
+
+	/**
+	 * Registers legacy handlers for backward compatibility.
+	 */
+	protected function registerLegacyHandlers(): void
+	{
+		$rc = new \ReflectionClass($this);
+
+		if ($rc->getMethod('loadConfiguration')->getDeclaringClass()->name !== self::class) {
+			$this->hook(Phase::Register, $this->loadConfiguration(...));
+		}
+
+		if ($rc->getMethod('beforeCompile')->getDeclaringClass()->name !== self::class) {
+			$this->hook(Phase::Modify, $this->beforeCompile(...));
+		}
+
+		if ($rc->getMethod('afterCompile')->getDeclaringClass()->name !== self::class) {
+			$this->hook(Phase::Compile, $this->afterCompile(...));
+		}
+	}
+
+
+	/**
 	 * Processes extension configuration and registers services. Override in subclasses.
+	 * Deprecated: use #[Hook(Phase::Register)]
 	 * @return void
 	 */
 	public function loadConfiguration()
@@ -167,6 +233,7 @@ abstract class CompilerExtension
 
 	/**
 	 * Adjusts the container before compilation. Override in subclasses.
+	 * Deprecated: use #[Hook(Phase::Modify)]
 	 * @return void
 	 */
 	public function beforeCompile()
@@ -176,6 +243,7 @@ abstract class CompilerExtension
 
 	/**
 	 * Adjusts the generated container class. Override in subclasses.
+	 * Deprecated: use #[Hook(Phase::Compile)]
 	 * @return void
 	 */
 	public function afterCompile(Nette\PhpGenerator\ClassType $class)
