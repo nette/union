@@ -14,7 +14,7 @@ use Nette\DI\ContainerBuilder;
 use Nette\DI\Definitions;
 use Nette\DI\Phase;
 use Nette\Utils\Reflection;
-use function array_keys, array_reverse, array_search, array_unshift, get_class_methods, is_a, is_subclass_of, ksort, sprintf, str_starts_with, uksort;
+use function array_keys, array_reverse, array_search, array_unshift, get_class_methods, is_a, is_subclass_of, ksort, sprintf, str_starts_with, substr, uksort;
 
 
 /**
@@ -64,7 +64,12 @@ final class InjectExtension extends DI\CompilerExtension
 
 		foreach (self::getInjectProperties($class) as $property => $type) {
 			$builder = $this->getContainerBuilder();
-			$inject = new Definitions\Statement(['@self', '$' . $property], [DI\Expressions\Reference::fromType((string) $type)]);
+			$inject = new DI\Expressions\PropertyAccess(
+				new DI\Expressions\Reference(DI\Expressions\Reference::Self),
+				$property,
+				DI\Expressions\PropertyMode::Assign,
+				DI\Expressions\Reference::fromType((string) $type),
+			);
 			foreach ($setups as $key => $setup) {
 				if ($setup->getEntity() == $inject->getEntity()) { // intentionally ==
 					$inject = $setup;
@@ -80,7 +85,7 @@ final class InjectExtension extends DI\CompilerExtension
 		}
 
 		foreach (array_reverse(self::getInjectMethods($class)) as $method) {
-			$inject = new Definitions\Statement(['@self', $method]);
+			$inject = new DI\Expressions\Call(new DI\Expressions\Reference(DI\Expressions\Reference::Self), $method);
 			foreach ($setups as $key => $setup) {
 				if ($setup->getEntity() == $inject->getEntity()) { // intentionally ==
 					$inject = $setup;
