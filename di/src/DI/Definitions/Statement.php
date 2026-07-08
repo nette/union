@@ -185,6 +185,3 @@ class Statement extends Expression
 		return $this->specialize($this->entity)->generateCode($generator);
 	}
 }
-
-
-class_exists(Nette\DI\Statement::class);
