@@ -6,7 +6,7 @@
  */
 
 use Nette\DI\Definitions\Statement;
-use Nette\DI\Definitions\Reference;
+use Nette\DI\Expressions\Reference;
 use Nette\DI\Helpers;
 use Tester\Assert;
 

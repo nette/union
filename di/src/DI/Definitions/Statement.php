@@ -9,6 +9,7 @@ namespace Nette\DI\Definitions;
 
 use Nette;
 use Nette\DI\Expression;
+use Nette\DI\Expressions\Reference;
 use function array_keys, class_exists, explode, is_array, is_string, str_contains, str_starts_with, substr;
 
 

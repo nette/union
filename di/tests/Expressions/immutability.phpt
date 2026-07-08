@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Nette\DI;
 use Nette\DI\Definitions\Statement;
-use Nette\DI\Definitions\Reference;
+use Nette\DI\Expressions\Reference;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';

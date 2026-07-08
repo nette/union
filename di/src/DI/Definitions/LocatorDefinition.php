@@ -8,6 +8,7 @@
 namespace Nette\DI\Definitions;
 
 use Nette;
+use Nette\DI\Expressions\Reference;
 use function array_map, interface_exists, lcfirst, preg_match, sprintf, str_starts_with, substr;
 
 

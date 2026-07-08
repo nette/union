@@ -9,8 +9,8 @@ namespace Nette\DI;
 
 use Nette;
 use Nette\DI\Definitions\Definition;
-use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\Statement;
+use Nette\DI\Expressions\Reference;
 use Nette\PhpGenerator\Helpers as PhpHelpers;
 use Nette\Utils\Arrays;
 use Nette\Utils\Callback;
