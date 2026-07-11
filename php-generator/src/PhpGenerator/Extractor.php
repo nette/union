@@ -429,6 +429,7 @@ final class Extractor
 			$const = $class->addConstant($item->name->toString(), $this->toValue($item->value));
 			$const->setVisibility($this->toVisibility($node->flags));
 			$const->setFinal($node->isFinal());
+			$const->setType($node->type ? $this->toPhp($node->type) : null);
 			$this->addCommentAndAttributes($const, $node);
 		}
 	}
